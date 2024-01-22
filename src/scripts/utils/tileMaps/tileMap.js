@@ -1,0 +1,485 @@
+/**
+ * @file Tile map
+ *
+ * @module utils/tileMaps/tileMap
+ *
+ * @license
+ * Copyright 2024 Steve Butler
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the “Software”), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+import { Sprite } from '../sprites/sprite.js';
+import { getSpriteBitmap } from '../sprites/imageManager.js';
+import {
+  ImageSpriteCanvasRenderer,
+  RectSpriteCanvasRenderer,
+} from '../sprites/spriteRenderers.js';
+import { Point } from '../geometry.js';
+import { UiClickHandler } from '../ui/interactions.js';
+import { randomise } from '../arrays/arrayManip.js';
+import { getSurrounds } from '../arrays/arrayManip.js';
+
+/**
+ * @typedef {import('./pathFinder.js').Routes} Routes
+ * @typedef {import('../sprites/sprite.js').SpriteClickHandler} SpriteClickHandler
+ * @typedef {import('../geometry.js').Dims2D} Dims2D
+ * @typedef {import('../ui/interactions.js').UiClickHandler} UiClickHandler
+ * @typedef {import('../game/actors.js').Actor} Actor
+ */
+
+/**
+ * Roles that tiles adopt.
+ * @enum {number}
+ */
+export const TileRole = {
+  OBSTACLE: -1,
+  GROUND: 0,
+  ENTRANCE: 1,
+  EXIT: 2,
+  STAIRS_UP: 3,
+  STAIRS_DOWN: 4,
+};
+/**
+ * @typedef {Object} TileDefinition
+ * @property {TileRole} role
+ * @property {SpriteClickHandler} onClick
+ * @property {SpriteClickHandler} onContextClick
+ * @property {string} image - used to create the sprite.
+ */
+
+/**
+ * Tile class
+ */
+export class Tile extends UiClickHandler {
+  /** @type {Sprite} */
+  sprite;
+  /** @type {boolean} */
+  obstacle;
+  /** @type {Object[]} */
+  #occupants;
+  /** @type {Point} */
+  #gridPoint;
+  /** @type {Point} */
+  #worldPoint;
+
+  /** Construct tile
+   * @param {Sprite} tileSprite;
+   * @param {Object} options;
+   * @param {boolean} options.obstacle;
+   * @param {!Point} options.gridPoint;
+   * @param {!Point} options.worldPoint;
+   */
+  constructor(tileSprite, options) {
+    super();
+    this.sprite = tileSprite;
+    this.#occupants = new Map();
+    this.obstacle = options.obstacle;
+    this.#gridPoint = options.gridPoint;
+    this.#worldPoint = options.worldPoint;
+  }
+
+  /**
+   * Get the grid point.
+   * @returns {Point}
+   */
+  get gridPoint() {
+    return this.#gridPoint;
+  }
+  /**
+   * Get the world point.
+   * @returns {Point}
+   */
+  get worldPoint() {
+    return this.#worldPoint;
+  }
+
+  /** Add occupant.
+   * @param {Object}
+   */
+  addOccupant(occupant) {
+    this.#occupants.set(occupant, occupant);
+  }
+
+  /** Remove occupant.
+   * @param {Object}
+   */
+  deleteOccupant(occupant) {
+    this.#occupants.delete(occupant);
+  }
+
+  /**
+   * Handle the click but change the point to the sprites' position
+   */
+  actionClick(pointUnused) {
+    super.actionClick(this.sprite.position);
+  }
+  /**
+   * Handle the click but change the point to the sprites' position
+   */
+  actionContextClick(pointUnused) {
+    super.actionClick(this.sprite.position);
+  }
+
+  /**
+   * Test if occupied
+   * @returns {boolean}
+   */
+  isOccupied() {
+    return this.#occupants.size > 0;
+  }
+
+  /**
+   * Test if tile can be passed by the actor
+   * @param {Object} actor
+   * @returns {boolean}
+   */
+  isPassableByActor(actor) {
+    if (this.obstacle) {
+      return false;
+    }
+    for (const occupant of this.#occupants.values()) {
+      console.log(
+        `Can I pass occupant ${typeof occupant}. Obstacle = ${
+          occupant.obstacle
+        }`,
+        occupant
+      );
+      if (occupant !== actor && occupant.obstacle) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+/**
+ * Tile map
+ */
+export class TileMap {
+  /** @type {Array.<TileDefinition>} */
+  #plan;
+  /** @type {Tile[]} */
+  #tiles;
+  #tilesX;
+  #tilesY;
+  #gridSize;
+  #width;
+  #height;
+  /** @type {Routes} */
+  #highlightedRoutes;
+
+  /** @type {Sprite} */
+  #tileHighlighter;
+  /** @type {Tile} */
+  #entrance;
+  /** @type {Tile} */
+  #exit;
+  /** @type {Tile[]} */
+  #randomGround;
+
+  /**
+   * Create tile map from 2D matrix
+   * @param {CanvasRenderingContext2D} context
+   * @param {Array.<TileDefinition>} plan
+   * @param {number} gridSize - in world coordinates
+   */
+  constructor(context, plan, gridSize) {
+    this.#plan = plan;
+    this.#tileHighlighter = new Sprite({
+      renderer: new RectSpriteCanvasRenderer(context, {
+        width: gridSize,
+        height: gridSize,
+        fillStyle: 'green',
+        strokeStyle: 'red',
+      }),
+    });
+    this.#gridSize = gridSize;
+    this.#tiles = [];
+    this.#tilesY = plan.length;
+    this.#tilesX = plan[0].length;
+    this.#width = gridSize * this.tilesX;
+    this.#height = gridSize * this.tilesY;
+    this.#randomGround = [];
+    plan.forEach((row, rowIndex) => {
+      const tileRow = [];
+      this.#tiles.push(tileRow);
+      row.forEach((tileDefn, columnIndex) => {
+        if (tileDefn) {
+          const sprite = new Sprite({
+            renderer: new ImageSpriteCanvasRenderer(
+              context,
+              getSpriteBitmap(0, tileDefn.image)
+            ),
+          });
+          const gridPoint = new Point(columnIndex, rowIndex);
+          const worldPoint = this.gridPointToWorldPoint(gridPoint);
+          let tile = new Tile(sprite, {
+            obstacle: tileDefn.role === TileRole.OBSTACLE,
+            gridPoint: gridPoint,
+            worldPoint: worldPoint,
+          });
+          if (tileDefn.onClick) {
+            tile.setOnClick((target, point) =>
+              this.#filterClick(target, point, tileDefn.onClick)
+            );
+            tile.setOnContextClick(tileDefn.onContextClick);
+          }
+          this.processRole(tileDefn.role, tile);
+          tileRow.push(tile);
+          sprite.position.x = columnIndex * this.#gridSize + this.#gridSize / 2;
+          sprite.position.y = rowIndex * this.#gridSize + this.#gridSize / 2;
+        } else {
+          tileRow.push(null);
+        }
+      });
+    });
+    if (!this.#entrance) {
+      console.log('No entrance has been set. Setting to the first ground tile');
+      this.#entrance = this.#randomGround[0];
+    }
+  }
+
+  /**
+   * Process a tile's specific role.
+   * @param {TileDefinition} role
+   * @param {Tile} tile
+   */
+  processRole(role, tile) {
+    switch (role) {
+      case TileRole.ENTRANCE:
+        if (this.#entrance) {
+          const gp = tile.gridPoint;
+          console.log(
+            `Duplicate entrance found at (${gp.x}, ${gp.y}). Ignored.`
+          );
+        } else {
+          this.#entrance = tile;
+        }
+        break;
+      case TileRole.EXIT:
+        if (this.#exit) {
+          const gp = tile.gridPoint;
+          console.log(`Duplicate exit found at (${gp.x}, ${gp.y}). Ignored.`);
+        } else {
+          this.#exit = tile;
+        }
+        break;
+      case TileRole.GROUND:
+        this.#randomGround.push(tile);
+        break;
+    }
+  }
+
+  /**
+   * Update method to render tiles.
+   * @param {number} deltaSeconds - elapsed time.
+   */
+  update(deltaSeconds) {
+    this.#tiles.forEach((row) => {
+      row.forEach((tile) => {
+        tile?.sprite.update(deltaSeconds);
+      });
+    });
+    this.#highlightTiles(deltaSeconds);
+  }
+
+  /** Get world dimensions.
+   * @returns {Dims2D}
+   */
+  getDimensions() {
+    return { width: this.#width, height: this.#height };
+  }
+
+  /**
+   * Get sprite at position.
+   * @param {Point} point - in world coordinates.
+   * @returns {Tile} null if no tile.
+   */
+  getTileAtWorldPoint(point) {
+    const gridPoint = this.worldPointToGrid(point);
+    return this.getTileAtGridPoint(gridPoint);
+  }
+
+  /**
+   * Get sprite at position.
+   * @param {Point} point - in grid coordinates.
+   * @returns {Tile} null if no tile.
+   */
+  getTileAtGridPoint(gridPoint) {
+    if (!gridPoint) {
+      return null;
+    }
+    const row = gridPoint.y;
+    const col = gridPoint.x;
+    if (col >= 0 && row >= 0 && col < this.#tilesX && row < this.#tilesY) {
+      return this.#tiles[row][col];
+    }
+    return null;
+  }
+
+  /**
+   * Convert world coordinate to mad grid reference.
+   * @param {Point} point
+   * @returns {Point}
+   */
+  worldPointToGrid(point) {
+    return new Point(
+      Math.floor(point.x / this.#gridSize),
+      Math.floor(point.y / this.#gridSize)
+    );
+  }
+
+  /**
+   * Get a world point aligned to the centre of a tile
+   * @param {Point} point
+   */
+  gridAlignedWorldPoint(point) {
+    const gridPoint = this.worldPointToGrid(point);
+    return this.gridPointToWorldPoint(gridPoint);
+  }
+
+  /** Convert a point in tile coordinates to world coordinates.
+   * @param {Point}
+   * @returns {Point}
+   */
+  gridPointToWorldPoint(point) {
+    const halfGrid = 0.5 * this.#gridSize;
+    return new Point(
+      point.x * this.#gridSize + halfGrid,
+      point.y * this.#gridSize + halfGrid
+    );
+  }
+
+  /** Get the world position of the entrance. The default is the first tile if there
+   * is no door
+   * @returns {Point}
+   */
+  getWorldPositionOfEntrance() {
+    return this.gridPointToWorldPoint(this.getGridPositionOfEntrance());
+  }
+  /** Get the grid position of the door at index. If there are no doors, then
+   * the entrance is the first ground tile
+   * @returns {Point}
+   */
+  getGridPositionOfEntrance() {
+    return this.#entrance.gridPoint;
+  }
+
+  /**
+   * Set the highlighted routes.
+   * @param {*} routes
+   */
+  setHighlightedRoutes(routes) {
+    this.#highlightedRoutes = routes;
+  }
+
+  /**
+   * Highlight routes marked by the highlighter.
+   * @param {number} deltaSeconds
+   */
+  #highlightTiles(deltaSeconds) {
+    this.#highlightedRoutes?.forEach((gridPoints) =>
+      gridPoints.forEach((gridPoint) => {
+        this.#tileHighlighter.position = this.gridPointToWorldPoint(gridPoint);
+        this.#tileHighlighter.update(deltaSeconds);
+      })
+    );
+  }
+
+  /**
+   * Handle a tile click.
+   * To be actioned a tile must be in the highlightedRoutes
+   * @param {Sprite} target - the sprite that was clicked. This prevents the need
+   * to use 'this' which may not be correct in the context.
+   * @param {Point} point - the position in the world that was clicked
+   * @param {SpriteClickHandler} clickHandler
+   */
+  #filterClick(target, point, clickHandler) {
+    if (
+      this.#highlightedRoutes?.containsGridPoint(this.worldPointToGrid(point))
+    ) {
+      clickHandler(target, point);
+    } else {
+      console.log('Ignore click outside of highlighted area');
+    }
+  }
+
+  /**
+   * Get waypoints to reach destination grid point
+   * @param {Point} worldPoint - destination
+   * @returns {Point[]} null if no route currently found.
+   */
+  getWaypointsToWorldPoint(worldPoint) {
+    const destination = this.worldPointToGrid(worldPoint);
+    return this.#highlightedRoutes?.getWaypointsAsWorldPoints(destination);
+  }
+
+  /**
+   * Get a random unoccupied ground tile.
+   * @returns {Tile} null if no free ground tile.
+   */
+  getRandomFreeGroundTile() {
+    randomise(this.#randomGround);
+    for (const tile of this.#randomGround) {
+      if (!tile.isOccupied()) {
+        return tile;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Test if point is passable.
+   * @param {Point} gridPoint - row and col coordinates.
+   * @param {Actor} actor - actor trying to pass
+   * @returns {boolean}
+   */
+  isGridPointPassableByActor(gridPoint, actor) {
+    const tile = this.getTileAtGridPoint(gridPoint);
+    if (!tile) {
+      return false;
+    }
+
+    return tile.isPassableByActor(actor);
+  }
+
+  /**
+   * Get the tiles surrounding a reference.
+   * @param {Point} gridPoint
+   */
+  getSurroundingTiles(gridPoint) {
+    return getSurrounds(this.#tiles, gridPoint.y, gridPoint.x);
+  }
+
+  /**
+   * Set the object's tile occupancy. It is removed from the list of occupants
+   * of the tile at the previous point and added to those of the next.
+   * @param {Object} occupant
+   * @param {Point} oldGridPoint
+   * @param {Point} newGridPoint
+   */
+  moveTileOccupancyGridPoint(occupant, oldGridPoint, newGridPoint) {
+    if (newGridPoint !== oldGridPoint) {
+      this.getTileAtGridPoint(oldGridPoint)?.deleteOccupant(occupant);
+      this.getTileAtGridPoint(newGridPoint)?.addOccupant(occupant);
+    }
+  }
+}

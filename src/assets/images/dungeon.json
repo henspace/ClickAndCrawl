@@ -1,0 +1,133 @@
+{
+  "frames": [
+    {
+      "filename": "corner-BL.png",
+      "frame": { "x": 1, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "corner-BR.png",
+      "frame": { "x": 51, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "corner-TL.png",
+      "frame": { "x": 101, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "corner-TR.png",
+      "frame": { "x": 151, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "default.png",
+      "frame": { "x": 201, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "door-H.png",
+      "frame": { "x": 251, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "door-V.png",
+      "frame": { "x": 301, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "floor.png",
+      "frame": { "x": 351, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "player001.png",
+      "frame": { "x": 651, "y": 1, "w": 46, "h": 48 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 46, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "player002.png",
+      "frame": { "x": 699, "y": 1, "w": 45, "h": 48 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 45, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "player003.png",
+      "frame": { "x": 401, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "wall-BOTTOM.png",
+      "frame": { "x": 451, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "wall-LEFT.png",
+      "frame": { "x": 501, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "wall-RIGHT.png",
+      "frame": { "x": 551, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    },
+    {
+      "filename": "wall-TOP.png",
+      "frame": { "x": 601, "y": 1, "w": 48, "h": 48 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+      "sourceSize": { "w": 48, "h": 48 }
+    }
+  ],
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "dungeon.png",
+    "format": "RGBA8888",
+    "size": { "w": 745, "h": 50 },
+    "scale": "1",
+    "smartupdate": "$TexturePacker:SmartUpdate:d462d39cce6c08c7f8548bd6d5264420:79d3a164b5504c6921424dff8ab56f1d:3966f244bf6f0a24de404873140aeac2$"
+  }
+}

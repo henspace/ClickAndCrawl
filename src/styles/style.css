@@ -1,0 +1,116 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+#browser-css-not-supported {
+  display: none;
+}
+
+@supports not ((display: flex) and (transform: translate(50%, 50%))) {
+  #stage {
+    display: none !important;
+  }
+  #browser-css-not-supported {
+    display: block !important;
+  }
+}
+
+:root {
+  --primary-base: rgb(32, 96, 32);
+  --primary-contrast: rgb(255, 255, 255);
+  --primary-highlight: rgb(51, 153, 51);
+
+  --secondary-base: rgb(38, 38, 115);
+  --secondary-contrast: rgb(255, 255, 255);
+  --secondary-highlight: rgb(51, 51, 153);
+
+  --tertiary-base: rgb(115, 38, 38);
+  --tertiary-contrast: rgb(255, 255, 255);
+  --tertiary-highlight: rgb(153, 51, 51);
+
+  --background-base: rgb(242, 242, 242);
+  --background-contrast: rgb(0, 0, 0);
+  --background-highlight: rgb(217, 217, 217);
+
+  --error-base: rgb(134, 45, 45);
+  --error-contrast: rgb(255, 255, 255);
+  --error-highlight: rgb(204, 102, 102);
+
+  --window-base: rgb(255, 255, 255);
+  --window-contrast: rgb(0, 0, 0);
+  --window-highlight: rgb(230, 230, 230);
+
+  --padding-thickness: 0.25rem;
+  --font-base-size: 15px;
+  --line-thickness: max(2px, 0.2rem);
+  --outline-thickness: 2px;
+  --outline-offset: calc(0.5 * var(--outline-thickness));
+  --panel-border: solid var(--line-thickness);
+  --margin-thickness: calc(var(--outline-offset) + var(--line-thickness));
+  --vh: 1vh;
+}
+
+html {
+  background-color: var(--window-base);
+  color: var(--window-contrast);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: calc(var(--font-base-size) + 0.00390625 * var(--design-width));
+  margin: 0;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+canvas {
+  border: solid 1px red;
+}
+
+#glass {
+  background-color: rgba(100, 100, 100, 0.5);
+}
+
+#glass-content {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+#glass-content > div {
+  background-color: white;
+  color: green;
+  width: 50%;
+  height: 100px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Space Grotesk', sans-serif; /* cspell disable-line */
+}
+
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.5rem;
+}
+h3 {
+  font-size: 1.2rem;
+}
+
+.close-button {
+  background-color: black;
+  color: white;
+  padding: 1 1 1 1;
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: center;
+}
+
+.close-button::before {
+  content: 'X';
+}
