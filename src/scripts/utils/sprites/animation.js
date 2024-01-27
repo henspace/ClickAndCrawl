@@ -4,6 +4,8 @@
  * @module utils/sprites/animation
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,20 +28,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as imageManager from './imageManager.js';
-import { getFrameCount } from '../time/clock.js';
+import IMAGE_MANAGER from './imageManager.js';
+import GAME_CLOCK from '../time/clock.js';
 import { Indexer } from '../arrays/indexer.js';
 
-/**
- * @typedef {import('./imageManager.js').SpriteBitmap} SpriteBitmap
- */
 /**
  * Collection of SpriteBitmap objects
  */
 export class AnimatedImage {
   /** @type {boolean} */
   playing;
-  /** @type {SpriteBitmap[]} */
+  /** @type {import('./imageManager.js').SpriteBitmap[]} */
   #frames;
   /** @type {Indexer} */
   #indexer;
@@ -65,7 +64,7 @@ export class AnimatedImage {
     this.#lastFrameCount = 0;
     this.#framePeriodMs = Math.max(1, options.framePeriodMs);
     if (typeof filenamePattern === 'string') {
-      this.#frames.push(imageManager.getFrame(textureIndex, filenamePattern));
+      this.#frames.push(IMAGE_MANAGER.getFrame(textureIndex, filenamePattern));
       return;
     }
     let index = filenamePattern.startIndex ?? 0;
@@ -75,7 +74,7 @@ export class AnimatedImage {
       const fileName = `${filenamePattern.prefix}${index
         .toString()
         .padStart(padding, '0')}${filenamePattern.suffix}`;
-      textureFrame = imageManager.getSpriteBitmap(textureIndex, fileName); // imageManager.getFrame(textureIndex, fileName);
+      textureFrame = IMAGE_MANAGER.getSpriteBitmap(textureIndex, fileName); // imageManager.getFrame(textureIndex, fileName);
       if (textureFrame) {
         this.#frames.push(textureFrame);
       }
@@ -87,11 +86,11 @@ export class AnimatedImage {
 
   /**
    * Get current frame
-   * @returns {SpriteBitmap}
+   * @returns {import('./imageManager.js').SpriteBitmap}
    */
   getCurrentFrame() {
     if (this.playing) {
-      const frameCount = getFrameCount(this.#framePeriodMs);
+      const frameCount = GAME_CLOCK.getFrameCount(this.#framePeriodMs);
       if (frameCount !== this.#lastFrameCount) {
         this.#indexer.advanceBy(frameCount - this.#lastFrameCount);
         this.#lastFrameCount = frameCount;
@@ -154,7 +153,7 @@ export class KeyedAnimatedImages {
 
   /**
    * Get current frame
-   * @returns {SpriteBitmap}
+   * @returns {import('./imageManager.js').SpriteBitmap}
    */
   getCurrentFrame() {
     return this.#currentImage.getCurrentFrame();

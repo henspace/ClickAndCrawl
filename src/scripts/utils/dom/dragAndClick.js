@@ -1,9 +1,11 @@
 /**
- * @file Drag and click within an element
+ * @file Functions to allow drag and click within an element.
  *
  * @module utils/dom/dragAndClick
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -31,6 +33,7 @@ const MIN_DRAG_MOVEMENT = 10;
  * Custom event name
  */
 export const CUSTOM_DRAG_EVENT_NAME = 'custom-drag-event';
+export const CUSTOM_END_DRAG_EVENT_NAME = 'custom-end-drag-event';
 export const CUSTOM_CLICK_EVENT_NAME = 'custom-click-event';
 
 /**
@@ -73,15 +76,16 @@ function processStartAction(x, y, data) {
  * @param {number} x - x coordinate relative to target
  * @param {number} y - y coordinate relative to target
  * @param {DragData} data
+ * @param {string} eventName
  * @return {CustomEvent} null if no event should be dispatched.
  */
-function processMoveAction(x, y, data) {
+function processMoveAction(x, y, data, eventName) {
   let dx = x - data.lastX;
   let dy = y - data.lastY;
   data.lastX = x;
   data.lastY = y;
   if (data.dragging) {
-    const event = new CustomEvent(CUSTOM_DRAG_EVENT_NAME, {
+    const event = new CustomEvent(eventName, {
       detail: {
         x: x,
         y: y,
@@ -95,6 +99,20 @@ function processMoveAction(x, y, data) {
     Math.abs(y - data.startY) > MIN_DRAG_MOVEMENT
   ) {
     data.dragging = true;
+  }
+}
+
+/**
+ * Process the end of a touch event.
+ * @param {DragData} data
+ *
+ */
+function processTouchEndAction(data) {
+  if (data.dragging) {
+    const event = new CustomEvent(CUSTOM_END_DRAG_EVENT_NAME, {
+      detail: null,
+    });
+    data.element.dispatchEvent(event);
   }
 }
 
@@ -128,8 +146,8 @@ function processClickAction(x, y, data) {
 function getOffsetFromTouch(event) {
   const rect = event.target.getBoundingClientRect();
   return {
-    offsetX: event.touches[0].pageX - rect.left,
-    offsetY: event.touches[0].pageY - rect.top,
+    x: event.touches[0].pageX - rect.left,
+    y: event.touches[0].pageY - rect.top,
   };
 }
 
@@ -155,7 +173,27 @@ export function addDragAndClickListeners(element) {
     'mousemove',
     (event) => {
       if (event.buttons & 1) {
-        processMoveAction(event.offsetX, event.offsetY, dragData);
+        console.log('Mouse move');
+        processMoveAction(
+          event.offsetX,
+          event.offsetY,
+          dragData,
+          CUSTOM_DRAG_EVENT_NAME
+        );
+      }
+    },
+    { passive: true }
+  );
+  element.addEventListener(
+    'mouseup',
+    (event) => {
+      if (dragData.dragging) {
+        processMoveAction(
+          event.offsetX,
+          event.offsetY,
+          dragData,
+          CUSTOM_END_DRAG_EVENT_NAME
+        );
       }
     },
     { passive: true }
@@ -175,7 +213,16 @@ export function addDragAndClickListeners(element) {
     (event) => {
       if (event.changedTouches.length === 1) {
         const offset = getOffsetFromTouch(event);
-        processMoveAction(offset.x, offset.y, dragData);
+        processMoveAction(offset.x, offset.y, dragData, CUSTOM_DRAG_EVENT_NAME);
+      }
+    },
+    { passive: true }
+  );
+  element.addEventListener(
+    'touchend',
+    (event) => {
+      if (event.changedTouches.length === 1) {
+        processTouchEndAction(dragData);
       }
     },
     { passive: true }

@@ -4,6 +4,8 @@
  * @module utils/sprites/sprite
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,11 +29,6 @@
  */
 import { Position, Rectangle, Velocity } from '../geometry.js';
 import { SpriteCanvasRenderer } from './spriteRenderers.js'; //eslint-disable-line no-unused-vars
-//user.transact-online.co.uk/Login
-/**
- * @typedef {import('../geometry.js').Point} Point
- * @typedef {import('./modifiers.js').AbstractModifier} AbstractModifier
- */
 
 /**
  * @typedef {function} SpriteClickHandler

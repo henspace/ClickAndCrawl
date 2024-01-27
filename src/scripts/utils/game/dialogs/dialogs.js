@@ -1,13 +1,12 @@
 /**
- * @file Encapsulation of a Scene. A scene equates normally to a level in a
- * dungeon.
+ * @file Dialogs for use in the game
  *
- * @module utils/game/scene
+ * @module utils/game/dialogs/dialogs
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
  *
- * Copyright 2024 Steve Butler
+ * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
@@ -28,31 +27,31 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * Scene methods.
- * @interface Scene
- */
+
+import { createMessageElement } from '../../dom/ui.js';
+import SCREEN from '../screen.js';
 
 /**
- * Called at start. Game waits for preload before calling initialise.
- * @function Scene#load
- * @returns {Promise} fulfills to null
+ * Dialog response codes.
  */
+export const DialogResponse = {
+  OK: 0,
+  CANCEL: 1,
+  YES: 2,
+  NO: 3,
+};
 
-/**
- * Called after load. Game waits for initialise before starting the loop.
- * @function Scene#initialise
- * @returns {Promise} fulfills to null
+/** Create an okDialog.
+ * @param {string} message
+ * @param {string} [okButtonLabel = 'OK']
+ * @returns {Promise} fulfils to DialogResponse.OK
  */
-
-/**
- * Called in animation phase
- * @function Scene#update
- * @param {number} deltaSeconds
- */
-
-/**
- * Called when scene swapped out
- * @function Scene#unload
- * @returns {Promise} fulfills to null
- */
+export function showOkDialog(message, okButtonLabel = 'OK') {
+  return new Promise((resolve) => {
+    SCREEN.displayHtmlElement(createMessageElement(message));
+    const buttonEl = document.createElement('button');
+    buttonEl.appendChild(document.createTextNode(okButtonLabel));
+    buttonEl.onclick = () => resolve(DialogResponse.OK);
+    SCREEN.appendHtmlElement(buttonEl);
+  });
+}

@@ -1,9 +1,11 @@
 /**
- * @file Utilities to simplify writing to the UI
+ * @file Utility functions to simplify writing to the UI
  *
  * @module utils/dom/ui
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,10 +29,10 @@
  */
 
 /**
- * Get a message element.
+ * Get a message element. This returns a div which contains the message text.
  * @param {string} message
  */
-export function messageElement(message) {
+export function createMessageElement(message) {
   const element = document.createElement('div');
   element.innerText = message;
   element.classList.add(['scrollable']);

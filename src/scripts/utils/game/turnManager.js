@@ -1,9 +1,12 @@
 /**
- * @file Manage the game turns. The turnManager is a state machine.
+ * @file Manage the game turns. The turnManager is a state machine and implemented
+ * as a singleton.
  *
  * @module utils/game/turnManager/turnManager
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,17 +31,13 @@
 import { RouteFinder } from '../tileMaps/pathFinder.js';
 import { PathFollower } from '../sprites/movers.js';
 
-import * as world from './world.js';
-/**
- * @typedef {import('./actors.js').Actor} Actor
- * @typedef {import('../sprites/sprite.js').Sprite} Sprite
- */
+import WORLD from './world.js';
 
 /**
  * Enumeration of supported events
  * @enum {number}
  */
-export const EventId = {
+const EventId = {
   CLICKED_FREE_GROUND: 0,
   CLICKED_ENTRANCE: 1,
   CLICKED_EXIT: 2,
@@ -72,7 +71,7 @@ class State {
   /**
    * Handle event.
    * @param {number} eventId
-   * @param {Sprite} sprite - the sprite initiating the event
+   * @param  {import('../sprites/sprite.js').Sprite} sprite - the sprite initiating the event
    * @param {Object} detail - object will depend on the eventId
    * @returns {Promise} fulfills to null
    */
@@ -94,14 +93,14 @@ class State {
  */
 class AtStart extends State {
   _onExit() {
-    starActor.sprite.position = world.getTileMap().getWorldPositionOfEntrance();
+    heroActor.sprite.position = WORLD.getTileMap().getWorldPositionOfEntrance();
     return Promise.resolve(null);
   }
 }
 /**
- * State where the star is in the map.
+ * State where the hero is in the map.
  */
-class StarInMapIdle extends State {
+class HeroInMapIdle extends State {
   constructor() {
     super();
   }
@@ -110,10 +109,10 @@ class StarInMapIdle extends State {
    * @override
    */
   _onEntry() {
-    const tileMap = world.getTileMap();
-    const routes = new RouteFinder(tileMap, starActor).getAllRoutesFrom(
-      tileMap.worldPointToGrid(starActor.sprite.position),
-      starActor.maxTilesPerMove
+    const tileMap = WORLD.getTileMap();
+    const routes = new RouteFinder(tileMap, heroActor).getAllRoutesFrom(
+      tileMap.worldPointToGrid(heroActor.sprite.position),
+      heroActor.maxTilesPerMove
     );
     tileMap.setHighlightedRoutes(routes);
     return Promise.resolve(null);
@@ -121,22 +120,22 @@ class StarInMapIdle extends State {
   /**
    * @override
    * @param {number} eventId
-   * @param {Sprite} point - the point initiating the event
+   * @param  {import('../sprites/sprite.js').Sprite} point - the point initiating the event
    * @param {Object} detail - object will depend on the eventId
    */
   onEvent(eventId, point, detailUnused) {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND: {
-        const tileMap = world.getTileMap();
+        const tileMap = WORLD.getTileMap();
         const waypoints = tileMap.getWaypointsToWorldPoint(point);
         tileMap.setHighlightedRoutes(null);
         if (waypoints) {
           const modifier = new PathFollower(
             { path: waypoints, speed: 100 },
-            starActor.sprite.modifier
+            heroActor.sprite.modifier
           );
           modifier
-            .applyAsTransientToSprite(starActor.sprite)
+            .applyAsTransientToSprite(heroActor.sprite)
             .then(() => this.transitionTo(new ComputerInMap()));
         }
         break;
@@ -158,38 +157,38 @@ class ComputerInMap extends State {
   }
   async _onEntry() {
     await super._onEntry();
-    const tileMap = world.getTileMap();
-    const starGridPos = tileMap.worldPointToGrid(starActor.position);
+    const tileMap = WORLD.getTileMap();
+    const heroGridPos = tileMap.worldPointToGrid(heroActor.position);
     const routeFinder = new RouteFinder(tileMap);
-    for (const actor of world.getActors().values()) {
-      if (actor !== starActor) {
+    for (const actor of WORLD.getActors().values()) {
+      if (actor !== heroActor) {
         routeFinder.actor = actor;
         const actorGridPos = tileMap.worldPointToGrid(actor.position);
-        const waypoints = routeFinder.getDumbRouteNextTo(
-          actorGridPos,
-          starGridPos,
-          actor.maxTilesPerMove
-        );
-        if (waypoints.length > 0) {
-          const modifier = new PathFollower(
-            { path: waypoints, speed: 200 },
-            actor.sprite.modifier
+        if (tileMap.canHeroSeeGridPoint(actorGridPos)) {
+          const waypoints = routeFinder.getDumbRouteNextTo(
+            actorGridPos,
+            heroGridPos,
+            actor.maxTilesPerMove
           );
-          await modifier.applyAsTransientToSprite(actor.sprite);
-        } else {
-          this.transitionTo(new StarInMapIdle());
+          if (waypoints.length > 0) {
+            const modifier = new PathFollower(
+              { path: waypoints, speed: 200 },
+              actor.sprite.modifier
+            );
+            await modifier.applyAsTransientToSprite(actor.sprite);
+          }
         }
       }
     }
-    this.transitionTo(new StarInMapIdle());
+    this.transitionTo(new HeroInMapIdle());
     return Promise.resolve(null);
   }
 }
 
 /**
- * @type {Actor}
+ * @type {import('./actors.js').Actor}
  */
-let starActor;
+let heroActor;
 
 /**
  * @type {State}
@@ -199,26 +198,38 @@ let currentState = new AtStart();
 /**
  * Trigger an event. This will then be passed to the current State to handle.
  * @param {number} eventId
- * @param {Sprite} sprite - the sprite initiating the event
+ * @param  {import('../sprites/sprite.js').Sprite} sprite - the sprite initiating the event
  * @param {Object} detail - object will depend on the eventId
  */
-export function triggerEvent(eventId, sprite, detail) {
+function triggerEvent(eventId, sprite, detail) {
   currentState.onEvent(eventId, sprite, detail);
 }
 
 /**
- * Set the current star sprite.
- * @returns {Actor}
+ * Set the current hero sprite.
+ * @returns {import('./actors.js').Actor}
  */
-export function getStarActor() {
-  return starActor;
+function getHeroActor() {
+  return heroActor;
 }
 
 /**
  * Start
- * @param {Actor} actor - the star actor
+ * @param {import('./actors.js').Actor} actor - the hero actor
  */
-export function startWithStar(actor) {
-  starActor = actor;
-  currentState.transitionTo(new StarInMapIdle());
+function startWithHero(actor) {
+  heroActor = actor;
+  currentState.transitionTo(new HeroInMapIdle());
 }
+
+/**
+ * Single instance of the turn manager.
+ */
+const TURN_MANAGER = {
+  EventId: EventId,
+  getHeroActor: getHeroActor,
+  startWithHero: startWithHero,
+  triggerEvent: triggerEvent,
+};
+
+export default TURN_MANAGER;

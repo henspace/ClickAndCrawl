@@ -4,6 +4,8 @@
  * @module utils/time/clock
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -34,7 +36,7 @@ let currentTimeMs = 0;
 /**
  * @param {DOMHighResTimeStamp} timeNowMs
  */
-export function updateClock(timeNowMs) {
+function updateTimeNow(timeNowMs) {
   currentTimeMs = timeNowMs;
 }
 
@@ -43,6 +45,16 @@ export function updateClock(timeNowMs) {
  * @param {number} framePeriodMs - time between frames
  * @returns {number}
  */
-export function getFrameCount(framePeriodMs) {
+function getFrameCount(framePeriodMs) {
   return Math.floor(currentTimeMs / framePeriodMs);
 }
+
+/**
+ *  Game clock as singleton.
+ */
+const GAME_CLOCK = {
+  updateTimeNow: updateTimeNow,
+  getFrameCount: getFrameCount,
+};
+
+export default GAME_CLOCK;

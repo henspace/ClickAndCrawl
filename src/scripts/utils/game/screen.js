@@ -1,5 +1,6 @@
 /**
- * @file Utilities for handling the screen size.
+ * @file Utilities for handling the screen size. The screen is implemented as
+ * a singleton.
  * The game is configured as a world and a screen. The screen is the area that is
  * rendered with a canvas. The world is the total space in which objects can
  * exist. The world is potentially unbounded.
@@ -14,6 +15,8 @@
  * @module utils/screen
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -38,13 +41,6 @@
 
 import * as fonts from '../text/fonts.js';
 import { Position, Rectangle } from '../geometry.js';
-import * as world from './world.js';
-import * as hud from './hud.js';
-
-/**
- * @typedef {import('../geometry.js').Dims2D} Dims2D
- * @typedef {import('../geometry.js').Point} Point
- */
 
 /**
  * @typedef {Object} ScreenDetails
@@ -93,7 +89,7 @@ window.addEventListener('resize', () => {
  * @param {string} options.sizingMethod  - 'FIT' or 'COVER'. Defaults to 'FIT'
  * @param {boolean} options.alpha - Should canvas have an alpha channel
  */
-export function setScreen(options) {
+function setOptions(options) {
   if (canvas) {
     console.error('Multiple calls to setScreen ignored.');
     return;
@@ -120,18 +116,6 @@ export function setScreen(options) {
   sizeScreen();
   addGlass();
   sizeGlass();
-
-  canvas.addEventListener('click', (event) => {
-    const x = event.offsetX;
-    const y = event.offsetY;
-    const mappedPositions = uiCoordsToMappedPositions(x, y);
-    console.log(
-      `Canvas click at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
-    );
-    if (!hud.resolveClick(mappedPositions)) {
-      world.resolveClick(mappedPositions);
-    }
-  });
 }
 
 /**
@@ -245,7 +229,7 @@ function syncDomFonts() {
  * Get the screen details.
  * @returns {ScreenDetails}
  */
-export function getScreenDetails() {
+function getScreenDetails() {
   return Object.freeze({
     canvas: canvas,
     x: screenRect.x,
@@ -256,10 +240,10 @@ export function getScreenDetails() {
 }
 
 /**
- * Get screen bounds.
+ * Get screen bounds in world coordinates
  * @returns {Rectangle}
  */
-export function getBounds() {
+function getScreenBounds() {
   return new Rectangle(
     screenRect.x,
     screenRect.y,
@@ -269,10 +253,23 @@ export function getBounds() {
 }
 
 /**
+ * Get visible bounds in world coordinates.
+ * @returns {Rectangle}
+ */
+function getVisibleBounds() {
+  return new Rectangle(
+    screenRect.x + cameraPosition.x,
+    screenRect.y + cameraPosition.y,
+    screenRect.width,
+    screenRect.height
+  );
+}
+
+/**
  * Get screen bounds.
  * @returns {Dims2D}
  */
-export function getDimensions() {
+function getDimensions() {
   return { width: screenRect.width, height: screenRect.height };
 }
 
@@ -280,31 +277,40 @@ export function getDimensions() {
  * Get the canvas context.
  * @returns {CanvasRenderingContext2D}
  */
-export function getContext2D() {
+function getContext2D() {
   return canvas.getContext('2d', { alpha: canvasAlpha });
 }
 
 /**
- * Set the content of the glass layer.
+ * Set the content of the glass layer. This clears the glass first.
  * @param {HTMLElement} element
  */
-export function displayHtmlElement(element) {
+function displayHtmlElement(element) {
   const content = document.getElementById('glass-content');
   content.replaceChildren(element);
   glass.style.display = 'block';
 }
 
 /**
+ * Add an html element to the the glass layer.
+ * @param {HTMLElement} element
+ */
+function appendHtmlElement(element) {
+  const content = document.getElementById('glass-content');
+  content.appendChild(element);
+}
+
+/**
  * Close the glass layer. The layer is just hidden, but it's content remains.
  */
-export function closeGlass() {
+function closeGlass() {
   glass.style.display = 'none';
 }
 
 /**
  * Clear and close the glass layer. The layer is hidden and it's content removed.
  */
-export function wipeGlass() {
+function wipeGlass() {
   const content = document.getElementById('glass-content');
   content.innerHTML = '';
   glass.style.display = 'none';
@@ -315,7 +321,7 @@ export function wipeGlass() {
  * @param {number} dx - movement in world units
  * @param {number} dy - movement in world units
  */
-export function panCamera(dx, dy) {
+function panCamera(dx, dy) {
   cameraPosition.x += dx;
   cameraPosition.y += dy;
 }
@@ -324,7 +330,7 @@ export function panCamera(dx, dy) {
  * Centre the canvas on a point
  * @param {Point} point
  */
-export function centreCanvasOn(point) {
+function centreCanvasOn(point) {
   cameraPosition.x = point.x - canvasHalfWidth;
   cameraPosition.y = point.y - canvasHalfHeight;
 }
@@ -334,7 +340,7 @@ export function centreCanvasOn(point) {
  * @param {number} dist
  * @returns {number}
  */
-export function uiToWorld(dist) {
+function uiToWorld(dist) {
   return dist / scale;
 }
 
@@ -343,7 +349,7 @@ export function uiToWorld(dist) {
  * @param {number} dist
  * @returns {number}
  */
-export function worldToUi(dist) {
+function worldToUi(dist) {
   return dist * scale;
 }
 
@@ -358,7 +364,7 @@ export function worldToUi(dist) {
  * @param {number} y  -position in the ui
  * @returns {MappedPositions} position on the canvas
  */
-export function uiCoordsToMappedPositions(x, y) {
+function uiCoordsToMappedPositions(x, y) {
   x = uiToWorld(x);
   y = uiToWorld(y);
   const canvasPosition = new Position(Math.round(x), Math.round(y));
@@ -375,7 +381,7 @@ export function uiCoordsToMappedPositions(x, y) {
  * @param {Position} position  -position in the world
  * @returns {Position} position on the canvas
  */
-export function worldPositionToCanvas(position) {
+function worldPositionToCanvas(position) {
   return new Position(
     position.x - cameraPosition.x,
     position.y - cameraPosition.y,
@@ -388,7 +394,7 @@ export function worldPositionToCanvas(position) {
  * @param {Rectangle} rect
  * @return {boolean} true if on screen
  */
-export function isOnScreen(rect) {
+function isOnScreen(rect) {
   return rect.overlaps(screenRect);
 }
 
@@ -397,6 +403,32 @@ export function isOnScreen(rect) {
  * @param {Rectangle} rect - this should have been converted to canvas coordinates
  * @return {boolean} true if on screen
  */
-export function isOnCanvas(rect) {
+function isOnCanvas(rect) {
   return rect.overlaps(canvasRect);
 }
+
+/**
+ * Screen object
+ */
+const SCREEN = {
+  appendHtmlElement: appendHtmlElement,
+  centreCanvasOn: centreCanvasOn,
+  closeGlass: closeGlass,
+  displayHtmlElement: displayHtmlElement,
+  getContext2D: getContext2D,
+  getDimensions: getDimensions,
+  getScreenBounds: getScreenBounds,
+  getScreenDetails: getScreenDetails,
+  getVisibleBounds: getVisibleBounds,
+  isOnCanvas: isOnCanvas,
+  isOnScreen: isOnScreen,
+  panCamera: panCamera,
+  setOptions: setOptions,
+  wipeGlass: wipeGlass,
+  worldPositionToCanvas: worldPositionToCanvas,
+  worldToUi: worldToUi,
+  uiCoordsToMappedPositions: uiCoordsToMappedPositions,
+  uiToWorld: uiToWorld,
+};
+
+export default SCREEN;

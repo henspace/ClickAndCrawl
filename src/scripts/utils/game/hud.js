@@ -5,6 +5,8 @@
  * @module utils/game/hud
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,11 +30,6 @@
  */
 
 /**
- * @typedef {import('../sprites/sprite.js').Sprite} Sprite
- * @typedef {import('./screen.js').MappedPositions} MappedPositions
- */
-
-/**
  * @type {Map<string, Sprite>}
  */
 const sprites = new Map();
@@ -43,18 +40,18 @@ let visible = false;
 /**
  * Add a sprite to the hud.
  * The sprite's uiComponent flag is set to true.
- * @param {Sprite}
+ * @param {import('../sprites/sprite.js').Sprite}
  */
-export function addSprite(target) {
+function addSprite(target) {
   target.uiComponent = true;
   sprites.set(target, target);
 }
 
 /**
  * Remove sprite from the hud.
- * @param {Sprite}
+ * @param {import('../sprites/sprite.js').Sprite}
  */
-export function removeSprite(target) {
+function removeSprite(target) {
   sprites.delete(target);
 }
 
@@ -62,7 +59,7 @@ export function removeSprite(target) {
  * Update the world. This calls the update methods of the tile map and all sprites/
  * @param {number} deltaSeconds
  */
-export function update(deltaSeconds) {
+function update(deltaSeconds) {
   if (!visible) {
     return;
   }
@@ -71,10 +68,10 @@ export function update(deltaSeconds) {
 
 /**
  * Resolve a ui click
- * @param {MappedPositions} positions - click in canvas and world coordinates.
+ * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
-export function resolveClick(positions) {
+function resolveClick(positions) {
   if (!visible) {
     return false;
   }
@@ -93,6 +90,18 @@ export function resolveClick(positions) {
  * Set the visibility of the HUD.
  * @param {boolean} visibility - true to show.
  */
-export function setHudVisible(visibility) {
+export function setVisible(visibility) {
   visible = visibility;
 }
+
+/**
+ * HUD object
+ */
+const HUD = {
+  addSprite: addSprite,
+  removeSprite: removeSprite,
+  update: update,
+  resolveClick: resolveClick,
+};
+
+export default HUD;

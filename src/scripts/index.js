@@ -4,6 +4,8 @@
  * @module index
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -25,19 +27,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import * as game from './utils/game/game.js';
-import { TEST_SCENE } from './utils/game/testScene.js';
+import GAME from './utils/game/game.js';
 
 window.addEventListener('load', () => {
   const DESIGN_WIDTH = 640;
   const DESIGN_HEIGHT = 480;
-  game.initialise({
+  GAME.initialise({
     width: DESIGN_WIDTH,
     height: DESIGN_HEIGHT,
-    maxScale: 1.5,
+    maxScale: 10,
     minScale: 1,
-    sizingMethod: 'ENVELOPE',
+    sizingMethod: 'COVER',
     alpha: false,
   });
-  game.setScene(TEST_SCENE);
 });

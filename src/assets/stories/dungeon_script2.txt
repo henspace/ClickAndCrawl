@@ -1,0 +1,16 @@
+[Level]
+Welcome to the test dungeon. Beware all who enter here.
+This is just a test file to see if everything works.
+[Cast]
+monster x4: detail
+[Map]
+##################
+-,,,,,,,,,#......#
+#,,,,,,,,,#......#
+#.............####
+#.............#
+########,,,,,,=
+_______#,,,,,,#
+_______###,,###
+_________#,,#
+_________####

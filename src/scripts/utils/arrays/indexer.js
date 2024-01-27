@@ -1,9 +1,11 @@
 /**
- * @file Indexer for arrays
+ * @file Simple indexer for arrays.
  *
  * @module utils/arrays/indexer
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -37,7 +39,9 @@ export const LoopMethod = {
 };
 
 /**
- * Class to handle indexing through arrays.
+ * Class to handle indexing through arrays. This allows an index to be incremented
+ * so that it wraps at the end for a circular buffer, reverses for an oscillating
+ * index or just stops at the end.
  */
 export class Indexer {
   /** @type {number} */

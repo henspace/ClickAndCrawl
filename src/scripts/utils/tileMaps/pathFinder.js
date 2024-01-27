@@ -4,6 +4,8 @@
  * @module utils/tileMaps/pathFinder
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,10 +29,7 @@
  */
 
 import { Point } from '../geometry.js';
-/**
- * @typedef {import('./tileMap.js').TileMap} TileMap
- * @typedef {import('./tileMap.js').Actor} Actor
- */
+import * as maths from '../maths.js';
 
 /**
  * Map of located routes.
@@ -39,12 +38,12 @@ import { Point } from '../geometry.js';
 export class Routes {
   /** @type {Map<string, Point[]>} */
   #routes;
-  /** @type {TileMap} */
+  /** @type {import('./tileMap.js').TileMap} */
   #tileMap;
 
   /**
    * Create routes.
-   * @param {TileMap} tileMap
+   * @param {import('./tileMap.js').TileMap} tileMap
    */
   constructor(tileMap) {
     this.#tileMap = tileMap;
@@ -152,18 +151,18 @@ export class Routes {
  * Encapsulation of route finder for finding paths through routes.
  */
 export class RouteFinder {
-  /** Actor trying to find routes. @type {Actor} */
+  /** Actor trying to find routes. @type {import('./tileMap.js').Actor} */
   actor;
   /** @type {Route[]} */
   #routes;
-  /** @type {TileMap} */
+  /** @type {import('./tileMap.js').TileMap} */
   #tileMap;
   /** @type {Point} */
   #startPoint;
 
   /** Create the route finder.
-   * @param {TileMap} tileMap
-   * @param {Actor} actor
+   * @param {import('./tileMap.js').TileMap} tileMap
+   * @param {import('./tileMap.js').Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;
@@ -296,16 +295,6 @@ export class RouteFinder {
     );
   }
 
-  /**
-   * Get value next to the target.
-   * @param {number} current
-   * @param {number} target
-   * @returns {number}
-   */
-  #valueNextTo(current, target) {
-    return current > target ? target + 1 : target - 1;
-  }
-
   #getAdjacentTarget(current, target) {
     const deltaX = target.x - current.x;
     const deltaY = target.y - current.y;
@@ -336,5 +325,206 @@ export class RouteFinder {
       return new Point(gridPoint.x + 1, gridPoint.y - 1);
     }
     return gridPoint;
+  }
+}
+
+/**
+ * Ray tracer from a starting point
+ */
+export class RayTracer {
+  /** Actor tracing rays. @type {import('./tileMap.js').Actor} */
+  #actor;
+  /** Start point of the ray. @type {Point} */
+  #rayStartPoint;
+  /** @type {import('./tileMap.js').TileMap} */
+  #tileMap;
+  /** @type {Map<string, Point} */
+  #reachedPoints;
+  /** @type {Point}   */
+  #lastStartPoint;
+  /** @type {Rectangle} */
+  #bounds;
+  /** @type {Rectangle} */
+  #lastBounds;
+
+  /** Create the ray tracer.
+   * @param {import('./tileMap.js').TileMap} tileMap
+   * @param {import('./tileMap.js').Actor} actor
+   */
+  constructor(tileMap, actor) {
+    this.#tileMap = tileMap;
+    this.#actor = actor;
+  }
+
+  /**
+   * Find all the tiles that are reached from the actor.
+   * @returns {Map<Point>} grid points of reached tiles.
+   */
+  findReachedTiles() {
+    this.#rayStartPoint = this.#tileMap.worldPointToGrid(this.#actor.position);
+    this.#bounds = this.#tileMap.getVisibleGridPointRect();
+    if (
+      this.#lastStartPoint &&
+      this.#lastStartPoint.coincident(this.#rayStartPoint) &&
+      this.#bounds &&
+      this.#bounds.equals(this.#lastBounds)
+    ) {
+      return this.#reachedPoints;
+    }
+
+    this.#reachedPoints = new Map();
+    this.#reachedPoints.set(
+      this.#rayStartPoint.toString(),
+      this.#rayStartPoint
+    );
+    this.#getRayEnds().forEach((endPoint) => {
+      this.#traceRayToEnd(endPoint);
+    });
+    this.#lastStartPoint = this.#rayStartPoint;
+    this.#lastBounds = this.#bounds;
+    return this.#reachedPoints;
+  }
+
+  /**
+   * Test if grid point in rays.
+   * @param {Point} gridPoint
+   * @returns {boolean}
+   */
+  isGridPointInRays(gridPoint) {
+    return this.#reachedPoints
+      ? this.#reachedPoints.has(gridPoint.toString())
+      : false;
+  }
+
+  /**
+   * Get the end point of the rays.
+   * @returns {Point[]} array of the end grid points for each ray.
+   */
+  #getRayEnds() {
+    const rayEnds = [];
+    for (
+      let col = this.#bounds.x;
+      col <= this.#bounds.x + this.#bounds.width;
+      col++
+    ) {
+      rayEnds.push(new Point(col, this.#bounds.y));
+      rayEnds.push(new Point(col, this.#bounds.y + this.#bounds.height));
+    }
+
+    for (
+      let row = this.#bounds.y + 1;
+      row <= this.#bounds.y + this.#bounds.height - 1;
+      row++
+    ) {
+      rayEnds.push(new Point(this.#bounds.x, row));
+      rayEnds.push(new Point(this.#bounds.x + this.#bounds.width, row));
+    }
+    return rayEnds;
+  }
+
+  /**
+   * Trace the ray to its end. Note that calculations are done in cartesian coordinates
+   * and so Y values need to be negated during calculations.
+   * @param {Point} endPoint
+   */
+  #traceRayToEnd(endPoint) {
+    let dx;
+    let dy;
+    let steps;
+    const angle = this.#rayStartPoint.getScreenAngleTo(endPoint);
+    const compassDirection = maths.angleToEightPointCompass(angle);
+    if (
+      Math.abs(endPoint.x - this.#rayStartPoint.x) >=
+      Math.abs(endPoint.y - this.#rayStartPoint.y)
+    ) {
+      dx = Math.sign(endPoint.x - this.#rayStartPoint.x);
+      steps = Math.abs(endPoint.x - this.#rayStartPoint.x);
+      dy = steps < 1 ? 0 : (endPoint.y - this.#rayStartPoint.y) / steps;
+    } else {
+      dy = Math.sign(endPoint.y - this.#rayStartPoint.y);
+      steps = Math.abs(endPoint.y - this.#rayStartPoint.y);
+      dx = steps < 1 ? 0 : (endPoint.x - this.#rayStartPoint.x) / steps;
+    }
+    let x = this.#rayStartPoint.x;
+    let y = this.#rayStartPoint.y;
+    console.log(
+      '***************************',
+      `Ray trace from ${this.#rayStartPoint.toString()} to ${endPoint.toString()} in direction ${compassDirection}`
+    );
+    while (steps >= 0) {
+      const gridPoint = new Point(Math.round(x), Math.round(y));
+      if (this.#tileMap.isSeeThrough(gridPoint, this.#actor)) {
+        console.log(`${gridPoint.toString()}: see through`);
+        this.#markReachedPoint(gridPoint, compassDirection);
+      } else {
+        console.log(`${gridPoint.toString()}: end of ray`);
+        break; // ray ends.
+      }
+      x += dx;
+      y += dy;
+      steps--;
+    }
+  }
+
+  /**
+   * Mark the point as reached. Note that surrounding obstacle tiles need to be
+   * shown as well otherwise wall will not appear.
+   * @param {Point} point
+   * @param {number} compassDir - eight point compass direction of ray
+   */
+  #markReachedPoint(point, compassDir) {
+    this.#reachedPoints.set(point.toString(), point);
+    switch (compassDir) {
+      case maths.CompassEightPoint.N:
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y - 1));
+        break;
+      case maths.CompassEightPoint.NE:
+        this.#markReachedIfNotSeeThrough(new Point(point.x, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y));
+        break;
+      case maths.CompassEightPoint.E:
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y + 1));
+        break;
+      case maths.CompassEightPoint.SE:
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y + 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x, point.y + 1));
+        break;
+      case maths.CompassEightPoint.S:
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y + 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x, point.y + 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x + 1, point.y + 1));
+        break;
+      case maths.CompassEightPoint.SW:
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y));
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y + 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x, point.y + 1));
+        break;
+      case maths.CompassEightPoint.W:
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y));
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y + 1));
+        break;
+      case maths.CompassEightPoint.NW:
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y));
+        this.#markReachedIfNotSeeThrough(new Point(point.x - 1, point.y - 1));
+        this.#markReachedIfNotSeeThrough(new Point(point.x, point.y - 1));
+        break;
+    }
+  }
+  /**
+   * Mark a tile as Reached if not see through
+   * @param {Point} point
+   */
+  #markReachedIfNotSeeThrough(point) {
+    if (!this.#tileMap.isSeeThrough(point)) {
+      console.log(`> Mark surrounding tile at ${point.toString()}`);
+      this.#reachedPoints.set(point.toString(), point);
+    }
   }
 }

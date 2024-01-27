@@ -1,9 +1,12 @@
 /**
- * @file Camera
+ * @file Camera dolly class. This provides a mechanism to allow the canvas to
+ * track a specified Sprite.
  *
  * @module utils/game/camera
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,40 +29,57 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { getBounds, centreCanvasOn } from './screen.js';
+import SCREEN from './screen.js';
 import { Sprite } from '../sprites/sprite.js';
 import { Tracker } from '../sprites/movers.js';
 
 /**
- * @function updateFn
- * @param {number} deltaSeconds - elapsed time in seconds.
+ * Camera dolly class
  */
-/**
- * @typedef {Object} CameraDolly
- * @property {updateFn} update - update sprite. Passed delta T in seconds.
- */
+export class CameraDolly {
+  /** @type {import('../sprites/sprite.js').Sprite} */
+  #sprite;
+  /** @type {boolean} */
+  tracking;
 
-/**
- * Create a camera dolly. This is a sprite that is designed to track a target.
- * @param {Sprite} target
- * @param {number} speed
- * @param {number} proportionSeparated - max space between camera and target as proportion of minimum screen dimension.
- * @returns {CameraDolly}
- */
-export function createCameraDolly(target, speed, proportionSeparated = 0) {
-  const screenRect = getBounds();
-  const separation =
-    proportionSeparated * Math.min(screenRect.width, screenRect.height);
-  const sprite = new Sprite();
-  new Tracker({
-    prey: target,
-    speed: speed,
-    maxSeparation: separation,
-  }).applyAsContinuousToSprite(sprite);
-  return {
-    update: (deltaSeconds) => {
-      sprite.update(deltaSeconds);
-      centreCanvasOn(sprite.position);
-    },
-  };
+  /**
+   * Create a camera dolly. This is a sprite that is designed to track a target.
+   * @param {Sprite} target
+   * @param {number} speed
+   * @param {number} proportionSeparated - max space between camera and target as proportion of minimum screen dimension.
+   */
+  constructor(target, speed, proportionSeparated = 0) {
+    const screenRect = SCREEN.getScreenBounds();
+    const separation =
+      proportionSeparated * Math.min(screenRect.width, screenRect.height);
+    this.#sprite = new Sprite();
+    new Tracker({
+      prey: target,
+      speed: speed,
+      maxSeparation: separation,
+    }).applyAsContinuousToSprite(this.#sprite);
+    this.tracking = true;
+  }
+
+  /**
+   * Update the camera position.
+   * @param {number} deltaSeconds - elapsed time since last update.
+   */
+  update(deltaSeconds) {
+    this.#sprite.update(deltaSeconds);
+    if (this.tracking) {
+      SCREEN.centreCanvasOn(this.#sprite.position);
+    }
+  }
+  /**
+   * Pan by by dX, dY. Note you should disable tracking before manually moving
+   * otherwise the camera will reposition itself back onto the sprite.
+   * @param {number} dX
+   * @param {number} dY
+   */
+  panBy(dX, dY) {
+    this.#sprite.position.x += dX;
+    this.#sprite.position.y += dY;
+    SCREEN.panCamera(dX, dY);
+  }
 }

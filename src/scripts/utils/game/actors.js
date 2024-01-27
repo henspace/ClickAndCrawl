@@ -1,9 +1,12 @@
 /**
- * @file Actors encapsulation of a sprite that interacts with the game.
+ * @file Actor classes. Actors encapsulate a Sprite and represent moving objects
+ * that can interact with the game.
  *
  * @module utils/game/actors
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -29,23 +32,18 @@
 import { UiClickHandler } from '../ui/interactions.js';
 
 /**
- * @typedef {import('../sprites/sprite.js').Sprite} Sprite
- * @typedef {import('../geometry.js').Position} Position
- */
-
-/**
  * Actor class. An actor is a sprite that exists in the world and can interact
  * with other actors.
  */
 export class Actor extends UiClickHandler {
   /** @type {number} */
   maxTilesPerMove;
-  /** @type {Sprite} */
+  /** @type {import('../sprites/sprite.js').Sprite} */
   sprite;
 
   /**
    * Create the actor.
-   * @param {Sprite} sprite
+   * @param {import('../sprites/sprite.js').Sprite} sprite
    */
   constructor(sprite) {
     super();
@@ -71,7 +69,7 @@ export class Actor extends UiClickHandler {
 
   /**
    * Get the actor's position.
-   * @returns {Position}
+   * @returns {import('../geometry.js').Position}
    */
   get position() {
     return this.sprite.position;
@@ -79,7 +77,7 @@ export class Actor extends UiClickHandler {
 
   /**
    * Set the actor's position.
-   * @param {Position} value
+   * @param {import('../geometry.js').Position} value
    */
   set position(value) {
     this.sprite.position = value;

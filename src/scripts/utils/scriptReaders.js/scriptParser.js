@@ -6,8 +6,10 @@
  * @module utils/scriptReaders.js/scriptParser
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
  * the Software without restriction, including without limitation the rights to use,
@@ -28,10 +30,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import ACTOR_MAP from './actorMap.js';
+import { SceneDefinition } from './sceneDefinitionParser.js';
+
 /**
  * @typedef {Object} SectionParsingResult
  * @property {string} nextSectionId
- * @property {number} lineIndex
+ * @property {number} nextLineIndex
  */
 
 /**
@@ -39,35 +44,64 @@
  * @enum {string}
  */
 const SectionId = {
-  SCENE_INTRO: 'SCENE INTRO'
-}
+  LEVEL: 'LEVEL',
+  CAST: 'CAST',
+  MAP: 'MAP',
+};
 
 /** Basic parser for a section of the script. */
 class AbstractSectionParser {
+  /** @type {SceneDefinition} */
+  sceneDefn;
   /** Lines of the script. @type {string[]} */
-  #lines;
-
-  /** Current parsing state. @type {State} */
-  #state;
+  lines;
 
   /** @type {number} lineIndex */
-  #lineIndex;
-
+  lineIndex;
 
   /**
-   * Parse lines. 
-   * @param {number} lines 
-   * @param {number} index 
-   * @returns {SectionParsingResult} next section id
+   * Construct parser.
+   * @param {number} lines
+   * @param {number} startLine
+   * @param {SceneDefinition} sceneDefn
    */
-  parse(lines, index) {
-    while (index < lines.length) {
-      const line = lines[index++].trim();
-      const nextSectionId = this.getSectionIdFromLine(line);
+  constructor(lines, startLine, sceneDefn) {
+    this.lines = lines;
+    this.lineIndex = startLine;
+    this.sceneDefn = sceneDefn;
+  }
+  /**
+   * Parse lines.
+   * @returns {SectionParsingResult} next section and line
+   * @throws {Exception} parsing error has occurred.
+   */
+  parse() {
+    while (this.lineIndex < this.lines.length) {
+      const line = this.lines[this.lineIndex].trim();
+      const nextSectionId = AbstractSectionParser.getSectionIdFromLine(line);
       if (nextSectionId) {
-        return {nextSectionId: nextSectionId, lineIndex: index};
+        return { nextSectionId: nextSectionId, nextLineIndex: this.lineIndex };
       } else {
         this.parseLine(line);
+        this.lineIndex++;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find the first section in an array of lines.
+   * @param {string[]} lines 
+   * @returns {SectionParsingResult} next section and line. Null if not found.
+   
+   */
+  static findFirstSection(lines) {
+    for (let index = 0; index < lines.length; index++) {
+      const id = AbstractSectionParser.getSectionIdFromLine(
+        lines[index].trim()
+      );
+      if (id) {
+        return { nextSectionId: id, nextLineIndex: index };
       }
     }
     return null;
@@ -77,34 +111,40 @@ class AbstractSectionParser {
    * Parse.
    * @param {string} line;
    */
-  parseLine(line) {
-    throw Exception('Method parseLine should be overridden.');
+  parseLine(lineUnused) {
+    throw 'Method parseLine should be overridden.';
   }
 
   /** Check the line to see if it is a section marker.
    * @returns {string} the section section marker. Null if not a section marker.
    */
-  getSectionIdFromLine(line) {
-      const match = line.match(/^\[ *([\w ]+) *\]/);
-      if (match) {
-        return match[1].toUpperCase();
-      }  
+  static getSectionIdFromLine(line) {
+    const match = line.match(/^\[ *([\w ]+) *\]/);
+    if (match) {
+      return match[1].toUpperCase();
+    }
     return null;
   }
-  
-}
-
-/**
- * VoidParser. This doesn't collect any data and merely skips until a section 
- * separator is found.
- */
-class VoidParser extends AbstractSectionParser {
 
   /**
-   * @override
+   * Handle an error.
+   * @param {string} message
+   * @throws {Error}
    */
-  parseLine(line) {
-    // do nothing. Just skipping
+  fatalError(message) {
+    throw new Error(
+      `Error parsing script on line ${this.lineIndex}: ${message}`
+    );
+  }
+
+  /**
+   * Handle ignorable error.
+   * @param {string} message
+   */
+  ignoreError(message) {
+    console.log(
+      `Ignoring error parsing script on line ${this.lineIndex}: ${message}`
+    );
   }
 }
 
@@ -112,106 +152,153 @@ class VoidParser extends AbstractSectionParser {
  * Parser for introductions.
  */
 class IntroParser extends AbstractSectionParser {
-  /** Text for the intro. Multiple lines are separated by newline characters. @type {string}*/
-  text;
-
+  /**
+   * Construct parser.
+   * @param {number} lines
+   * @param {number} startLine
+   * @param {SceneDefinition} sceneDefn
+   */
+  constructor(lines, startLine, sceneDefn) {
+    super(lines, startLine, sceneDefn);
+  }
   /**
    * Parse a line.
-   * @param {string} text 
+   * @override
    */
-  parseLine(text) {
-    this.text += text === '' ? '\n' : text;
-  }
-}
-
-export class SceneDefinition {
-  /** @type {string} */
-  intro;
-
-  /**
-   * Construct an empty scene
-   */
-  constructor() {}
-
-  /**
-   * Test validity of scene definition.
-   * @returns {boolean}
-   */
-  isValid() {
-    return this.intro; /** @Todo */
+  parseLine(line) {
+    this.sceneDefn.intro += line === '' ? '\n' : line;
   }
 }
 
 /**
- * Class to perform the parsing of a script.
+ * Parser for the cast list.
  */
-export class ScriptParser {
-  /** Lines of the script. @type {string[]} */
-  #lines;
-
-  /** Scenes @type {SceneDefinition[]} */
-  #sceneDefinitions;
-
-  /** Scene @type {SceneDefinition} */
-  #currentScene;
-
-
+class CastParser extends AbstractSectionParser {
   /**
-   * Construct a parser for the script.
-   * @param {string} script 
-   */
-  constructor (script) {
-    this.#lines = script.split(/\r?\n/);    
-  }
-
-  /**
-   * Parse the script
-   */
-  parse() {
-    this.#sceneDefinitions = [];
-    const sceneDefn = new SceneDefinition();
-    let parser = new VoidParser();
-    const index = 0;
-    do {
-      const result = parser.parse(sceneDefn, this.#lines, index);
-      if (!result.nextSectionId || result.nextSectionId === SectionId.LEVEL) {
-        if (!sceneDefn.isValid()) {
-          throw new Exception(`The scene definition ending at line ${result.lineIndex} is not valid.`);
-        }
-        this.#sceneDefinitions.push(sceneDefn);
-      }
-        
-      if (isValidParserForScene(nextParser, this.#currentScene)) {
-        this.#sceneDefinitions.push(this.#currentScene);
-        this.#currentScene = new SceneDefinition();
-      }
-    }
-  }
-
-  /**
-   * Test if a parser is valid for a current scene. Reasons for being invalid
-   * could be because that section has already been established.
-   * @param {string} id
+   * Construct parser.
+   * @param {number} lines
+   * @param {number} startLine
    * @param {SceneDefinition} sceneDefn
    */
-  isSectionIdValidForScene(id, sceneDefn) {
-    switch id {
-      case 'LEVELINTRO': return !sceneDefn.intro;
-      default:
-        return false;
+  constructor(lines, startLine, sceneDefn) {
+    super(lines, startLine, sceneDefn);
+  }
+  /**
+   * Parse a line.
+   * @override
+   */
+  parseLine(line) {
+    const match = line.match(/(\w+?) *x(\d{1,2}): *([\w, ]*)/);
+    if (match) {
+      this.#parseShortFormActor(match);
+    } else {
+      this.#parseLongFormActor(line);
     }
   }
 
   /**
-   * Get a section parser.
-   * @returns {SectionParser} null if the id is not valid.
+   * Parse a short form single line actor definition.
+   * @param {string[]} matchResults - results from regex match.
    */
-  getSectionParser(sectionId) {
-    switch (sectionId) {
-      case INTRO: return new IntroParser(this.#lines, this.#lineIndex);
+  #parseShortFormActor(matchResults) {
+    const actorName = matchResults[1].toUpperCase();
+    const number = parseInt(matchResults[2]);
+    const propertiesIgnored = matchResults[3]; // @ToDo
+    for (let n = 0; n < number; n++) {
+      if (ACTOR_MAP.has(actorName)) {
+        this.sceneDefn.enemies.push(actorName);
+      } else {
+        this.fatalError(`Cast member ${actorName} does not exist.`);
+      }
     }
-    return null;
+  }
+  /**
+   * Parse a line to build a long form, multiline actor
+   * @param {string} line - current line.
+   */
+  #parseLongFormActor(lineIgnored) {
+    this.fatalError('Long form actors not supported.');
+  }
+}
+
+/**
+ * Parser for dungeon map.
+ */
+class MapParser extends AbstractSectionParser {
+  /**
+   * Construct parser.
+   * @param {number} lines
+   * @param {number} startLine
+   * @param {SceneDefinition} sceneDefn
+   */
+  constructor(lines, startLine, sceneDefn) {
+    super(lines, startLine, sceneDefn);
+  }
+  /**
+   * Parse a line.
+   * @override
+   */
+  parseLine(line) {
+    if (line !== '') {
+      this.sceneDefn.mapDesign.push(line);
+    }
+  }
+}
+
+/** Lines of the script. @type {string[]} */
+let lines;
+
+/** Scenes @type {SceneDefinition[]} */
+let sceneDefinitions;
+
+/**
+ * Get a section parser for the section Id.
+ * @param {string} sectionId
+ * @param {number} lineIndex
+ * @param {SceneDefinition} sceneDefn
+ * @returns {SectionParser} null if the id is not valid.
+ */
+function getParserForId(sectionId, lineIndex, sceneDefn) {
+  switch (sectionId) {
+    case SectionId.LEVEL:
+      return new IntroParser(lines, lineIndex + 1, sceneDefn); // skip the actual section ID line.
+    case SectionId.CAST:
+      return new CastParser(lines, lineIndex + 1, sceneDefn); // skip the actual section ID line.
+    case SectionId.MAP:
+      return new MapParser(lines, lineIndex + 1, sceneDefn); // skip the actual section ID line.
+  }
+  return null;
+}
+
+/**
+ * Parse the script.
+ *  @param {string} script
+ * @returns {SceneDefinition[]} array of all the scene definitions.
+ * @throws {Exception} thrown on parsing error.
+ */
+export default function parseScript(script) {
+  lines = script.split(/\r?\n/);
+  sceneDefinitions = [];
+  let sceneDefn = new SceneDefinition();
+  const sectionHunt = AbstractSectionParser.findFirstSection(lines);
+  if (!sectionHunt) {
+    throw new Error(`Badly formed script.`);
   }
 
-
+  let parser = getParserForId(
+    sectionHunt.nextSectionId,
+    sectionHunt.nextLineIndex,
+    sceneDefn
+  );
+  while (parser) {
+    const result = parser.parse();
+    if (!result?.nextSectionId || result.nextSectionId === SectionId.LEVEL) {
+      sceneDefinitions.push(sceneDefn);
+      sceneDefn = new SceneDefinition();
+    }
+    parser = !result
+      ? null
+      : getParserForId(result.nextSectionId, result.nextLineIndex, sceneDefn);
+  }
+  return sceneDefinitions;
 }

@@ -4,6 +4,8 @@
  * @module utils/ui/interactions
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,11 +28,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/** @typedef {import('../geometry.js').Point} Point */
 /**
  * @typedef {function} UiClickCallback
  * @param {Object} target - initial object that triggered the handler
- * @param {Point} point - the position that was clicked in world coordinates
+ * @param {import('../geometry.js').Point} point - the position that was clicked in world coordinates
  */
 
 /**
@@ -58,7 +59,7 @@ export class UiClickHandler {
 
   /**
    * Handle click
-   * @param {Point} point
+   * @param {import('../geometry.js').Point} point
    */
   actionClick(point) {
     this.#onClick?.(this, point);
@@ -66,7 +67,7 @@ export class UiClickHandler {
 
   /**
    * Handle context click
-   * @param {Point} point
+   * @param {import('../geometry.js').Point} point
    */
   actionContextClick(point) {
     this.#onContextClick?.(this, point);

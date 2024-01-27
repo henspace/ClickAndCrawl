@@ -1,13 +1,13 @@
 /**
- * @file Encapsulation of a Scene. A scene equates normally to a level in a
- * dungeon.
+ * @file Load assets. This module is placed in the assets folder to simplify
+ * dynamic imports using Parcel's import.meta.url property.
  *
- * @module utils/game/scene
+ * @module utils\assetLoaders.js
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
  *
- * Copyright 2024 Steve Butler
+ * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
@@ -28,31 +28,43 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * Scene methods.
- * @interface Scene
- */
 
 /**
- * Called at start. Game waits for preload before calling initialise.
- * @function Scene#load
- * @returns {Promise} fulfills to null
+ * @type {Object<string, URL>} Urls for dynamically loading resources
  */
+export const Urls = {
+  DUNGEON_SCRIPT: new URL(
+    '../../assets/stories/dungeon_script.txt',
+    import.meta.url
+  ),
+};
 
 /**
- * Called after load. Game waits for initialise before starting the loop.
- * @function Scene#initialise
- * @returns {Promise} fulfills to null
+ * Load text file from URL.
+ * @param {URL} url
+ * @return {Promise} fulfils to text or null.
  */
+export function loadTextFromUrl(url) {
+  return fetch(url)
+    .then((response) => response.text())
+    .then((text) => text)
+    .catch((reason) => {
+      console.log(`Error fetching ${url}: ${reason}`);
+      return null;
+    });
+}
 
 /**
- * Called in animation phase
- * @function Scene#update
- * @param {number} deltaSeconds
+ * Load json from URL.
+ * @param {URL} url
+ * @return {Promise} fulfils to json object or null.
  */
-
-/**
- * Called when scene swapped out
- * @function Scene#unload
- * @returns {Promise} fulfills to null
- */
+export function loadJsonFromUrl(url) {
+  return fetch(url)
+    .then((response) => response.text())
+    .then((text) => text)
+    .catch((reason) => {
+      console.log(`Error fetching ${url}: ${reason}`);
+      return null;
+    });
+}

@@ -4,6 +4,8 @@
  * @module utils/tileMaps/tileMap
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,23 +29,18 @@
  */
 
 import { Sprite } from '../sprites/sprite.js';
-import { getSpriteBitmap } from '../sprites/imageManager.js';
+import IMAGE_MANAGER from '../sprites/imageManager.js';
 import {
   ImageSpriteCanvasRenderer,
   RectSpriteCanvasRenderer,
 } from '../sprites/spriteRenderers.js';
-import { Point } from '../geometry.js';
+import { Point, Rectangle } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
-
-/**
- * @typedef {import('./pathFinder.js').Routes} Routes
- * @typedef {import('../sprites/sprite.js').SpriteClickHandler} SpriteClickHandler
- * @typedef {import('../geometry.js').Dims2D} Dims2D
- * @typedef {import('../ui/interactions.js').UiClickHandler} UiClickHandler
- * @typedef {import('../game/actors.js').Actor} Actor
- */
+import SCREEN from '../game/screen.js';
+import { RayTracer } from './pathFinder.js';
+import TURN_MANAGER from '../game/turnManager.js';
 
 /**
  * Roles that tiles adopt.
@@ -60,8 +57,8 @@ export const TileRole = {
 /**
  * @typedef {Object} TileDefinition
  * @property {TileRole} role
- * @property {SpriteClickHandler} onClick
- * @property {SpriteClickHandler} onContextClick
+ * @property {import('../sprites/sprite.js').SpriteClickHandler} onClick
+ * @property {import('../sprites/sprite.js').SpriteClickHandler} onContextClick
  * @property {string} image - used to create the sprite.
  */
 
@@ -79,6 +76,8 @@ export class Tile extends UiClickHandler {
   #gridPoint;
   /** @type {Point} */
   #worldPoint;
+  /** @type {TileRole} */
+  #role;
 
   /** Construct tile
    * @param {Sprite} tileSprite;
@@ -86,6 +85,7 @@ export class Tile extends UiClickHandler {
    * @param {boolean} options.obstacle;
    * @param {!Point} options.gridPoint;
    * @param {!Point} options.worldPoint;
+   * @param {TileRole} options.role;
    */
   constructor(tileSprite, options) {
     super();
@@ -94,6 +94,14 @@ export class Tile extends UiClickHandler {
     this.obstacle = options.obstacle;
     this.#gridPoint = options.gridPoint;
     this.#worldPoint = options.worldPoint;
+    this.#role = options.role;
+  }
+
+  /**
+   * Get the role.
+   */
+  get role() {
+    return this.#role;
   }
 
   /**
@@ -168,14 +176,30 @@ export class Tile extends UiClickHandler {
     }
     return true;
   }
+
+  /**
+   * Test if tile can be seen through by the actor
+   * @param {Object} actor
+   * @returns {boolean}
+   */
+  isSeeThrough(actorUnused) {
+    if (
+      this.obstacle ||
+      this.#role === TileRole.ENTRANCE ||
+      this.#role === TileRole.EXIT
+    ) {
+      return false;
+    }
+    return true;
+  }
 }
 
 /**
  * Tile map
  */
 export class TileMap {
-  /** @type {Array.<TileDefinition>} */
-  #plan;
+  /** @type {CanvasRenderingContext2D} */
+  #context;
   /** @type {Tile[]} */
   #tiles;
   #tilesX;
@@ -183,9 +207,10 @@ export class TileMap {
   #gridSize;
   #width;
   #height;
-  /** @type {Routes} */
+  /** @type {import('./pathFinder.js').Routes} */
   #highlightedRoutes;
-
+  /** @type {Point{}} */
+  #highlightedGridPoints;
   /** @type {Sprite} */
   #tileHighlighter;
   /** @type {Tile} */
@@ -194,6 +219,8 @@ export class TileMap {
   #exit;
   /** @type {Tile[]} */
   #randomGround;
+  /** @type {RayTracer} */
+  #heroRayTracer;
 
   /**
    * Create tile map from 2D matrix
@@ -202,13 +229,13 @@ export class TileMap {
    * @param {number} gridSize - in world coordinates
    */
   constructor(context, plan, gridSize) {
-    this.#plan = plan;
+    this.#context = context;
     this.#tileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: 'green',
-        strokeStyle: 'red',
+        fillStyle: 'rgba(58, 72, 94, 0.3)',
+        strokeStyle: 'black',
       }),
     });
     this.#gridSize = gridSize;
@@ -226,7 +253,7 @@ export class TileMap {
           const sprite = new Sprite({
             renderer: new ImageSpriteCanvasRenderer(
               context,
-              getSpriteBitmap(0, tileDefn.image)
+              IMAGE_MANAGER.getSpriteBitmap(0, tileDefn.image)
             ),
           });
           const gridPoint = new Point(columnIndex, rowIndex);
@@ -235,6 +262,7 @@ export class TileMap {
             obstacle: tileDefn.role === TileRole.OBSTACLE,
             gridPoint: gridPoint,
             worldPoint: worldPoint,
+            role: tileDefn.role,
           });
           if (tileDefn.onClick) {
             tile.setOnClick((target, point) =>
@@ -242,7 +270,7 @@ export class TileMap {
             );
             tile.setOnContextClick(tileDefn.onContextClick);
           }
-          this.processRole(tileDefn.role, tile);
+          this.processTileRole(tile);
           tileRow.push(tile);
           sprite.position.x = columnIndex * this.#gridSize + this.#gridSize / 2;
           sprite.position.y = rowIndex * this.#gridSize + this.#gridSize / 2;
@@ -259,11 +287,10 @@ export class TileMap {
 
   /**
    * Process a tile's specific role.
-   * @param {TileDefinition} role
    * @param {Tile} tile
    */
-  processRole(role, tile) {
-    switch (role) {
+  processTileRole(tile) {
+    switch (tile.role) {
       case TileRole.ENTRANCE:
         if (this.#entrance) {
           const gp = tile.gridPoint;
@@ -293,16 +320,64 @@ export class TileMap {
    * @param {number} deltaSeconds - elapsed time.
    */
   update(deltaSeconds) {
-    this.#tiles.forEach((row) => {
-      row.forEach((tile) => {
-        tile?.sprite.update(deltaSeconds);
-      });
-    });
+    this.#setRayTracer();
+    const visibleGridPoints = this.getVisibleGridPointRect();
+    for (
+      let row = visibleGridPoints.y;
+      row <= visibleGridPoints.y + visibleGridPoints.height;
+      row++
+    ) {
+      for (
+        let col = visibleGridPoints.x;
+        col <= visibleGridPoints.x + visibleGridPoints.width;
+        col++
+      ) {
+        if (this.#heroRayTracer?.isGridPointInRays(new Point(col, row))) {
+          const tile = this.#tiles[row][col];
+          tile?.sprite.update(deltaSeconds);
+        }
+      }
+    }
     this.#highlightTiles(deltaSeconds);
   }
 
+  /**
+   * Set up the ray tracer if not already set.
+   */
+  #setRayTracer() {
+    if (!this.#heroRayTracer) {
+      const hero = TURN_MANAGER.getHeroActor();
+      if (hero) {
+        this.#heroRayTracer = new RayTracer(this, hero);
+      }
+    }
+    this.#heroRayTracer.findReachedTiles();
+  }
+
+  /**
+   * Get the visible bounds as a rectangle in gridpoints.
+   * @returns {Rectangle}
+   */
+  getVisibleGridPointRect() {
+    const visibleBounds = SCREEN.getVisibleBounds();
+    const gridPointTL = this.worldPointToGrid(
+      new Point(visibleBounds.x, visibleBounds.y)
+    );
+    const gridPointBR = this.worldPointToGrid(
+      new Point(
+        visibleBounds.x + visibleBounds.width,
+        visibleBounds.y + visibleBounds.height
+      )
+    );
+    const minCol = Math.max(0, gridPointTL.x);
+    const maxCol = Math.min(this.#tilesX - 1, gridPointBR.x);
+    const minRow = Math.max(0, gridPointTL.y);
+    const maxRow = Math.min(this.#tilesY - 1, gridPointBR.y);
+    return new Rectangle(minCol, minRow, maxCol - minCol, maxRow - minRow);
+  }
+
   /** Get world dimensions.
-   * @returns {Dims2D}
+   * @returns {import('../geometry.js').Dims2D}
    */
   getDimensions() {
     return { width: this.#width, height: this.#height };
@@ -389,6 +464,16 @@ export class TileMap {
    */
   setHighlightedRoutes(routes) {
     this.#highlightedRoutes = routes;
+    if (routes) {
+      this.#highlightedGridPoints = new Map();
+      this.#highlightedRoutes.forEach((gridPoints) =>
+        gridPoints.forEach((gridPoint) => {
+          this.#highlightedGridPoints.set(gridPoint, gridPoint);
+        })
+      );
+    } else {
+      this.#highlightedGridPoints = null;
+    }
   }
 
   /**
@@ -396,12 +481,10 @@ export class TileMap {
    * @param {number} deltaSeconds
    */
   #highlightTiles(deltaSeconds) {
-    this.#highlightedRoutes?.forEach((gridPoints) =>
-      gridPoints.forEach((gridPoint) => {
-        this.#tileHighlighter.position = this.gridPointToWorldPoint(gridPoint);
-        this.#tileHighlighter.update(deltaSeconds);
-      })
-    );
+    this.#highlightedGridPoints?.forEach((gridPoint) => {
+      this.#tileHighlighter.position = this.gridPointToWorldPoint(gridPoint);
+      this.#tileHighlighter.update(deltaSeconds);
+    });
   }
 
   /**
@@ -410,7 +493,7 @@ export class TileMap {
    * @param {Sprite} target - the sprite that was clicked. This prevents the need
    * to use 'this' which may not be correct in the context.
    * @param {Point} point - the position in the world that was clicked
-   * @param {SpriteClickHandler} clickHandler
+   * @param {import('../sprites/sprite.js').SpriteClickHandler} clickHandler
    */
   #filterClick(target, point, clickHandler) {
     if (
@@ -449,7 +532,7 @@ export class TileMap {
   /**
    * Test if point is passable.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {Actor} actor - actor trying to pass
+   * @param {import('../game/actors.js').Actor} actor - actor trying to pass
    * @returns {boolean}
    */
   isGridPointPassableByActor(gridPoint, actor) {
@@ -459,6 +542,30 @@ export class TileMap {
     }
 
     return tile.isPassableByActor(actor);
+  }
+
+  /**
+   * Is the grid point visible by the hero.
+   * @param {Point} gridPoint
+   * @returns {boolean}
+   */
+  canHeroSeeGridPoint(gridPoint) {
+    return this.#heroRayTracer?.isGridPointInRays(gridPoint) ?? true;
+  }
+
+  /**
+   * Test if point can be seen through.
+   * @param {Point} gridPoint - row and col coordinates.
+   * @param {import('../game/actors.js').Actor} actor - actor trying to see
+   * @returns {boolean}
+   */
+  isSeeThrough(gridPoint, actor) {
+    const tile = this.getTileAtGridPoint(gridPoint);
+    if (!tile) {
+      return true;
+    }
+
+    return tile.isSeeThrough(actor);
   }
 
   /**

@@ -4,6 +4,8 @@
  * @module utils/text/emojis
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,7 +28,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export const emojis = {
+export const Emojis = {
   GRINNING: '😀',
   SANTA: '🎅',
   SHAKING: '\u{1FAE8}',
@@ -41,16 +43,16 @@ export const emojis = {
  */
 export function checkEmojis(context) {
   let fallbackIndex = 0;
-  for (const key in emojis) {
-    const metrics = context.measureText(emojis[key]);
+  for (const key in Emojis) {
+    const metrics = context.measureText(Emojis[key]);
     const height =
       metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
     const centreToBaseLine = 0.5 * height - metrics.fontBoundingBoxDescent;
-    context.fillText(emojis[key], -0.5 * metrics.width, centreToBaseLine);
+    context.fillText(Emojis[key], -0.5 * metrics.width, centreToBaseLine);
     const alphaAtCentre = context.getImageData(0, 0, 1, 1).data[3];
     if (alphaAtCentre <= 0) {
       console.log(`Emoji ${key} not supported.`);
-      emojis[key] = `[${fallbackIndex++}]`;
+      Emojis[key] = `[${fallbackIndex++}]`;
     }
     context.clearRect(0, 0, metrics.width, height);
   }

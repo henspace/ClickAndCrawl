@@ -1,9 +1,11 @@
 /**
- * @file Utilities for handling arrays
+ * @file Various utilities for handling arrays
  *
  * @module utils/arrays/arrayManip
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of

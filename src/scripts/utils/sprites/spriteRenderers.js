@@ -4,6 +4,8 @@
  * @module utils/sprites/spriteRenderers
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -29,29 +31,22 @@
 import * as canvasText from '../text/text.js';
 import * as fonts from '../text/fonts.js';
 import * as debug from '../debug.js';
-import * as screen from '../game/screen.js';
+import SCREEN from '../game/screen.js';
 import { MIN_POINT, MAX_POINT, Rectangle } from '../geometry.js';
 import * as animation from './animation.js'; //eslint-disable-line no-unused-vars
-
-/**
- * @typedef {import('../geometry.js').Point} Point
- * @typedef {import('../geometry.js').Position} Position
- * @typedef {import('../geometry.js').Rectangle} Rectangle
- * @typedef {import('./imageManager.js').SpriteBitmap} SpriteBitmap
- */
 
 /**
  * @typedef {Object} RenderGeometry
  * @property {number} width
  * @property {number} height
- * @property {Point} origin - origin relative to the centre
+ * @property {import('../geometry.js').Point} origin - origin relative to the centre
  */
 
 /**
  * Convert RenderGeometry to Rectangle
- * @param {Position} position
+ * @param {import('../geometry.js').Position} position
  * @param {RenderGeometry} renderGeom
- * @returns {Rectangle}
+ * @returns {import('../geometry.js').Rectangle}
  */
 function renderGeometryToRect(position, renderGeom) {
   return new Rectangle(
@@ -70,7 +65,7 @@ export class SpriteCanvasRenderer {
   /** @type {CanvasRenderingContext2D} */
   _context;
 
-  /** @type {Rectangle} */
+  /** @type {import('../geometry.js').Rectangle} */
   _boundingBoxCanvas;
 
   /**
@@ -84,7 +79,7 @@ export class SpriteCanvasRenderer {
 
   /**
    * Get the axis aligned bounding box
-   * @returns {Rectangle}
+   * @returns {import('../geometry.js').Rectangle}
    */
   getBoundingBoxCanvas() {
     return this._boundingBoxCanvas;
@@ -92,13 +87,13 @@ export class SpriteCanvasRenderer {
   /**
    * Render the sprite.
    * @param {Point[]} path
-   * @param {Position} position
+   * @param {import('../geometry.js').Position} position
    * @param {boolean} [uiComponent =false] - if true coordinates are relative to the canvas
    * not the world
    */
   render(position, uiComponent = false) {
     if (!uiComponent) {
-      position = screen.worldPositionToCanvas(position);
+      position = SCREEN.worldPositionToCanvas(position);
     }
     if (!this.isOnCanvas(position)) {
       return;
@@ -127,7 +122,7 @@ export class SpriteCanvasRenderer {
   }
   /**
    * Render the sprite
-   * @param {Position} position
+   * @param {import('../geometry.js').Position} position
    */
   _doRender(positionUnused) {
     console.error('_doRender method should be overridden.');
@@ -135,7 +130,7 @@ export class SpriteCanvasRenderer {
 
   /**
    * Check if it will be on screen
-   * @param {Position} position
+   * @param {import('../geometry.js').Position} position
    * @returns {boolean} true if on screen.
    */
   isOnScreen(position) {
@@ -145,12 +140,12 @@ export class SpriteCanvasRenderer {
       this._boundingBoxCanvas.width,
       this._boundingBoxCanvas.height
     );
-    return screen.isOnScreen(rect);
+    return SCREEN.isOnScreen(rect);
   }
 
   /**
    * Check if it will be on screen
-   * @param {Position} position - this should be in canvas coordinates.
+   * @param {import('../geometry.js').Position} position - this should be in canvas coordinates.
    * @returns {boolean} true if on screen.
    */
   isOnCanvas(position) {
@@ -160,7 +155,7 @@ export class SpriteCanvasRenderer {
       this._boundingBoxCanvas.width,
       this._boundingBoxCanvas.height
     );
-    return screen.isOnCanvas(rect);
+    return SCREEN.isOnCanvas(rect);
   }
 }
 
@@ -212,7 +207,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
 
   /**
    * Render the sprite
-   * @param {Position} position - this will have been adjusted to the screen.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
     if (this.text !== this.#lastCalculatedText) {
@@ -269,7 +264,7 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
 
   /**
    * Render the sprite.
-   * @param {Position} position - this will have been adjusted to the screen.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
     this._context.fillStyle = this.#fillStyle;
@@ -304,7 +299,7 @@ export class PathSpriteCanvasRenderer extends SpriteCanvasRenderer {
 
   /** Calculate the rendering geometry.
    * @param {Point[]} path
-   * @param {Position} position
+   * @param {import('../geometry.js').Position} position
    */
   #calculateGeometry(path, positionUnused) {
     let minPoint = MAX_POINT;
@@ -327,7 +322,7 @@ export class PathSpriteCanvasRenderer extends SpriteCanvasRenderer {
   }
   /**
    * Render the sprite.
-   * @param {Position} position - this will have been adjusted to the screen.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
     if (this.path.length < 2) {
@@ -364,7 +359,7 @@ export class PathSpriteCanvasRenderer extends SpriteCanvasRenderer {
  * Renderer for Image Sprites.
  */
 export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
-  /** @type {SpriteBitmap} */
+  /** @type {import('./imageManager.js').SpriteBitmap} */
   #spriteBitmap;
   /** @type {animation.KeyedAnimatedImages} */
   #animation;
@@ -392,7 +387,7 @@ export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
 
   /**
    * Render the sprite.
-   * @param {Position} position - this will have been adjusted to the screen.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
     if (!this.#spriteBitmap) {

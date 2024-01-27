@@ -4,6 +4,8 @@
  * @module utils/sprites/movers
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,12 +29,6 @@
  */
 
 import { AbstractModifier } from './modifiers.js';
-
-/**
- * @typedef {import('./sprite.js').Sprite} Sprite
- * @typedef {import('../geometry.js').Point} Point
- * @typedef {import('../geometry.js').Rectangle} Rectangle
- */
 
 /**
  * Velocity aligner
@@ -67,7 +63,7 @@ export class VelocityAligner extends AbstractModifier {
 
   /**
    * Align sprite using its velocity.
-   * @param {Sprite} sprite
+   * @param {import('./sprite.js').Sprite} sprite
    * @param {number} deltaSeconds - elapsed time
    * @returns {AbstractModifier}
    */
@@ -81,13 +77,13 @@ export class VelocityAligner extends AbstractModifier {
  * Bouncer mover
  */
 export class Bouncer extends AbstractModifier {
-  /** @type {Point} */
+  /** @type {import('../geometry.js').Point} */
   #topLeft;
-  /** @type {Point} */
+  /** @type {import('../geometry.js').Point} */
   #bottomRight;
 
   /**
-   * @param {Rectangle} bounds
+   * @param {import('../geometry.js').Rectangle} bounds
    * @param {AbstractModifier} decoratedModifier
    */
   constructor(bounds, decoratedModifier) {
@@ -98,7 +94,7 @@ export class Bouncer extends AbstractModifier {
 
   /**
    * Move sprite using its velocity and bouncing on screen.
-   * @param {Sprite} sprite
+   * @param {import('./sprite.js').Sprite} sprite
    * @param {number} deltaSeconds - elapsed time
    * @returns {AbstractModifier}
    */
@@ -126,7 +122,7 @@ export class Bouncer extends AbstractModifier {
  * Tracker mover.
  */
 export class Tracker extends AbstractModifier {
-  /** @type {Sprite} */
+  /** @type {import('./sprite.js').Sprite} */
   #prey;
   /** @type {number} */
   #maxSeparation;
@@ -136,7 +132,7 @@ export class Tracker extends AbstractModifier {
   /**
    *
    * @param {Object} options
-   * @param {Sprite} options.prey
+   * @param {import('./sprite.js').Sprite} options.prey
    * @param {number} options.maxSeparation - allowable distance between hunter and prey
    * @param {number} options.speed - pixels / second
    * @param {AbstractModifier} decoratedModifier
@@ -150,7 +146,7 @@ export class Tracker extends AbstractModifier {
 
   /**
    * Update the sprite to track the hunter.
-   * @param {Sprite} hunter
+   * @param {import('./sprite.js').Sprite} hunter
    * @param {*} deltaSeconds
    * @returns {AbstractModifier}
    */
@@ -194,7 +190,7 @@ export class PathFollower extends AbstractModifier {
   #path;
   /** @type {number} */
   #index;
-  /** @type {Point} */
+  /** @type {import('../geometry.js').Point} */
   #targetPoint;
   /** @type {number} */
   #speed;
@@ -216,7 +212,7 @@ export class PathFollower extends AbstractModifier {
 
   /**
    * Update the sprite to track the hunter.
-   * @param {Sprite} subject
+   * @param {import('./sprite.js').Sprite} subject
    * @param {*} deltaSeconds
    * @returns {AbstractModifier}
    */

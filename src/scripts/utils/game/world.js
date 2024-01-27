@@ -4,6 +4,8 @@
  * @module utils/game/world
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,14 +28,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as screen from './screen.js';
-
-/**
- * @typedef {import('../tileMaps/tileMap.js').TileMap} TileMap
- * @typedef {import('./actors.js').Actor} Actor
- * @typedef {import('./screen.js').MappedPositions} MappedPositions
- * @typedef {import('../geometry.js').Point} Point
- */
+import SCREEN from './screen.js';
 
 /**
  * @type {TileMap}
@@ -50,16 +45,16 @@ const actors = new Map();
  * It defaults to the screen dimensions if no map has been set.
  * @returns {{number, number}} width and height
  */
-export function getWorldDims() {
-  return worldTileMap ? worldTileMap.getDimensions() : screen.getDimensions();
+function getWorldDims() {
+  return worldTileMap ? worldTileMap.getDimensions() : SCREEN.getDimensions();
 }
 
 /**
  * Add a actor to the world.
  * The uiComponent flag of the sprite is set to false.
- * @param {Actor}
+ * @param {import('./actors.js').Actor}
  */
-export function addActor(target) {
+function addActor(target) {
   target.uiComponent = false;
   actors.set(target, target);
   worldTileMap.moveTileOccupancyGridPoint(
@@ -71,9 +66,9 @@ export function addActor(target) {
 
 /**
  * Remove actor from the world.
- * @param {Actor}
+ * @param {import('./actors.js').Actor}
  */
-export function removeActor(target) {
+function removeActor(target) {
   actors.delete(target);
 }
 
@@ -81,7 +76,7 @@ export function removeActor(target) {
  * Set the tile map for the world.
  * @param {TileMap}
  */
-export function setTileMap(tileMap) {
+function setTileMap(tileMap) {
   worldTileMap = tileMap;
 }
 
@@ -89,7 +84,7 @@ export function setTileMap(tileMap) {
  * Get the tile map for the world.
  * @returns {TileMap}
  */
-export function getTileMap() {
+function getTileMap() {
   return worldTileMap;
 }
 
@@ -97,7 +92,7 @@ export function getTileMap() {
  * Remove the tile map from the world.
  * @param {TileMap}
  */
-export function removeTileMap() {
+function removeTileMap() {
   worldTileMap = null;
 }
 
@@ -105,22 +100,28 @@ export function removeTileMap() {
  * Update the world. This calls the update methods of the tile map and all sprites/
  * @param {number} deltaSeconds
  */
-export function update(deltaSeconds) {
+function update(deltaSeconds) {
   worldTileMap?.update(deltaSeconds);
   actors.forEach((actor) => {
     const oldGridPoint = worldTileMap.worldPointToGrid(actor.position);
-    actor.update(deltaSeconds);
-    const newGridPoint = worldTileMap.worldPointToGrid(actor.position);
-    worldTileMap.moveTileOccupancyGridPoint(actor, oldGridPoint, newGridPoint);
+    if (worldTileMap.canHeroSeeGridPoint(oldGridPoint)) {
+      actor.update(deltaSeconds);
+      const newGridPoint = worldTileMap.worldPointToGrid(actor.position);
+      worldTileMap.moveTileOccupancyGridPoint(
+        actor,
+        oldGridPoint,
+        newGridPoint
+      );
+    }
   });
 }
 
 /**
  * Resolve a ui click
- * @param {MappedPositions} positions - click coordinates in canvas and world coordinates.
+ * @param {import('./screen.js').MappedPositions} positions - click coordinates in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
-export function resolveClick(positions) {
+function resolveClick(positions) {
   for (const [keyUnused, actor] of actors) {
     const sprite = actor.sprite;
     const position = sprite.uiComponent ? positions.canvas : positions.world;
@@ -142,6 +143,23 @@ export function resolveClick(positions) {
  * Get the actors
  * @returns {Map<Actor, Actor>}
  */
-export function getActors() {
+function getActors() {
   return actors;
 }
+
+/**
+ * World object singleton.
+ */
+const WORLD = {
+  addActor: addActor,
+  getActors: getActors,
+  getTileMap: getTileMap,
+  getWorldDims: getWorldDims,
+  removeTileMap: removeTileMap,
+  resolveClick: resolveClick,
+  removeActor: removeActor,
+  setTileMap: setTileMap,
+  update: update,
+};
+
+export default WORLD;

@@ -1,13 +1,12 @@
 /**
- * @file Encapsulation of a Scene. A scene equates normally to a level in a
- * dungeon.
+ * @file Scene manager
  *
- * @module utils/game/scene
+ * @module utils/game/sceneManager
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
  *
- * Copyright 2024 Steve Butler
+ * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
@@ -28,31 +27,33 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+
+import { parseSceneDefinition } from '../scriptReaders.js/sceneDefinitionParser.js';
+
+let sceneDefinitions;
 /**
- * Scene methods.
- * @interface Scene
+ * Configure the scenes from the script.
+ * @param {import('../scriptReaders.js').SceneDefinition} sceneDefns
  */
+function setSceneDefinitions(sceneDefns) {
+  sceneDefinitions = sceneDefns;
+}
 
 /**
- * Called at start. Game waits for preload before calling initialise.
- * @function Scene#load
- * @returns {Promise} fulfills to null
+ *
+ * @param {number} index
+ * @returns {import('./scene.js').Scene} scene constructed from requested scene definition.
  */
+function getScene(index) {
+  return parseSceneDefinition(sceneDefinitions[index]);
+}
 
 /**
- * Called after load. Game waits for initialise before starting the loop.
- * @function Scene#initialise
- * @returns {Promise} fulfills to null
+ * SCENE_MANAGER Singleton.
  */
+const SCENE_MANAGER = {
+  setSceneDefinitions: setSceneDefinitions,
+  getScene: getScene,
+};
 
-/**
- * Called in animation phase
- * @function Scene#update
- * @param {number} deltaSeconds
- */
-
-/**
- * Called when scene swapped out
- * @function Scene#unload
- * @returns {Promise} fulfills to null
- */
+export default SCENE_MANAGER;

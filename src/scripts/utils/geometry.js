@@ -4,6 +4,8 @@
  * @module utils/geometry
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -34,7 +36,7 @@
  */
 
 /**
- *
+ * Simple encapsulation of a Point
  */
 export class Point {
   /** @type {number}*/
@@ -67,6 +69,32 @@ export class Point {
    */
   coincident(point) {
     return this.x === point.x && this.y === point.y;
+  }
+
+  /**
+   * Get angle to target using normal cartesian coordinates; i.e up is +ve y.
+   * @param {Point} targetPos
+   * @returns {number} angle in radians.
+   */
+  getCartesianAngleTo(targetPos) {
+    return Math.atan2(targetPos.y - this.y, targetPos.x - this.x);
+  }
+
+  /**
+   * Get angle to target using normal screen coordinates; i.e down is +ve y.
+   * @param {Point} targetPos
+   * @returns {number} angle in radians.
+   */
+  getScreenAngleTo(targetPos) {
+    return Math.atan2(this.y - targetPos.y, targetPos.x - this.x);
+  }
+
+  /**
+   * String representation which can be used as key in maps.
+   * @returns {string}
+   */
+  toString() {
+    return `(${this.x},${this.y})`;
   }
 }
 /**
@@ -274,6 +302,19 @@ export class Rectangle {
       x <= this.x + this.width &&
       y >= this.y &&
       y <= this.y + this.height
+    );
+  }
+  /**
+   * Test if this rectangle equals another.
+   * @param {Rectangle} otherRect
+   * @returns {boolean}
+   */
+  equals(other) {
+    return (
+      this.x === other.x &&
+      this.y === other.y &&
+      this.width === other.width &&
+      this.height === other.height
     );
   }
 }

@@ -1,9 +1,11 @@
 /**
- * @file Load and manage images
+ * @file Load and manage images. The image manager is implemented as a singleton.
  *
  * @module utils/sprites/imageManager
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -43,7 +45,7 @@ let spriteMaps = [];
  * @param {URL} srcUrl - source URL
  * @returns {Promise} fulfils to @type {Image}.
  */
-export function loadImage(srcUrl) {
+function loadImage(srcUrl) {
   return new Promise((resolve) => {
     const image = new Image();
     image.addEventListener('load', () => {
@@ -59,7 +61,7 @@ export function loadImage(srcUrl) {
  * @param {URL[]} srcUrls - array of source URLs
  * @returns {Promise} fulfils to @type {Image[]}.
  */
-export function loadImages(srcUrls) {
+function loadImages(srcUrls) {
   const promises = [];
   srcUrls.forEach((url) => promises.push(loadImage(url)));
   return Promise.all(promises);
@@ -71,7 +73,7 @@ export function loadImages(srcUrls) {
  * @param {URL} textureUrl
  * @returns {Promise} fulfils to array of sprite map keys
  */
-export function loadSpriteMap(spriteMapDef, textureUrl) {
+function loadSpriteMap(spriteMapDef, textureUrl) {
   return loadImage(textureUrl).then((image) =>
     buildSpriteMap(spriteMapDef, image)
   );
@@ -117,6 +119,18 @@ function buildSpriteMap(spriteMapDef, texture) {
  * @param {string} filename
  * @returns {SpriteBitmap} null if filename not found.
  */
-export function getSpriteBitmap(spriteMapIndex, filename) {
+function getSpriteBitmap(spriteMapIndex, filename) {
   return spriteMaps[spriteMapIndex].get(filename);
 }
+
+/**
+ * Singleton image manager.
+ */
+const IMAGE_MANAGER = {
+  getSpriteBitmap: getSpriteBitmap,
+  loadImage: loadImage,
+  loadImages: loadImages,
+  loadSpriteMap: loadSpriteMap,
+};
+
+export default IMAGE_MANAGER;

@@ -4,6 +4,8 @@
  * @module utils/tileMaps/tilePlan
  *
  * @license
+ * {@link https://opensource.org/license/mit/|MIT}
+ *
  * Copyright 2024 Steve Butler
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,9 +29,7 @@
  */
 
 import { getSurrounds } from '../arrays/arrayManip.js';
-/**
- * @typedef {import('../arrays/arrayManip.js').Surrounds} Surrounds
- */
+
 /** Symbol used to mark void tiles @type {string} */
 const VOID_SYMBOL = 'VOID';
 
@@ -198,7 +198,7 @@ function isPartOfWall(symbol) {
 /**
  * No adjustment is currently made for the ground.
  * @param {string} value
- * @param {Surrounds} surrounds
+ * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
  * @return {string}
  */
 function clarifyGround(value, surroundsIgnored) {
@@ -209,7 +209,7 @@ function clarifyGround(value, surroundsIgnored) {
  * Distinguish the type of tile based on its surroundings.
  * This function does not handle corners.
  * @param {string} value
- * @param {Surrounds} surrounds
+ * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
  * @return {string}
  */
 function clarifyWallPart(value, surrounds) {
