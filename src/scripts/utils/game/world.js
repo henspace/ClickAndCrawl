@@ -46,16 +46,16 @@ const actors = new Map();
  * @returns {{number, number}} width and height
  */
 function getWorldDims() {
-  return worldTileMap ? worldTileMap.getDimensions() : SCREEN.getDimensions();
+  return worldTileMap
+    ? worldTileMap.getDimensions()
+    : SCREEN.getCanvasDimensions();
 }
 
 /**
  * Add a actor to the world.
- * The uiComponent flag of the sprite is set to false.
  * @param {import('./actors.js').Actor}
  */
 function addActor(target) {
-  target.uiComponent = false;
   actors.set(target, target);
   worldTileMap.moveTileOccupancyGridPoint(
     target,
@@ -104,15 +104,10 @@ function update(deltaSeconds) {
   worldTileMap?.update(deltaSeconds);
   actors.forEach((actor) => {
     const oldGridPoint = worldTileMap.worldPointToGrid(actor.position);
-    if (worldTileMap.canHeroSeeGridPoint(oldGridPoint)) {
-      actor.update(deltaSeconds);
-      const newGridPoint = worldTileMap.worldPointToGrid(actor.position);
-      worldTileMap.moveTileOccupancyGridPoint(
-        actor,
-        oldGridPoint,
-        newGridPoint
-      );
-    }
+    actor.visible = worldTileMap.canHeroSeeGridPoint(oldGridPoint);
+    actor.update(deltaSeconds);
+    const newGridPoint = worldTileMap.worldPointToGrid(actor.position);
+    worldTileMap.moveTileOccupancyGridPoint(actor, oldGridPoint, newGridPoint);
   });
 }
 
@@ -122,15 +117,16 @@ function update(deltaSeconds) {
  * @returns {boolean} true if resolved.
  */
 function resolveClick(positions) {
+  /*
   for (const [keyUnused, actor] of actors) {
     const sprite = actor.sprite;
     const position = sprite.uiComponent ? positions.canvas : positions.world;
     if (sprite.getBoundingBox().containsCoordinate(position.x, position.y)) {
-      console.log('Clicked', sprite);
       actor.actionClick(position);
       return true;
     }
   }
+  */
   const tile = worldTileMap.getTileAtWorldPoint(positions.world);
   if (tile) {
     tile.actionClick(positions.world);

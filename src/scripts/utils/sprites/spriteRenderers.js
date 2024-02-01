@@ -34,6 +34,7 @@ import * as debug from '../debug.js';
 import SCREEN from '../game/screen.js';
 import { MIN_POINT, MAX_POINT, Rectangle } from '../geometry.js';
 import * as animation from './animation.js'; //eslint-disable-line no-unused-vars
+import HUD from '../game/hud.js';
 
 /**
  * @typedef {Object} RenderGeometry
@@ -88,13 +89,10 @@ export class SpriteCanvasRenderer {
    * Render the sprite.
    * @param {Point[]} path
    * @param {import('../geometry.js').Position} position
-   * @param {boolean} [uiComponent =false] - if true coordinates are relative to the canvas
    * not the world
    */
-  render(position, uiComponent = false) {
-    if (!uiComponent) {
-      position = SCREEN.worldPositionToCanvas(position);
-    }
+  render(position) {
+    position = SCREEN.worldPositionToCanvas(position);
     if (!this.isOnCanvas(position)) {
       return;
     }
@@ -258,8 +256,8 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
     this.#height = options.height ?? 10;
     this.#halfWidth = this.#width / 2;
     this.#halfHeight = this.#height / 2;
-    this.#fillStyle = options.fillStyle ?? 'yellow';
-    this.#strokeStyle = options.strokeStyle ?? 'blue';
+    this.#fillStyle = options.fillStyle;
+    this.#strokeStyle = options.strokeStyle;
   }
 
   /**
@@ -267,12 +265,17 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
-    this._context.fillStyle = this.#fillStyle;
-    this._context.strokeStyle = this.#strokeStyle;
     const x = position.x - this.#halfWidth;
     const y = position.y - this.#halfHeight;
-    this._context.fillRect(x, y, this.#width, this.#height);
-    this._context.strokeRect(x, y, this.#width, this.#height);
+    if (this.#fillStyle) {
+      this._context.fillStyle = this.#fillStyle;
+      this._context.fillRect(x, y, this.#width, this.#height);
+    }
+    if (this.#strokeStyle) {
+      this._context.strokeStyle = this.#strokeStyle;
+      this._context.strokeRect(x, y, this.#width, this.#height);
+    }
+
     this._boundingBoxCanvas = new Rectangle(x, y, this.#width, this.#height);
   }
 }
@@ -326,7 +329,7 @@ export class PathSpriteCanvasRenderer extends SpriteCanvasRenderer {
    */
   _doRender(position) {
     if (this.path.length < 2) {
-      console.log('Path sprite needs at least 2 points.');
+      console.error('Path sprite needs at least 2 points.');
       return;
     }
     if (!this.#renderGeometry) {
@@ -367,7 +370,7 @@ export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
   /**
    * Create an image renderer.
    * @param {CanvasRenderingContext2D} context
-   * @param {SpriteBitmap | animation.KeyAnimatedImages} imageDefinition
+   * @param {SpriteBitmap | animation.AnimatedImage | animation.KeyAnimatedImages} imageDefinition
    */
   constructor(context, imageDefinition) {
     super(context);

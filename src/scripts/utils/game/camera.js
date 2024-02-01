@@ -49,9 +49,9 @@ export class CameraDolly {
    * @param {number} proportionSeparated - max space between camera and target as proportion of minimum screen dimension.
    */
   constructor(target, speed, proportionSeparated = 0) {
-    const screenRect = SCREEN.getScreenBounds();
+    const canvasDims = SCREEN.getCanvasDimensions();
     const separation =
-      proportionSeparated * Math.min(screenRect.width, screenRect.height);
+      proportionSeparated * Math.min(canvasDims.width, canvasDims.height);
     this.#sprite = new Sprite();
     new Tracker({
       prey: target,

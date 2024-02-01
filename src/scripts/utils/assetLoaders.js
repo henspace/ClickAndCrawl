@@ -49,7 +49,7 @@ export function loadTextFromUrl(url) {
     .then((response) => response.text())
     .then((text) => text)
     .catch((reason) => {
-      console.log(`Error fetching ${url}: ${reason}`);
+      console.error(`Error fetching ${url}: ${reason}`);
       return null;
     });
 }
@@ -64,7 +64,7 @@ export function loadJsonFromUrl(url) {
     .then((response) => response.text())
     .then((text) => text)
     .catch((reason) => {
-      console.log(`Error fetching ${url}: ${reason}`);
+      console.error(`Error fetching ${url}: ${reason}`);
       return null;
     });
 }

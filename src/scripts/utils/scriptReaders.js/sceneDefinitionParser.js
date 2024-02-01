@@ -31,69 +31,19 @@
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import textureMap from '../../../assets/images/dungeon.json';
 import textureUrl from '../../../assets/images/dungeon.png';
-import { TileRole } from '../tileMaps/tileMap.js';
 
 import { generateTileMapPlan } from '../tileMaps/tilePlan.js';
 import { TileMap } from '../tileMaps/tileMap.js';
 import TURN_MANAGER from '../game/turnManager.js';
 import WORLD from '../game/world.js';
 import GAME from '../game/game.js';
-import * as UI from '../dom/ui.js';
 import ACTOR_MAP from './actorMap.js';
 import SCREEN from '../game/screen.js';
+import { TILE_MAP_KEYS } from './symbolMapping.js';
+import UI from '../dom/ui.js';
+import HUD from '../game/hud.js';
 
 const GRID_SIZE = 48;
-
-/**
- * @typedef {import('./tileMap.js').TileDefinition} TileDefinition
- */
-/** @type {TileDefinition} */
-const GROUND_DEFN = {
-  role: TileRole.GROUND,
-  onClick: (target, point) =>
-    TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.CLICKED_FREE_GROUND, point),
-  image: 'floor.png',
-};
-
-/** @type {TileDefinition} */
-const ENTRANCE_DEFN = {
-  role: TileRole.ENTRANCE,
-  onClick: (target, point) =>
-    TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.CLICKED_ENTRANCE, point),
-  image: 'door-V.png',
-};
-
-/** @type {TileDefinition} */
-const EXIT_DEFN = {
-  role: TileRole.EXIT,
-  onClick: (target, point) =>
-    TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.CLICKED_EXIT, point),
-  image: 'door-V.png',
-};
-
-const TILE_MAP_KEYS = new Map([
-  ['x', { role: TileRole.OBSTACLE, image: 'default.png' }],
-  // wall parts
-  ['#-TL', { role: TileRole.OBSTACLE, image: 'corner-TL.png' }],
-  ['#-T', { role: TileRole.OBSTACLE, image: 'wall-TOP.png' }],
-  ['#-TR', { role: TileRole.OBSTACLE, image: 'corner-TR.png' }],
-  ['#-R', { role: TileRole.OBSTACLE, image: 'wall-RIGHT.png' }],
-  ['#-BR', { role: TileRole.OBSTACLE, image: 'corner-BR.png' }],
-  ['#-B', { role: TileRole.OBSTACLE, image: 'wall-BOTTOM.png' }],
-  ['#-BL', { role: TileRole.OBSTACLE, image: 'corner-BL.png' }],
-  ['#-L', { role: TileRole.OBSTACLE, image: 'wall-LEFT.png' }],
-  ['#', { role: TileRole.OBSTACLE, image: 'wall-TOP.png' }],
-  // doors
-  ['=-T', EXIT_DEFN],
-  ['=-R', EXIT_DEFN],
-  ['=-B', EXIT_DEFN],
-  ['=-L', EXIT_DEFN],
-  ['=', EXIT_DEFN],
-  ['-', ENTRANCE_DEFN],
-  // ground
-  ['.', GROUND_DEFN],
-  [',', GROUND_DEFN],
-]);
 
 /**
  * Definition of a scene
@@ -134,10 +84,23 @@ function createEnemies(sceneDefn) {
  */
 function createLoadFn(sceneDefnUnused) {
   return () => {
-    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl);
+    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl).then(() =>
+      createHud()
+    );
   };
 }
 
+/**
+ * Create the HUD
+ */
+function createHud() {
+  const button = HUD.addButton('hud-auto-centre-', () => {
+    GAME.setTrackHeroOn();
+  });
+  button.position.x = -4;
+  button.position.y = 0;
+  HUD.setVisible(true);
+}
 /**
  * Add the load method to the scene object.
  * @param {*} sceneDefn - the definition of the scene.
@@ -153,19 +116,17 @@ function createInitialiseFn(sceneDefn) {
     WORLD.setTileMap(tileMap);
     const heroActor = ACTOR_MAP.get('HERO').create();
     createEnemies(sceneDefn).forEach((enemy) => {
-      WORLD.addActor(enemy);
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
+      WORLD.addActor(enemy);
     });
 
-    GAME.setCameraToTrack(heroActor.sprite, 100, 0);
+    GAME.setCameraToTrack(heroActor.sprite, 200, 0);
 
     WORLD.addActor(heroActor);
 
     TURN_MANAGER.startWithHero(heroActor);
 
-    SCREEN.displayHtmlElement(
-      UI.createMessageElement('Welcome to the dungeon.')
-    );
+    UI.showMessage(sceneDefn.intro);
     return Promise.resolve(null);
   };
 }
@@ -187,6 +148,8 @@ function createUpdateFn(sceneDefn) {
  */
 function createUnloadFn(sceneDefn) {
   return () => {
+    HUD.clear();
+    HUD.setVisible(false);
     return Promise.resolve(null);
   };
 }

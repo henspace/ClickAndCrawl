@@ -97,8 +97,8 @@ function createUnanimatedActor(imageName) {
  */
 
 const ACTOR_MAP = new Map([
-  ['HERO', { create: () => createAnimatedActor('player') }],
-  ['MONSTER', { create: () => createUnanimatedActor('player001') }],
+  ['HERO', { create: () => createAnimatedActor('hero') }],
+  ['MONSTER', { create: () => createAnimatedActor('orc') }],
 ]);
 
 export default ACTOR_MAP;

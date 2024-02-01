@@ -35,7 +35,7 @@ window.addEventListener('load', () => {
   GAME.initialise({
     width: DESIGN_WIDTH,
     height: DESIGN_HEIGHT,
-    maxScale: 10,
+    maxScale: 2,
     minScale: 1,
     sizingMethod: 'COVER',
     alpha: false,

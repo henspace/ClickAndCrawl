@@ -173,7 +173,6 @@ export function addDragAndClickListeners(element) {
     'mousemove',
     (event) => {
       if (event.buttons & 1) {
-        console.log('Mouse move');
         processMoveAction(
           event.offsetX,
           event.offsetY,

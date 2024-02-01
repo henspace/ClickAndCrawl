@@ -63,6 +63,7 @@ html {
 }
 
 canvas {
+  overflow: hidden;
   border: solid 1px red;
 }
 
@@ -82,7 +83,6 @@ canvas {
   background-color: white;
   color: green;
   width: 50%;
-  height: 100px;
 }
 
 h1,

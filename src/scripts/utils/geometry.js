@@ -96,6 +96,19 @@ export class Point {
   toString() {
     return `(${this.x},${this.y})`;
   }
+
+  /**
+   * Test if the position is at the same point, rounded to integer as this.
+   * Rotation is ignored.
+   * @param {Position} position
+   * @returns {boolean}
+   */
+  isCoincident(position) {
+    return (
+      Math.round(this.x) === Math.round(position.x) &&
+      Math.round(this.y) === Math.round(position.y)
+    );
+  }
 }
 /**
  * Velocity class
@@ -135,11 +148,7 @@ export class Velocity {
  * Simple 2D position. Similar to point but including rotation.
  * @implements {Point}
  */
-export class Position {
-  /** type {number} */
-  x;
-  /** type {number} */
-  y;
+export class Position extends Point {
   /** type {number} */
   rotation;
 
@@ -150,9 +159,18 @@ export class Position {
    * @param {number} rotation
    */
   constructor(x, y, rotation) {
-    this.x = x;
+    super(x, y);
     this.y = y;
     this.rotation = rotation;
+  }
+
+  /**
+   * Create a Position from a Point.
+   * @param {Point} point
+   * @returns {Position}
+   */
+  static fromPoint(point) {
+    return new Position(point.x, point.y, 0);
   }
 
   /**
@@ -161,15 +179,6 @@ export class Position {
    */
   static copy(position) {
     return new Position(position.x, position.y, position.rotation);
-  }
-
-  /**
-   * Get angle to target
-   * @param {Position} targetPos
-   * @returns {number} angle in radians.
-   */
-  getAngleTo(targetPos) {
-    return Math.atan2(targetPos.y - this.y, targetPos.x - this.x);
   }
 
   /** Get a new position representing this position relative to a new origin.
@@ -194,19 +203,6 @@ export class Position {
     return (
       Math.abs(targetPos.x - this.x) < length &&
       Math.abs(targetPos.y - this.y) < length
-    );
-  }
-
-  /**
-   * Test if the position is at the same point, rounded to integer as this.
-   * Rotation is ignored.
-   * @param {Position} position
-   * @returns {boolean}
-   */
-  isCoincident(position) {
-    return (
-      Math.round(this.x) === Math.round(position.x) &&
-      Math.round(this.y) === Math.round(position.y)
     );
   }
 }

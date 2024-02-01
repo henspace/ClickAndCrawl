@@ -31,15 +31,19 @@
 import { getSurrounds } from '../arrays/arrayManip.js';
 
 /** Symbol used to mark void tiles @type {string} */
-const VOID_SYMBOL = 'VOID';
+const VOID_SYMBOL = ' ';
 
-/** Special symbols for constructing the dungeon */
+/** Special symbols for constructing the dungeon.
+ * The first character in each array is used as the default, so there should be
+ * an image for that. Note that the symbols in the arrays must be single characters.
+ * @type {Object<string, string[]>}
+ */
 const SpecialSymbols = {
   WALL: ['#', '*', '|'],
   DOOR_IN: ['-'],
   DOOR_OUT: ['='],
   GROUND: ['.', ':', ',', ';'],
-  VOID: ['_', ' '],
+  VOID: [' '],
 };
 
 /**
@@ -61,8 +65,18 @@ const Clarifiers = {
   TOP_TEE: '-TTEE',
   RIGHT_TEE: '-RTEE',
   BOTTOM_TEE: '-BTEE',
-  LEFT_TEE: '-TTEE',
-  CENTRE_CROSS: '-CX',
+  LEFT_TEE: '-LTEE',
+  INTERNAL_CROSS: '-XI',
+  INTERNAL_VERTICAL: '-VI',
+  INTERNAL_HORIZONTAL: '-HI',
+};
+
+/**
+ * Shadow clarifiers. Added to some symbols to mark it as being below a top wall.
+ */
+const ShadowClarifier = {
+  BELOW_WALL: '-SBW',
+  BELOW_END_WALL: '-SBE',
 };
 
 /**
@@ -196,12 +210,17 @@ function isPartOfWall(symbol) {
 }
 
 /**
- * No adjustment is currently made for the ground.
+ * Clarify the ground.
  * @param {string} value
  * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
  * @return {string}
  */
-function clarifyGround(value, surroundsIgnored) {
+function clarifyGround(value, surrounds) {
+  if (isPartOfWall(surrounds.above)) {
+    return isPartOfWall(surrounds.tl)
+      ? (value += ShadowClarifier.BELOW_WALL)
+      : (value += ShadowClarifier.BELOW_END_WALL);
+  }
   return value;
 }
 
@@ -213,78 +232,78 @@ function clarifyGround(value, surroundsIgnored) {
  * @return {string}
  */
 function clarifyWallPart(value, surrounds) {
-  // centre cross
+  let result = value;
+  // internals centre cross
   if (
     isPartOfWall(surrounds.above) &&
     isPartOfWall(surrounds.right) &&
     isPartOfWall(surrounds.below) &&
     isPartOfWall(surrounds.left)
   ) {
-    return value + Clarifiers.CENTRE_CROSS;
+    result += Clarifiers.INTERNAL_CROSS;
+  } else if (isGround(surrounds.left) && isGround(surrounds.right)) {
+    result += Clarifiers.INTERNAL_VERTICAL;
+  } else if (isGround(surrounds.above) && isGround(surrounds.below)) {
+    result += Clarifiers.INTERNAL_HORIZONTAL;
   }
+
   // Tees
-  if (
+  else if (
     isPartOfWall(surrounds.left) &&
     isPartOfWall(surrounds.right) &&
     isPartOfWall(surrounds.below)
   ) {
-    return value + Clarifiers.TOP_TEE;
-  }
-  if (
+    result += Clarifiers.TOP_TEE;
+  } else if (
     isPartOfWall(surrounds.above) &&
     isPartOfWall(surrounds.below) &&
     isPartOfWall(surrounds.left)
   ) {
-    return value + Clarifiers.RIGHT_TEE;
-  }
-  if (
+    result += Clarifiers.RIGHT_TEE;
+  } else if (
     isPartOfWall(surrounds.left) &&
     isPartOfWall(surrounds.right) &&
     isPartOfWall(surrounds.above)
   ) {
-    return value + Clarifiers.BOTTOM_TEE;
-  }
-  if (
+    result += Clarifiers.BOTTOM_TEE;
+  } else if (
     isPartOfWall(surrounds.above) &&
     isPartOfWall(surrounds.below) &&
     isPartOfWall(surrounds.right)
   ) {
-    return value + Clarifiers.LEFT_TEE;
+    result += Clarifiers.LEFT_TEE;
   }
   // corners
-  if (isPartOfWall(surrounds.right) && isPartOfWall(surrounds.below)) {
-    return isGround(surrounds.br)
-      ? value + Clarifiers.TOP_LEFT
-      : value + Clarifiers.TOP_LEFT_INTERNAL;
-  }
-  if (isPartOfWall(surrounds.left) && isPartOfWall(surrounds.below)) {
-    return isGround(surrounds.bl)
-      ? value + Clarifiers.TOP_RIGHT
-      : value + Clarifiers.TOP_RIGHT_INTERNAL;
-  }
-  if (isPartOfWall(surrounds.left) && isPartOfWall(surrounds.above)) {
-    return isGround(surrounds.tl)
-      ? value + Clarifiers.BOTTOM_RIGHT
-      : value + Clarifiers.BOTTOM_RIGHT_INTERNAL;
-  }
-  if (isPartOfWall(surrounds.right) && isPartOfWall(surrounds.above)) {
-    return isGround(surrounds.tr)
-      ? value + Clarifiers.BOTTOM_LEFT
-      : value + Clarifiers.BOTTOM_LEFT_INTERNAL;
+  else if (isPartOfWall(surrounds.right) && isPartOfWall(surrounds.below)) {
+    result += isGround(surrounds.br)
+      ? Clarifiers.TOP_LEFT
+      : Clarifiers.TOP_LEFT_INTERNAL;
+  } else if (isPartOfWall(surrounds.left) && isPartOfWall(surrounds.below)) {
+    result += isGround(surrounds.bl)
+      ? Clarifiers.TOP_RIGHT
+      : Clarifiers.TOP_RIGHT_INTERNAL;
+  } else if (isPartOfWall(surrounds.left) && isPartOfWall(surrounds.above)) {
+    result += isGround(surrounds.tl)
+      ? Clarifiers.BOTTOM_RIGHT
+      : Clarifiers.BOTTOM_RIGHT_INTERNAL;
+  } else if (isPartOfWall(surrounds.right) && isPartOfWall(surrounds.above)) {
+    result += isGround(surrounds.tr)
+      ? Clarifiers.BOTTOM_LEFT
+      : Clarifiers.BOTTOM_LEFT_INTERNAL;
   }
   // straights
-  if (isPartOfWall(surrounds.above)) {
+  else if (isPartOfWall(surrounds.above) && isPartOfWall(surrounds.below)) {
     // vertical
-    return isGround(surrounds.right)
-      ? value + Clarifiers.LEFT
-      : value + Clarifiers.RIGHT;
-  } else if (isPartOfWall(surrounds.right)) {
+    result += isGround(surrounds.right) ? Clarifiers.LEFT : Clarifiers.RIGHT;
+  } else if (isPartOfWall(surrounds.right) && isPartOfWall(surrounds.left)) {
     // horizontal
-    return isGround(surrounds.below)
-      ? value + Clarifiers.TOP
-      : value + Clarifiers.BOTTOM;
+    result += isGround(surrounds.below) ? Clarifiers.TOP : Clarifiers.BOTTOM;
   }
-  return value;
+
+  if (isPartOfWall(surrounds.above)) {
+    return (result += ShadowClarifier.BELOW_WALL);
+  }
+  return result;
 }
 
 /**
@@ -311,14 +330,60 @@ function createPlan(matrix, symbolMap) {
  * @returns {TileDesignInfo}
  */
 function getDesignInfo(symbol, symbolMap) {
-  return symbolMap.get(symbol) ?? symbolMap.get(unclarifiedSymbol(symbol));
+  if (symbol === VOID_SYMBOL) {
+    return null;
+  }
+  const match = symbol.match(/(.)(-[^-]*)?(-[^-]*)?/);
+  let info = symbolMap.get(symbol);
+  if (!info && match[2] && match[3]) {
+    info = symbolMap.get(`${match[1]}${match[2]}`); // no shadow clarifier
+  }
+  if (!info && match[2]) {
+    info = symbolMap.get(match[1]); // no clarifiers at all
+  }
+
+  if (!info) {
+    const fallbackSymbol = getFirstOfCohort(match[1]);
+    if (fallbackSymbol && fallbackSymbol !== match[1]) {
+      return getDesignInfo(
+        formClarifiedSymbol(fallbackSymbol, match[2], match[3]),
+        symbolMap
+      );
+    } else {
+      console.error(`Failed to find symbol for ${symbol}`);
+    }
+  }
+  return info;
 }
 
 /**
- * Unclarify a symbol
- * @param {string} symbol
- * @return {string}
+ * Searches the SpecialSymbols and finds the first entry in the array that matches
+ * the unclarified symbol.
+ * @param {string} unclarifiedSymbol
+ * @returns {string} null if not found
  */
-function unclarifiedSymbol(symbol) {
-  return symbol.charAt(0);
+function getFirstOfCohort(unclarifiedSymbol) {
+  for (const prop in SpecialSymbols) {
+    if (SpecialSymbols[prop].includes(unclarifiedSymbol)) {
+      return SpecialSymbols[prop][0];
+    }
+  }
+  return null;
+}
+
+/**
+ * Add clarifiers onto symbol.
+ * @param {string} unclarifiedSymbol
+ * @param {string} clarifier
+ * @param {string} shadowClarifier
+ */
+function formClarifiedSymbol(unclarifiedSymbol, clarifier, shadowClarifier) {
+  let result = unclarifiedSymbol;
+  if (clarifier) {
+    result += clarifier;
+  }
+  if (shadowClarifier) {
+    result += shadowClarifier;
+  }
+  return result;
 }

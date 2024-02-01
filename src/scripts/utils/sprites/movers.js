@@ -154,7 +154,7 @@ export class Tracker extends AbstractModifier {
     const preyPos = this.#prey.position;
     const hunterPos = hunter.position;
     if (!hunterPos.withinSquare(preyPos, this.#maxSeparation)) {
-      const angle = hunterPos.getAngleTo(preyPos);
+      const angle = hunterPos.getCartesianAngleTo(preyPos);
       hunter.velocity.x = this.#speed * Math.cos(angle);
       hunter.velocity.y = this.#speed * Math.sin(angle);
       const dx = hunter.velocity.x * deltaSeconds;
@@ -219,7 +219,7 @@ export class PathFollower extends AbstractModifier {
   doUpdate(subject, deltaSeconds) {
     const subjectPos = subject.position;
 
-    const angle = subjectPos.getAngleTo(this.#targetPoint);
+    const angle = subjectPos.getCartesianAngleTo(this.#targetPoint);
     subject.velocity.x = this.#speed * Math.cos(angle);
     subject.velocity.y = this.#speed * Math.sin(angle);
     const dx = subject.velocity.x * deltaSeconds;

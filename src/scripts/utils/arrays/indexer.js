@@ -28,6 +28,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import * as maths from '../maths.js';
+
 /**
  * Looping methods
  * @enum {number}
@@ -72,6 +74,13 @@ export class Indexer {
    */
   get index() {
     return this.#index;
+  }
+
+  /**
+   * Set current index. This will be clipped to a valid value.
+   */
+  set index(value) {
+    this.#index = maths.clip(value, 0, this.#length - 1);
   }
 
   /** Advance to the index.

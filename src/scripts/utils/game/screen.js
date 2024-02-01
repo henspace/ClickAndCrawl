@@ -6,7 +6,7 @@
  * exist. The world is potentially unbounded.
  *
  * The canvas is set to the same size as the screen and then the canvas is
- * resized to fit the screen using CSS.
+ * resized to fit the display using CSS.
  *
  * The canvas is centred on the camera, so although the canvas rect and screen
  * rect are the same size, the screen always has its top left at 0, 0 in the world
@@ -58,9 +58,11 @@ let canvasHalfWidth = 0;
 let canvasHalfHeight = 0;
 let canvasAlpha = true;
 let glass = null;
+let glassClickListener = null;
+let glassRect = new Rectangle(0, 0, 0, 0);
 let left = 0;
 let top = 0;
-let screenRect;
+//let screenRect;
 let scale = 1;
 let maxScale = 1;
 let minScale = 0.1;
@@ -107,8 +109,6 @@ function setOptions(options) {
 
   canvas.style.position = 'absolute';
 
-  screenRect = new Rectangle(0, 0, options.width, options.height);
-
   maxScale = options.maxScale;
   minScale = options.minScale;
   sizingMethod = options.sizingMethod;
@@ -127,20 +127,9 @@ function addGlass() {
   document.body.appendChild(glass);
   glass.style.display = 'none';
   glass.style.position = 'absolute';
-  addCloseButtonToGlass();
   const content = document.createElement('div');
   content.id = 'glass-content';
   glass.appendChild(content);
-}
-
-/**
- * Add a close button to the glass. When clicked it will clear the glass.
- */
-function addCloseButtonToGlass() {
-  const closeButton = document.createElement('div');
-  closeButton.className = 'close-button';
-  glass.appendChild(closeButton);
-  closeButton.addEventListener('click', () => closeGlass());
 }
 
 /**
@@ -160,7 +149,7 @@ function shouldFitHeight(aspectRatio, windowAspectRatio, sizingMethod) {
  * Resize the screen according to the current inner window dimensions.
  */
 function sizeScreen() {
-  let aspectRatio = screenRect.width / screenRect.height;
+  let aspectRatio = canvasRect.width / canvasRect.height;
   let displayedHeight = 0;
   let displayedWidth = 0;
   const windowAspectRatio = window.innerWidth / window.innerHeight;
@@ -177,15 +166,15 @@ function sizeScreen() {
     displayedHeight = displayedWidth / aspectRatio;
   }
 
-  scale = displayedWidth / screenRect.width;
+  scale = displayedWidth / canvasRect.width;
   if (scale > maxScale) {
     scale = maxScale;
-    displayedWidth = scale * screenRect.width;
-    displayedHeight = scale * screenRect.height;
+    displayedWidth = scale * canvasRect.width;
+    displayedHeight = scale * canvasRect.height;
   } else if (scale < minScale) {
     scale = minScale;
-    displayedWidth = scale * screenRect.width;
-    displayedHeight = scale * screenRect.height;
+    displayedWidth = scale * canvasRect.width;
+    displayedHeight = scale * canvasRect.height;
   }
 
   left = (window.innerWidth - displayedWidth) / 2;
@@ -201,13 +190,16 @@ function sizeScreen() {
  * Size the glass layer to fit over the screen
  */
 function sizeGlass() {
-  glass.style.left = Math.max(parseInt(canvas.style.left), 0) + 'px';
-  glass.style.top = Math.max(parseInt(canvas.style.top), 0) + 'px';
-  glass.style.width =
-    Math.min(parseInt(canvas.style.width), window.innerWidth) + 'px';
-  glass.style.height =
-    Math.min(parseInt(canvas.style.height), window.innerHeight) + 'px';
+  const left = Math.max(parseInt(canvas.style.left), 0);
+  const top = Math.max(parseInt(canvas.style.top), 0);
+  const width = Math.min(parseInt(canvas.style.width), window.innerWidth);
+  const height = Math.min(parseInt(canvas.style.height), window.innerHeight);
+  glass.style.left = `${left}px`;
+  glass.style.top = `${top}px`;
+  glass.style.width = `${width}px`;
+  glass.style.height = `${height}px`;
   syncDomFonts();
+  glassRect = new Rectangle(left, top, width, height);
 }
 
 /**
@@ -226,51 +218,47 @@ function syncDomFonts() {
  */
 
 /**
- * Get the screen details.
- * @returns {ScreenDetails}
+ * Clear the canvas.
  */
-function getScreenDetails() {
-  return Object.freeze({
-    canvas: canvas,
-    x: screenRect.x,
-    y: screenRect.y,
-    width: screenRect.width,
-    height: screenRect.height,
-  });
+function clearCanvas() {
+  getContext2D().clearRect(0, 0, canvasRect.width, canvasRect.height);
 }
 
 /**
- * Get screen bounds in world coordinates
+ * Get the bounds of the world that are plotted in the canvas.
  * @returns {Rectangle}
  */
-function getScreenBounds() {
+function geWorldInCanvasBounds() {
   return new Rectangle(
-    screenRect.x,
-    screenRect.y,
-    screenRect.width,
-    screenRect.height
+    cameraPosition.x,
+    cameraPosition.y,
+    canvasRect.width,
+    canvasRect.height
   );
 }
 
 /**
- * Get visible bounds in world coordinates.
- * @returns {Rectangle}
+ * Get visible canvas bounds.
  */
-function getVisibleBounds() {
-  return new Rectangle(
-    screenRect.x + cameraPosition.x,
-    screenRect.y + cameraPosition.y,
-    screenRect.width,
-    screenRect.height
-  );
+function getVisibleCanvasBounds() {
+  let left = (glassRect.x - canvasRect.x) * scale;
+  let top = (glassRect.y - canvasRect.y) * scale;
+  let right = left + glassRect.width * scale;
+  let bottom = top + glassRect.height * scale;
+  // now clip
+  left = Math.max(left, canvasRect.x);
+  top = Math.max(top, canvasRect.y);
+  right = Math.min(right, canvasRect.x + canvasRect.width);
+  bottom = Math.min(bottom, canvasRect.y + canvasRect.height);
+  return new Rectangle(left, top, right - left, bottom - top);
 }
 
 /**
- * Get screen bounds.
+ * Get canvas dimensions.
  * @returns {Dims2D}
  */
-function getDimensions() {
-  return { width: screenRect.width, height: screenRect.height };
+function getCanvasDimensions() {
+  return { width: canvasRect.width, height: canvasRect.height };
 }
 
 /**
@@ -284,27 +272,17 @@ function getContext2D() {
 /**
  * Set the content of the glass layer. This clears the glass first.
  * @param {HTMLElement} element
+ * @param {function} onClick - callback if glass clicked.
  */
-function displayHtmlElement(element) {
+function displayOnGlass(element, onClick) {
+  wipeGlass();
   const content = document.getElementById('glass-content');
   content.replaceChildren(element);
   glass.style.display = 'block';
-}
-
-/**
- * Add an html element to the the glass layer.
- * @param {HTMLElement} element
- */
-function appendHtmlElement(element) {
-  const content = document.getElementById('glass-content');
-  content.appendChild(element);
-}
-
-/**
- * Close the glass layer. The layer is just hidden, but it's content remains.
- */
-function closeGlass() {
-  glass.style.display = 'none';
+  if (onClick) {
+    content.addEventListener('click', onClick);
+    glassClickListener = onClick;
+  }
 }
 
 /**
@@ -314,6 +292,9 @@ function wipeGlass() {
   const content = document.getElementById('glass-content');
   content.innerHTML = '';
   glass.style.display = 'none';
+  if (glassClickListener) {
+    content.removeEventListener('click', glassClickListener);
+  }
 }
 
 /**
@@ -390,12 +371,41 @@ function worldPositionToCanvas(position) {
 }
 
 /**
+ * Convert canvas Position to world Position
+ * @param {Position} position  -position on the canvas
+ * @returns {Position} position in the world
+ */
+function canvasPositionToWorld(position) {
+  return new Position(
+    position.x + cameraPosition.x,
+    position.y + cameraPosition.y,
+    position.rotation
+  );
+}
+
+/**
+ * Convert glass position to world position. Negative positions are calculated as
+ * offsets from the right and bottom of the glass dimensions. Otherwise they are
+ * calculated as offsets from the left and top.
+ * @returns {Position}
+ */
+function glassPositionToWorld(position) {
+  let x = position.x < 0 ? glassRect.width + position.x : position.x;
+  let y = position.y < 0 ? glassRect.height + position.y : position.y;
+  const newPosition = new Position(
+    x / scale + 0.5 * (canvasRect.width - glassRect.width / scale),
+    y / scale + 0.5 * (canvasRect.height - glassRect.height / scale)
+  );
+  return canvasPositionToWorld(newPosition);
+}
+
+/**
  * Test if rectangle on screen.
  * @param {Rectangle} rect
  * @return {boolean} true if on screen
  */
 function isOnScreen(rect) {
-  return rect.overlaps(screenRect);
+  return rect.overlaps(canvasRect);
 }
 
 /**
@@ -408,18 +418,28 @@ function isOnCanvas(rect) {
 }
 
 /**
+ * Get the dimensions of the glass rect. This is scaled to fit the canvas and
+ * screen, so this rectangle, in canvas dimensions, is always visible.
+ * @returns {Rectangle}
+ */
+function getGlassRect() {
+  return glassRect;
+}
+/**
  * Screen object
  */
 const SCREEN = {
-  appendHtmlElement: appendHtmlElement,
+  canvasPositionToWorld: canvasPositionToWorld,
   centreCanvasOn: centreCanvasOn,
-  closeGlass: closeGlass,
-  displayHtmlElement: displayHtmlElement,
+  clearCanvas: clearCanvas,
+  displayOnGlass: displayOnGlass,
+  getCanvas: () => canvas,
   getContext2D: getContext2D,
-  getDimensions: getDimensions,
-  getScreenBounds: getScreenBounds,
-  getScreenDetails: getScreenDetails,
-  getVisibleBounds: getVisibleBounds,
+  getCanvasDimensions: getCanvasDimensions,
+  getGlassRect: getGlassRect,
+  getVisibleCanvasBounds: getVisibleCanvasBounds,
+  geWorldInCanvasBounds: geWorldInCanvasBounds,
+  glassPositionToWorld: glassPositionToWorld,
   isOnCanvas: isOnCanvas,
   isOnScreen: isOnScreen,
   panCamera: panCamera,

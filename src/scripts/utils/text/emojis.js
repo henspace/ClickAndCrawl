@@ -51,7 +51,7 @@ export function checkEmojis(context) {
     context.fillText(Emojis[key], -0.5 * metrics.width, centreToBaseLine);
     const alphaAtCentre = context.getImageData(0, 0, 1, 1).data[3];
     if (alphaAtCentre <= 0) {
-      console.log(`Emoji ${key} not supported.`);
+      console.debug(`Emoji ${key} not supported.`);
       Emojis[key] = `[${fallbackIndex++}]`;
     }
     context.clearRect(0, 0, metrics.width, height);

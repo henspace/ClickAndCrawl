@@ -37,9 +37,8 @@ import * as text from '../text/text.js';
 import * as assetLoaders from '../assetLoaders.js';
 import parseScript from '../scriptReaders.js/scriptParser.js';
 import SCENE_MANAGER from '../game/sceneManager.js';
-import { showOkDialog } from './dialogs/dialogs.js';
+import UI from '../dom/ui.js';
 import { CameraDolly } from './camera.js';
-import TURN_MANAGER from './turnManager.js';
 import * as dragAndClick from '../dom/dragAndClick.js';
 
 /** @type {DOMHighResTimeStamp} */
@@ -68,7 +67,7 @@ async function initialise(screenOptions) {
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
   // Need a menu here but for now, just load the test screen.
-  showOkDialog('Welcome to the Scripted Dungeon', "Let's start")
+  UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start")
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
     .then((script) => {
       SCENE_MANAGER.setSceneDefinitions(parseScript(script));
@@ -80,11 +79,10 @@ async function initialise(screenOptions) {
  * Set up the listeners.
  */
 function setupListeners() {
-  const canvas = SCREEN.getScreenDetails().canvas;
+  const canvas = SCREEN.getCanvas();
   dragAndClick.addDragAndClickListeners(canvas);
 
   canvas.addEventListener(dragAndClick.CUSTOM_DRAG_EVENT_NAME, (event) => {
-    console.log('drag');
     if (cameraDolly) {
       cameraDolly.tracking = false;
       cameraDolly.panBy(
@@ -100,13 +98,13 @@ function setupListeners() {
         -SCREEN.uiToWorld(event.detail.dy)
       );
     }
-    cameraDolly.tracking = true;
+    //cameraDolly.tracking = true;
   });
   canvas.addEventListener(dragAndClick.CUSTOM_CLICK_EVENT_NAME, (event) => {
     const x = event.detail.x;
     const y = event.detail.y;
     const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
-    console.log(
+    console.debug(
       `Canvas click at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
     );
     if (!HUD.resolveClick(mappedPositions)) {
@@ -132,10 +130,7 @@ function setScene(scene) {
  */
 function loadScene(scene) {
   currentScene = scene;
-  return scene
-    .load()
-    .then(() => scene.initialise())
-    .then(() => setCameraToTrack(TURN_MANAGER.getHeroActor().sprite, 50, 0));
+  return scene.load().then(() => scene.initialise());
 }
 
 /**
@@ -163,9 +158,7 @@ function gameLoop(timeStamp) {
   GAME_CLOCK.updateTimeNow(timeStamp);
   if (lastTimeStamp) {
     const deltaSeconds = (timeStamp - lastTimeStamp) / 1000;
-    const screenDetails = SCREEN.getScreenDetails();
-    const context = SCREEN.getContext2D();
-    context.clearRect(0, 0, screenDetails.width, screenDetails.height);
+    SCREEN.clearCanvas();
     WORLD.update(deltaSeconds);
     currentScene.update(deltaSeconds);
     HUD.update(deltaSeconds);
@@ -189,7 +182,7 @@ function showFps(fps) {
     `FPS: ${Math.round(fps)}`,
     {
       x: 0,
-      y: SCREEN.getScreenBounds().height,
+      y: SCREEN.getCanvasDimensions().height,
     },
     { color: 'green' }
   );
@@ -206,12 +199,28 @@ function setCameraToTrack(sprite, speed, proportionSeparated) {
 }
 
 /**
+ * Set camera to track hero
+ */
+function setTrackHeroOn() {
+  cameraDolly.tracking = true;
+}
+
+/**
+ * Set camera to stop tracking hero
+ */
+function setTrackHeroOff() {
+  cameraDolly.tracking = false;
+}
+
+/**
  * The game singleton
  */
 const GAME = {
   initialise: initialise,
   setScene: setScene,
   setCameraToTrack: setCameraToTrack,
+  setTrackHeroOn: setTrackHeroOn,
+  setTrackHeroOff: setTrackHeroOff,
 };
 
 export default GAME;

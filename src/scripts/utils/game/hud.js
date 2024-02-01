@@ -29,30 +29,81 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { AnimatedImage } from '../sprites/animation.js';
+import { Actor } from './actors.js';
+import { ImageSpriteCanvasRenderer } from '../sprites/spriteRenderers.js';
+import SCREEN from './screen.js';
+import { Sprite } from '../sprites/sprite.js';
+import { Position } from '../geometry.js';
+import { LoopMethod } from '../arrays/indexer.js';
+import { Rectangle } from '../geometry.js';
+
 /**
  * @type {Map<string, Sprite>}
  */
-const sprites = new Map();
+const actors = new Map();
 
 /** @type {boolean} */
 let visible = false;
 
 /**
- * Add a sprite to the hud.
- * The sprite's uiComponent flag is set to true.
- * @param {import('../sprites/sprite.js').Sprite}
+ * Add a button to the hud.
+ * Buttons are required to have two image states and be numbered as
+ * imagePrefix001.png and imagePrefix002.png.
+ * @param {string} imagePrefix
+ * @param {import('../ui/interactions.js').UiClickCallback} callbackOn
+ * @param {import('../ui/interactions.js').UiClickCallback} callbackOff
+ * @returns {Actor}
  */
-function addSprite(target) {
-  target.uiComponent = true;
-  sprites.set(target, target);
+function addButton(imagePrefix, callbackOn, callbackOff) {
+  const animatedImage = new AnimatedImage(
+    0,
+    {
+      prefix: imagePrefix,
+      startIndex: 0,
+      padding: 3,
+      suffix: '.png',
+    },
+    { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
+  );
+  animatedImage.setCurrentIndex(0);
+  const actor = new Actor(
+    new Sprite({
+      renderer: new ImageSpriteCanvasRenderer(
+        SCREEN.getContext2D(),
+        animatedImage
+      ),
+    })
+  );
+
+  actors.set(actor, actor);
+  actor.setOnClick(() => {
+    if (!callbackOff) {
+      callbackOn();
+    } else if (animatedImage.getCurrentIndex() === 0) {
+      animatedImage.setCurrentIndex(1);
+      callbackOn();
+    } else {
+      animatedImage.setCurrentIndex(0);
+      callbackOff();
+    }
+  });
+  return actor;
 }
 
 /**
  * Remove sprite from the hud.
  * @param {import('../sprites/sprite.js').Sprite}
  */
-function removeSprite(target) {
-  sprites.delete(target);
+function removeButton(target) {
+  actors.delete(target);
+}
+
+/**
+ * Clear the HUD
+ */
+function clear() {
+  actors.clear();
 }
 
 /**
@@ -63,7 +114,12 @@ function update(deltaSeconds) {
   if (!visible) {
     return;
   }
-  sprites.forEach((sprite) => sprite.update(deltaSeconds));
+  actors.forEach((sprite) => {
+    const uiPos = Position.copy(sprite.position);
+    sprite.position = SCREEN.glassPositionToWorld(sprite.position);
+    sprite.update(deltaSeconds);
+    sprite.position = uiPos;
+  });
 }
 
 /**
@@ -75,11 +131,19 @@ function resolveClick(positions) {
   if (!visible) {
     return false;
   }
-  for (const [keyUnused, sprite] of sprites) {
-    const position = sprite.uiComponent ? positions.canvas : positions.world;
-    if (sprite.getBoundingBox().containsCoordinate(position.x, position.y)) {
-      console.log('Clicked', sprite);
-      sprite.actionClick(sprite, position);
+  for (const [keyUnused, actor] of actors) {
+    const position = positions.canvas;
+    const actorCanvasPos = SCREEN.glassPositionToWorld(actor.position);
+    let boundingBox = actor.sprite.getBoundingBox();
+    const canvasBox = new Rectangle(
+      actorCanvasPos.x - boundingBox.width / 2,
+      actorCanvasPos.y - boundingBox.height / 2,
+      boundingBox.width,
+      boundingBox.height
+    );
+
+    if (canvasBox.containsCoordinate(positions.world.x, positions.world.y)) {
+      actor.actionClick(actor, position);
       return true;
     }
   }
@@ -90,7 +154,7 @@ function resolveClick(positions) {
  * Set the visibility of the HUD.
  * @param {boolean} visibility - true to show.
  */
-export function setVisible(visibility) {
+function setVisible(visibility) {
   visible = visibility;
 }
 
@@ -98,10 +162,12 @@ export function setVisible(visibility) {
  * HUD object
  */
 const HUD = {
-  addSprite: addSprite,
-  removeSprite: removeSprite,
+  addButton: addButton,
+  clear: clear,
+  removeButton: removeButton,
   update: update,
   resolveClick: resolveClick,
+  setVisible: setVisible,
 };
 
 export default HUD;

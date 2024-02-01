@@ -51,6 +51,20 @@ export class Actor extends UiClickHandler {
     this.sprite.obstacle = true;
     this.maxTilesPerMove = 4;
   }
+
+  /** Set the underlying sprite visibility.
+   * @param {boolean}
+   */
+  set visible(value) {
+    this.sprite.visible = value;
+  }
+
+  /** Get the underlying sprite visibility.
+   * @returns {boolean}
+   */
+  get visible() {
+    return this.sprite.visible;
+  }
   /**
    * Get obstacle property. This comes from the underlying sprite.
    * @param {boolean} value
@@ -118,6 +132,6 @@ export class Actor extends UiClickHandler {
    * Handle the click but change the point to the sprite's position
    */
   actionContextClick(pointUnused) {
-    super.actionClick(this.sprite.position);
+    super.actionContextClick(this.sprite.position);
   }
 }

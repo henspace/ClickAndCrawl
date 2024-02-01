@@ -120,7 +120,13 @@ function buildSpriteMap(spriteMapDef, texture) {
  * @returns {SpriteBitmap} null if filename not found.
  */
 function getSpriteBitmap(spriteMapIndex, filename) {
-  return spriteMaps[spriteMapIndex].get(filename);
+  const result = spriteMaps[spriteMapIndex].get(filename);
+  if (!result) {
+    console.error(
+      `Failed to find image ${filename} at index ${spriteMapIndex}`
+    );
+  }
+  return result;
 }
 
 /**

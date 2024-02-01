@@ -35,15 +35,13 @@ import { SpriteCanvasRenderer } from './spriteRenderers.js'; //eslint-disable-li
  * @param {Sprite} target - the sprite that was clicked. This prevents the need
  * to use 'this' which may not be correct in the context.
  * @param {Point} relativePoint - the position in the Sprite relative to its top left corner
+ * @param {Object} detail - extended event information.
  */
 
 /**
  * Encapsulated sprite.
  */
 export class Sprite {
-  /** Set uiComponent to true to make positions relative to the canvas and not the
-   * world @type {boolean} */
-  uiComponent;
   /** @type {Position}*/
   #position = new Position(0, 0, 0);
   /** @type {Velocity} */
@@ -52,16 +50,17 @@ export class Sprite {
   #renderer;
   /** @type {AbstractModifier} */
   modifier;
+  /** @type {boolean} */
+  visible;
 
   /**
    * @param {Object} options
    * @param {SpriteCanvasRenderer} options.renderer - the function that renders the sprite
-   * @param {boolean} options.uiComponent - set true to make positions relative to the canvas
    * rather than the world.
    */
   constructor(options) {
     this.#renderer = options?.renderer;
-    this.uiComponent = options?.uiComponent;
+    this.visible = true;
   }
   /**
    * Get the current position.
@@ -117,14 +116,15 @@ export class Sprite {
     if (this.modifier) {
       this.modifier = this.modifier.update(this, deltaSeconds);
     }
-
-    this.#render();
+    if (this.visible) {
+      this.#render();
+    }
   }
   /**
    * Render the sprite by calling the sprite's renderer
    */
   #render() {
-    this.#renderer?.render(this.#position, this.uiComponent);
+    this.#renderer?.render(this.#position);
   }
 
   /** Get the bounding box for the sprite.

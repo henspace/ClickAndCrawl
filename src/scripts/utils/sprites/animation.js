@@ -98,6 +98,25 @@ export class AnimatedImage {
     }
     return this.#frames[this.#indexer.index];
   }
+
+  /**
+   * Manual movement of frames. Note this automatically switches off playing.
+   * @param {number} index - frame index. This will be clipped to the ends of the
+   * array.
+   */
+
+  setCurrentIndex(index) {
+    this.playing = false;
+    this.#indexer.index = index;
+  }
+
+  /**
+   * Get the current index.
+   * @returns {number}
+   */
+  getCurrentIndex() {
+    return this.#indexer.index;
+  }
 }
 
 /**

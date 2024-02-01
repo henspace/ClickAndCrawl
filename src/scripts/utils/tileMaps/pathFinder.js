@@ -447,17 +447,12 @@ export class RayTracer {
     }
     let x = this.#rayStartPoint.x;
     let y = this.#rayStartPoint.y;
-    console.log(
-      '***************************',
-      `Ray trace from ${this.#rayStartPoint.toString()} to ${endPoint.toString()} in direction ${compassDirection}`
-    );
+
     while (steps >= 0) {
       const gridPoint = new Point(Math.round(x), Math.round(y));
       if (this.#tileMap.isSeeThrough(gridPoint, this.#actor)) {
-        console.log(`${gridPoint.toString()}: see through`);
         this.#markReachedPoint(gridPoint, compassDirection);
       } else {
-        console.log(`${gridPoint.toString()}: end of ray`);
         break; // ray ends.
       }
       x += dx;
@@ -523,7 +518,6 @@ export class RayTracer {
    */
   #markReachedIfNotSeeThrough(point) {
     if (!this.#tileMap.isSeeThrough(point)) {
-      console.log(`> Mark surrounding tile at ${point.toString()}`);
       this.#reachedPoints.set(point.toString(), point);
     }
   }

@@ -30,8 +30,10 @@
  */
 import { RouteFinder } from '../tileMaps/pathFinder.js';
 import { PathFollower } from '../sprites/movers.js';
+import { ClickEventFilter } from '../tileMaps/tileMap.js';
 
 import WORLD from './world.js';
+import UI from '../dom/ui.js';
 
 /**
  * Enumeration of supported events
@@ -65,7 +67,6 @@ class State {
    * @returns {Promise} fulfills to null
    */
   _onEntry() {
-    console.log(`Entering ${this.constructor.name} state.`);
     return Promise.resolve();
   }
   /**
@@ -83,7 +84,6 @@ class State {
    * @returns {Promise} fulfills to null
    */
   _onExit() {
-    console.log(`Exiting ${this.constructor.name} state.`);
     return Promise.resolve(null);
   }
 }
@@ -108,13 +108,14 @@ class HeroInMapIdle extends State {
   /**
    * @override
    */
-  _onEntry() {
+  async _onEntry() {
     const tileMap = WORLD.getTileMap();
     const routes = new RouteFinder(tileMap, heroActor).getAllRoutesFrom(
       tileMap.worldPointToGrid(heroActor.sprite.position),
       heroActor.maxTilesPerMove
     );
-    tileMap.setHighlightedRoutes(routes);
+    tileMap.setMovementRoutes(routes);
+    tileMap.setCombatActors(tileMap.getParticipants(heroActor));
     return Promise.resolve(null);
   }
   /**
@@ -123,23 +124,21 @@ class HeroInMapIdle extends State {
    * @param  {import('../sprites/sprite.js').Sprite} point - the point initiating the event
    * @param {Object} detail - object will depend on the eventId
    */
-  onEvent(eventId, point, detailUnused) {
+  onEvent(eventId, point, detail) {
     switch (eventId) {
-      case EventId.CLICKED_FREE_GROUND: {
-        const tileMap = WORLD.getTileMap();
-        const waypoints = tileMap.getWaypointsToWorldPoint(point);
-        tileMap.setHighlightedRoutes(null);
-        if (waypoints) {
-          const modifier = new PathFollower(
-            { path: waypoints, speed: 100 },
-            heroActor.sprite.modifier
-          );
-          modifier
-            .applyAsTransientToSprite(heroActor.sprite)
-            .then(() => this.transitionTo(new ComputerInMap()));
+      case EventId.CLICKED_FREE_GROUND:
+        {
+          console.log(`DETAIL ${detail}`);
+          let promise;
+          if (detail?.filter === ClickEventFilter.COMBAT_TILE) {
+            promise = this.#fight(point);
+          } else {
+            promise = this.#move(point);
+          }
+          promise.then(() => this.transitionTo(new ComputerInMap()));
         }
+
         break;
-      }
       case EventId.CLICKED_ENTRANCE:
         alert('Wow! Leaving so early. That bit of code is not ready yet.');
         break;
@@ -148,6 +147,58 @@ class HeroInMapIdle extends State {
         break;
     }
     return Promise.resolve(null);
+  }
+
+  /**
+   * Move to point
+   * @param {Point} point
+   * @returns {Promise}
+   */
+  #move(point) {
+    const tileMap = WORLD.getTileMap();
+    const waypoints = tileMap.getWaypointsToWorldPoint(point);
+    tileMap.setMovementRoutes(null);
+    tileMap.setCombatActors(null);
+    if (waypoints) {
+      const modifier = new PathFollower(
+        { path: waypoints, speed: 100 },
+        heroActor.sprite.modifier
+      );
+      return modifier.applyAsTransientToSprite(heroActor.sprite);
+    } else {
+      return Promise.resolve();
+    }
+  }
+
+  /**
+   * Fight point
+   * @param {Point} point
+   * @returns {Promise}
+   */
+  #fight(pointUnused) {
+    /** @type {import('../tileMaps/tileMap.js').TileMap} */
+    const tileMap = WORLD.getTileMap();
+    const participants = tileMap.getParticipants(heroActor);
+
+    return UI.showMessage(
+      `There are ${participants.length} actors to participate with.`
+    );
+  }
+  /**
+   * Look for any conflicts that need resolution.
+   * @returns {Promise}
+   */
+  resolveConflict() {
+    /** @type {import('../tileMaps/tileMap.js').TileMap} */
+    const tileMap = WORLD.getTileMap();
+    const participants = tileMap.getParticipants(heroActor);
+    if (participants.length > 0) {
+      return UI.showMessage(
+        `There are ${participants.length} actors to participate with.`
+      );
+    } else {
+      return Promise.resolve();
+    }
   }
 }
 

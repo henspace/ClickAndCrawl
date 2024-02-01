@@ -34,13 +34,22 @@ import {
   ImageSpriteCanvasRenderer,
   RectSpriteCanvasRenderer,
 } from '../sprites/spriteRenderers.js';
-import { Point, Rectangle } from '../geometry.js';
+import { Point, Position, Rectangle } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
 import TURN_MANAGER from '../game/turnManager.js';
+
+/**
+ * Detail for click events.
+ * @enum {number}
+ */
+export const ClickEventFilter = {
+  MOVEMENT_TILE: 0,
+  COMBAT_TILE: 1,
+};
 
 /**
  * Roles that tiles adopt.
@@ -133,6 +142,13 @@ export class Tile extends UiClickHandler {
     this.#occupants.delete(occupant);
   }
 
+  /** get occupants.
+   * @param {Object}
+   */
+  getOccupants() {
+    return this.#occupants;
+  }
+
   /**
    * Handle the click but change the point to the sprites' position
    */
@@ -164,12 +180,6 @@ export class Tile extends UiClickHandler {
       return false;
     }
     for (const occupant of this.#occupants.values()) {
-      console.log(
-        `Can I pass occupant ${typeof occupant}. Obstacle = ${
-          occupant.obstacle
-        }`,
-        occupant
-      );
       if (occupant !== actor && occupant.obstacle) {
         return false;
       }
@@ -208,11 +218,11 @@ export class TileMap {
   #width;
   #height;
   /** @type {import('./pathFinder.js').Routes} */
-  #highlightedRoutes;
+  #movementRoutes;
   /** @type {Point{}} */
-  #highlightedGridPoints;
+  #movementGridPoints;
   /** @type {Sprite} */
-  #tileHighlighter;
+  #movementTileHighlighter;
   /** @type {Tile} */
   #entrance;
   /** @type {Tile} */
@@ -221,6 +231,10 @@ export class TileMap {
   #randomGround;
   /** @type {RayTracer} */
   #heroRayTracer;
+  /** @type {Tile[]} */
+  #combatTileGridPoints;
+  /** @type {Sprite} */
+  #combatTileHighlighter;
 
   /**
    * Create tile map from 2D matrix
@@ -230,12 +244,20 @@ export class TileMap {
    */
   constructor(context, plan, gridSize) {
     this.#context = context;
-    this.#tileHighlighter = new Sprite({
+    this.#movementTileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: 'rgba(58, 72, 94, 0.3)',
-        strokeStyle: 'black',
+        fillStyle: null,
+        strokeStyle: 'white',
+      }),
+    });
+    this.#combatTileHighlighter = new Sprite({
+      renderer: new RectSpriteCanvasRenderer(context, {
+        width: gridSize,
+        height: gridSize,
+        fillStyle: null,
+        strokeStyle: 'red',
       }),
     });
     this.#gridSize = gridSize;
@@ -280,7 +302,9 @@ export class TileMap {
       });
     });
     if (!this.#entrance) {
-      console.log('No entrance has been set. Setting to the first ground tile');
+      console.error(
+        'No entrance has been set. Setting to the first ground tile'
+      );
       this.#entrance = this.#randomGround[0];
     }
   }
@@ -294,7 +318,7 @@ export class TileMap {
       case TileRole.ENTRANCE:
         if (this.#entrance) {
           const gp = tile.gridPoint;
-          console.log(
+          console.error(
             `Duplicate entrance found at (${gp.x}, ${gp.y}). Ignored.`
           );
         } else {
@@ -304,7 +328,7 @@ export class TileMap {
       case TileRole.EXIT:
         if (this.#exit) {
           const gp = tile.gridPoint;
-          console.log(`Duplicate exit found at (${gp.x}, ${gp.y}). Ignored.`);
+          console.error(`Duplicate exit found at (${gp.x}, ${gp.y}). Ignored.`);
         } else {
           this.#exit = tile;
         }
@@ -359,7 +383,7 @@ export class TileMap {
    * @returns {Rectangle}
    */
   getVisibleGridPointRect() {
-    const visibleBounds = SCREEN.getVisibleBounds();
+    const visibleBounds = SCREEN.geWorldInCanvasBounds();
     const gridPointTL = this.worldPointToGrid(
       new Point(visibleBounds.x, visibleBounds.y)
     );
@@ -462,28 +486,61 @@ export class TileMap {
    * Set the highlighted routes.
    * @param {*} routes
    */
-  setHighlightedRoutes(routes) {
-    this.#highlightedRoutes = routes;
+  setMovementRoutes(routes) {
+    this.#movementRoutes = routes;
     if (routes) {
-      this.#highlightedGridPoints = new Map();
-      this.#highlightedRoutes.forEach((gridPoints) =>
+      this.#movementGridPoints = new Map();
+      this.#movementRoutes.forEach((gridPoints) =>
         gridPoints.forEach((gridPoint) => {
-          this.#highlightedGridPoints.set(gridPoint, gridPoint);
+          this.#movementGridPoints.set(gridPoint, gridPoint);
         })
       );
     } else {
-      this.#highlightedGridPoints = null;
+      this.#movementGridPoints = null;
     }
   }
 
   /**
-   * Highlight routes marked by the highlighter.
+   * Set combat tiles
+   * @param {Actor[]} actors - actors where combat can take place.
+   */
+  setCombatActors(actors) {
+    this.#combatTileGridPoints = [];
+    actors?.forEach((actor) => {
+      this.#combatTileGridPoints.push(this.worldPointToGrid(actor.position));
+    });
+  }
+
+  /**
+   * Highlight routes marked by the highlighters. There are three possible highlights:
+   * movement, combat and interaction.
    * @param {number} deltaSeconds
    */
   #highlightTiles(deltaSeconds) {
-    this.#highlightedGridPoints?.forEach((gridPoint) => {
-      this.#tileHighlighter.position = this.gridPointToWorldPoint(gridPoint);
-      this.#tileHighlighter.update(deltaSeconds);
+    this.#highlightMovementTiles(deltaSeconds);
+    this.#highlightCombatTiles(deltaSeconds);
+  }
+
+  /**
+   * Highlight movement routes.
+   * @param {number} deltaSeconds
+   */
+  #highlightMovementTiles(deltaSeconds) {
+    this.#movementGridPoints?.forEach((gridPoint) => {
+      this.#movementTileHighlighter.position =
+        this.gridPointToWorldPoint(gridPoint);
+      this.#movementTileHighlighter.update(deltaSeconds);
+    });
+  }
+
+  /**
+   * Highlight movement routes.
+   * @param {number} deltaSeconds
+   */
+  #highlightCombatTiles(deltaSeconds) {
+    this.#combatTileGridPoints?.forEach((gp) => {
+      this.#combatTileHighlighter.position = this.gridPointToWorldPoint(gp);
+      this.#combatTileHighlighter.update(deltaSeconds);
     });
   }
 
@@ -496,13 +553,20 @@ export class TileMap {
    * @param {import('../sprites/sprite.js').SpriteClickHandler} clickHandler
    */
   #filterClick(target, point, clickHandler) {
-    if (
-      this.#highlightedRoutes?.containsGridPoint(this.worldPointToGrid(point))
-    ) {
-      clickHandler(target, point);
-    } else {
-      console.log('Ignore click outside of highlighted area');
+    if (this.#movementRoutes?.containsGridPoint(this.worldPointToGrid(point))) {
+      clickHandler(target, point, { filter: ClickEventFilter.MOVEMENT_TILE });
+      return;
     }
+    const gridPoint = this.worldPointToGrid(point);
+    this.#combatTileGridPoints?.forEach((gp) => {
+      if (gp.isCoincident(gridPoint)) {
+        clickHandler(target, point, {
+          filter: ClickEventFilter.COMBAT_TILE,
+        });
+        return;
+      }
+    });
+    console.debug('Ignore click outside of highlighted area');
   }
 
   /**
@@ -512,7 +576,7 @@ export class TileMap {
    */
   getWaypointsToWorldPoint(worldPoint) {
     const destination = this.worldPointToGrid(worldPoint);
-    return this.#highlightedRoutes?.getWaypointsAsWorldPoints(destination);
+    return this.#movementRoutes?.getWaypointsAsWorldPoints(destination);
   }
 
   /**
@@ -588,5 +652,31 @@ export class TileMap {
       this.getTileAtGridPoint(oldGridPoint)?.deleteOccupant(occupant);
       this.getTileAtGridPoint(newGridPoint)?.addOccupant(occupant);
     }
+  }
+
+  /**
+   * Get all the participants around an actor. Diagonals are not included in
+   * potential participants.
+   * @param {Actor} actor
+   * @returns {Actor[]}
+   */
+  getParticipants(actor) {
+    const participants = [];
+    const surrounds = this.getSurroundingTiles(
+      this.worldPointToGrid(actor.position)
+    );
+    const tiles = [
+      surrounds.above,
+      surrounds.right,
+      surrounds.below,
+      surrounds.left,
+    ];
+    tiles.forEach((tile) => {
+      let tileOccupants = tile?.getOccupants();
+      tileOccupants?.forEach((occupant) => {
+        participants.push(occupant);
+      });
+    });
+    return participants;
   }
 }

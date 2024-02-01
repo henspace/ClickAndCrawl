@@ -77,7 +77,7 @@ class AbstractSectionParser {
    */
   parse() {
     while (this.lineIndex < this.lines.length) {
-      const line = this.lines[this.lineIndex].trim();
+      const line = this.lines[this.lineIndex];
       const nextSectionId = AbstractSectionParser.getSectionIdFromLine(line);
       if (nextSectionId) {
         return { nextSectionId: nextSectionId, nextLineIndex: this.lineIndex };
@@ -119,7 +119,7 @@ class AbstractSectionParser {
    * @returns {string} the section section marker. Null if not a section marker.
    */
   static getSectionIdFromLine(line) {
-    const match = line.match(/^\[ *([\w ]+) *\]/);
+    const match = line.match(/^\s*\[ *([\w ]+) *\]/);
     if (match) {
       return match[1].toUpperCase();
     }
@@ -142,7 +142,7 @@ class AbstractSectionParser {
    * @param {string} message
    */
   ignoreError(message) {
-    console.log(
+    console.debug(
       `Ignoring error parsing script on line ${this.lineIndex}: ${message}`
     );
   }
@@ -160,6 +160,7 @@ class IntroParser extends AbstractSectionParser {
    */
   constructor(lines, startLine, sceneDefn) {
     super(lines, startLine, sceneDefn);
+    this.sceneDefn.intro = '';
   }
   /**
    * Parse a line.
@@ -188,7 +189,7 @@ class CastParser extends AbstractSectionParser {
    * @override
    */
   parseLine(line) {
-    const match = line.match(/(\w+?) *x(\d{1,2}): *([\w, ]*)/);
+    const match = line.match(/^\s*(\w+?) *x(\d{1,2}): *([\w, ]*)/);
     if (match) {
       this.#parseShortFormActor(match);
     } else {
