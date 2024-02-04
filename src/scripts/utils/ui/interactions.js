@@ -42,6 +42,10 @@ export class UiClickHandler {
   #onClick;
   /** @type {UiClickCallback} */
   #onContextClick;
+  /** @type {UiClickCallback} */
+  #onPointerDown;
+  /** @type {UiClickCallback} */
+  #onPointerUp;
 
   /** Set click handler. Note that this does not add a listener for the event.
    * @param {UiClickCallback} handler
@@ -50,13 +54,26 @@ export class UiClickHandler {
     this.#onClick = handler;
   }
 
-  /** Set onClick.
+  /** Set on context Click handler.
    * @param {UiClickCallback} handler
    */
   setOnContextClick(handler) {
     this.#onContextClick = handler;
   }
 
+  /** Set pointer down handler. Note that this does not add a listener for the event.
+   * @param {UiClickCallback} handler
+   */
+  setOnPointerDown(handler) {
+    this.#onPointerDown = handler;
+  }
+
+  /** Set pointer up handler. Note that this does not add a listener for the event.
+   * @param {UiClickCallback} handler
+   */
+  setOnPointerUp(handler) {
+    this.#onPointerUp = handler;
+  }
   /**
    * Handle click
    * @param {import('../geometry.js').Point} point
@@ -71,5 +88,21 @@ export class UiClickHandler {
    */
   actionContextClick(point) {
     this.#onContextClick?.(this, point);
+  }
+
+  /**
+   * Handle pointer down
+   * @param {import('../geometry.js').Point} point
+   */
+  actionPointerDown(point) {
+    this.#onPointerDown?.(this, point);
+  }
+
+  /**
+   * Handle pointer up
+   * @param {import('../geometry.js').Point} point
+   */
+  actionPointerUp(point) {
+    this.#onPointerUp?.(this, point);
   }
 }

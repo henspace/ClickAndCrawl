@@ -400,6 +400,14 @@ export class TileMap {
     return new Rectangle(minCol, minRow, maxCol - minCol, maxRow - minRow);
   }
 
+  /**
+   * Get the gridsize
+   * @returns {number}
+   */
+  getGridSize() {
+    return this.#gridSize;
+  }
+
   /** Get world dimensions.
    * @returns {import('../geometry.js').Dims2D}
    */

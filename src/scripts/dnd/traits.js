@@ -1,7 +1,7 @@
 /**
- * @file Scene manager
+ * @file Dungeon and dragons properties
  *
- * @module utils/game/sceneManager
+ * @module dnd/traits
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
@@ -28,32 +28,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { parseSceneDefinition } from '../../scriptReaders/sceneDefinitionParser.js';
+export class CharacterTraits {
+  /** Characteristics @type {Map<string, *>} */
+  #traits;
 
-let sceneDefinitions;
-/**
- * Configure the scenes from the script.
- * @param {import('../../scriptReaders/index.js').SceneDefinition} sceneDefns
- */
-function setSceneDefinitions(sceneDefns) {
-  sceneDefinitions = sceneDefns;
+  constructor() {
+    this.#traits = new Map([
+      ['HP', 10],
+      ['STR', 10],
+    ]);
+  }
+  /**
+   * Create the characteristics from a definition. The definition comprises a
+   * comma separated list of characteristics with each characteristic comprising
+   * a keyword followed by a space or equals sign and then its value.
+   * @param {string} definition
+   */
+  static fromString(definition) {
+    const dnd = new CharacterTraits();
+    const traits = definition.split(',');
+    traits.forEach((trait) => {
+      const match = trait.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
+      if (match) {
+        if (dnd.#traits.has(match[1])) {
+          dnd.#traits.set(match[1], match[2]);
+        } else {
+          throw new Error(`Invalid property name '${match[1]}'`);
+        }
+      } else {
+        throw new Error(`Invalid property '${trait}'`);
+      }
+    });
+  }
 }
-
-/**
- *
- * @param {number} index
- * @returns {import('./scene.js').Scene} scene constructed from requested scene definition.
- */
-function getScene(index) {
-  return parseSceneDefinition(sceneDefinitions[index]);
-}
-
-/**
- * SCENE_MANAGER Singleton.
- */
-const SCENE_MANAGER = {
-  setSceneDefinitions: setSceneDefinitions,
-  getScene: getScene,
-};
-
-export default SCENE_MANAGER;

@@ -3,7 +3,7 @@
  * The script parser acts as a state machine as it parses the script.
  * Dungeons work as levels.
  *
- * @module utils/scriptReaders.js/scriptParser
+ * @module scriptReaders/scriptParser
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
@@ -32,6 +32,7 @@
 
 import ACTOR_MAP from './actorMap.js';
 import { SceneDefinition } from './sceneDefinitionParser.js';
+import { CharacterTraits } from '../dnd/traits.js';
 
 /**
  * @typedef {Object} SectionParsingResult
@@ -133,7 +134,7 @@ class AbstractSectionParser {
    */
   fatalError(message) {
     throw new Error(
-      `Error parsing script on line ${this.lineIndex}: ${message}`
+      `Error parsing script on line ${this.lineIndex + 1}: ${message}`
     );
   }
 
@@ -189,7 +190,7 @@ class CastParser extends AbstractSectionParser {
    * @override
    */
   parseLine(line) {
-    const match = line.match(/^\s*(\w+?) *x(\d{1,2}): *([\w, ]*)/);
+    const match = line.match(/^\s*(\w+?) *x(\d{1,2}): *([\w,:= ]*)/);
     if (match) {
       this.#parseShortFormActor(match);
     } else {
@@ -204,10 +205,15 @@ class CastParser extends AbstractSectionParser {
   #parseShortFormActor(matchResults) {
     const actorName = matchResults[1].toUpperCase();
     const number = parseInt(matchResults[2]);
-    const propertiesIgnored = matchResults[3]; // @ToDo
+    const traitsDefn = matchResults[3];
     for (let n = 0; n < number; n++) {
       if (ACTOR_MAP.has(actorName)) {
-        this.sceneDefn.enemies.push(actorName);
+        try {
+          const traits = CharacterTraits.fromString(traitsDefn);
+          this.sceneDefn.enemies.push({ name: actorName, traits: traits });
+        } catch (error) {
+          this.fatalError(error.message);
+        }
       } else {
         this.fatalError(`Cast member ${actorName} does not exist.`);
       }
@@ -283,7 +289,7 @@ export default function parseScript(script) {
   let sceneDefn = new SceneDefinition();
   const sectionHunt = AbstractSectionParser.findFirstSection(lines);
   if (!sectionHunt) {
-    throw new Error(`Badly formed script.`);
+    throw new Error(`Invalid script. No section identifiers found.`);
   }
 
   let parser = getParserForId(

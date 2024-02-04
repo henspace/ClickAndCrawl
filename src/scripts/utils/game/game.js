@@ -35,11 +35,12 @@ import GAME_CLOCK from '../time/clock.js';
 import * as debug from '../debug.js';
 import * as text from '../text/text.js';
 import * as assetLoaders from '../assetLoaders.js';
-import parseScript from '../scriptReaders.js/scriptParser.js';
+import parseScript from '../../scriptReaders/scriptParser.js';
 import SCENE_MANAGER from '../game/sceneManager.js';
 import UI from '../dom/ui.js';
 import { CameraDolly } from './camera.js';
-import * as dragAndClick from '../dom/dragAndClick.js';
+import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
+import * as pointerActions from '../dom/pointerActions.js';
 
 /** @type {DOMHighResTimeStamp} */
 let lastTimeStamp;
@@ -57,6 +58,9 @@ let updateScene = false;
 /** @type {import('../sprites/sprite.js').Sprite}  */
 let cameraDolly;
 
+/** @type {NavigationButtons} */
+let navigationButtons;
+
 /**
  * Initialise the game engine.
  * @param {Object} screenOptions - @see {@link module:utils/game/screen~setScreen} for
@@ -72,7 +76,8 @@ async function initialise(screenOptions) {
     .then((script) => {
       SCENE_MANAGER.setSceneDefinitions(parseScript(script));
       setScene(SCENE_MANAGER.getScene(0));
-    });
+    })
+    .catch((error) => alert(error.message));
 }
 
 /**
@@ -80,27 +85,9 @@ async function initialise(screenOptions) {
  */
 function setupListeners() {
   const canvas = SCREEN.getCanvas();
-  dragAndClick.addDragAndClickListeners(canvas);
+  pointerActions.addPointerListeners(canvas);
 
-  canvas.addEventListener(dragAndClick.CUSTOM_DRAG_EVENT_NAME, (event) => {
-    if (cameraDolly) {
-      cameraDolly.tracking = false;
-      cameraDolly.panBy(
-        -SCREEN.uiToWorld(event.detail.dx),
-        -SCREEN.uiToWorld(event.detail.dy)
-      );
-    }
-  });
-  canvas.addEventListener(dragAndClick.CUSTOM_END_DRAG_EVENT_NAME, (event) => {
-    if (cameraDolly && event.detail) {
-      cameraDolly.panBy(
-        -SCREEN.uiToWorld(event.detail.dx),
-        -SCREEN.uiToWorld(event.detail.dy)
-      );
-    }
-    //cameraDolly.tracking = true;
-  });
-  canvas.addEventListener(dragAndClick.CUSTOM_CLICK_EVENT_NAME, (event) => {
+  canvas.addEventListener(pointerActions.CUSTOM_CLICK_EVENT_NAME, (event) => {
     const x = event.detail.x;
     const y = event.detail.y;
     const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
@@ -111,6 +98,32 @@ function setupListeners() {
       WORLD.resolveClick(mappedPositions);
     }
   });
+
+  canvas.addEventListener(
+    pointerActions.CUSTOM_POINTER_DOWN_EVENT_NAME,
+    (event) => {
+      const x = event.detail.x;
+      const y = event.detail.y;
+      const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
+      console.debug(
+        `Canvas pointer down at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
+      );
+      HUD.resolvePointerDown(mappedPositions);
+    }
+  );
+
+  canvas.addEventListener(
+    pointerActions.CUSTOM_POINTER_UP_EVENT_NAME,
+    (event) => {
+      const x = event.detail.x;
+      const y = event.detail.y;
+      const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
+      console.debug(
+        `Canvas pointer up at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
+      );
+      HUD.resolvePointerUp(mappedPositions);
+    }
+  );
 }
 
 /** Set the current scene, unloading any existing scene
@@ -130,7 +143,10 @@ function setScene(scene) {
  */
 function loadScene(scene) {
   currentScene = scene;
-  return scene.load().then(() => scene.initialise());
+  return scene
+    .load()
+    .then(() => scene.initialise())
+    .then(() => createHud());
 }
 
 /**
@@ -139,12 +155,38 @@ function loadScene(scene) {
  * @returns {Promise} fulfills to null
  */
 function unloadScene(scene) {
-  return scene ? scene.unload() : Promise.resolve(null);
+  if (scene) {
+    return scene.unload().then(() => clearHud());
+  } else {
+    return Promise.resolve(null);
+  }
 }
 
 function start() {
   updateScene = true;
   window.requestAnimationFrame(gameLoop);
+}
+
+/**
+ * Create the HUD
+ */
+function createHud() {
+  if (!navigationButtons) {
+    navigationButtons = new NavigationButtons(
+      cameraDolly,
+      48,
+      NavigationLocation.BR
+    );
+  }
+  HUD.setVisible(true);
+}
+
+/**
+ * Clear the HUD.
+ */
+function clearHud() {
+  HUD.clear();
+  HUD.setVisible(false);
 }
 
 /**
@@ -199,28 +241,12 @@ function setCameraToTrack(sprite, speed, proportionSeparated) {
 }
 
 /**
- * Set camera to track hero
- */
-function setTrackHeroOn() {
-  cameraDolly.tracking = true;
-}
-
-/**
- * Set camera to stop tracking hero
- */
-function setTrackHeroOff() {
-  cameraDolly.tracking = false;
-}
-
-/**
  * The game singleton
  */
 const GAME = {
   initialise: initialise,
   setScene: setScene,
   setCameraToTrack: setCameraToTrack,
-  setTrackHeroOn: setTrackHeroOn,
-  setTrackHeroOff: setTrackHeroOff,
 };
 
 export default GAME;

@@ -31,7 +31,18 @@
 
 import SCREEN from './screen.js';
 import { Sprite } from '../sprites/sprite.js';
-import { Tracker } from '../sprites/movers.js';
+import { Tracker, VelocityMover } from '../sprites/movers.js';
+import { AbstractModifier } from '../sprites/modifiers.js';
+
+/**
+ * Set the methods of tracking
+ * @enum {number}
+ */
+export const CameraTracking = {
+  OFF: 0,
+  HERO: 1,
+  VELOCITY: 2,
+};
 
 /**
  * Camera dolly class
@@ -39,8 +50,12 @@ import { Tracker } from '../sprites/movers.js';
 export class CameraDolly {
   /** @type {import('../sprites/sprite.js').Sprite} */
   #sprite;
-  /** @type {boolean} */
-  tracking;
+  /** @type {AbstractModifier} */
+  #heroTracker;
+  /** @type {AbstractModifier} */
+  #velocityTracker;
+  /** @type {number} */
+  #trackingMethod;
 
   /**
    * Create a camera dolly. This is a sprite that is designed to track a target.
@@ -53,12 +68,15 @@ export class CameraDolly {
     const separation =
       proportionSeparated * Math.min(canvasDims.width, canvasDims.height);
     this.#sprite = new Sprite();
-    new Tracker({
+
+    this.#heroTracker = new Tracker({
       prey: target,
       speed: speed,
       maxSeparation: separation,
-    }).applyAsContinuousToSprite(this.#sprite);
-    this.tracking = true;
+    });
+
+    this.#velocityTracker = new VelocityMover();
+    this.#heroTracker.applyAsContinuousToSprite(this.#sprite);
   }
 
   /**
@@ -66,20 +84,45 @@ export class CameraDolly {
    * @param {number} deltaSeconds - elapsed time since last update.
    */
   update(deltaSeconds) {
-    this.#sprite.update(deltaSeconds);
-    if (this.tracking) {
+    if (this.#trackingMethod !== CameraTracking.OFF) {
+      this.#sprite.update(deltaSeconds);
       SCREEN.centreCanvasOn(this.#sprite.position);
     }
   }
   /**
-   * Pan by by dX, dY. Note you should disable tracking before manually moving
-   * otherwise the camera will reposition itself back onto the sprite.
+   * Set the velocity to dX, dY. This will automatically set tracking to velocity.
    * @param {number} dX
    * @param {number} dY
    */
-  panBy(dX, dY) {
-    this.#sprite.position.x += dX;
-    this.#sprite.position.y += dY;
-    SCREEN.panCamera(dX, dY);
+  setVelocity(vX, vY) {
+    this.setTrackingMethod(CameraTracking.VELOCITY);
+    this.#sprite.velocity.x = vX;
+    this.#sprite.velocity.y = vY;
+  }
+
+  /**
+   * Set the trackingMethod
+   * @param {number} method - CameraTracking enum
+   */
+  setTrackingMethod(method) {
+    if (method === this.#trackingMethod) {
+      return;
+    }
+    this.#trackingMethod = method;
+    switch (method) {
+      case CameraTracking.HERO:
+        this.#heroTracker.applyAsContinuousToSprite(this.#sprite);
+        break;
+      case CameraTracking.VELOCITY:
+        this.#velocityTracker.applyAsContinuousToSprite(this.#sprite);
+        break;
+      case CameraTracking.OFF:
+        console.debug(`Camera tracking off.`);
+        break;
+      default:
+        console.error(
+          `Attempt to set invalid tracking method of ${method} ignored.`
+        );
+    }
   }
 }

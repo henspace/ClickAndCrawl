@@ -46,8 +46,10 @@ export class Sprite {
   #position = new Position(0, 0, 0);
   /** @type {Velocity} */
   #velocity = new Velocity(0, 0, 0);
-  /** @type {SpriteCanvasRenderer} */
+  /** @type {SpriteCanvasRenderer[]} */
   #renderer;
+  /** @type {boolean} */
+  #multiRenderers;
   /** @type {AbstractModifier} */
   modifier;
   /** @type {boolean} */
@@ -55,11 +57,12 @@ export class Sprite {
 
   /**
    * @param {Object} options
-   * @param {SpriteCanvasRenderer} options.renderer - the function that renders the sprite
+   * @param {SpriteCanvasRenderer } options.renderer - the renderer or renderers that render the sprite
    * rather than the world.
    */
   constructor(options) {
     this.#renderer = options?.renderer;
+    this.#multiRenderers = Array.isArray(this.#renderer);
     this.visible = true;
   }
   /**
@@ -124,7 +127,14 @@ export class Sprite {
    * Render the sprite by calling the sprite's renderer
    */
   #render() {
-    this.#renderer?.render(this.#position);
+    if (!this.#renderer) {
+      return;
+    }
+    if (!this.#renderer.forEach) {
+      this.#renderer.render(this.#position);
+    } else {
+      this.#renderer.forEach((renderer) => renderer.render(this.#position));
+    }
   }
 
   /** Get the bounding box for the sprite.

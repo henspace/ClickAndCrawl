@@ -29,6 +29,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { MultiGaugeTileRenderer } from '../sprites/spriteRenderers.js';
 import { UiClickHandler } from '../ui/interactions.js';
 
 /**
@@ -133,5 +134,31 @@ export class Actor extends UiClickHandler {
    */
   actionContextClick(pointUnused) {
     super.actionContextClick(this.sprite.position);
+  }
+
+  /**
+   * Handle the pointer up event but change the point to the sprite's position
+   */
+  actionPointerUp(pointUnused) {
+    super.actionPointerUp(this.sprite.position);
+  }
+  /**
+   * Handle the pointer down event but change the point to the sprite's position
+   */
+  actionPointerDown(pointUnused) {
+    super.actionPointerDown(this.sprite.position);
+  }
+}
+
+export class DnDActor extends Actor {
+  /** @type {MultiGaugeTileRenderer} */
+  #healthRenderer;
+  /**
+   * Create the actor.
+   * @param {import('../sprites/sprite.js').Sprite} sprite
+   */
+  constructor(sprite) {
+    super(sprite);
+    this.#healthRenderer = new MultiGaugeTileRenderer(sprite.get);
   }
 }

@@ -35,6 +35,7 @@ import SCREEN from '../game/screen.js';
 import { MIN_POINT, MAX_POINT, Rectangle } from '../geometry.js';
 import * as animation from './animation.js'; //eslint-disable-line no-unused-vars
 import HUD from '../game/hud.js';
+import { Sprite } from './sprite.js';
 
 /**
  * @typedef {Object} RenderGeometry
@@ -76,6 +77,14 @@ export class SpriteCanvasRenderer {
   constructor(context) {
     this._context = context;
     this._boundingBoxCanvas = new Rectangle(0, 0, 0, 0);
+  }
+
+  /**
+   * Get the context. This is just provided to allow classes other than children
+   * to read the context. _context could be used but that is not the intent.
+   */
+  getContext() {
+    return this._context;
   }
 
   /**
@@ -245,8 +254,8 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
    *
    * @param {CanvasRenderingContext2D} context
    * @param {Object} options
-   * @param {number} width
-   * @param {number} height
+   * @param {number} options.width
+   * @param {number} options.height
    * @param {string} options.fillStyle
    * @param {string} options.strokeStyle
    */
@@ -277,6 +286,140 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
     }
 
     this._boundingBoxCanvas = new Rectangle(x, y, this.#width, this.#height);
+  }
+}
+
+/**
+ * Renderer for percentage properties.
+ */
+export class GaugeSpriteCanvasRenderer extends SpriteCanvasRenderer {
+  #height;
+  #halfHeight;
+  #width;
+  #halfWidth;
+  #fillStyle;
+  #strokeStyle;
+  #offsetX;
+  #offsetY;
+  #fillHeight;
+  #halfFillHeight;
+
+  /**
+   *
+   * @param {CanvasRenderingContext2D} context
+   * @param {Object} options
+   * @param {number} options.width
+   * @param {number} options.height
+   * @param {string} options.fillStyle
+   * @param {string} options.strokeStyle
+   * @param {number} options.offsetX - sprite is offset from the normal sprite position.
+   * @param {number} options.offsetY - sprite is offset from the normal sprite position.
+   */
+  constructor(context, options) {
+    super(context);
+    this.#height = options.height;
+    this.#halfHeight = this.#height / 2;
+    this.#width = options.width;
+    this.#halfWidth = this.#width / 2;
+    this.#fillStyle = options.fillStyle;
+    this.#strokeStyle = options.strokeStyle;
+    this.#offsetX = options.offsetX ?? 0;
+    this.#offsetY = options.offsetY ?? 0;
+    this.setLevel(0);
+  }
+
+  /** Set the level of the gauge.
+   * @param {number} proportion - 0 to 1
+   */
+  setLevel(proportion) {
+    this.#fillHeight = proportion * this.#height;
+    this.#halfFillHeight = 0.5 * this.#fillHeight;
+  }
+
+  /**
+   * Render the sprite.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
+   */
+  _doRender(position) {
+    const topStroke = position.y - this.#halfHeight + this.#offsetY;
+    const topFill =
+      position.y + this.#halfHeight - this.#fillHeight + this.#offsetY;
+
+    const x = position.x - this.#halfWidth + this.#offsetX;
+    if (this.#fillStyle) {
+      this._context.fillStyle = this.#fillStyle;
+      this._context.fillRect(x, topFill, this.#width, this.#fillHeight);
+    }
+    if (this.#strokeStyle) {
+      this._context.strokeStyle = this.#strokeStyle;
+      this._context.strokeRect(x, topStroke, this.#width, this.#height);
+    }
+
+    this._boundingBoxCanvas = new Rectangle(
+      x,
+      topStroke,
+      this.#width,
+      this.#height
+    );
+  }
+}
+
+/** Special renderer for multiple gauges applied over a square tile */
+export class MultiGaugeTileRenderer extends SpriteCanvasRenderer {
+  #gaugeRenderers;
+
+  /**
+   * The number of gauges is determined by the maximum length of the fill styles and
+   * stroke styles
+   * @param {CanvasRenderingContext2D} context
+   * @param {Object} options
+   * @param {number} options.tileSize
+   * @param {string[]} options.fillStyles
+   * @param {string[]} options.strokeStyles
+   */
+  constructor(context, options) {
+    super(context);
+    const nGauges = Math.max(
+      options.fillStyles.length ?? 0,
+      options.strokeStyles.length ?? 0
+    );
+    if (nGauges === 0) {
+      console.error('Attempt to create MultiGaugeTileRenderer with no gauges.');
+      return;
+    }
+    this.#gaugeRenderers = [];
+    const gaugeWidth = options.tileSize / nGauges;
+    let gaugePosX = -options.tileSize / 2 + gaugeWidth / 2;
+
+    for (let index = 0; index < nGauges; index++) {
+      this.#gaugeRenderers.push(
+        new GaugeSpriteCanvasRenderer(context, {
+          width: gaugeWidth,
+          height: options.tileSize,
+          fillStyle: options.fillStyles?.[index],
+          strokeStyle: options.strokeStyles?.[index],
+          offsetX: gaugePosX + gaugeWidth * index,
+          offsetY: 0,
+        })
+      );
+    }
+  }
+
+  /**
+   * Set the level of a gauge.
+   * @param {number} gaugeIndex
+   * @param {number} proportion - 0 to 1
+   */
+  setLevel(gaugeIndex, proportion) {
+    this.#gaugeRenderers[gaugeIndex]?.setLevel(proportion);
+  }
+
+  /**
+   * Render the sprite.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
+   */
+  render(position) {
+    this.#gaugeRenderers?.forEach((renderer) => renderer.render(position));
   }
 }
 

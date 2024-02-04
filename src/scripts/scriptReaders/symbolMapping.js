@@ -1,7 +1,7 @@
 /**
  * @file Conversion of map plan keys to images and tile definitions.
  *
- * @module utils/scriptReaders.js/symbolMapping
+ * @module scriptReaders/symbolMapping
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
@@ -27,8 +27,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import { TileRole } from '../tileMaps/tileMap.js';
-import TURN_MANAGER from '../game/turnManager.js';
+import { TileRole } from '../utils/tileMaps/tileMap.js';
+import TURN_MANAGER from '../utils/game/turnManager.js';
 
 /**
  * @typedef {import('./tileMap.js').TileDefinition} TileDefinition

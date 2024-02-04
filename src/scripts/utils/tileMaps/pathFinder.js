@@ -448,13 +448,15 @@ export class RayTracer {
     let x = this.#rayStartPoint.x;
     let y = this.#rayStartPoint.y;
 
+    let firstPoint = true;
     while (steps >= 0) {
       const gridPoint = new Point(Math.round(x), Math.round(y));
-      if (this.#tileMap.isSeeThrough(gridPoint, this.#actor)) {
+      if (firstPoint || this.#tileMap.isSeeThrough(gridPoint, this.#actor)) {
         this.#markReachedPoint(gridPoint, compassDirection);
       } else {
         break; // ray ends.
       }
+      firstPoint = false;
       x += dx;
       y += dy;
       steps--;

@@ -1,7 +1,7 @@
 /**
  * @file Map of names to actor factories in the dungeon.
  *
- * @module utils/scriptReaders.js/actorMap
+ * @module scriptReaders/actorMap
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
@@ -28,14 +28,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Sprite } from '../sprites/sprite.js';
-import { Actor } from '../game/actors.js';
-import * as spriteRenderers from '../sprites/spriteRenderers.js';
-import IMAGE_MANAGER from '../sprites/imageManager.js';
-import * as animation from '../sprites/animation.js';
-import { LoopMethod } from '../arrays/indexer.js';
-import { Position } from '../geometry.js';
-import SCREEN from '../game/screen.js';
+import { Sprite } from '../utils/sprites/sprite.js';
+import { Actor } from '../utils/game/actors.js';
+import * as spriteRenderers from '../utils/sprites/spriteRenderers.js';
+import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
+import * as animation from '../utils/sprites/animation.js';
+import { LoopMethod } from '../utils/arrays/indexer.js';
+import { Position } from '../utils/geometry.js';
+import SCREEN from '../utils/game/screen.js';
+import WORLD from '../utils/game/world.js';
 
 /**
  * Create the actor.
@@ -43,27 +44,39 @@ import SCREEN from '../game/screen.js';
  * @returns {Actor}
  */
 function createAnimatedActor(imageName) {
+  const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
+    SCREEN.getContext2D(),
+    new animation.KeyedAnimatedImages(
+      'idle',
+      new animation.AnimatedImage(
+        0,
+        {
+          prefix: imageName,
+          suffix: '.png',
+          startIndex: 1,
+          padding: 3,
+        },
+        {
+          framePeriodMs: 100,
+          loopMethod: LoopMethod.REVERSE,
+        }
+      )
+    )
+  );
+
+  const gaugeRenderer = new spriteRenderers.MultiGaugeTileRenderer(
+    SCREEN.getContext2D(),
+    {
+      tileSize: WORLD.getTileMap().getGridSize() - 2,
+      fillStyles: ['red', 'blue'],
+      strokeStyles: [],
+    }
+  );
+  gaugeRenderer.setLevel(0, 0.5);
+  gaugeRenderer.setLevel(1, 0.75);
   const heroActor = new Actor(
     new Sprite({
-      renderer: new spriteRenderers.ImageSpriteCanvasRenderer(
-        SCREEN.getContext2D(),
-        new animation.KeyedAnimatedImages(
-          'idle',
-          new animation.AnimatedImage(
-            0,
-            {
-              prefix: imageName,
-              suffix: '.png',
-              startIndex: 1,
-              padding: 3,
-            },
-            {
-              framePeriodMs: 100,
-              loopMethod: LoopMethod.REVERSE,
-            }
-          )
-        )
-      ),
+      renderer: [gaugeRenderer, imageRenderer],
     })
   );
   heroActor.position = new Position(48, 48, 0);

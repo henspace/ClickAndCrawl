@@ -1,7 +1,7 @@
 /**
  * @file Convert a screen definition into a scene.
  *
- * @module utils/scriptReaders.js/sceneDefinitionParser
+ * @module scriptReaders/sceneDefinitionParser
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
@@ -28,23 +28,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import IMAGE_MANAGER from '../sprites/imageManager.js';
-import textureMap from '../../../assets/images/dungeon.json';
-import textureUrl from '../../../assets/images/dungeon.png';
+import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
+import textureMap from '../../assets/images/dungeon.json';
+import textureUrl from '../../assets/images/dungeon.png';
 
-import { generateTileMapPlan } from '../tileMaps/tilePlan.js';
-import { TileMap } from '../tileMaps/tileMap.js';
-import TURN_MANAGER from '../game/turnManager.js';
-import WORLD from '../game/world.js';
-import GAME from '../game/game.js';
+import { generateTileMapPlan } from '../utils/tileMaps/tilePlan.js';
+import { TileMap } from '../utils/tileMaps/tileMap.js';
+import TURN_MANAGER from '../utils/game/turnManager.js';
+import WORLD from '../utils/game/world.js';
+import GAME from '../utils/game/game.js';
 import ACTOR_MAP from './actorMap.js';
-import SCREEN from '../game/screen.js';
+import SCREEN from '../utils/game/screen.js';
 import { TILE_MAP_KEYS } from './symbolMapping.js';
-import UI from '../dom/ui.js';
-import HUD from '../game/hud.js';
+import UI from '../utils/dom/ui.js';
 
 const GRID_SIZE = 48;
 
+/**
+ * @typedef {Object} ActorDefn
+ * @property {string} name
+ * @property {import('../dnd/traits.js').CharacterTraits} traits
+ */
 /**
  * Definition of a scene
  */
@@ -72,7 +76,7 @@ export class SceneDefinition {
 function createEnemies(sceneDefn) {
   const enemies = [];
   sceneDefn.enemies.forEach((enemy) => {
-    enemies.push(ACTOR_MAP.get(enemy).create());
+    enemies.push(ACTOR_MAP.get(enemy.name).create());
   });
   return enemies;
 }
@@ -84,23 +88,10 @@ function createEnemies(sceneDefn) {
  */
 function createLoadFn(sceneDefnUnused) {
   return () => {
-    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl).then(() =>
-      createHud()
-    );
+    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl);
   };
 }
 
-/**
- * Create the HUD
- */
-function createHud() {
-  const button = HUD.addButton('hud-auto-centre-', () => {
-    GAME.setTrackHeroOn();
-  });
-  button.position.x = -4;
-  button.position.y = 0;
-  HUD.setVisible(true);
-}
 /**
  * Add the load method to the scene object.
  * @param {*} sceneDefn - the definition of the scene.
@@ -148,8 +139,6 @@ function createUpdateFn(sceneDefn) {
  */
 function createUnloadFn(sceneDefn) {
   return () => {
-    HUD.clear();
-    HUD.setVisible(false);
     return Promise.resolve(null);
   };
 }

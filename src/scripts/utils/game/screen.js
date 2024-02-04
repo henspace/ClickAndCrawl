@@ -57,6 +57,7 @@ let canvasRect = null;
 let canvasHalfWidth = 0;
 let canvasHalfHeight = 0;
 let canvasAlpha = true;
+let visibleCanvasRect = null;
 let glass = null;
 let glassClickListener = null;
 let glassRect = new Rectangle(0, 0, 0, 0);
@@ -149,20 +150,22 @@ function shouldFitHeight(aspectRatio, windowAspectRatio, sizingMethod) {
  * Resize the screen according to the current inner window dimensions.
  */
 function sizeScreen() {
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
   let aspectRatio = canvasRect.width / canvasRect.height;
   let displayedHeight = 0;
   let displayedWidth = 0;
-  const windowAspectRatio = window.innerWidth / window.innerHeight;
+  const windowAspectRatio = windowWidth / windowHeight;
   const fitHeight = shouldFitHeight(
     aspectRatio,
     windowAspectRatio,
     sizingMethod
   );
   if (fitHeight) {
-    displayedHeight = window.innerHeight;
+    displayedHeight = windowHeight;
     displayedWidth = displayedHeight * aspectRatio;
   } else {
-    displayedWidth = window.innerWidth;
+    displayedWidth = windowWidth;
     displayedHeight = displayedWidth / aspectRatio;
   }
 
@@ -177,23 +180,42 @@ function sizeScreen() {
     displayedHeight = scale * canvasRect.height;
   }
 
-  left = (window.innerWidth - displayedWidth) / 2;
-  top = (window.innerHeight - displayedHeight) / 2;
+  left = (windowWidth - displayedWidth) / 2;
+  top = (windowHeight - displayedHeight) / 2;
 
   canvas.style.left = `${left}px`;
   canvas.style.top = `${top}px`;
   canvas.style.width = `${displayedWidth}px`;
   canvas.style.height = `${displayedHeight}px`;
+
+  const visibleCanvasWidth = Math.min(
+    windowWidth / scale,
+    displayedWidth / scale
+  );
+  const visibleCanvasHeight = Math.min(
+    windowHeight / scale,
+    displayedHeight / scale
+  );
+  const visibleCanvasOffsetX = 0.5 * (canvasRect.width - visibleCanvasWidth);
+  const visibleCanvasOffsetY = 0.5 * (canvasRect.height - visibleCanvasHeight);
+  visibleCanvasRect = new Rectangle(
+    visibleCanvasOffsetX,
+    visibleCanvasOffsetY,
+    visibleCanvasWidth,
+    visibleCanvasHeight
+  );
 }
 
 /**
  * Size the glass layer to fit over the screen
  */
 function sizeGlass() {
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
   const left = Math.max(parseInt(canvas.style.left), 0);
   const top = Math.max(parseInt(canvas.style.top), 0);
-  const width = Math.min(parseInt(canvas.style.width), window.innerWidth);
-  const height = Math.min(parseInt(canvas.style.height), window.innerHeight);
+  const width = Math.min(parseInt(canvas.style.width), windowWidth);
+  const height = Math.min(parseInt(canvas.style.height), windowHeight);
   glass.style.left = `${left}px`;
   glass.style.top = `${top}px`;
   glass.style.width = `${width}px`;
@@ -390,13 +412,26 @@ function canvasPositionToWorld(position) {
  * @returns {Position}
  */
 function glassPositionToWorld(position) {
+  const xOrigin =
+    position.x < 0
+      ? visibleCanvasRect.x + visibleCanvasRect.width
+      : visibleCanvasRect.x;
+  const yOrigin =
+    position.x < 0
+      ? visibleCanvasRect.y + visibleCanvasRect.height
+      : visibleCanvasRect.y;
+
+  let x = xOrigin + position.x;
+  let y = yOrigin + position.y;
+  /*
   let x = position.x < 0 ? glassRect.width + position.x : position.x;
   let y = position.y < 0 ? glassRect.height + position.y : position.y;
   const newPosition = new Position(
     x / scale + 0.5 * (canvasRect.width - glassRect.width / scale),
     y / scale + 0.5 * (canvasRect.height - glassRect.height / scale)
   );
-  return canvasPositionToWorld(newPosition);
+  */
+  return canvasPositionToWorld(new Position(x, y, position.rotation));
 }
 
 /**

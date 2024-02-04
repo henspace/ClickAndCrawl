@@ -37,6 +37,7 @@ import { Sprite } from '../sprites/sprite.js';
 import { Position } from '../geometry.js';
 import { LoopMethod } from '../arrays/indexer.js';
 import { Rectangle } from '../geometry.js';
+import IMAGE_MANAGER from '../sprites/imageManager.js';
 
 /**
  * @type {Map<string, Sprite>}
@@ -47,32 +48,17 @@ const actors = new Map();
 let visible = false;
 
 /**
- * Add a button to the hud.
- * Buttons are required to have two image states and be numbered as
- * imagePrefix001.png and imagePrefix002.png.
- * @param {string} imagePrefix
+ * Add a button to the hud. If two callbacks are provided, an AnimatedImage
+ * is required with two frames.
+ * @param {SpriteBitmap | AnimatedImage} image
  * @param {import('../ui/interactions.js').UiClickCallback} callbackOn
  * @param {import('../ui/interactions.js').UiClickCallback} callbackOff
  * @returns {Actor}
  */
-function addButton(imagePrefix, callbackOn, callbackOff) {
-  const animatedImage = new AnimatedImage(
-    0,
-    {
-      prefix: imagePrefix,
-      startIndex: 0,
-      padding: 3,
-      suffix: '.png',
-    },
-    { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
-  );
-  animatedImage.setCurrentIndex(0);
+function addButton(image, callbackOn, callbackOff) {
   const actor = new Actor(
     new Sprite({
-      renderer: new ImageSpriteCanvasRenderer(
-        SCREEN.getContext2D(),
-        animatedImage
-      ),
+      renderer: new ImageSpriteCanvasRenderer(SCREEN.getContext2D(), image),
     })
   );
 
@@ -80,13 +66,40 @@ function addButton(imagePrefix, callbackOn, callbackOff) {
   actor.setOnClick(() => {
     if (!callbackOff) {
       callbackOn();
-    } else if (animatedImage.getCurrentIndex() === 0) {
-      animatedImage.setCurrentIndex(1);
+    } else if (image.getCurrentIndex() === 0) {
+      image.setCurrentIndex(1);
       callbackOn();
     } else {
-      animatedImage.setCurrentIndex(0);
+      image.setCurrentIndex(0);
       callbackOff();
     }
+  });
+  return actor;
+}
+
+/**
+ * Add a momentary button to the hud. If two callbacks are provided, an AnimatedImage
+ * is required with two frames.
+ * @param {SpriteBitmap | AnimatedImage} image
+ * @param {import('../ui/interactions.js').UiClickCallback} callbackOn
+ * @param {import('../ui/interactions.js').UiClickCallback} callbackOff
+ * @returns {Actor}
+ */
+function addMomentaryButton(image, callbackOn, callbackOff) {
+  const actor = new Actor(
+    new Sprite({
+      renderer: new ImageSpriteCanvasRenderer(SCREEN.getContext2D(), image),
+    })
+  );
+
+  actors.set(actor, actor);
+  actor.setOnPointerDown(() => {
+    image.setCurrentIndex(1);
+    callbackOn?.();
+  });
+  actor.setOnPointerUp(() => {
+    image.setCurrentIndex(0);
+    callbackOff?.();
   });
   return actor;
 }
@@ -123,6 +136,24 @@ function update(deltaSeconds) {
 }
 
 /**
+ * Check if the click is in a actor.
+ * @param {import('./screen.js').MappedPositions} positions - canvas and world positions
+ * @param {Actor} actor
+ */
+function isHittingActor(positions, actor) {
+  const actorCanvasPos = SCREEN.glassPositionToWorld(actor.position);
+  let boundingBox = actor.sprite.getBoundingBox();
+  const canvasBox = new Rectangle(
+    actorCanvasPos.x - boundingBox.width / 2,
+    actorCanvasPos.y - boundingBox.height / 2,
+    boundingBox.width,
+    boundingBox.height
+  );
+
+  return canvasBox.containsCoordinate(positions.world.x, positions.world.y);
+}
+
+/**
  * Resolve a ui click
  * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
@@ -132,18 +163,50 @@ function resolveClick(positions) {
     return false;
   }
   for (const [keyUnused, actor] of actors) {
-    const position = positions.canvas;
-    const actorCanvasPos = SCREEN.glassPositionToWorld(actor.position);
-    let boundingBox = actor.sprite.getBoundingBox();
-    const canvasBox = new Rectangle(
-      actorCanvasPos.x - boundingBox.width / 2,
-      actorCanvasPos.y - boundingBox.height / 2,
-      boundingBox.width,
-      boundingBox.height
-    );
+    if (isHittingActor(positions, actor)) {
+      actor.actionClick(actor, positions.canvas);
+      return true;
+    }
+  }
+  return false;
+}
 
-    if (canvasBox.containsCoordinate(positions.world.x, positions.world.y)) {
-      actor.actionClick(actor, position);
+/**
+ * Resolve a pointer down
+ * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @returns {boolean} true if resolved.
+ */
+function resolvePointerDown(positions) {
+  if (!visible) {
+    return false;
+  }
+  if (!visible) {
+    return false;
+  }
+  for (const [keyUnused, actor] of actors) {
+    if (isHittingActor(positions, actor)) {
+      actor.actionPointerDown(actor, positions.canvas);
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Resolve a ui pointer up event
+ * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @returns {boolean} true if resolved.
+ */
+function resolvePointerUp(positions) {
+  if (!visible) {
+    return false;
+  }
+  if (!visible) {
+    return false;
+  }
+  for (const [keyUnused, actor] of actors) {
+    if (isHittingActor(positions, actor)) {
+      actor.actionPointerUp(actor, positions.canvas);
       return true;
     }
   }
@@ -163,10 +226,13 @@ function setVisible(visibility) {
  */
 const HUD = {
   addButton: addButton,
+  addMomentaryButton: addMomentaryButton,
   clear: clear,
   removeButton: removeButton,
   update: update,
   resolveClick: resolveClick,
+  resolvePointerDown: resolvePointerDown,
+  resolvePointerUp: resolvePointerUp,
   setVisible: setVisible,
 };
 

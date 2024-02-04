@@ -31,6 +31,41 @@
 import { AbstractModifier } from './modifiers.js';
 
 /**
+ * Simple unbounded velocity mover
+ */
+export class VelocityMover extends AbstractModifier {
+  /** @type {import('../geometry.js').Point} */
+  #topLeft;
+  /** @type {import('../geometry.js').Point} */
+  #bottomRight;
+
+  /**
+   * @param {AbstractModifier} decoratedModifier
+   */
+  constructor(decoratedModifier) {
+    super(decoratedModifier);
+  }
+
+  /**
+   * Move sprite using its velocity
+   * @param {import('./sprite.js').Sprite} sprite
+   * @param {number} deltaSeconds - elapsed time
+   * @returns {AbstractModifier}
+   */
+  doUpdate(sprite, deltaSeconds) {
+    const position = sprite.position;
+    const velocity = sprite.velocity;
+
+    position.x += velocity.x * deltaSeconds;
+    position.y += velocity.y * deltaSeconds;
+
+    sprite.position = position;
+    sprite.velocity = velocity;
+    return this;
+  }
+}
+
+/**
  * Velocity aligner
  */
 export class VelocityAligner extends AbstractModifier {
