@@ -4,7 +4,7 @@
   "description": "Create an RPG Dungeon crawler using a simple text based script.",
   "source": "src/index.html",
   "scripts": {
-    "build": "parcel build",
+    "build": "parcel build --dist-dir build --public-url . ",
     "start": "parcel src/index.html",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
     "doc": "jsdoc -c jsdoc.json"

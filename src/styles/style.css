@@ -38,8 +38,8 @@
   --error-contrast: rgb(255, 255, 255);
   --error-highlight: rgb(204, 102, 102);
 
-  --window-base: rgb(255, 255, 255);
-  --window-contrast: rgb(0, 0, 0);
+  --window-base: rgb(0, 0, 0);
+  --window-contrast: rgb(255, 255, 255);
   --window-highlight: rgb(230, 230, 230);
 
   --padding-thickness: 0.25rem;
@@ -52,22 +52,35 @@
   --vh: 1vh;
 }
 
-html {
-  background-color: var(--window-base);
+body {
+  background-color: black;
   color: var(--window-contrast);
+  align-items: center;
+  justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
   font-size: calc(var(--font-base-size) + 0.00390625 * var(--design-width));
+  width: 100vw;
+  height: 100vh;
   margin: 0;
-  overflow: hidden;
   padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 canvas {
-  border: solid 1px red;
+  position: absolute;
+}
+
+#game-content {
+  overflow: hidden;
 }
 
 #glass {
-  background-color: rgba(100, 100, 100, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
+  position: absolute;
+  opacity: 0;
+  transition: opacity 2s;
 }
 
 #glass-content {

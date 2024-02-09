@@ -58,8 +58,8 @@ let canvasHalfWidth = 0;
 let canvasHalfHeight = 0;
 let canvasAlpha = true;
 let visibleCanvasRect = null;
+let gameElement = null;
 let glass = null;
-let glassClickListener = null;
 let glassRect = new Rectangle(0, 0, 0, 0);
 let left = 0;
 let top = 0;
@@ -85,6 +85,13 @@ window.addEventListener('resize', () => {
 });
 
 /**
+ * Get dimensions of the working area for the game.
+ * @returns {import('../geometry.js').Dims2D}
+ */
+function getDisplayDims() {
+  return { width: window.innerWidth, height: window.innerHeight };
+}
+/**
  * @param {Object} options - config options.
  * @param {number} options.width - the design width for the screen.
  * @param {number} options.height - the design height for the page.
@@ -97,6 +104,7 @@ function setOptions(options) {
     console.error('Multiple calls to setScreen ignored.');
     return;
   }
+  gameElement = document.getElementById('game-content');
   fonts.initialise(options.width);
   canvas = document.createElement('canvas');
   canvas.setAttribute('width', options.width);
@@ -106,9 +114,7 @@ function setOptions(options) {
   canvasHalfWidth = options.width / 2;
   canvasHalfHeight = options.height / 2;
 
-  document.body.appendChild(canvas);
-
-  canvas.style.position = 'absolute';
+  gameElement.appendChild(canvas);
 
   maxScale = options.maxScale;
   minScale = options.minScale;
@@ -125,9 +131,8 @@ function setOptions(options) {
 function addGlass() {
   glass = document.createElement('div');
   glass.id = 'glass';
-  document.body.appendChild(glass);
+  gameElement.appendChild(glass);
   glass.style.display = 'none';
-  glass.style.position = 'absolute';
   const content = document.createElement('div');
   content.id = 'glass-content';
   glass.appendChild(content);
@@ -150,22 +155,21 @@ function shouldFitHeight(aspectRatio, windowAspectRatio, sizingMethod) {
  * Resize the screen according to the current inner window dimensions.
  */
 function sizeScreen() {
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
+  const dims = getDisplayDims();
   let aspectRatio = canvasRect.width / canvasRect.height;
   let displayedHeight = 0;
   let displayedWidth = 0;
-  const windowAspectRatio = windowWidth / windowHeight;
+  const windowAspectRatio = dims.width / dims.height;
   const fitHeight = shouldFitHeight(
     aspectRatio,
     windowAspectRatio,
     sizingMethod
   );
   if (fitHeight) {
-    displayedHeight = windowHeight;
+    displayedHeight = dims.height;
     displayedWidth = displayedHeight * aspectRatio;
   } else {
-    displayedWidth = windowWidth;
+    displayedWidth = dims.width;
     displayedHeight = displayedWidth / aspectRatio;
   }
 
@@ -180,8 +184,8 @@ function sizeScreen() {
     displayedHeight = scale * canvasRect.height;
   }
 
-  left = (windowWidth - displayedWidth) / 2;
-  top = (windowHeight - displayedHeight) / 2;
+  left = (dims.width - displayedWidth) / 2;
+  top = (dims.height - displayedHeight) / 2;
 
   canvas.style.left = `${left}px`;
   canvas.style.top = `${top}px`;
@@ -189,11 +193,11 @@ function sizeScreen() {
   canvas.style.height = `${displayedHeight}px`;
 
   const visibleCanvasWidth = Math.min(
-    windowWidth / scale,
+    dims.width / scale,
     displayedWidth / scale
   );
   const visibleCanvasHeight = Math.min(
-    windowHeight / scale,
+    dims.height / scale,
     displayedHeight / scale
   );
   const visibleCanvasOffsetX = 0.5 * (canvasRect.width - visibleCanvasWidth);
@@ -210,12 +214,11 @@ function sizeScreen() {
  * Size the glass layer to fit over the screen
  */
 function sizeGlass() {
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
+  const dims = getDisplayDims();
   const left = Math.max(parseInt(canvas.style.left), 0);
   const top = Math.max(parseInt(canvas.style.top), 0);
-  const width = Math.min(parseInt(canvas.style.width), windowWidth);
-  const height = Math.min(parseInt(canvas.style.height), windowHeight);
+  const width = Math.min(parseInt(canvas.style.width), dims.width);
+  const height = Math.min(parseInt(canvas.style.height), dims.height);
   glass.style.left = `${left}px`;
   glass.style.top = `${top}px`;
   glass.style.width = `${width}px`;
@@ -292,31 +295,50 @@ function getContext2D() {
 }
 
 /**
- * Set the content of the glass layer. This clears the glass first.
- * @param {HTMLElement} element
- * @param {function} onClick - callback if glass clicked.
+ * @typedef {Object} Closers
+ * @property {Element} element - when clicked, this should close a display.
+ * @property {number} response - the code returned if this element closed a display.
  */
-function displayOnGlass(element, onClick) {
-  wipeGlass();
+/**
+ * Set the content of the glass layer. OnClick events are added automatically to the
+ * closers.
+ * @param {HTMLElement} element
+ * @param {Closers[]} closers - array of Closers. If not provided then the entire display
+ * is used.
+ * @returns {Promise} fulfils to null when clicked.
+ */
+function displayOnGlass(element, closers) {
   const content = document.getElementById('glass-content');
   content.replaceChildren(element);
   glass.style.display = 'block';
-  if (onClick) {
-    content.addEventListener('click', onClick);
-    glassClickListener = onClick;
-  }
+  glass.style.opacity = 1;
+  return new Promise((resolve) => {
+    if (closers) {
+      closers.forEach((closer) => {
+        closer.element.addEventListener('click', () =>
+          resolve(closer.response)
+        );
+      });
+    } else {
+      content.addEventListener('click', () => resolve());
+    }
+  }).then(() => wipeGlass());
 }
 
 /**
  * Clear and close the glass layer. The layer is hidden and it's content removed.
+ * @returns {Promise} fulfils to undefined. This is to allow opacity transition.
  */
 function wipeGlass() {
   const content = document.getElementById('glass-content');
-  content.innerHTML = '';
-  glass.style.display = 'none';
-  if (glassClickListener) {
-    content.removeEventListener('click', glassClickListener);
-  }
+  glass.style.opacity = 0;
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      content.innerHTML = '';
+      glass.style.display = 'none';
+      resolve();
+    }, 2000);
+  });
 }
 
 /**
@@ -417,7 +439,7 @@ function glassPositionToWorld(position) {
       ? visibleCanvasRect.x + visibleCanvasRect.width
       : visibleCanvasRect.x;
   const yOrigin =
-    position.x < 0
+    position.y < 0
       ? visibleCanvasRect.y + visibleCanvasRect.height
       : visibleCanvasRect.y;
 
@@ -460,6 +482,14 @@ function isOnCanvas(rect) {
 function getGlassRect() {
   return glassRect;
 }
+
+/**
+ * Set the global opacity.
+ * @param {number} opacity
+ */
+function setOpacity(opacity) {
+  getContext2D().globalAlpha = opacity;
+}
 /**
  * Screen object
  */
@@ -478,6 +508,7 @@ const SCREEN = {
   isOnCanvas: isOnCanvas,
   isOnScreen: isOnScreen,
   panCamera: panCamera,
+  setOpacity: setOpacity,
   setOptions: setOptions,
   wipeGlass: wipeGlass,
   worldPositionToCanvas: worldPositionToCanvas,

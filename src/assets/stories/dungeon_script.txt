@@ -2,7 +2,7 @@
 Welcome to the test dungeon. Beware all who enter here.
 This is just a test file to see if everything works.
 [Cast]
-monster x12: HP: 22
+monster x3: HP: 5/25
 [Map]
             ####
     ####    #..#
@@ -17,3 +17,14 @@ monster x12: HP: 22
        ###,,###
          #,,#
          ####
+[Level]
+The deeper you go, the harder it gets.
+[Cast]
+monster x4: HP: 10/25
+[Map]
+#############
+#...........#
+#...........#
+#.....#.....#
+#.....#.....#
+##=#######-##

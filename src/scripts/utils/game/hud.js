@@ -74,6 +74,7 @@ function addButton(image, callbackOn, callbackOff) {
       callbackOff();
     }
   });
+  image.setCurrentIndex(0);
   return actor;
 }
 
@@ -214,6 +215,25 @@ function resolvePointerUp(positions) {
 }
 
 /**
+ * Resolve a context menu event.
+ * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @returns {boolean} true if resolved.
+ */
+function resolveContextMenu(positionsUnused) {
+  return false;
+}
+
+/**
+ * Resolve a cancel event. For the HUD, a cancel event is treated the same as a pointer
+ * up event.
+ * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @returns {boolean} true if resolved.
+ */
+function resolvePointerCancel(positions) {
+  return resolvePointerUp(positions);
+}
+
+/**
  * Set the visibility of the HUD.
  * @param {boolean} visibility - true to show.
  */
@@ -230,7 +250,9 @@ const HUD = {
   clear: clear,
   removeButton: removeButton,
   update: update,
+  resolvePointerCancel: resolvePointerCancel,
   resolveClick: resolveClick,
+  resolveContextMenu: resolveContextMenu,
   resolvePointerDown: resolvePointerDown,
   resolvePointerUp: resolvePointerUp,
   setVisible: setVisible,

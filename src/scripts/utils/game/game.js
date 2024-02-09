@@ -41,6 +41,9 @@ import UI from '../dom/ui.js';
 import { CameraDolly } from './camera.js';
 import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
 import * as pointerActions from '../dom/pointerActions.js';
+import TURN_MANAGER from './turnManager.js';
+import { AnimatedImage } from '../sprites/animation.js';
+import { LoopMethod } from '../arrays/indexer.js';
 
 /** @type {DOMHighResTimeStamp} */
 let lastTimeStamp;
@@ -62,6 +65,20 @@ let cameraDolly;
 let navigationButtons;
 
 /**
+ * Request full screen mode.
+ * @param {Element} element - what should go full screen.
+ * @param {Object} options - see {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen}
+ * @returns {Promise}
+ */
+function requestFullscreen(element, options) {
+  if (element.requestFullscreen) {
+    return element.requestFullscreen(options);
+  }
+  return Promise.reject(
+    new Error('Fullscreen requests not supported by browser')
+  );
+}
+/**
  * Initialise the game engine.
  * @param {Object} screenOptions - @see {@link module:utils/game/screen~setScreen} for
  * details of options.
@@ -73,10 +90,8 @@ async function initialise(screenOptions) {
   // Need a menu here but for now, just load the test screen.
   UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start")
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
-    .then((script) => {
-      SCENE_MANAGER.setSceneDefinitions(parseScript(script));
-      setScene(SCENE_MANAGER.getScene(0));
-    })
+    .then((script) => SCENE_MANAGER.setSceneDefinitions(parseScript(script)))
+    .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.START_GAME))
     .catch((error) => alert(error.message));
 }
 
@@ -124,14 +139,38 @@ function setupListeners() {
       HUD.resolvePointerUp(mappedPositions);
     }
   );
+
+  canvas.addEventListener(
+    pointerActions.CUSTOM_POINTER_CANCEL_EVENT_NAME,
+    (event) => {
+      const x = event.detail.x;
+      const y = event.detail.y;
+      const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
+      console.debug(
+        `Canvas pointer cancel at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
+      );
+      HUD.resolvePointerCancel(mappedPositions);
+    }
+  );
+
+  canvas.addEventListener('contextmenu', (event) => {
+    console.debug('Context menu');
+    const x = event.detail.x;
+    const y = event.detail.y;
+    const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
+    if (!HUD.resolveContextMenu(mappedPositions)) {
+      WORLD.resolveContextMenu(mappedPositions);
+    }
+    event.preventDefault();
+  });
 }
 
 /** Set the current scene, unloading any existing scene
  * @param {import('./scene.js').Scene} scene
+ * @returns {Promise} fulfils to undefined
  */
 function setScene(scene) {
-  updateScene = false;
-  unloadScene(currentScene)
+  return unloadScene(currentScene)
     .then(() => loadScene(scene))
     .then(() => start());
 }
@@ -156,7 +195,10 @@ function loadScene(scene) {
  */
 function unloadScene(scene) {
   if (scene) {
-    return scene.unload().then(() => clearHud());
+    return scene.unload().then(() => {
+      updateScene = false;
+      return clearHud();
+    });
   } else {
     return Promise.resolve(null);
   }
@@ -178,9 +220,33 @@ function createHud() {
       NavigationLocation.BR
     );
   }
+  addFullscreenButton();
   HUD.setVisible(true);
 }
 
+function addFullscreenButton() {
+  const fsImage = new AnimatedImage(
+    0,
+    {
+      prefix: 'hud-fullscreen-',
+      startIndex: 0,
+      padding: 3,
+      suffix: '.png',
+    },
+    { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
+  );
+  const button = HUD.addButton(
+    fsImage,
+    () => {
+      requestFullscreen(document.body, { navigationUI: 'hide' });
+    },
+    () => {
+      document.exitFullscreen();
+    }
+  );
+  button.position.x = 48;
+  button.position.y = -48;
+}
 /**
  * Clear the HUD.
  */
@@ -201,8 +267,10 @@ function gameLoop(timeStamp) {
   if (lastTimeStamp) {
     const deltaSeconds = (timeStamp - lastTimeStamp) / 1000;
     SCREEN.clearCanvas();
+    SCREEN.setOpacity(currentScene.getOpacity());
     WORLD.update(deltaSeconds);
     currentScene.update(deltaSeconds);
+    SCREEN.setOpacity(1);
     HUD.update(deltaSeconds);
     cameraDolly?.update(deltaSeconds);
     if (debug.OPTIONS.showFps) {

@@ -41,6 +41,7 @@ import { getSurrounds } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
 import TURN_MANAGER from '../game/turnManager.js';
+import { TilePlan } from './tilePlan.js';
 
 /**
  * Detail for click events.
@@ -227,6 +228,10 @@ export class TileMap {
   #entrance;
   /** @type {Tile} */
   #exit;
+  /** @type {Point} */
+  #entryGridPointByDoor;
+  /** @type {Point} */
+  #exitGridPointByDoor;
   /** @type {Tile[]} */
   #randomGround;
   /** @type {RayTracer} */
@@ -239,10 +244,13 @@ export class TileMap {
   /**
    * Create tile map from 2D matrix
    * @param {CanvasRenderingContext2D} context
-   * @param {Array.<TileDefinition>} plan
+   * @param {TilePlan} plan
    * @param {number} gridSize - in world coordinates
    */
   constructor(context, plan, gridSize) {
+    const matrix = plan.matrix;
+    this.#entryGridPointByDoor = plan.entryPointByDoor;
+    this.#exitGridPointByDoor = plan.exitPointByDoor;
     this.#context = context;
     this.#movementTileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
@@ -262,12 +270,12 @@ export class TileMap {
     });
     this.#gridSize = gridSize;
     this.#tiles = [];
-    this.#tilesY = plan.length;
-    this.#tilesX = plan[0].length;
+    this.#tilesY = matrix.length;
+    this.#tilesX = matrix[0].length;
     this.#width = gridSize * this.tilesX;
     this.#height = gridSize * this.tilesY;
     this.#randomGround = [];
-    plan.forEach((row, rowIndex) => {
+    matrix.forEach((row, rowIndex) => {
       const tileRow = [];
       this.#tiles.push(tileRow);
       row.forEach((tileDefn, columnIndex) => {
@@ -334,7 +342,9 @@ export class TileMap {
         }
         break;
       case TileRole.GROUND:
-        this.#randomGround.push(tile);
+        if (!tile.gridPoint.coincident(this.#entryGridPointByDoor)) {
+          this.#randomGround.push(tile);
+        }
         break;
     }
   }
@@ -369,13 +379,16 @@ export class TileMap {
    * Set up the ray tracer if not already set.
    */
   #setRayTracer() {
-    if (!this.#heroRayTracer) {
-      const hero = TURN_MANAGER.getHeroActor();
-      if (hero) {
+    const hero = TURN_MANAGER.getHeroActor();
+    if (hero) {
+      if (!this.#heroRayTracer) {
         this.#heroRayTracer = new RayTracer(this, hero);
       }
+      const heroTileRole = this.getTileAtWorldPoint(hero.position).role;
+      if (heroTileRole != TileRole.ENTRANCE && heroTileRole != TileRole.EXIT) {
+        this.#heroRayTracer.findReachedTiles();
+      }
     }
-    this.#heroRayTracer.findReachedTiles();
   }
 
   /**
@@ -479,8 +492,8 @@ export class TileMap {
    * is no door
    * @returns {Point}
    */
-  getWorldPositionOfEntrance() {
-    return this.gridPointToWorldPoint(this.getGridPositionOfEntrance());
+  getWorldPositionOfTileByEntry() {
+    return this.gridPointToWorldPoint(this.#entryGridPointByDoor);
   }
   /** Get the grid position of the door at index. If there are no doors, then
    * the entrance is the first ground tile
@@ -646,6 +659,16 @@ export class TileMap {
    */
   getSurroundingTiles(gridPoint) {
     return getSurrounds(this.#tiles, gridPoint.y, gridPoint.x);
+  }
+
+  /**
+   * Removed occupant from the list of occupants
+   * of the tile at the grid point.
+   * @param {Object} occupant
+   * @param {Point} gridPoint
+   */
+  deleteOccupancyOfGridPoint(occupant, gridPoint) {
+    this.getTileAtGridPoint(gridPoint)?.deleteOccupant(occupant);
   }
 
   /**

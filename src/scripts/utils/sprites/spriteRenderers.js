@@ -96,16 +96,16 @@ export class SpriteCanvasRenderer {
   }
   /**
    * Render the sprite.
-   * @param {Point[]} path
-   * @param {import('../geometry.js').Position} position
-   * not the world
+   * @param {import('../geometry.js').Position} position in the world
+   * @param {number} opacity
    */
-  render(position) {
+  render(position, opacity) {
     position = SCREEN.worldPositionToCanvas(position);
     if (!this.isOnCanvas(position)) {
       return;
     }
-
+    const currentAlpha = this._context.globalAlpha;
+    this._context.globalAlpha = currentAlpha * opacity;
     const rotated = position.rotation;
     if (rotated) {
       this._context.save();
@@ -126,6 +126,7 @@ export class SpriteCanvasRenderer {
         this._boundingBoxCanvas.height
       );
     }
+    this._context.globalAlpha = currentAlpha;
   }
   /**
    * Render the sprite
@@ -173,7 +174,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
   /** Name used to access font styles from the fonts.
    * @type {string}
    */
-  static FONT_STYLE_NAME = 'emojiSprite';
+  #styleName;
 
   /** @type {string} */
   #lastCalculatedText;
@@ -186,10 +187,12 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
   /**
    * @param {CanvasRenderingContext2D} context
    * @param {string} text
+   * @param {string} [styleName = 'normal']
    */
-  constructor(context, text) {
+  constructor(context, text, styleName = 'normal') {
     super(context);
     this.text = text;
+    this.#styleName = styleName;
   }
 
   /**
@@ -197,7 +200,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @param {string} text
    */
   #calculateRenderGeometry(text) {
-    this._context.font = fonts.getCss(TextSpriteCanvasRenderer.FONT_STYLE_NAME);
+    this._context.font = fonts.getCss(this.#styleName);
     const metrics = this._context.measureText(text);
     this.#renderGeometry = {
       width: metrics.width,
@@ -230,7 +233,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
       this._context,
       this.#lastCalculatedText,
       renderPosition,
-      { styleName: TextSpriteCanvasRenderer.FONT_STYLE_NAME }
+      { styleName: this.#styleName }
     );
 
     this._boundingBoxCanvas = renderGeometryToRect(
@@ -332,7 +335,7 @@ export class GaugeSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @param {number} proportion - 0 to 1
    */
   setLevel(proportion) {
-    this.#fillHeight = proportion * this.#height;
+    this.#fillHeight = Math.min(proportion, 1) * this.#height;
     this.#halfFillHeight = 0.5 * this.#fillHeight;
   }
 

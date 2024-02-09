@@ -190,7 +190,7 @@ class CastParser extends AbstractSectionParser {
    * @override
    */
   parseLine(line) {
-    const match = line.match(/^\s*(\w+?) *x(\d{1,2}): *([\w,:= ]*)/);
+    const match = line.match(/^\s*(\w+?) *x(\d{1,2}) *([^:]*): *([\w,:= /]*)/);
     if (match) {
       this.#parseShortFormActor(match);
     } else {
@@ -203,19 +203,24 @@ class CastParser extends AbstractSectionParser {
    * @param {string[]} matchResults - results from regex match.
    */
   #parseShortFormActor(matchResults) {
-    const actorName = matchResults[1].toUpperCase();
+    const actorId = matchResults[1].toUpperCase();
     const number = parseInt(matchResults[2]);
-    const traitsDefn = matchResults[3];
+    const name = matchResults[3];
+    const traitsDefn = matchResults[4];
     for (let n = 0; n < number; n++) {
-      if (ACTOR_MAP.has(actorName)) {
+      if (ACTOR_MAP.has(actorId)) {
         try {
-          const traits = CharacterTraits.fromString(traitsDefn);
-          this.sceneDefn.enemies.push({ name: actorName, traits: traits });
+          const traits = new CharacterTraits().setFromString(traitsDefn);
+          this.sceneDefn.enemies.push({
+            id: actorId,
+            name: name || 'mystery',
+            traits: traits,
+          });
         } catch (error) {
           this.fatalError(error.message);
         }
       } else {
-        this.fatalError(`Cast member ${actorName} does not exist.`);
+        this.fatalError(`Cast member ${actorId} does not exist.`);
       }
     }
   }

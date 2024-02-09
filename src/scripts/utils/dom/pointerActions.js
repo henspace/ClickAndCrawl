@@ -28,12 +28,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { Point } from '../geometry.js';
+
 /**
  * Custom event names
  */
 export const CUSTOM_POINTER_DOWN_EVENT_NAME = 'custom-pointer-down-event';
 export const CUSTOM_POINTER_UP_EVENT_NAME = 'custom-pointer-up-event';
+export const CUSTOM_POINTER_CANCEL_EVENT_NAME = 'custom-pointer-cancel-event';
 export const CUSTOM_CLICK_EVENT_NAME = 'custom-click-event';
+
+let lastTouchStartPoint;
 
 /**
  * @typedef {Object} CustomEventDetail
@@ -100,6 +105,7 @@ export function addPointerListeners(element) {
     (event) => {
       if (event.changedTouches.length === 1) {
         const offset = getOffsetFromTouch(event);
+        lastTouchStartPoint = new Point(offset.x, offset.y);
         dispatchEvent(element, CUSTOM_POINTER_DOWN_EVENT_NAME, {
           x: offset.x,
           y: offset.y,
@@ -112,9 +118,25 @@ export function addPointerListeners(element) {
     'touchend',
     (event) => {
       if (event.changedTouches.length === 1) {
-        dispatchEvent(element, CUSTOM_POINTER_UP_EVENT_NAME, null);
+        dispatchEvent(element, CUSTOM_POINTER_UP_EVENT_NAME, {
+          x: lastTouchStartPoint?.x,
+          y: lastTouchStartPoint?.y,
+        });
       }
+      lastTouchStartPoint = null;
     },
+    { passive: true }
+  );
+  element.addEventListener(
+    'touchcancel',
+    (event) => {
+      dispatchEvent(element, CUSTOM_POINTER_CANCEL_EVENT_NAME, {
+        x: lastTouchStartPoint?.x,
+        y: lastTouchStartPoint?.y,
+      });
+      lastTouchStartPoint = null;
+    },
+
     { passive: true }
   );
   element.addEventListener('click', (event) => {

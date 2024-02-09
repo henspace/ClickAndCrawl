@@ -31,21 +31,45 @@
 import { parseSceneDefinition } from '../../scriptReaders/sceneDefinitionParser.js';
 
 let sceneDefinitions;
+
+let currentIndex;
+
 /**
  * Configure the scenes from the script.
  * @param {import('../../scriptReaders/index.js').SceneDefinition} sceneDefns
  */
 function setSceneDefinitions(sceneDefns) {
   sceneDefinitions = sceneDefns;
+  currentIndex = -1;
 }
 
 /**
- *
- * @param {number} index
  * @returns {import('./scene.js').Scene} scene constructed from requested scene definition.
+ * null if there are no more scenes.
  */
-function getScene(index) {
-  return parseSceneDefinition(sceneDefinitions[index]);
+function getNextScene() {
+  currentIndex++;
+  return currentIndex < sceneDefinitions.length
+    ? parseSceneDefinition(sceneDefinitions[currentIndex])
+    : null;
+}
+
+/**
+ * Test to see if there are more scenes.
+ * @returns {boolean}
+ */
+function areThereMoreScenes() {
+  return currentIndex < sceneDefinitions.length - 1;
+}
+
+/**
+ * Reset the index and return the first scene.
+ * @returns {import('./scene.js').Scene} scene constructed from requested scene definition.
+ * null if there are no more scenes.
+ */
+function getFirstScene() {
+  currentIndex = -1;
+  return getNextScene();
 }
 
 /**
@@ -53,7 +77,9 @@ function getScene(index) {
  */
 const SCENE_MANAGER = {
   setSceneDefinitions: setSceneDefinitions,
-  getScene: getScene,
+  getNextScene: getNextScene,
+  getFirstScene: getFirstScene,
+  areThereMoreScenes: areThereMoreScenes,
 };
 
 export default SCENE_MANAGER;

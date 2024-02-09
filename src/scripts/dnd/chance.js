@@ -1,12 +1,12 @@
 /**
- * @file Main entry point
+ * @file Resolve events that depend on chance or dix roles.
  *
- * @module index
+ * @module dnd/chance
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
  *
- * Copyright 2024 Steve Butler
+ * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
@@ -27,17 +27,35 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import GAME from './utils/game/game.js';
 
-window.addEventListener('load', () => {
-  const DESIGN_WIDTH = 800;
-  const DESIGN_HEIGHT = 600;
-  GAME.initialise({
-    width: DESIGN_WIDTH,
-    height: DESIGN_HEIGHT,
-    maxScale: 2.4,
-    minScale: 1,
-    sizingMethod: 'COVER',
-    alpha: false,
-  });
-});
+import { rollDice } from '../utils/dice.js';
+
+/**
+ * Can actor hit opponent
+ * @param {} actor - the person attempting to perform the action.
+ * @param {*} opponent - the opposing actor
+ * @returns {boolean}
+ */
+export function hits(actor, opponent) {
+  return rollDice(20) > 10; // @ToDo
+}
+
+/**
+ * Can actor evade opponent.
+ * @param {} actor - the person attempting to perform the action.
+ * @param {*} opponent - the opposing actor
+ * @returns {boolean}
+ */
+export function evades(actor, opponent) {
+  return rollDice(20) > 10; // @ToDo
+}
+
+/**
+ * Can actor evade opponent.
+ * @param {} actor - the person attempting to perform the action.
+ * @param {*} opponent - the opposing actor
+ * @returns {number} - amount of damage inflicted.
+ */
+export function damageInflicted(actor, opponent) {
+  return rollDice(6); // @ToDo
+}

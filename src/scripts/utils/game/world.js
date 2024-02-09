@@ -41,6 +41,12 @@ let worldTileMap;
 const actors = new Map();
 
 /**
+ * Sprites that do not interact
+ * @type {Map<string, Sprite>}
+ */
+const passiveSprites = new Map();
+
+/**
  * Get the world dimensions. The dimensions are based on the worldTileMap size.
  * It defaults to the screen dimensions if no map has been set.
  * @returns {{number, number}} width and height
@@ -69,7 +75,26 @@ function addActor(target) {
  * @param {import('./actors.js').Actor}
  */
 function removeActor(target) {
+  const gridPoint = worldTileMap.worldPointToGrid(target.position);
+  worldTileMap.deleteOccupancyOfGridPoint(target, gridPoint);
   actors.delete(target);
+}
+
+/**
+ * Add effect sprite
+ * @param {Sprite} sprite
+ */
+function addPassiveSprite(sprite) {
+  passiveSprites.set(sprite, sprite);
+}
+
+/**
+ * Add effect sprite
+ * @param {Sprite} sprite
+ */
+function removePassiveSprite(sprite) {
+  console.debug('Remove passive sprite.');
+  passiveSprites.delete(sprite);
 }
 
 /**
@@ -97,6 +122,15 @@ function removeTileMap() {
 }
 
 /**
+ * Clear the map and all actors.
+ */
+function clearAll() {
+  actors.forEach((actor) => removeActor(actor));
+  passiveSprites.forEach((sprite) => removePassiveSprite(sprite));
+  removeTileMap();
+}
+
+/**
  * Update the world. This calls the update methods of the tile map and all sprites/
  * @param {number} deltaSeconds
  */
@@ -109,6 +143,8 @@ function update(deltaSeconds) {
     const newGridPoint = worldTileMap.worldPointToGrid(actor.position);
     worldTileMap.moveTileOccupancyGridPoint(actor, oldGridPoint, newGridPoint);
   });
+
+  passiveSprites.forEach((sprite) => sprite.update(deltaSeconds));
 }
 
 /**
@@ -117,21 +153,34 @@ function update(deltaSeconds) {
  * @returns {boolean} true if resolved.
  */
 function resolveClick(positions) {
-  /*
-  for (const [keyUnused, actor] of actors) {
-    const sprite = actor.sprite;
-    const position = sprite.uiComponent ? positions.canvas : positions.world;
-    if (sprite.getBoundingBox().containsCoordinate(position.x, position.y)) {
-      actor.actionClick(position);
-      return true;
-    }
-  }
-  */
   const tile = worldTileMap.getTileAtWorldPoint(positions.world);
   if (tile) {
     tile.actionClick(positions.world);
     return true;
   }
+  return false;
+}
+
+/**
+ * Resolve a context menu event
+ * @param {import('./screen.js').MappedPositions} positions - click coordinates in canvas and world coordinates.
+ * @returns {boolean} true if resolved.
+ */
+function resolveContextMenu(positions) {
+  const tile = worldTileMap.getTileAtWorldPoint(positions.world);
+  if (tile) {
+    tile.actionContextClick(positions.world);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Resolve a cancel event
+ * @param {import('./screen.js').MappedPositions} positions - click coordinates in canvas and world coordinates.
+ * @returns {boolean} true if resolved.
+ */
+function resolveCancel(positionsUnused) {
   return false;
 }
 
@@ -148,12 +197,17 @@ function getActors() {
  */
 const WORLD = {
   addActor: addActor,
+  addPassiveSprite: addPassiveSprite,
+  clearAll: clearAll,
   getActors: getActors,
   getTileMap: getTileMap,
   getWorldDims: getWorldDims,
   removeTileMap: removeTileMap,
+  resolveCancel: resolveCancel,
   resolveClick: resolveClick,
+  resolveContextMenu: resolveContextMenu,
   removeActor: removeActor,
+  removePassiveSprite: removePassiveSprite,
   setTileMap: setTileMap,
   update: update,
 };

@@ -173,6 +173,7 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
+            <key type="filename">tiles/RIP.png</key>
             <key type="filename">tiles/blank.png</key>
             <key type="filename">tiles/block.png</key>
             <key type="filename">tiles/door-B.png</key>
@@ -195,6 +196,8 @@
             <key type="filename">tiles/hud-arrow-up-001.png</key>
             <key type="filename">tiles/hud-auto-centre-000.png</key>
             <key type="filename">tiles/hud-auto-centre-001.png</key>
+            <key type="filename">tiles/hud-fullscreen-000.png</key>
+            <key type="filename">tiles/hud-fullscreen-001.png</key>
             <key type="filename">tiles/wall-B.png</key>
             <key type="filename">tiles/wall-BL.png</key>
             <key type="filename">tiles/wall-BLI.png</key>
@@ -228,6 +231,21 @@
                 <rect>12,12,24,24</rect>
                 <key>scale9Paddings</key>
                 <rect>12,12,24,24</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">tiles/blood-splat.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>24,24,48,48</rect>
+                <key>scale9Paddings</key>
+                <rect>24,24,48,48</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

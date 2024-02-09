@@ -28,36 +28,104 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export class CharacterTraits {
+/**
+ * Abstract traits. This is basically a Map but with the key difference that
+ * only keys set during the configuration are allowed. If no keys are provided,
+ * the traits are regarded as freeform and any keys are allowed.
+ */
+export class AbstractTraits {
   /** Characteristics @type {Map<string, *>} */
   #traits;
+  /** @type {boolean} */
+  #freeform;
 
-  constructor() {
-    this.#traits = new Map([
-      ['HP', 10],
-      ['STR', 10],
-    ]);
-  }
   /**
-   * Create the characteristics from a definition. The definition comprises a
+   * Initialise the traits.
+   * @param {Map<string, *>} initialValues
+   */
+  constructor(initialValues) {
+    if (initialValues) {
+      this.#traits = initialValues;
+      this.#freeform = false;
+    } else {
+      this.#traits = new Map();
+      this.#freeform = true;
+    }
+  }
+
+  /**
+   * @param {string} key
+   * @param {*} value
+   * @throws {Error} thrown if key invalid.
+   */
+  set(key, value) {
+    if (this.#freeform || this.#traits.has(key)) {
+      this.#traits.set(key, value);
+    } else {
+      throw new Error(`Attempt to set invalid key '${key}'`);
+    }
+  }
+
+  /**
+   * Get the trait value.
+   * @param {string} key
+   * @returns {*}
+   */
+  get(key) {
+    return this.#traits.get(key);
+  }
+
+  /**
+   * Populate the traits from a string definition. The definition comprises a
    * comma separated list of characteristics with each characteristic comprising
    * a keyword followed by a space or equals sign and then its value.
    * @param {string} definition
+   * @returns {AbstractTraits} returns this to allow chaining.
+   * @throws {Error} if definition invalid.
    */
-  static fromString(definition) {
-    const dnd = new CharacterTraits();
-    const traits = definition.split(',');
-    traits.forEach((trait) => {
-      const match = trait.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
+  setFromString(definition) {
+    definition.split(',').forEach((item) => {
+      const match = item.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
       if (match) {
-        if (dnd.#traits.has(match[1])) {
-          dnd.#traits.set(match[1], match[2]);
-        } else {
-          throw new Error(`Invalid property name '${match[1]}'`);
-        }
+        this.#setAutoMaxValue(match[1], match[2]);
       } else {
-        throw new Error(`Invalid property '${trait}'`);
+        throw new Error(`Invalid property definition'${item}'`);
       }
     });
+    return this;
+  }
+
+  /**
+   * Set the trait for key to value. If value is a fraction, then the value for
+   * the key is set to the numerator and a new key key_MAX is created, set to the
+   * denominator.
+   * @param {string} key
+   * @param {string} value
+   */
+  #setAutoMaxValue(key, value) {
+    const minMaxMatch = value.match(/(\d+) *[/] *(\d+) */);
+    if (minMaxMatch) {
+      this.#traits.set(key, minMaxMatch[1]);
+      this.#traits.set(`${key}_MAX`, minMaxMatch[2]);
+    } else {
+      this.#traits.set(key, value);
+    }
+  }
+}
+
+/**
+ * DnD character traits
+ */
+export class CharacterTraits extends AbstractTraits {
+  constructor() {
+    super(
+      new Map([
+        ['NAME', 'mystery'],
+        ['HP', 10],
+        ['HP_MAX', 10],
+        ['STR', 10],
+        ['STR_MAX', 10],
+      ])
+    );
   }
 }

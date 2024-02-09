@@ -28,31 +28,144 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * Scene methods.
- * @interface Scene
- */
 
-/**
- * Called at start. Game waits for preload before calling initialise.
- * @function Scene#load
- * @returns {Promise} fulfills to null
- */
+import * as maths from '../maths.js';
 
-/**
- * Called after load. Game waits for initialise before starting the loop.
- * @function Scene#initialise
- * @returns {Promise} fulfills to null
- */
+export class AbstractScene {
+  /** @type {number} */
+  #globalOpacity;
+  /** @type {number} */
+  #deltaOpacityPerSec;
 
-/**
- * Called in animation phase
- * @function Scene#update
- * @param {number} deltaSeconds
- */
+  /** @type {number} */
+  #fadeInSecs;
+  /** @type {number} */
+  #fadeOutSecs;
 
-/**
- * Called when scene swapped out
- * @function Scene#unload
- * @returns {Promise} fulfills to null
- */
+  /** Fade out promise resolution @type {function}  */
+  #fadeOutResolve;
+
+  /**
+   * Create the scene.
+   * @param {number} [fadeInSecs = 2]
+   * @param {number} [fadeOutSecs = 2]
+   */
+  constructor(fadeInSecs = 2, fadeOutSecs = 2) {
+    if (fadeInSecs > 0) {
+      this.#globalOpacity = 0;
+      this.#deltaOpacityPerSec = 1 / fadeInSecs;
+    } else {
+      this.#deltaOpacityPerSec = 1;
+    }
+    this.#fadeInSecs = fadeInSecs;
+    this.#fadeOutSecs = fadeOutSecs;
+  }
+
+  /**
+   * Get the global opacity.
+   * @returns {number}
+   */
+  getOpacity() {
+    return this.#globalOpacity;
+  }
+  /**
+   * Called at start. Game waits for preload before calling initialise.
+   * @function Scene#load
+   * @returns {Promise} fulfills to null
+   */
+  load() {
+    return this.doLoad();
+  }
+
+  /**
+   * Called after load. Game waits for initialise before starting the loop.
+   * @function Scene#initialise
+   * @returns {Promise} fulfills to null
+   */
+  initialise() {
+    return this.doInitialise();
+  }
+
+  /**
+   * Called in animation phase
+   * @function Scene#update
+   * @param {number} deltaSeconds
+   */
+  update(deltaSeconds) {
+    this.doUpdate(deltaSeconds);
+    if (this.#deltaOpacityPerSec !== 0) {
+      this.#globalOpacity += deltaSeconds * this.#deltaOpacityPerSec;
+      if (this.#globalOpacity > 1) {
+        this.#deltaOpacityPerSec = 0;
+        this.#globalOpacity = 1;
+      } else if (this.#globalOpacity < 0) {
+        this.#deltaOpacityPerSec = 0;
+        this.#globalOpacity = 0;
+      }
+    }
+    if (this.#fadeOutResolve && this.#globalOpacity === 0) {
+      this.#fadeOutResolve();
+      this.#fadeOutResolve = null;
+    }
+  }
+
+  /**
+   * Called when scene swapped out
+   * @function Scene#unload
+   * @returns {Promise} fulfills to null
+   */
+  unload() {
+    return this.#fadeOut().then(() => this.doUnload());
+  }
+
+  /**
+   * Fade out the scene
+   * @returns {Promise} fulfils to undefined when fade complete.
+   */
+  #fadeOut() {
+    if (this.#fadeOutSecs > 0) {
+      this.#deltaOpacityPerSec = -1 / this.#fadeOutSecs;
+      return new Promise((resolve) => {
+        this.#fadeOutResolve = resolve;
+      });
+    } else {
+      return Promise.resolve();
+    }
+  }
+
+  /**
+   * Called at start. Game waits for preload before calling initialise.
+   * This should be overridden.
+   * @returns {Promise} fulfills to null
+   */
+  doLoad() {
+    return Promise.resolve();
+  }
+
+  /**
+   * Called after load. Game waits for initialise before starting the loop.
+   * This should be overridden
+   * @returns {Promise} fulfills to null
+   */
+  doInitialise() {
+    return Promise.resolve();
+  }
+
+  /**
+   * Called in animation phase
+   * This should be overridden
+   * @param {number} deltaSeconds
+   */
+  doUpdate(deltaSecondsUnused) {
+    return Promise.resolve();
+  }
+
+  /**
+   * Called when scene swapped out
+   * This should be overridden
+   * @returns {Promise} fulfills to null
+   */
+  doUnload() {
+    return Promise.resolve();
+  }
+}

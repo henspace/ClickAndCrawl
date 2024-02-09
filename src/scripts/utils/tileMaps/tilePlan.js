@@ -29,6 +29,7 @@
  */
 
 import { getSurrounds } from '../arrays/arrayManip.js';
+import { Point } from '../geometry.js';
 
 /** Symbol used to mark void tiles @type {string} */
 const VOID_SYMBOL = ' ';
@@ -112,58 +113,99 @@ const ShadowClarifier = {
  */
 
 /**
- * Converts a tile map design into a tile map plan
- * @param {TileMapDesign} design
- * @param {SymbolMap}} symbolMap
+ * Encapsulated tile plan.
  */
-export function generateTileMapPlan(design, symbolMap) {
-  let matrix = convertToMatrix(design);
-  matrix = clarifyDesign(matrix);
-  return createPlan(matrix, symbolMap);
-}
+export class TilePlan {
+  /** @type {Array.<Array.<*>>} */
+  matrix;
+  /** @type {Point} */
+  entryPointByDoor;
+  /** @type {Point} */
+  exitPointByDoor;
 
-/**
- * Convert the user's design from array of strings into a 2D array.
- * @returns {Array.string[]}
- */
-function convertToMatrix(design) {
-  const matrix = [];
-  let nColumns = 0;
-  design.forEach((row) => {
-    nColumns = Math.max(nColumns, row.length);
-  });
-  design.forEach((row) => {
-    if (row.length < nColumns) {
-      row = row + ' '.repeat(nColumns - length);
-    }
-    matrix.push(row.split(''));
-  });
-  return matrix;
-}
+  constructor() {
+    this.entryPointByDoor = new Point(0, 0);
+    this.exitPointByDoor = new Point(0, 0);
+  }
 
-/**
- * Go through the design matrix and convert any ambiguous symbols to more specific
- * ones
- * @param {Array.string[]} matrix
- */
-function clarifyDesign(matrix) {
-  const unambiguousMatrix = [];
-  matrix.forEach((rowValue, rowIndex) => {
-    const correctedRow = [];
-    unambiguousMatrix.push(correctedRow);
-    rowValue.forEach((colValue, colIndex) => {
-      const surrounds = getSurrounds(matrix, rowIndex, colIndex);
-      if (isVoid(colValue)) {
-        colValue = VOID_SYMBOL;
-      } else if (isGround(colValue)) {
-        colValue = clarifyGround(colValue, surrounds);
-      } else if (isPartOfWall(colValue)) {
-        colValue = clarifyWallPart(colValue, surrounds);
-      }
-      correctedRow.push(colValue);
+  /**
+   * Converts a tile map design into a tile map plan
+   * @param {TileMapDesign} design
+   * @param {SymbolMap}} symbolMap
+   * @returns {TilePlan}
+   */
+  static generateTileMapPlan(design, symbolMap) {
+    const tilePlan = new TilePlan();
+    let matrix = tilePlan.convertToMatrix(design);
+    matrix = tilePlan.clarifyMatrix(matrix);
+    tilePlan.createPlan(matrix, symbolMap);
+    return tilePlan;
+  }
+  /**
+   * Convert the user's design from array of strings into a 2D array.
+   * @returns {Array.string[]}
+   */
+  convertToMatrix(design) {
+    const matrix = [];
+    let nColumns = 0;
+    design.forEach((row) => {
+      nColumns = Math.max(nColumns, row.length);
     });
-  });
-  return unambiguousMatrix;
+    design.forEach((row) => {
+      if (row.length < nColumns) {
+        row = row + ' '.repeat(nColumns - length);
+      }
+      matrix.push(row.split(''));
+    });
+    return matrix;
+  }
+
+  /**
+   * Go through the design matrix and convert any ambiguous symbols to more specific
+   * ones. Note the tilePlan matrix is not adjusted. The entry and exit tiles are discovered though.
+   * @param {Array.string[]} matrix
+   */
+  clarifyMatrix(matrix) {
+    const unambiguousMatrix = [];
+    matrix.forEach((rowValue, rowIndex) => {
+      const correctedRow = [];
+      unambiguousMatrix.push(correctedRow);
+      rowValue.forEach((colValue, colIndex) => {
+        const surrounds = getSurrounds(matrix, rowIndex, colIndex);
+        if (isVoid(colValue)) {
+          colValue = VOID_SYMBOL;
+        } else if (isGround(colValue)) {
+          colValue = clarifyGround(colValue, surrounds);
+          if (isEntryTile(colValue, surrounds)) {
+            this.entryPointByDoor = new Point(colIndex, rowIndex);
+          } else if (isExitTile(colValue, surrounds)) {
+            this.exitPointByDoor = new Point(colIndex, rowIndex);
+          }
+        } else if (isPartOfWall(colValue)) {
+          colValue = clarifyWallPart(colValue, surrounds);
+        }
+        correctedRow.push(colValue);
+      });
+    });
+    return unambiguousMatrix;
+  }
+  /**
+   * Convert a clarified design plan matrix into a tile plan.
+   * @param {string[][]} matrix
+   * @param {Map<string, *>} symbolMap
+   * @returns {Array.<Array.<*>>}
+   */
+  createPlan(matrix, symbolMap) {
+    const planMatrix = [];
+    matrix.forEach((rowValue) => {
+      const planRow = [];
+      planMatrix.push(planRow);
+      rowValue.forEach((columnValue) => {
+        planRow.push(getDesignInfo(columnValue, symbolMap));
+      });
+    });
+    this.matrix = planMatrix;
+  }
 }
 
 /**
@@ -175,14 +217,27 @@ function isVoid(symbol) {
 }
 
 /**
+ * Test if symbol is an entrance.
+ * @returns {boolean}
+ */
+function isEntrance(symbol) {
+  return SpecialSymbols.DOOR_IN.includes(symbol);
+}
+
+/**
+ * Test if symbol is an exit.
+ * @returns {boolean}
+ */
+function isExit(symbol) {
+  return SpecialSymbols.DOOR_OUT.includes(symbol);
+}
+
+/**
  * Test if symbol is a door.
  * @returns {boolean}
  */
 function isDoor(symbol) {
-  return (
-    SpecialSymbols.DOOR_IN.includes(symbol) ||
-    SpecialSymbols.DOOR_OUT.includes(symbol)
-  );
+  return isEntrance(symbol) || isExit(symbol);
 }
 
 /**
@@ -217,13 +272,50 @@ function isPartOfWall(symbol) {
  */
 function clarifyGround(value, surrounds) {
   if (isPartOfWall(surrounds.above)) {
-    return isPartOfWall(surrounds.tl)
-      ? (value += ShadowClarifier.BELOW_WALL)
-      : (value += ShadowClarifier.BELOW_END_WALL);
+    if (isPartOfWall(surrounds.tl)) {
+      value += ShadowClarifier.BELOW_WALL;
+    } else {
+      value += ShadowClarifier.BELOW_END_WALL;
+    }
   }
   return value;
 }
 
+/**
+ * Check if this floor tile is the entry tile. This is the tile the hero will
+ * appear on when entering the map. The tests are made in the order of where
+ * the doors is most likely to be placed assuming a left to right, top to bottom
+ * design.
+ * @param {string} value
+ * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+ * @returns {boolean}
+ */
+function isEntryTile(value, surrounds) {
+  return (
+    isEntrance(surrounds.left) ||
+    isEntrance(surrounds.top) ||
+    isEntrance(surrounds.right) ||
+    isEntrance(surrounds.below)
+  );
+}
+
+/**
+ * Check if this floor tile is the exit tile. This is the tile the hero will
+ * appear on when entering the map. The tests are made in the order of where
+ * the doors is most likely to be placed assuming a left to right, top to bottom
+ * design.
+ * @param {string} value
+ * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+ * @returns {boolean}
+ */
+function isExitTile(value, surrounds) {
+  return (
+    isExit(surrounds.right) ||
+    isExit(surrounds.bottom) ||
+    isExit(surrounds.left) ||
+    isExit(surrounds.top)
+  );
+}
 /**
  * Distinguish the type of tile based on its surroundings.
  * This function does not handle corners.
@@ -306,25 +398,9 @@ function clarifyWallPart(value, surrounds) {
   return result;
 }
 
-/**
- * Convert a clarified design plan matrix into a tile plan.
- * @param {string[][]} matrix
- * @param {Map<string, *>} symbolMap
- * @returns {Array.<Array.<*>>}
- */
-function createPlan(matrix, symbolMap) {
-  const planMatrix = [];
-  matrix.forEach((rowValue) => {
-    const planRow = [];
-    planMatrix.push(planRow);
-    rowValue.forEach((columnValue) => {
-      planRow.push(getDesignInfo(columnValue, symbolMap));
-    });
-  });
-  return planMatrix;
-}
-
-/** Get the design info from the symbol map.
+/** Get the design info from the symbol map. The function reduces the specialism
+ * of the symbol if it cannot find it. I.e it removes any shadow clarifiers and
+ * then all other clarifiers when hunting for the symbol in the symbol map.
  * @param {string} symbol - clarified symbol.
  * @param {Map<string, *>} symbolMap
  * @returns {TileDesignInfo}

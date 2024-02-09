@@ -117,7 +117,6 @@ export class CameraDolly {
         this.#velocityTracker.applyAsContinuousToSprite(this.#sprite);
         break;
       case CameraTracking.OFF:
-        console.debug(`Camera tracking off.`);
         break;
       default:
         console.error(

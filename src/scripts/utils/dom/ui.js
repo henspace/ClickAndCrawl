@@ -56,13 +56,8 @@ function createMessageElement(message) {
  * @returns {Promise} fulfils to null
  */
 function showMessage(message) {
-  return new Promise((resolve) => {
-    const container = createMessageElement(message);
-    SCREEN.displayOnGlass(container, () => {
-      SCREEN.wipeGlass();
-      resolve(null);
-    });
-  });
+  const container = createMessageElement(message);
+  SCREEN.displayOnGlass(container);
 }
 
 /** Create an okDialog.
@@ -71,19 +66,14 @@ function showMessage(message) {
  * @returns {Promise} fulfils to DialogResponse.OK
  */
 function showOkDialog(message, okButtonLabel = 'OK') {
-  return new Promise((resolve) => {
-    const container = document.createElement('div');
-    container.appendChild(createMessageElement(message));
-    SCREEN.displayOnGlass(createMessageElement(message));
-    const buttonEl = document.createElement('button');
-    buttonEl.appendChild(document.createTextNode(okButtonLabel));
-    buttonEl.onclick = () => {
-      SCREEN.wipeGlass();
-      resolve(DialogResponse.OK);
-    };
-    container.appendChild(buttonEl);
-    SCREEN.displayOnGlass(container);
-  });
+  const container = document.createElement('div');
+  container.appendChild(createMessageElement(message));
+  const buttonEl = document.createElement('button');
+  buttonEl.appendChild(document.createTextNode(okButtonLabel));
+  container.appendChild(buttonEl);
+  return SCREEN.displayOnGlass(container, [
+    { element: buttonEl, response: DialogResponse.OK },
+  ]);
 }
 
 /**

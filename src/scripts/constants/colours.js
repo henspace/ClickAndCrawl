@@ -1,12 +1,12 @@
 /**
- * @file Main entry point
+ * @file Colours used in the game.
  *
- * @module index
+ * @module constants/colours
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
  *
- * Copyright 2024 Steve Butler
+ * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
@@ -27,17 +27,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import GAME from './utils/game/game.js';
 
-window.addEventListener('load', () => {
-  const DESIGN_WIDTH = 800;
-  const DESIGN_HEIGHT = 600;
-  GAME.initialise({
-    width: DESIGN_WIDTH,
-    height: DESIGN_HEIGHT,
-    maxScale: 2.4,
-    minScale: 1,
-    sizingMethod: 'COVER',
-    alpha: false,
-  });
-});
+/**
+ * Colours used in the game.
+ * @enum {string}
+ */
+export const Colours = {
+  HP_GAUGE: 'rgba(255, 0, 0, 0.2)',
+  MORALE_GAUGE: 'rgba(0, 0, 255, 0.2)',
+};

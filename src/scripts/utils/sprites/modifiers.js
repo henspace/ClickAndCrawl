@@ -79,7 +79,7 @@ export class AbstractModifier {
 
   /** Do the update modification. If a decoratedModifier has been set, this is then
    * called. If after calling update, the modifier is removed, it is removed from
-   * the owning decorated. Its children are retained.
+   * the owning decoratedModifier. Its children are retained.
    * @param {Sprite} sprite
    * @param {number} deltaSeconds - elapsed time since last update.
    * @returns {AbstractModifier} - the modifier required for the next update. This

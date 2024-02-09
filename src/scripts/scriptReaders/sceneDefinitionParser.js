@@ -32,7 +32,7 @@ import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
 import textureMap from '../../assets/images/dungeon.json';
 import textureUrl from '../../assets/images/dungeon.png';
 
-import { generateTileMapPlan } from '../utils/tileMaps/tilePlan.js';
+import { TilePlan } from '../utils/tileMaps/tilePlan.js';
 import { TileMap } from '../utils/tileMaps/tileMap.js';
 import TURN_MANAGER from '../utils/game/turnManager.js';
 import WORLD from '../utils/game/world.js';
@@ -41,7 +41,8 @@ import ACTOR_MAP from './actorMap.js';
 import SCREEN from '../utils/game/screen.js';
 import { TILE_MAP_KEYS } from './symbolMapping.js';
 import UI from '../utils/dom/ui.js';
-
+import { CharacterTraits } from '../dnd/traits.js';
+import { AbstractScene } from '../utils/game/scene.js';
 const GRID_SIZE = 48;
 
 /**
@@ -76,7 +77,9 @@ export class SceneDefinition {
 function createEnemies(sceneDefn) {
   const enemies = [];
   sceneDefn.enemies.forEach((enemy) => {
-    enemies.push(ACTOR_MAP.get(enemy.name).create());
+    const actor = ACTOR_MAP.get(enemy.id).create();
+    actor.traits = enemy.traits;
+    enemies.push(actor);
   });
   return enemies;
 }
@@ -98,14 +101,15 @@ function createLoadFn(sceneDefnUnused) {
  * @returns {Promise} fulfils to null;
  */
 function createInitialiseFn(sceneDefn) {
+  const tilePlan = TilePlan.generateTileMapPlan(
+    sceneDefn.mapDesign,
+    TILE_MAP_KEYS
+  );
   return () => {
-    const tileMap = new TileMap(
-      SCREEN.getContext2D(),
-      generateTileMapPlan(sceneDefn.mapDesign, TILE_MAP_KEYS),
-      GRID_SIZE
-    );
+    const tileMap = new TileMap(SCREEN.getContext2D(), tilePlan, GRID_SIZE);
     WORLD.setTileMap(tileMap);
     const heroActor = ACTOR_MAP.get('HERO').create();
+    heroActor.traits = new CharacterTraits();
     createEnemies(sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
@@ -115,10 +119,9 @@ function createInitialiseFn(sceneDefn) {
 
     WORLD.addActor(heroActor);
 
-    TURN_MANAGER.startWithHero(heroActor);
+    TURN_MANAGER.setHero(heroActor);
 
-    UI.showMessage(sceneDefn.intro);
-    return Promise.resolve(null);
+    return UI.showMessage(sceneDefn.intro);
   };
 }
 
@@ -149,10 +152,10 @@ function createUnloadFn(sceneDefn) {
  * @returns {Scene}
  */
 export function parseSceneDefinition(sceneDefn) {
-  const scene = {};
-  scene.load = createLoadFn(sceneDefn);
-  scene.initialise = createInitialiseFn(sceneDefn);
-  scene.update = createUpdateFn(sceneDefn);
-  scene.unload = createUnloadFn(sceneDefn);
+  const scene = new AbstractScene();
+  scene.doLoad = createLoadFn(sceneDefn);
+  scene.doInitialise = createInitialiseFn(sceneDefn);
+  scene.doUpdate = createUpdateFn(sceneDefn);
+  scene.doUnload = createUnloadFn(sceneDefn);
   return scene;
 }

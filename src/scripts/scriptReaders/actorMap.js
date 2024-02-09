@@ -37,7 +37,40 @@ import { LoopMethod } from '../utils/arrays/indexer.js';
 import { Position } from '../utils/geometry.js';
 import SCREEN from '../utils/game/screen.js';
 import WORLD from '../utils/game/world.js';
+import { Colours } from '../constants/colours.js';
 
+/**
+ * Specialist traits renderer
+ */
+class ActorTraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
+  /** @type {Actor} */
+  actor;
+  /**
+   * The number of gauges is determined by the maximum length of the fill styles and
+   * stroke styles
+   * @param {CanvasRenderingContext2D} context
+   * @param {Object} options
+   * @param {number} options.tileSize
+   * @param {string[]} options.fillStyles
+   * @param {string[]} options.strokeStyles
+   */
+  constructor(context, options) {
+    super(context, options);
+  }
+  /**
+   * Render the sprite.
+   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
+   */
+  render(position) {
+    if (this.actor && this.actor.traits) {
+      const hp = this.actor.traits.get('HP');
+      const hpMax = this.actor.traits.get('HP_MAX');
+      this.setLevel(0, hp / hpMax);
+      this.setLevel(1, 1);
+    }
+    super.render(position);
+  }
+}
 /**
  * Create the actor.
  * @param {string} imageName - no extension
@@ -64,24 +97,20 @@ function createAnimatedActor(imageName) {
     )
   );
 
-  const gaugeRenderer = new spriteRenderers.MultiGaugeTileRenderer(
-    SCREEN.getContext2D(),
-    {
-      tileSize: WORLD.getTileMap().getGridSize() - 2,
-      fillStyles: ['red', 'blue'],
-      strokeStyles: [],
-    }
-  );
-  gaugeRenderer.setLevel(0, 0.5);
-  gaugeRenderer.setLevel(1, 0.75);
-  const heroActor = new Actor(
+  const traitsRenderer = new ActorTraitsRenderer(SCREEN.getContext2D(), {
+    tileSize: WORLD.getTileMap().getGridSize() - 2,
+    fillStyles: [Colours.HP_GAUGE, Colours.MORALE_GAUGE],
+    strokeStyles: [],
+  });
+  const actor = new Actor(
     new Sprite({
-      renderer: [gaugeRenderer, imageRenderer],
+      renderer: [traitsRenderer, imageRenderer],
     })
   );
-  heroActor.position = new Position(48, 48, 0);
-  heroActor.velocity = { x: -500, y: -70, rotation: 0.1 };
-  return heroActor;
+  traitsRenderer.actor = actor;
+  actor.position = new Position(48, 48, 0);
+  actor.velocity = { x: -500, y: -70, rotation: 0.1 };
+  return actor;
 }
 
 /**

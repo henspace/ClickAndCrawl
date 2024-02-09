@@ -54,6 +54,8 @@ export class Sprite {
   modifier;
   /** @type {boolean} */
   visible;
+  /** @type {number} */
+  opacity;
 
   /**
    * @param {Object} options
@@ -64,6 +66,7 @@ export class Sprite {
     this.#renderer = options?.renderer;
     this.#multiRenderers = Array.isArray(this.#renderer);
     this.visible = true;
+    this.opacity = 1;
   }
   /**
    * Get the current position.
@@ -131,9 +134,11 @@ export class Sprite {
       return;
     }
     if (!this.#renderer.forEach) {
-      this.#renderer.render(this.#position);
+      this.#renderer.render(this.#position, this.opacity);
     } else {
-      this.#renderer.forEach((renderer) => renderer.render(this.#position));
+      this.#renderer.forEach((renderer) =>
+        renderer.render(this.#position, this.opacity)
+      );
     }
   }
 

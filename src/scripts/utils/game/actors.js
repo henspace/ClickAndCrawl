@@ -33,6 +33,9 @@ import { MultiGaugeTileRenderer } from '../sprites/spriteRenderers.js';
 import { UiClickHandler } from '../ui/interactions.js';
 
 /**
+ * @typedef {Map<string, *>} Traits
+ */
+/**
  * Actor class. An actor is a sprite that exists in the world and can interact
  * with other actors.
  */
@@ -41,6 +44,8 @@ export class Actor extends UiClickHandler {
   maxTilesPerMove;
   /** @type {import('../sprites/sprite.js').Sprite} */
   sprite;
+  /** @type {AbstractTraits} */
+  traits;
 
   /**
    * Create the actor.
@@ -147,18 +152,5 @@ export class Actor extends UiClickHandler {
    */
   actionPointerDown(pointUnused) {
     super.actionPointerDown(this.sprite.position);
-  }
-}
-
-export class DnDActor extends Actor {
-  /** @type {MultiGaugeTileRenderer} */
-  #healthRenderer;
-  /**
-   * Create the actor.
-   * @param {import('../sprites/sprite.js').Sprite} sprite
-   */
-  constructor(sprite) {
-    super(sprite);
-    this.#healthRenderer = new MultiGaugeTileRenderer(sprite.get);
   }
 }

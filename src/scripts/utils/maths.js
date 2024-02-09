@@ -99,3 +99,26 @@ export function angleToEightPointCompass(angle) {
   }
   return CompassEightPoint.W;
 }
+
+/**
+ * Get random number between min and max, inclusive
+ * @param {number} min - inclusive minimum
+ * @param {number} max - exclusive maximum
+ * @returns {number}
+ */
+export function getRandomInt(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+}
+/**
+ * Get random number between min and max, inclusive
+ * @param {number} min - inclusive minimum
+ * @param {number} max -inclusive maximum
+ * @returns {number}
+ */
+export function getRandomIntInclusive(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+}
