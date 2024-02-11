@@ -37,9 +37,9 @@ const H1_FONT_SCALE = 2.0;
 const H2_FONT_SCALE = 1.5;
 const H3_FONT_SCALE = 1.2;
 
-const NORMAL_FONT = 'Arial, Helvetica, sans-serif';
-const HEADING_FONT = "'Space Grotesk', sans-serif"; // cspell:disable-line
-const EMOJI_SPRITE_FONT = "'Space Grotesk', sans-serif"; // cspell:disable-line
+const NORMAL_FONT = "'UnifrakturCook', cursive";
+const HEADING_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
+const EMOJI_SPRITE_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
 
 /**
  * @typedef {Object} TextInfo

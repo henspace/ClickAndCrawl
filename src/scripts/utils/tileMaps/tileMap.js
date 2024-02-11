@@ -34,14 +34,13 @@ import {
   ImageSpriteCanvasRenderer,
   RectSpriteCanvasRenderer,
 } from '../sprites/spriteRenderers.js';
-import { Point, Position, Rectangle } from '../geometry.js';
+import { Point, Rectangle } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
 import TURN_MANAGER from '../game/turnManager.js';
-import { TilePlan } from './tilePlan.js';
 
 /**
  * Detail for click events.
@@ -384,9 +383,17 @@ export class TileMap {
       if (!this.#heroRayTracer) {
         this.#heroRayTracer = new RayTracer(this, hero);
       }
-      const heroTileRole = this.getTileAtWorldPoint(hero.position).role;
-      if (heroTileRole != TileRole.ENTRANCE && heroTileRole != TileRole.EXIT) {
-        this.#heroRayTracer.findReachedTiles();
+      const heroTile = this.getTileAtWorldPoint(hero.position);
+      if (heroTile) {
+        const heroTileRole = heroTile.role;
+        if (
+          heroTileRole != TileRole.ENTRANCE &&
+          heroTileRole != TileRole.EXIT
+        ) {
+          this.#heroRayTracer.findReachedTiles();
+        }
+      } else {
+        console.error(`Hero at ${hero.position.toString()} but no tile found.`);
       }
     }
   }

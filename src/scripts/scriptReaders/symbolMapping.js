@@ -112,7 +112,7 @@ export const TILE_MAP_KEYS = new Map([
   ['=-T', createExitDefn('door-T.png')],
   ['=-R', createExitDefn('door-R.png')],
   ['=-B', createExitDefn('door-B.png')],
-  ['=-L', createExitDefn('door-L')],
+  ['=-L', createExitDefn('door-L.png')],
   ['--T', createEntranceDefn('door-T.png')],
   ['--R', createEntranceDefn('door-R.png')],
   ['--B', createEntranceDefn('door-B.png')],

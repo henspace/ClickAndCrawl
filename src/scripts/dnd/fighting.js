@@ -85,7 +85,7 @@ function undertakeAttack(attacker, defender) {
     if (defenderHP === 0) {
       WORLD.removeActor(defender);
       addFadingImage(IMAGE_MANAGER.getSpriteBitmap(0, 'RIP.png'), {
-        lifetimeSecs: 2,
+        lifetimeSecs: 5,
         position: defender.position,
         velocity: new Velocity(0, 0, 0),
       });
@@ -93,7 +93,7 @@ function undertakeAttack(attacker, defender) {
       addFadingText(`-${damage} HP`, {
         lifetimeSecs: 2,
         position: defender.position,
-        velocity: new Velocity(0, -100, 0),
+        velocity: new Velocity(0, -200, 0),
       });
     }
     resolve(defenderHP);

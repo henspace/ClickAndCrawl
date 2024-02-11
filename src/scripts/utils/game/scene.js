@@ -29,8 +29,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as maths from '../maths.js';
-
+/**
+ * The base scene
+ */
 export class AbstractScene {
   /** @type {number} */
   #globalOpacity;
@@ -44,6 +45,9 @@ export class AbstractScene {
 
   /** Fade out promise resolution @type {function}  */
   #fadeOutResolve;
+
+  /** @type {import('./actors.js').Actor} */
+  heroActor;
 
   /**
    * Create the scene.

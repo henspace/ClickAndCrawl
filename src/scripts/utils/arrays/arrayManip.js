@@ -30,6 +30,7 @@
 
 /**
  * @typedef Surrounds
+ * @property {*} centre - value at centre
  * @property {*} tl - value to top left
  * @property {*} above - value above
  * @property {*} tr - value to top right
@@ -49,6 +50,7 @@
  */
 export function getSurrounds(matrix, rowIndex, columnIndex) {
   return {
+    centre: matrix[rowIndex]?.[columnIndex],
     tl: matrix[rowIndex - 1]?.[columnIndex - 1],
     above: matrix[rowIndex - 1]?.[columnIndex],
     tr: matrix[rowIndex - 1]?.[columnIndex + 1],

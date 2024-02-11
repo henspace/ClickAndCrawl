@@ -37,7 +37,10 @@ import * as fighting from '../../dnd/fighting.js';
 
 import UI from '../dom/ui.js';
 import SCENE_MANAGER from './sceneManager.js';
-import GAME from './game.js';
+
+import { addFadingText } from '../effects/transient.js';
+import { pause } from '../timers.js';
+import { Position, Velocity } from '../geometry.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -54,6 +57,147 @@ const EventId = {
   CLICKED_ENTRANCE: 2,
   CLICKED_EXIT: 3,
 };
+
+/**
+ * Class that allows a simulated movement of an actor. The movement using
+ * the route finder takes place immediately, so that the effect of the actor's
+ * final position can be used to affect other actors without waiting for the normal
+ * duration of the move. The actual motion can then be actioned by a subsequent call to reenact.
+ *
+ */
+class ReplayableActorMover {
+  /** @type {Actor} */
+  #actor;
+  /** @type {AbstractModifier} */
+  #modifier;
+  /** @type {Position} */
+  #originalPosition;
+  /** @type {TileMap} */
+  #tileMap;
+  /** @type {RouteFinder} */
+  #routeFinder;
+
+  /**
+   *
+   * @param {Actor} actor
+   * @param {TileMap} tileMap
+   * @param {RouteFinder} routeFinder
+   */
+  constructor(actor, tileMap, routeFinder) {
+    this.#actor = actor;
+    this.#tileMap = tileMap;
+    this.#routeFinder = routeFinder;
+  }
+  /**
+   * Move actor to hero using the route finder. The move takes place instantly
+   * but can be replayed using the replay method.
+   */
+  moveInstantly() {
+    this.#originalPosition = Position.copy(this.#actor.position);
+    const heroGridPos = this.#tileMap.worldPointToGrid(heroActor.position);
+    const actorGridPos = this.#tileMap.worldPointToGrid(this.#actor.position);
+    const orthoSeparation =
+      Math.abs(heroGridPos.x - actorGridPos.x) +
+      Math.abs(heroGridPos.y - actorGridPos.y);
+    const maxSeparation = this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
+    if (
+      orthoSeparation <= maxSeparation &&
+      this.#tileMap.canHeroSeeGridPoint(actorGridPos)
+    ) {
+      this.#routeFinder.actor = this.#actor;
+      const waypoints = this.#routeFinder.getDumbRouteNextTo(
+        actorGridPos,
+        heroGridPos,
+        this.#actor.maxTilesPerMove
+      );
+      if (waypoints.length > 0) {
+        this.#modifier = new PathFollower(
+          { path: waypoints, speed: 100 },
+          this.#actor.sprite.modifier
+        );
+        this.#setActorsPosition(waypoints[waypoints.length - 1]);
+      }
+    }
+  }
+  /**
+   * Set the actors position, updating the tile map occupancy as required.
+   * @param {Position} position
+   */
+  #setActorsPosition(position) {
+    const oldGridPoint = this.#tileMap.worldPointToGrid(this.#actor.position);
+    this.#actor.position = position;
+    const newGridPoint = this.#tileMap.worldPointToGrid(this.#actor.position);
+    this.#tileMap.moveTileOccupancyGridPoint(
+      this.#actor,
+      oldGridPoint,
+      newGridPoint
+    );
+  }
+  /**
+   * Restore the actor's original position.
+   */
+  #restorePosition() {
+    this.#setActorsPosition(this.#originalPosition);
+  }
+
+  /**
+   * Undertake the move defined by the modifier.
+   * @returns {Promise} fulfils to undefined.
+   */
+  replay() {
+    this.#restorePosition();
+    if (this.#modifier) {
+      return this.#modifier.applyAsTransientToSprite(this.#actor.sprite);
+    }
+    return Promise.resolve();
+  }
+}
+
+/**
+ * Class used to handle multiple ReplayableActorMovers.
+ */
+class MovementReplayer {
+  /** @type {TileMap} */
+  #tileMap;
+  /** @type {RouteFinder} */
+  #routeFinder;
+  /** @type {ReplayableActorMover[]} */
+  #movers;
+  /**
+   *
+   * @param {TileMap} tileMap
+   * @param {RouteFinder} routeFinder
+   */
+  constructor(tileMap, routeFinder) {
+    this.#movers = [];
+    this.#tileMap = tileMap;
+    this.#routeFinder = routeFinder;
+  }
+
+  /**
+   * Add the actor and move immediately to hero
+   * @param {Actor} actor
+   */
+  addAndMoveActor(actor) {
+    const replayableMover = new ReplayableActorMover(
+      actor,
+      this.#tileMap,
+      this.#routeFinder
+    );
+    replayableMover.moveInstantly();
+    this.#movers.push(replayableMover);
+  }
+
+  /**
+   * Replay all movements in parallel.
+   * @returns {Promise} fulfils to undefined when all movements complete.
+   */
+  replay() {
+    const promises = [];
+    this.#movers.forEach((mover) => promises.push(mover.replay()));
+    return Promise.all(promises);
+  }
+}
 
 /**
  * Basic State class
@@ -111,7 +255,7 @@ class WaitingToStart extends State {
    * @param  {import('../sprites/sprite.js').Sprite} point - the point initiating the event
    * @param {Object} detail - object will depend on the eventId
    */
-  async onEvent(eventId, point, detail) {
+  async onEvent(eventId, pointUnused, detailUnused) {
     if (eventId === EventId.START_GAME) {
       this.transitionTo(new AtStart());
     }
@@ -125,7 +269,7 @@ class AtStart extends State {
   onEntry() {
     console.log('Enter AtStart');
     UI.showOkDialog('You are in a dark and dingy dungeon.', 'Conquer it!').then(
-      () => startNewScene(this, SCENE_MANAGER.getFirstScene())
+      () => startFirstScene(this)
     );
   }
 }
@@ -136,9 +280,14 @@ class AtStart extends State {
 class AtGameOver extends State {
   async onEntry() {
     console.log('Enter AtGameOver');
-    await UI.showOkDialog('Game over. You died.', 'Try again').then(() =>
-      startNewScene(this, SCENE_MANAGER.getFirstScene())
-    );
+    addFadingText('YOU DIED!', {
+      lifetimeSecs: 2,
+      position: heroActor.position,
+      velocity: new Velocity(0, -100, 0),
+    });
+    await pause(2)
+      .then(() => UI.showOkDialog('Game over. You died.', 'Try again'))
+      .then(() => startFirstScene(this));
   }
 }
 
@@ -149,7 +298,7 @@ class AtGameCompleted extends State {
   async onEntry() {
     console.log('Enter AtGameCompleted');
     await UI.showOkDialog("You've done it. Well done.", 'Try again').then(() =>
-      startNewScene(this, SCENE_MANAGER.getFirstScene())
+      startFirstScene(this)
     );
   }
 }
@@ -196,7 +345,7 @@ class HeroTurnIdle extends State {
         console.log('Escaping');
         await moveHeroToPoint(point);
         if (SCENE_MANAGER.areThereMoreScenes()) {
-          await startNewScene(this, SCENE_MANAGER.getNextScene());
+          await startNextScene(this);
         } else {
           this.transitionTo(new AtGameCompleted());
         }
@@ -252,7 +401,7 @@ class HeroTurnFighting extends State {
         console.log('Escaping');
         await moveHeroToPoint(point);
         if (SCENE_MANAGER.areThereMoreScenes()) {
-          await startNewScene(this, SCENE_MANAGER.getNextScene());
+          await startNextScene(this);
         } else {
           this.transitionTo(new AtGameCompleted());
         }
@@ -304,11 +453,13 @@ class ComputerTurnIdle extends State {
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
+    const replayer = new MovementReplayer(tileMap, routeFinder);
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor) {
-        await moveActorUsingRouteFinder(actor, tileMap, routeFinder);
+        replayer.addAndMoveActor(actor);
       }
     }
+    await replayer.replay();
     if (tileMap.getParticipants(heroActor).length === 0) {
       this.transitionTo(new HeroTurnIdle());
     } else {
@@ -329,16 +480,18 @@ class ComputerTurnFighting extends State {
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
+    const replayer = new MovementReplayer(tileMap, routeFinder);
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor) {
         if (participants.includes(actor)) {
           await fighting.resolveAttackerDefender(actor, heroActor);
         } else {
-          await moveActorUsingRouteFinder(actor, tileMap, routeFinder);
+          replayer.addAndMoveActor(actor);
         }
       }
     }
+    await replayer.replay();
     if (heroActor.traits.get('HP') === 0) {
       this.transitionTo(new AtGameOver());
     } else if (participants.length === 0) {
@@ -388,47 +541,25 @@ function moveHeroToPoint(point) {
 }
 
 /**
- * Move actor to hero using the route finder
- * @param {Actor} actor
- * @param {TileMap} tileMap
- * @param {RouteFinder} routeFinder
+ * Start first scene.
+ * @param {State} currentState
+ * @returns {Promise} fulfils to undefined.
  */
-async function moveActorUsingRouteFinder(actor, tileMap, routeFinder) {
-  const heroGridPos = tileMap.worldPointToGrid(heroActor.position);
-  const actorGridPos = tileMap.worldPointToGrid(actor.position);
-  const orthoSeparation =
-    Math.abs(heroGridPos.x - actorGridPos.x) +
-    Math.abs(heroGridPos.y - actorGridPos.y);
-  const maxSeparation = actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
-  if (
-    orthoSeparation <= maxSeparation &&
-    tileMap.canHeroSeeGridPoint(actorGridPos)
-  ) {
-    routeFinder.actor = actor;
-    const waypoints = routeFinder.getDumbRouteNextTo(
-      actorGridPos,
-      heroGridPos,
-      actor.maxTilesPerMove
-    );
-    if (waypoints.length > 0) {
-      const modifier = new PathFollower(
-        { path: waypoints, speed: 200 },
-        actor.sprite.modifier
-      );
-      await modifier.applyAsTransientToSprite(actor.sprite);
-    }
-  }
+function startFirstScene(currentState) {
+  return SCENE_MANAGER.switchToFirstScene().then(() => {
+    heroActor.sprite.position =
+      WORLD.getTileMap().getWorldPositionOfTileByEntry();
+    return currentState.transitionTo(new HeroTurnIdle());
+  });
 }
 
 /**
- * Start a new scene.
+ * Start next scene.
  * @param {State} currentState
- * @param {AbstractScene} scene
  * @returns {Promise} fulfils to undefined.
  */
-function startNewScene(currentState, scene) {
-  WORLD.clearAll();
-  GAME.setScene(scene).then(() => {
+function startNextScene(currentState) {
+  return SCENE_MANAGER.switchToNextScene().then(() => {
     heroActor.sprite.position =
       WORLD.getTileMap().getWorldPositionOfTileByEntry();
     return currentState.transitionTo(new HeroTurnIdle());

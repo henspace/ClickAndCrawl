@@ -39,7 +39,7 @@ const VOID_SYMBOL = ' ';
  * an image for that. Note that the symbols in the arrays must be single characters.
  * @type {Object<string, string[]>}
  */
-const SpecialSymbols = {
+export const SpecialSymbols = {
   WALL: ['#', '*', '|'],
   DOOR_IN: ['-'],
   DOOR_OUT: ['='],
@@ -293,7 +293,7 @@ function clarifyGround(value, surrounds) {
 function isEntryTile(value, surrounds) {
   return (
     isEntrance(surrounds.left) ||
-    isEntrance(surrounds.top) ||
+    isEntrance(surrounds.above) ||
     isEntrance(surrounds.right) ||
     isEntrance(surrounds.below)
   );
@@ -311,9 +311,9 @@ function isEntryTile(value, surrounds) {
 function isExitTile(value, surrounds) {
   return (
     isExit(surrounds.right) ||
-    isExit(surrounds.bottom) ||
+    isExit(surrounds.below) ||
     isExit(surrounds.left) ||
-    isExit(surrounds.top)
+    isExit(surrounds.above)
   );
 }
 /**

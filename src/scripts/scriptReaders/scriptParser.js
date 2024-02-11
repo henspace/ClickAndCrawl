@@ -33,6 +33,7 @@
 import ACTOR_MAP from './actorMap.js';
 import { SceneDefinition } from './sceneDefinitionParser.js';
 import { CharacterTraits } from '../dnd/traits.js';
+import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
 
 /**
  * @typedef {Object} SectionParsingResult
@@ -237,6 +238,8 @@ class CastParser extends AbstractSectionParser {
  * Parser for dungeon map.
  */
 class MapParser extends AbstractSectionParser {
+  #randomised;
+  #randomRegex;
   /**
    * Construct parser.
    * @param {number} lines
@@ -245,14 +248,34 @@ class MapParser extends AbstractSectionParser {
    */
   constructor(lines, startLine, sceneDefn) {
     super(lines, startLine, sceneDefn);
+    this.#randomised = false;
+    this.#randomRegex = /^\s*random\s*$/i;
   }
   /**
    * Parse a line.
    * @override
    */
   parseLine(line) {
+    if (this.#randomised) {
+      return;
+    }
     if (line !== '') {
-      this.sceneDefn.mapDesign.push(line);
+      if (this.#randomRegex.test(line)) {
+        const creator = new RoomCreator({
+          minCols: 12,
+          maxCols: 40,
+          maxRoomCols: 10,
+          minRows: 12,
+          maxRows: 40,
+          maxRoomRows: 6,
+        });
+        this.sceneDefn.mapDesign = creator.generate();
+        this.#randomised = true;
+        console.debug('Random map');
+        this.sceneDefn.mapDesign.forEach((line) => console.debug(line));
+      } else {
+        this.sceneDefn.mapDesign.push(line);
+      }
     }
   }
 }

@@ -29,15 +29,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { AnimatedImage } from '../sprites/animation.js';
 import { Actor } from './actors.js';
 import { ImageSpriteCanvasRenderer } from '../sprites/spriteRenderers.js';
 import SCREEN from './screen.js';
 import { Sprite } from '../sprites/sprite.js';
 import { Position } from '../geometry.js';
-import { LoopMethod } from '../arrays/indexer.js';
 import { Rectangle } from '../geometry.js';
-import IMAGE_MANAGER from '../sprites/imageManager.js';
 
 /**
  * @type {Map<string, Sprite>}

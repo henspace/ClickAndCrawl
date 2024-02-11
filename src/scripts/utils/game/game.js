@@ -38,46 +38,13 @@ import * as assetLoaders from '../assetLoaders.js';
 import parseScript from '../../scriptReaders/scriptParser.js';
 import SCENE_MANAGER from '../game/sceneManager.js';
 import UI from '../dom/ui.js';
-import { CameraDolly } from './camera.js';
-import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
+
 import * as pointerActions from '../dom/pointerActions.js';
 import TURN_MANAGER from './turnManager.js';
-import { AnimatedImage } from '../sprites/animation.js';
-import { LoopMethod } from '../arrays/indexer.js';
 
 /** @type {DOMHighResTimeStamp} */
 let lastTimeStamp;
 
-/**
- * @type {import('./scene.js').Scene}
- */
-let currentScene;
-
-/**
- * @type {boolean}
- */
-let updateScene = false;
-
-/** @type {import('../sprites/sprite.js').Sprite}  */
-let cameraDolly;
-
-/** @type {NavigationButtons} */
-let navigationButtons;
-
-/**
- * Request full screen mode.
- * @param {Element} element - what should go full screen.
- * @param {Object} options - see {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen}
- * @returns {Promise}
- */
-function requestFullscreen(element, options) {
-  if (element.requestFullscreen) {
-    return element.requestFullscreen(options);
-  }
-  return Promise.reject(
-    new Error('Fullscreen requests not supported by browser')
-  );
-}
 /**
  * Initialise the game engine.
  * @param {Object} screenOptions - @see {@link module:utils/game/screen~setScreen} for
@@ -92,7 +59,12 @@ async function initialise(screenOptions) {
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneDefinitions(parseScript(script)))
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.START_GAME))
-    .catch((error) => alert(error.message));
+    .then(() => startGame())
+    .catch((error) => {
+      console.error(error);
+      alert(`Fatal error in main game. ${error.message}`);
+      return;
+    });
 }
 
 /**
@@ -106,9 +78,6 @@ function setupListeners() {
     const x = event.detail.x;
     const y = event.detail.y;
     const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
-    console.debug(
-      `Canvas click at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
-    );
     if (!HUD.resolveClick(mappedPositions)) {
       WORLD.resolveClick(mappedPositions);
     }
@@ -120,9 +89,6 @@ function setupListeners() {
       const x = event.detail.x;
       const y = event.detail.y;
       const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
-      console.debug(
-        `Canvas pointer down at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
-      );
       HUD.resolvePointerDown(mappedPositions);
     }
   );
@@ -133,9 +99,6 @@ function setupListeners() {
       const x = event.detail.x;
       const y = event.detail.y;
       const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
-      console.debug(
-        `Canvas pointer up at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
-      );
       HUD.resolvePointerUp(mappedPositions);
     }
   );
@@ -146,9 +109,6 @@ function setupListeners() {
       const x = event.detail.x;
       const y = event.detail.y;
       const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
-      console.debug(
-        `Canvas pointer cancel at (${x}, ${y}): canvas (${mappedPositions.canvas.x}, ${mappedPositions.canvas.y}), world (${mappedPositions.world.x}, ${mappedPositions.world.y})`
-      );
       HUD.resolvePointerCancel(mappedPositions);
     }
   );
@@ -165,94 +125,11 @@ function setupListeners() {
   });
 }
 
-/** Set the current scene, unloading any existing scene
- * @param {import('./scene.js').Scene} scene
- * @returns {Promise} fulfils to undefined
- */
-function setScene(scene) {
-  return unloadScene(currentScene)
-    .then(() => loadScene(scene))
-    .then(() => start());
-}
-
 /**
- * Load scene
- * @param {import('./scene.js').Scene} scene
- * @returns {Promise} fulfills to null
+ * Start the game.
  */
-function loadScene(scene) {
-  currentScene = scene;
-  return scene
-    .load()
-    .then(() => scene.initialise())
-    .then(() => createHud());
-}
-
-/**
- * Unload scene
- * @param {import('./scene.js').Scene} scene
- * @returns {Promise} fulfills to null
- */
-function unloadScene(scene) {
-  if (scene) {
-    return scene.unload().then(() => {
-      updateScene = false;
-      return clearHud();
-    });
-  } else {
-    return Promise.resolve(null);
-  }
-}
-
-function start() {
-  updateScene = true;
+function startGame() {
   window.requestAnimationFrame(gameLoop);
-}
-
-/**
- * Create the HUD
- */
-function createHud() {
-  if (!navigationButtons) {
-    navigationButtons = new NavigationButtons(
-      cameraDolly,
-      48,
-      NavigationLocation.BR
-    );
-  }
-  addFullscreenButton();
-  HUD.setVisible(true);
-}
-
-function addFullscreenButton() {
-  const fsImage = new AnimatedImage(
-    0,
-    {
-      prefix: 'hud-fullscreen-',
-      startIndex: 0,
-      padding: 3,
-      suffix: '.png',
-    },
-    { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
-  );
-  const button = HUD.addButton(
-    fsImage,
-    () => {
-      requestFullscreen(document.body, { navigationUI: 'hide' });
-    },
-    () => {
-      document.exitFullscreen();
-    }
-  );
-  button.position.x = 48;
-  button.position.y = -48;
-}
-/**
- * Clear the HUD.
- */
-function clearHud() {
-  HUD.clear();
-  HUD.setVisible(false);
 }
 
 /**
@@ -260,25 +137,17 @@ function clearHud() {
  * @param {DOMHighResTimeStamp} timeStamp
  */
 function gameLoop(timeStamp) {
-  if (!updateScene) {
-    return;
-  }
   GAME_CLOCK.updateTimeNow(timeStamp);
   if (lastTimeStamp) {
     const deltaSeconds = (timeStamp - lastTimeStamp) / 1000;
-    SCREEN.clearCanvas();
-    SCREEN.setOpacity(currentScene.getOpacity());
-    WORLD.update(deltaSeconds);
-    currentScene.update(deltaSeconds);
-    SCREEN.setOpacity(1);
-    HUD.update(deltaSeconds);
-    cameraDolly?.update(deltaSeconds);
+    SCENE_MANAGER.update(deltaSeconds);
     if (debug.OPTIONS.showFps) {
       showFps(1 / deltaSeconds);
     }
   }
 
   lastTimeStamp = timeStamp;
+
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -299,22 +168,10 @@ function showFps(fps) {
 }
 
 /**
- * Set camera dolly
- * @param {import('../sprites/sprite.js').Sprite} sprite
- * @param {number} speed - See {@link module:utils/game/camera.createCameraDolly}
- * @param {number} proportionSeparated - See {@link module:utils/game/camera.createCameraDolly}
- */
-function setCameraToTrack(sprite, speed, proportionSeparated) {
-  cameraDolly = new CameraDolly(sprite, speed, proportionSeparated);
-}
-
-/**
  * The game singleton
  */
 const GAME = {
   initialise: initialise,
-  setScene: setScene,
-  setCameraToTrack: setCameraToTrack,
 };
 
 export default GAME;

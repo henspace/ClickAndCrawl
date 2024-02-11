@@ -29,11 +29,103 @@
  */
 
 import { parseSceneDefinition } from '../../scriptReaders/sceneDefinitionParser.js';
+import HUD from './hud.js';
+import { addFullscreenButtonToHud } from './fullscreen.js';
+import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
+import SCREEN from './screen.js';
+import WORLD from './world.js';
+import { CameraDolly } from './camera.js';
+
+/** @type {import('../sprites/sprite.js').Sprite}  */
+let cameraDolly;
+
+/** @type {NavigationButtons} */
+let navigationButtons;
 
 let sceneDefinitions;
 
 let currentIndex;
 
+let currentScene;
+
+/**
+ * Set camera dolly
+ * @param {import('../sprites/sprite.js').Sprite} sprite
+ * @param {number} speed - See {@link module:utils/game/camera.createCameraDolly}
+ * @param {number} proportionSeparated - See {@link module:utils/game/camera.createCameraDolly}
+ */
+function setCameraToTrack(sprite, speed, proportionSeparated) {
+  cameraDolly = new CameraDolly(sprite, speed, proportionSeparated);
+}
+
+/**
+ * Create the HUD
+ */
+function createHud() {
+  navigationButtons = new NavigationButtons(
+    cameraDolly,
+    48,
+    NavigationLocation.BR
+  );
+  addFullscreenButtonToHud();
+
+  HUD.setVisible(true);
+}
+
+/**
+ * Clear the HUD.
+ */
+function clearHud() {
+  HUD.clear();
+  HUD.setVisible(false);
+}
+/** Set the current scene, unloading any existing scene
+ * @param {import('./scene.js').Scene} scene
+ * @returns {Promise} fulfils to undefined.
+ * Rejects if scene is undefined or null.
+ */
+function setScene(scene) {
+  if (!scene) {
+    console.error(
+      'Attempt made to switch to the next scene when there are no more.'
+    );
+    return Promise.reject();
+  }
+  return unloadScene(currentScene).then(() => loadScene(scene));
+}
+
+/**
+ * Load scene
+ * @param {import('./scene.js').Scene} scene
+ * @returns {Promise} fulfills to null
+ */
+function loadScene(scene) {
+  return scene
+    .load()
+    .then(() => scene.initialise())
+    .then(() => {
+      createHud();
+      currentScene = scene;
+    });
+}
+
+/**
+ * Unload scene
+ * @param {import('./scene.js').Scene} scene
+ * @returns {Promise} fulfills to null
+ */
+function unloadScene(scene) {
+  WORLD.clearAll();
+  if (scene) {
+    return scene.unload().then(() => {
+      currentScene = null;
+      clearHud();
+      return Promise.resolve();
+    });
+  } else {
+    return Promise.resolve(null);
+  }
+}
 /**
  * Configure the scenes from the script.
  * @param {import('../../scriptReaders/index.js').SceneDefinition} sceneDefns
@@ -73,13 +165,49 @@ function getFirstScene() {
 }
 
 /**
+ * Switch to the first scene.
+ * @returns {Promise} fulfils to undefined on success.
+ * Rejects if no scenes.
+ */
+function switchToFirstScene() {
+  return setScene(getFirstScene());
+}
+
+/**
+ * Switch to the next scene.
+ * @returns {Promise} fufils to undefined on success.
+ * Rejects if there are no more.
+ */
+function switchToNextScene() {
+  return setScene(getNextScene());
+}
+
+/**
+ * UPdate the scene
+ * @param {number} deltaSeconds
+ */
+function update(deltaSeconds) {
+  if (currentScene) {
+    SCREEN.clearCanvas();
+    SCREEN.setOpacity(currentScene.getOpacity());
+    WORLD.update(deltaSeconds);
+    currentScene.update(deltaSeconds);
+    HUD.update(deltaSeconds);
+    SCREEN.setOpacity(1);
+    cameraDolly?.update(deltaSeconds);
+  }
+}
+
+/**
  * SCENE_MANAGER Singleton.
  */
 const SCENE_MANAGER = {
-  setSceneDefinitions: setSceneDefinitions,
-  getNextScene: getNextScene,
-  getFirstScene: getFirstScene,
   areThereMoreScenes: areThereMoreScenes,
+  setCameraToTrack: setCameraToTrack,
+  setSceneDefinitions: setSceneDefinitions,
+  switchToFirstScene: switchToFirstScene,
+  switchToNextScene: switchToNextScene,
+  update: update,
 };
 
 export default SCENE_MANAGER;

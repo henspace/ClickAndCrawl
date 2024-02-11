@@ -43,6 +43,7 @@ import { TILE_MAP_KEYS } from './symbolMapping.js';
 import UI from '../utils/dom/ui.js';
 import { CharacterTraits } from '../dnd/traits.js';
 import { AbstractScene } from '../utils/game/scene.js';
+import SCENE_MANAGER from '../utils/game/sceneManager.js';
 const GRID_SIZE = 48;
 
 /**
@@ -108,18 +109,18 @@ function createInitialiseFn(sceneDefn) {
   return () => {
     const tileMap = new TileMap(SCREEN.getContext2D(), tilePlan, GRID_SIZE);
     WORLD.setTileMap(tileMap);
-    const heroActor = ACTOR_MAP.get('HERO').create();
-    heroActor.traits = new CharacterTraits();
+    this.heroActor = ACTOR_MAP.get('HERO').create();
+    this.heroActor.traits = new CharacterTraits();
     createEnemies(sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
     });
 
-    GAME.setCameraToTrack(heroActor.sprite, 200, 0);
+    SCENE_MANAGER.setCameraToTrack(this.heroActor.sprite, 200, 0);
 
-    WORLD.addActor(heroActor);
+    WORLD.addActor(this.heroActor);
 
-    TURN_MANAGER.setHero(heroActor);
+    TURN_MANAGER.setHero(this.heroActor);
 
     return UI.showMessage(sceneDefn.intro);
   };
