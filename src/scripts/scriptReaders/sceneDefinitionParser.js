@@ -36,15 +36,18 @@ import { TilePlan } from '../utils/tileMaps/tilePlan.js';
 import { TileMap } from '../utils/tileMaps/tileMap.js';
 import TURN_MANAGER from '../utils/game/turnManager.js';
 import WORLD from '../utils/game/world.js';
-import GAME from '../utils/game/game.js';
 import ACTOR_MAP from './actorMap.js';
 import SCREEN from '../utils/game/screen.js';
 import { TILE_MAP_KEYS } from './symbolMapping.js';
 import UI from '../utils/dom/ui.js';
-import { CharacterTraits } from '../dnd/traits.js';
 import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../utils/game/sceneManager.js';
+import { CharacterTraits } from '../dnd/traits.js';
+import { Actor } from '../utils/game/actors.js';
+
 const GRID_SIZE = 48;
+/** @type {Actor} */
+let lastHero;
 
 /**
  * @typedef {Object} ActorDefn
@@ -57,7 +60,9 @@ const GRID_SIZE = 48;
 export class SceneDefinition {
   /** @type {string} */
   intro;
-  /** @type {Actors} */
+  /** @type {ActorDefn} */
+  hero;
+  /** @type {ActorDefn[]} */
   enemies;
   /** @type {string[]} */
   mapDesign;
@@ -70,6 +75,25 @@ export class SceneDefinition {
   }
 }
 
+/**
+ * Create the hero. If the scene definition doesn't have a hero definition, the
+ * lastHero is used.
+ * @param {SceneDefinition} sceneDefn
+ * @returns {Actor}
+ */
+function createHero(sceneDefn) {
+  if (sceneDefn.hero) {
+    const actor = ACTOR_MAP.get(sceneDefn.hero.id).create();
+    actor.traits = sceneDefn.hero.traits.clone();
+    lastHero = actor;
+    return actor;
+  } else {
+    if (!lastHero) {
+      throw new Error('No hero has been defined.');
+    }
+    return lastHero;
+  }
+}
 /**
  * Create the enemies.
  * @param {SceneDefinition} sceneDefn
@@ -86,77 +110,60 @@ function createEnemies(sceneDefn) {
 }
 
 /**
- * Add the load method to the scene object.
- * @param {*} sceneDefn - the definition of the scene.
- * @returns {Promise} fulfils to null;
+ * Scene created from a scene definition.
  */
-function createLoadFn(sceneDefnUnused) {
-  return () => {
-    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl);
-  };
-}
+class ParsedScene extends AbstractScene {
+  /** @type {SceneDefinition} */
+  #sceneDefn;
 
-/**
- * Add the load method to the scene object.
- * @param {*} sceneDefn - the definition of the scene.
- * @returns {Promise} fulfils to null;
- */
-function createInitialiseFn(sceneDefn) {
-  const tilePlan = TilePlan.generateTileMapPlan(
-    sceneDefn.mapDesign,
-    TILE_MAP_KEYS
-  );
-  return () => {
+  /** Construct the scene from a definition. */
+  constructor(sceneDefn) {
+    super();
+    this.#sceneDefn = sceneDefn;
+  }
+
+  /** @override */
+  doLoad() {
+    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl);
+  }
+
+  doInitialise() {
+    const tilePlan = TilePlan.generateTileMapPlan(
+      this.#sceneDefn.mapDesign,
+      TILE_MAP_KEYS
+    );
     const tileMap = new TileMap(SCREEN.getContext2D(), tilePlan, GRID_SIZE);
     WORLD.setTileMap(tileMap);
-    this.heroActor = ACTOR_MAP.get('HERO').create();
-    this.heroActor.traits = new CharacterTraits();
-    createEnemies(sceneDefn).forEach((enemy) => {
+    this.heroActor = createHero(this.#sceneDefn);
+    createEnemies(this.#sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
     });
-
     SCENE_MANAGER.setCameraToTrack(this.heroActor.sprite, 200, 0);
-
     WORLD.addActor(this.heroActor);
-
     TURN_MANAGER.setHero(this.heroActor);
+    return Promise.resolve();
+  }
 
-    return UI.showMessage(sceneDefn.intro);
-  };
-}
-
-/**
- * Add the load method to the scene object.
- * @param {*} sceneDefn - the definition of the scene.
- */
-function createUpdateFn(sceneDefn) {
-  return () => {
+  /**
+   * @override
+   */
+  doUpdate(deltaSecondsUnused) {
     return;
-  };
-}
+  }
 
-/**
- * Add the load method to the scene object.
- * @param {*} sceneDefn - the definition of the scene.
- * @returns {Promise} fulfils to null;
- */
-function createUnloadFn(sceneDefn) {
-  return () => {
+  /**
+   * @override
+   */
+  doUnload() {
     return Promise.resolve(null);
-  };
+  }
 }
-
 /**
  * Parse the scene definition to create a Scene
  * @param {SceneDefinition} sceneDefn
  * @returns {Scene}
  */
 export function parseSceneDefinition(sceneDefn) {
-  const scene = new AbstractScene();
-  scene.doLoad = createLoadFn(sceneDefn);
-  scene.doInitialise = createInitialiseFn(sceneDefn);
-  scene.doUpdate = createUpdateFn(sceneDefn);
-  scene.doUnload = createUnloadFn(sceneDefn);
-  return scene;
+  return new ParsedScene(sceneDefn);
 }

@@ -32,21 +32,21 @@ import { parseSceneDefinition } from '../../scriptReaders/sceneDefinitionParser.
 import HUD from './hud.js';
 import { addFullscreenButtonToHud } from './fullscreen.js';
 import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
-import SCREEN from './screen.js';
 import WORLD from './world.js';
 import { CameraDolly } from './camera.js';
+import LOG from '../logging.js';
 
 /** @type {import('../sprites/sprite.js').Sprite}  */
 let cameraDolly;
-
-/** @type {NavigationButtons} */
-let navigationButtons;
 
 let sceneDefinitions;
 
 let currentIndex;
 
 let currentScene;
+
+/** @type {import('./actors.js').Actor} */
+let hero;
 
 /**
  * Set camera dolly
@@ -62,11 +62,7 @@ function setCameraToTrack(sprite, speed, proportionSeparated) {
  * Create the HUD
  */
 function createHud() {
-  navigationButtons = new NavigationButtons(
-    cameraDolly,
-    48,
-    NavigationLocation.BR
-  );
+  new NavigationButtons(cameraDolly, 48, NavigationLocation.BR);
   addFullscreenButtonToHud();
 
   HUD.setVisible(true);
@@ -86,7 +82,7 @@ function clearHud() {
  */
 function setScene(scene) {
   if (!scene) {
-    console.error(
+    LOG.error(
       'Attempt made to switch to the next scene when there are no more.'
     );
     return Promise.reject();
@@ -175,7 +171,7 @@ function switchToFirstScene() {
 
 /**
  * Switch to the next scene.
- * @returns {Promise} fufils to undefined on success.
+ * @returns {Promise} fulfils to undefined on success.
  * Rejects if there are no more.
  */
 function switchToNextScene() {
@@ -187,15 +183,8 @@ function switchToNextScene() {
  * @param {number} deltaSeconds
  */
 function update(deltaSeconds) {
-  if (currentScene) {
-    SCREEN.clearCanvas();
-    SCREEN.setOpacity(currentScene.getOpacity());
-    WORLD.update(deltaSeconds);
-    currentScene.update(deltaSeconds);
-    HUD.update(deltaSeconds);
-    SCREEN.setOpacity(1);
-    cameraDolly?.update(deltaSeconds);
-  }
+  currentScene?.update(deltaSeconds);
+  cameraDolly?.update(deltaSeconds);
 }
 
 /**

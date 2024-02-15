@@ -186,6 +186,27 @@
             <key type="filename">tiles/floor2-SBE.png</key>
             <key type="filename">tiles/floor2-SBW.png</key>
             <key type="filename">tiles/floor2.png</key>
+            <key type="filename">tiles/hero-dead00.png</key>
+            <key type="filename">tiles/hero-idle00.png</key>
+            <key type="filename">tiles/hero-idle01.png</key>
+            <key type="filename">tiles/hero-idle02.png</key>
+            <key type="filename">tiles/hero-idle03.png</key>
+            <key type="filename">tiles/hero-walk-e00.png</key>
+            <key type="filename">tiles/hero-walk-e01.png</key>
+            <key type="filename">tiles/hero-walk-e02.png</key>
+            <key type="filename">tiles/hero-walk-e03.png</key>
+            <key type="filename">tiles/hero-walk-n00.png</key>
+            <key type="filename">tiles/hero-walk-n01.png</key>
+            <key type="filename">tiles/hero-walk-n02.png</key>
+            <key type="filename">tiles/hero-walk-n03.png</key>
+            <key type="filename">tiles/hero-walk-s00.png</key>
+            <key type="filename">tiles/hero-walk-s01.png</key>
+            <key type="filename">tiles/hero-walk-s02.png</key>
+            <key type="filename">tiles/hero-walk-s03.png</key>
+            <key type="filename">tiles/hero-walk-w00.png</key>
+            <key type="filename">tiles/hero-walk-w01.png</key>
+            <key type="filename">tiles/hero-walk-w02.png</key>
+            <key type="filename">tiles/hero-walk-w03.png</key>
             <key type="filename">tiles/hud-arrow-down-000.png</key>
             <key type="filename">tiles/hud-arrow-down-001.png</key>
             <key type="filename">tiles/hud-arrow-left-000.png</key>
@@ -198,6 +219,49 @@
             <key type="filename">tiles/hud-auto-centre-001.png</key>
             <key type="filename">tiles/hud-fullscreen-000.png</key>
             <key type="filename">tiles/hud-fullscreen-001.png</key>
+            <key type="filename">tiles/orc-dead00.png</key>
+            <key type="filename">tiles/orc-idle00.png</key>
+            <key type="filename">tiles/orc-idle01.png</key>
+            <key type="filename">tiles/orc-idle02.png</key>
+            <key type="filename">tiles/orc-idle03.png</key>
+            <key type="filename">tiles/orc-walk-e00.png</key>
+            <key type="filename">tiles/orc-walk-e01.png</key>
+            <key type="filename">tiles/orc-walk-e02.png</key>
+            <key type="filename">tiles/orc-walk-e03.png</key>
+            <key type="filename">tiles/orc-walk-n00.png</key>
+            <key type="filename">tiles/orc-walk-n01.png</key>
+            <key type="filename">tiles/orc-walk-n02.png</key>
+            <key type="filename">tiles/orc-walk-n03.png</key>
+            <key type="filename">tiles/orc-walk-s00.png</key>
+            <key type="filename">tiles/orc-walk-s01.png</key>
+            <key type="filename">tiles/orc-walk-s02.png</key>
+            <key type="filename">tiles/orc-walk-s03.png</key>
+            <key type="filename">tiles/orc-walk-w00.png</key>
+            <key type="filename">tiles/orc-walk-w01.png</key>
+            <key type="filename">tiles/orc-walk-w02.png</key>
+            <key type="filename">tiles/orc-walk-w03.png</key>
+            <key type="filename">tiles/trader-dead00.png</key>
+            <key type="filename">tiles/trader-idle-s03.png</key>
+            <key type="filename">tiles/trader-idle00.png</key>
+            <key type="filename">tiles/trader-idle01.png</key>
+            <key type="filename">tiles/trader-idle02.png</key>
+            <key type="filename">tiles/trader-walk-e00.png</key>
+            <key type="filename">tiles/trader-walk-e01.png</key>
+            <key type="filename">tiles/trader-walk-e02.png</key>
+            <key type="filename">tiles/trader-walk-e03.png</key>
+            <key type="filename">tiles/trader-walk-n00.png</key>
+            <key type="filename">tiles/trader-walk-n01.png</key>
+            <key type="filename">tiles/trader-walk-n02.png</key>
+            <key type="filename">tiles/trader-walk-n03.png</key>
+            <key type="filename">tiles/trader-walk-s00.png</key>
+            <key type="filename">tiles/trader-walk-s01.png</key>
+            <key type="filename">tiles/trader-walk-s02.png</key>
+            <key type="filename">tiles/trader-walk-s03.png</key>
+            <key type="filename">tiles/trader-walk-w00.png</key>
+            <key type="filename">tiles/trader-walk-w01.png</key>
+            <key type="filename">tiles/trader-walk-w02.png</key>
+            <key type="filename">tiles/trader-walk-w03.png</key>
+            <key type="filename">tiles/trader.png</key>
             <key type="filename">tiles/wall-B.png</key>
             <key type="filename">tiles/wall-BL.png</key>
             <key type="filename">tiles/wall-BLI.png</key>
@@ -250,13 +314,7 @@
                 <false/>
             </struct>
             <key type="filename">tiles/hero.png</key>
-            <key type="filename">tiles/hero001.png</key>
-            <key type="filename">tiles/hero002.png</key>
             <key type="filename">tiles/orc.png</key>
-            <key type="filename">tiles/orc001.png</key>
-            <key type="filename">tiles/orc002.png</key>
-            <key type="filename">tiles/orc003.png</key>
-            <key type="filename">tiles/orc004.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -268,22 +326,6 @@
                 <rect>12,12,24,25</rect>
                 <key>scale9Paddings</key>
                 <rect>12,12,24,25</rect>
-                <key>scale9FromFile</key>
-                <false/>
-            </struct>
-            <key type="filename">tiles/hero003.png</key>
-            <key type="filename">tiles/hero004.png</key>
-            <struct type="IndividualSpriteSettings">
-                <key>pivotPoint</key>
-                <point_f>0.5,0.5</point_f>
-                <key>spriteScale</key>
-                <double>1</double>
-                <key>scale9Enabled</key>
-                <false/>
-                <key>scale9Borders</key>
-                <rect>12,12,25,25</rect>
-                <key>scale9Paddings</key>
-                <rect>12,12,25,25</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

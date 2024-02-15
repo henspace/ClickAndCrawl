@@ -33,11 +33,13 @@ import { Actor } from '../utils/game/actors.js';
 import * as spriteRenderers from '../utils/sprites/spriteRenderers.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
 import * as animation from '../utils/sprites/animation.js';
-import { LoopMethod } from '../utils/arrays/indexer.js';
 import { Position } from '../utils/geometry.js';
 import SCREEN from '../utils/game/screen.js';
 import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/colours.js';
+import { Fight, Trade } from '../dnd/interact.js';
+import StdAnimations from './actorAnimationKeys.js';
+import * as maths from '../utils/maths.js';
 
 /**
  * Specialist traits renderer
@@ -71,30 +73,129 @@ class ActorTraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
     super.render(position);
   }
 }
+
+/**
+ * Animation that automatically adjusts the animation based on the actor's velocity
+ * and alive property.
+ */
+class ActorStateAnimator extends animation.KeyedAnimatedImages {
+  /** @type {Actor} */
+  #actor;
+
+  /** Number from eight point compass. */
+  #compassDir;
+
+  /** @type{boolean}*/
+  #aliveStatus;
+
+  /**
+   * Create the keyed animated image
+   * @param {string} key
+   * @param {AnimatedImage} animatedImage
+   */
+  constructor(key, animatedImage) {
+    super(key, animatedImage);
+    this.#compassDir = maths.CompassEightPoint.NONE;
+  }
+
+  /**
+   * Set the actor who's velocity will be monitored.
+   * @param {Actor} actor
+   */
+  setActor(actor) {
+    this.#actor = actor;
+    this.#aliveStatus = this.#actor.alive;
+  }
+
+  /** override */
+  getCurrentFrame() {
+    const dir = this.#getCurrentDirection();
+    if (dir !== this.#compassDir || this.#aliveStatus != this.#actor?.alive) {
+      this.#compassDir = dir;
+      this.#aliveStatus = this.#actor?.alive;
+      this.#setAnimationForState();
+    }
+    return super.getCurrentFrame();
+  }
+
+  #getCurrentDirection() {
+    if (!this.#actor || this.#actor.velocity.isZero(0.1)) {
+      return maths.CompassEightPoint.NONE;
+    } else {
+      const dir = this.#actor.velocity.getScreenDirection();
+      return maths.angleToFourPointCompass(dir);
+    }
+  }
+
+  /**
+   * Set the appropriate animation based on the the current compass direction.
+   * Only four points supported.
+   */
+  #setAnimationForState() {
+    if (!this.#actor.alive) {
+      return this.setCurrentKey(StdAnimations.definitions.DEAD.keyName);
+    }
+    switch (this.#compassDir) {
+      case maths.CompassEightPoint.NONE:
+        this.setCurrentKey(StdAnimations.definitions.IDLE.keyName);
+        break;
+      case maths.CompassEightPoint.E:
+        this.setCurrentKey(StdAnimations.definitions.WALK_EAST.keyName);
+        break;
+      case maths.CompassEightPoint.N:
+      case maths.CompassEightPoint.NW:
+      case maths.CompassEightPoint.NE:
+        this.setCurrentKey(StdAnimations.definitions.WALK_NORTH.keyName);
+        break;
+      case maths.CompassEightPoint.W:
+        this.setCurrentKey(StdAnimations.definitions.WALK_WEST.keyName);
+        break;
+      default:
+        this.setCurrentKey(StdAnimations.definitions.WALK_SOUTH.keyName);
+        break;
+    }
+  }
+}
+
+/**
+ * Create set of standard animations.
+ * @returns {animation.KeyedAnimatedImages}
+ */
+function createStandardKeyFrames(imageName) {
+  const keyedAnimations = new ActorStateAnimator(
+    'still',
+    new animation.AnimatedImage(0, `${imageName}.png`)
+  );
+
+  for (const key in StdAnimations.definitions) {
+    const anim = StdAnimations.definitions[key];
+    keyedAnimations.addAnimatedImage(
+      StdAnimations.definitions[key].keyName,
+      new animation.AnimatedImage(
+        0,
+        {
+          prefix: StdAnimations.formFrameNameRoot(key, imageName),
+          suffix: '.png',
+          startIndex: 0,
+          padding: 2,
+        },
+        anim.options
+      )
+    );
+  }
+  keyedAnimations.setCurrentKey(StdAnimations.definitions.IDLE.keyName);
+  return keyedAnimations;
+}
 /**
  * Create the actor.
  * @param {string} imageName - no extension
  * @returns {Actor}
  */
 function createAnimatedActor(imageName) {
+  const keyedAnimation = createStandardKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
-    new animation.KeyedAnimatedImages(
-      'idle',
-      new animation.AnimatedImage(
-        0,
-        {
-          prefix: imageName,
-          suffix: '.png',
-          startIndex: 1,
-          padding: 3,
-        },
-        {
-          framePeriodMs: 100,
-          loopMethod: LoopMethod.REVERSE,
-        }
-      )
-    )
+    keyedAnimation
   );
 
   const traitsRenderer = new ActorTraitsRenderer(SCREEN.getContext2D(), {
@@ -107,9 +208,10 @@ function createAnimatedActor(imageName) {
       renderer: [traitsRenderer, imageRenderer],
     })
   );
+  keyedAnimation.setActor(actor);
   traitsRenderer.actor = actor;
   actor.position = new Position(48, 48, 0);
-  actor.velocity = { x: -500, y: -70, rotation: 0.1 };
+  actor.velocity = { x: 0, y: 0, rotation: 0.1 };
   return actor;
 }
 
@@ -130,6 +232,28 @@ function createUnanimatedActor(imageName) {
 }
 
 /**
+ * Create animated fighter
+ * @param {string} imageName - without extension
+ * @returns {Actor}
+ */
+function createAnimatedFighter(imageName) {
+  const actor = createAnimatedActor(imageName);
+  actor.interaction = new Fight(actor);
+  return actor;
+}
+
+/**
+ * Create animated trader
+ * @param {string} imageName - without extension
+ * @returns {Actor}
+ */
+function createAnimatedTrader(imageName) {
+  const actor = createAnimatedActor(imageName);
+  actor.interaction = new Trade(actor);
+  return actor;
+}
+
+/**
  * @typedef {Object} ActorMapCreator
  * @property {function():Actor} create
  */
@@ -140,7 +264,8 @@ function createUnanimatedActor(imageName) {
 
 const ACTOR_MAP = new Map([
   ['HERO', { create: () => createAnimatedActor('hero') }],
-  ['MONSTER', { create: () => createAnimatedActor('orc') }],
+  ['MONSTER', { create: () => createAnimatedFighter('orc') }],
+  ['TRADER', { create: () => createAnimatedTrader('trader') }],
 ]);
 
 export default ACTOR_MAP;

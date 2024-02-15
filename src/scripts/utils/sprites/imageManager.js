@@ -28,6 +28,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import LOG from '../logging.js';
+
 /**
  * @typedef {Object} SpriteBitmap
  * @property {Image} image
@@ -49,7 +51,7 @@ function loadImage(srcUrl) {
   return new Promise((resolve) => {
     const image = new Image();
     image.addEventListener('load', () => {
-      console.debug('Image loaded.');
+      LOG.debug('Image loaded.');
       resolve(image);
     });
     image.src = srcUrl;
@@ -122,9 +124,7 @@ function buildSpriteMap(spriteMapDef, texture) {
 function getSpriteBitmap(spriteMapIndex, filename) {
   const result = spriteMaps[spriteMapIndex].get(filename);
   if (!result) {
-    console.debug(
-      `Failed to find image ${filename} at index ${spriteMapIndex}`
-    );
+    LOG.debug(`Failed to find image ${filename} at index ${spriteMapIndex}`);
   }
   return result;
 }

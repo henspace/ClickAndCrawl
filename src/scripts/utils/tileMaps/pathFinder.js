@@ -185,7 +185,7 @@ export class RouteFinder {
     if (destination.coincident(startingGridPoint)) {
       return [];
     }
-    if (!this.#tileMap.isGridPointPassableByActor(destination, this.actor)) {
+    if (!this.#tileMap.canGridPointBeOccupiedByActor(destination, this.actor)) {
       destination = this.#rotateGridPointAbout(destination, targetGridPoint);
     }
     let path = [];
@@ -206,7 +206,7 @@ export class RouteFinder {
       }
       moved =
         moved &&
-        this.#tileMap.isGridPointPassableByActor(nextPoint, this.actor);
+        this.#tileMap.canGridPointBeOccupiedByActor(nextPoint, this.actor);
 
       if (moved) {
         consecutiveFails = 0;
@@ -266,7 +266,10 @@ export class RouteFinder {
       const existingRoute = this.#routes.getRouteToCoords(x, y);
       if (!existingRoute || routePoints.length < existingRoute.length - 1) {
         routePoints.push(new Point(x, y)); // we have a route to this point
-        this.#routes.setRouteToCoords(routePoints, x, y);
+        if (this.#canTileBeOccupied(x, y)) {
+          // only save route if we are actually allowed to occupy its end point.
+          this.#routes.setRouteToCoords(routePoints, x, y);
+        }
         movesLeft--;
       } else {
         return;
@@ -290,6 +293,19 @@ export class RouteFinder {
    */
   #isTilePassable(x, y) {
     return this.#tileMap.isGridPointPassableByActor(
+      new Point(x, y),
+      this.actor
+    );
+  }
+
+  /** Check if tile can be occupied.
+   * @param {number} x
+   * @param {number} y
+   * @returns {boolean}
+   *
+   */
+  #canTileBeOccupied(x, y) {
+    return this.#tileMap.canGridPointBeOccupiedByActor(
       new Point(x, y),
       this.actor
     );

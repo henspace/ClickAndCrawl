@@ -104,7 +104,7 @@ export class VelocityAligner extends AbstractModifier {
    */
   doUpdate(sprite, deltaSecondsIgnored) {
     sprite.position.rotation =
-      sprite.velocity.getDirection() - this.#baseDirection;
+      sprite.velocity.getScreenDirection() - this.#baseDirection;
     return this;
   }
 }
@@ -263,6 +263,8 @@ export class PathFollower extends AbstractModifier {
     subjectPos.y += this.getMinMove(dy, this.#targetPoint.y, subjectPos.y);
     if (subjectPos.isCoincident(this.#targetPoint)) {
       if (++this.#index >= this.#path.length) {
+        subject.velocity.x = 0;
+        subject.velocity.y = 0;
         return this.decoratedModifier; // Remove itself from chain
       } else {
         this.#targetPoint = this.#path[this.#index];

@@ -77,10 +77,13 @@ canvas {
 }
 
 #glass {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: black;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
   position: absolute;
   opacity: 0;
-  transition: opacity 2s;
+  transition: opacity 0.5s;
 }
 
 #glass-content {
@@ -89,6 +92,14 @@ canvas {
   flex-direction: column;
   justify-content: center;
   height: 100%;
+}
+
+#glass.door {
+  background-image: url(../assets/images/dungeon-splash.jpg);
+}
+
+#glass.wall {
+  background-image: url(../assets/images/wall.jpg);
 }
 
 #glass-content > div {

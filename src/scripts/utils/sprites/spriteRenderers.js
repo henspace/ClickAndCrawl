@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+import LOG from '../logging.js';
 import * as canvasText from '../text/text.js';
 import * as fonts from '../text/fonts.js';
 import * as debug from '../debug.js';
@@ -133,7 +133,7 @@ export class SpriteCanvasRenderer {
    * @param {import('../geometry.js').Position} position
    */
   _doRender(positionUnused) {
-    console.error('_doRender method should be overridden.');
+    LOG.error('_doRender method should be overridden.');
   }
 
   /**
@@ -387,7 +387,7 @@ export class MultiGaugeTileRenderer extends SpriteCanvasRenderer {
       options.strokeStyles.length ?? 0
     );
     if (nGauges === 0) {
-      console.error('Attempt to create MultiGaugeTileRenderer with no gauges.');
+      LOG.error('Attempt to create MultiGaugeTileRenderer with no gauges.');
       return;
     }
     this.#gaugeRenderers = [];
@@ -475,7 +475,7 @@ export class PathSpriteCanvasRenderer extends SpriteCanvasRenderer {
    */
   _doRender(position) {
     if (this.path.length < 2) {
-      console.error('Path sprite needs at least 2 points.');
+      LOG.error('Path sprite needs at least 2 points.');
       return;
     }
     if (!this.#renderGeometry) {
@@ -530,7 +530,7 @@ export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
       this._boundingBoxCanvas.width = this.#spriteBitmap?.width ?? 0;
       this._boundingBoxCanvas.height = this.#spriteBitmap?.height ?? 0;
     } else {
-      console.error(`No image frame available for sprite.`, imageDefinition);
+      LOG.error(`No image frame available for sprite.`, imageDefinition);
     }
   }
 

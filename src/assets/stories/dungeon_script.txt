@@ -1,13 +1,17 @@
 [Level]
 Welcome to the test dungeon. Beware all who enter here.
 This is just a test file to see if everything works.
+[Hero]
+Reltub: HP: 25/25
 [Cast]
-monster x3: HP: 5/25
+monster x3: MOVE: hunt, HP: 5/25
+trader x1: MOVE: wander, HP: 10/25
 [Map]
 random
 [Level]
 The deeper you go, the harder it gets.
 [Cast]
 monster x4: HP: 10/25
+trader x1: HP: 10/25
 [Map]
 random

@@ -32,7 +32,7 @@
 import SCREEN from './screen.js';
 import { Sprite } from '../sprites/sprite.js';
 import { Tracker, VelocityMover } from '../sprites/movers.js';
-import { AbstractModifier } from '../sprites/modifiers.js';
+import LOG from '../logging.js';
 
 /**
  * Set the methods of tracking
@@ -50,9 +50,9 @@ export const CameraTracking = {
 export class CameraDolly {
   /** @type {import('../sprites/sprite.js').Sprite} */
   #sprite;
-  /** @type {AbstractModifier} */
+  /** @type @type {import('../sprites/modifiers.js').AbstractModifier} */
   #heroTracker;
-  /** @type {AbstractModifier} */
+  /** @type @type {import('../sprites/modifiers.js').AbstractModifier} */
   #velocityTracker;
   /** @type {number} */
   #trackingMethod;
@@ -119,7 +119,7 @@ export class CameraDolly {
       case CameraTracking.OFF:
         break;
       default:
-        console.error(
+        LOG.error(
           `Attempt to set invalid tracking method of ${method} ignored.`
         );
     }

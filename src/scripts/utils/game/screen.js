@@ -41,6 +41,7 @@
 
 import * as fonts from '../text/fonts.js';
 import { Position, Rectangle } from '../geometry.js';
+import LOG from '../logging.js';
 
 /**
  * @typedef {Object} ScreenDetails
@@ -101,7 +102,7 @@ function getDisplayDims() {
  */
 function setOptions(options) {
   if (canvas) {
-    console.error('Multiple calls to setScreen ignored.');
+    LOG.error('Multiple calls to setScreen ignored.');
     return;
   }
   gameElement = document.getElementById('game-content');
@@ -208,6 +209,14 @@ function sizeScreen() {
     visibleCanvasWidth,
     visibleCanvasHeight
   );
+  LOG.debug(`Scale: ${scale}`);
+  LOG.debug(`Window: width: ${dims.width}, height: ${dims.height}`);
+  LOG.debug(
+    `Display: left: ${left}, top: ${top}, width: ${displayedWidth}, height: ${displayedHeight}`
+  );
+  LOG.debug(
+    `Visible canvas: left: ${visibleCanvasOffsetX}, top: ${visibleCanvasOffsetY}, width: ${visibleCanvasWidth}, height: ${visibleCanvasHeight}`
+  );
 }
 
 /**
@@ -305,11 +314,17 @@ function getContext2D() {
  * @param {HTMLElement} element
  * @param {Closers[]} closers - array of Closers. If not provided then the entire display
  * is used.
+ * @param {string} className
  * @returns {Promise} fulfils to null when clicked.
  */
-function displayOnGlass(element, closers) {
+function displayOnGlass(element, closers, className) {
   const content = document.getElementById('glass-content');
   content.replaceChildren(element);
+  if (className) {
+    glass.className = className;
+  } else {
+    glass.className = '';
+  }
   glass.style.display = 'block';
   glass.style.opacity = 1;
   return new Promise((resolve) => {
@@ -337,7 +352,7 @@ function wipeGlass() {
       content.innerHTML = '';
       glass.style.display = 'none';
       resolve();
-    }, 2000);
+    }, 500);
   });
 }
 

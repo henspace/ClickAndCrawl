@@ -33,14 +33,15 @@ import { PathFollower } from '../sprites/movers.js';
 import { ClickEventFilter } from '../tileMaps/tileMap.js';
 
 import WORLD from './world.js';
-import * as fighting from '../../dnd/fighting.js';
 
 import UI from '../dom/ui.js';
 import SCENE_MANAGER from './sceneManager.js';
 
 import { addFadingText } from '../effects/transient.js';
 import { pause } from '../timers.js';
-import { Position, Velocity } from '../geometry.js';
+import { Point, Position, Velocity } from '../geometry.js';
+import LOG from '../logging.js';
+import * as maths from '../maths.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -94,20 +95,23 @@ class ReplayableActorMover {
    */
   moveInstantly() {
     this.#originalPosition = Position.copy(this.#actor.position);
-    const heroGridPos = this.#tileMap.worldPointToGrid(heroActor.position);
     const actorGridPos = this.#tileMap.worldPointToGrid(this.#actor.position);
+    const targetGridPos = this.#actor.isWandering()
+      ? this.#getRandomGridPosition(actorGridPos, this.#actor.maxTilesPerMove)
+      : this.#tileMap.worldPointToGrid(heroActor.position);
+
     const orthoSeparation =
-      Math.abs(heroGridPos.x - actorGridPos.x) +
-      Math.abs(heroGridPos.y - actorGridPos.y);
+      Math.abs(targetGridPos.x - actorGridPos.x) +
+      Math.abs(targetGridPos.y - actorGridPos.y);
     const maxSeparation = this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
     if (
       orthoSeparation <= maxSeparation &&
       this.#tileMap.canHeroSeeGridPoint(actorGridPos)
     ) {
       this.#routeFinder.actor = this.#actor;
-      const waypoints = this.#routeFinder.getDumbRouteNextTo(
+      let waypoints = this.#routeFinder.getDumbRouteNextTo(
         actorGridPos,
-        heroGridPos,
+        targetGridPos,
         this.#actor.maxTilesPerMove
       );
       if (waypoints.length > 0) {
@@ -119,6 +123,29 @@ class ReplayableActorMover {
       }
     }
   }
+
+  /**
+   * Get a random target point.
+   * @param {Point} currentGrid
+   * @param {number} maxDistance - max movement in any direction
+   * @returns {Point}
+   */
+  #getRandomGridPosition(currentGrid, maxDistance) {
+    const x = maths.getRandomIntInclusive(
+      currentGrid.x - maxDistance,
+      currentGrid.x + maxDistance
+    );
+    const y = maths.getRandomIntInclusive(
+      currentGrid.y - maxDistance,
+      currentGrid.y + maxDistance
+    );
+    const dims = this.#tileMap.getDimsInTiles();
+    return new Point(
+      maths.clip(x, 0, dims.width - 1),
+      maths.clip(y, 0, dims.height - 1)
+    );
+  }
+
   /**
    * Set the actors position, updating the tile map occupancy as required.
    * @param {Position} position
@@ -247,7 +274,7 @@ class State {
  */
 class WaitingToStart extends State {
   onEntry() {
-    console.log('WaitingToStart state');
+    LOG.log('WaitingToStart state');
   }
   /**
    * @override
@@ -267,10 +294,12 @@ class WaitingToStart extends State {
  */
 class AtStart extends State {
   onEntry() {
-    console.log('Enter AtStart');
-    UI.showOkDialog('You are in a dark and dingy dungeon.', 'Conquer it!').then(
-      () => startFirstScene(this)
-    );
+    LOG.log('Enter AtStart');
+    UI.showOkDialog(
+      'You are in a dark and dingy dungeon.',
+      'Conquer it!',
+      'wall'
+    ).then(() => startFirstScene(this));
   }
 }
 
@@ -279,7 +308,7 @@ class AtStart extends State {
  */
 class AtGameOver extends State {
   async onEntry() {
-    console.log('Enter AtGameOver');
+    LOG.log('Enter AtGameOver');
     addFadingText('YOU DIED!', {
       lifetimeSecs: 2,
       position: heroActor.position,
@@ -296,7 +325,7 @@ class AtGameOver extends State {
  */
 class AtGameCompleted extends State {
   async onEntry() {
-    console.log('Enter AtGameCompleted');
+    LOG.log('Enter AtGameCompleted');
     await UI.showOkDialog("You've done it. Well done.", 'Try again').then(() =>
       startFirstScene(this)
     );
@@ -316,7 +345,7 @@ class HeroTurnIdle extends State {
    */
   async onEntry() {
     await super.onEntry();
-    console.log('Enter HeroTurnIdle');
+    LOG.log('Enter HeroTurnIdle');
     await prepareHeroTurn();
   }
   /**
@@ -330,7 +359,7 @@ class HeroTurnIdle extends State {
       case EventId.CLICKED_FREE_GROUND:
         {
           if (detail?.filter === ClickEventFilter.COMBAT_TILE) {
-            console.error('Unexpected click on combat tile ignored.');
+            LOG.error('Unexpected click on combat tile ignored.');
           } else {
             await moveHeroToPoint(point);
           }
@@ -342,7 +371,7 @@ class HeroTurnIdle extends State {
         alert('Wow! Leaving so early. That bit of code is not ready yet.');
         break;
       case EventId.CLICKED_EXIT:
-        console.log('Escaping');
+        LOG.log('Escaping');
         await moveHeroToPoint(point);
         if (SCENE_MANAGER.areThereMoreScenes()) {
           await startNextScene(this);
@@ -368,7 +397,7 @@ class HeroTurnFighting extends State {
    */
   async onEntry() {
     await super.onEntry();
-    console.log('Enter HeroTurnFighting');
+    LOG.log('Enter HeroTurnFighting');
     await prepareHeroTurn();
   }
   /**
@@ -398,7 +427,7 @@ class HeroTurnFighting extends State {
         alert('Wow! Leaving so early. That bit of code is not ready yet.');
         break;
       case EventId.CLICKED_EXIT:
-        console.log('Escaping');
+        LOG.log('Escaping');
         await moveHeroToPoint(point);
         if (SCENE_MANAGER.areThereMoreScenes()) {
           await startNextScene(this);
@@ -422,7 +451,9 @@ class HeroTurnFighting extends State {
     const targets = tile.getOccupants();
     const promises = [];
     for (const target of targets.values()) {
-      promises.push(fighting.resolveAttackerDefender(heroActor, target));
+      if (target.interaction) {
+        promises.push(target.interaction.react(heroActor));
+      }
     }
     return Promise.all(promises);
   }
@@ -435,7 +466,7 @@ class HeroTurnFighting extends State {
   #tryToRun(point) {
     const opponents = WORLD.getTileMap().getParticipants(heroActor);
     for (const opponent of opponents) {
-      if (!fighting.tryToRunFromOpponent(heroActor, opponent)) {
+      if (opponent.alive && !opponent.interaction.allowEscape(heroActor)) {
         return Promise.resolve(false);
       }
     }
@@ -449,13 +480,13 @@ class ComputerTurnIdle extends State {
   }
   async onEntry() {
     await super.onEntry();
-    console.log('Enter ComputerTurnIdle');
+    LOG.log('Enter ComputerTurnIdle');
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
     const replayer = new MovementReplayer(tileMap, routeFinder);
     for (const actor of WORLD.getActors().values()) {
-      if (actor !== heroActor) {
+      if (actor !== heroActor && actor.alive) {
         replayer.addAndMoveActor(actor);
       }
     }
@@ -476,16 +507,16 @@ class ComputerTurnFighting extends State {
   }
   async onEntry() {
     await super.onEntry();
-    console.log('Enter ComputerTurnFighting');
+    LOG.log('Enter ComputerTurnFighting');
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
     const replayer = new MovementReplayer(tileMap, routeFinder);
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of WORLD.getActors().values()) {
-      if (actor !== heroActor) {
+      if (actor !== heroActor && actor.alive) {
         if (participants.includes(actor)) {
-          await fighting.resolveAttackerDefender(actor, heroActor);
+          await actor.interaction.enact(heroActor);
         } else {
           replayer.addAndMoveActor(actor);
         }
@@ -574,9 +605,7 @@ function startNextScene(currentState) {
  */
 function triggerEvent(eventId, sprite, detail) {
   if (ignoreEvents) {
-    console.debug(
-      `Ignoring event ${eventId} as still processing earlier event.`
-    );
+    LOG.debug(`Ignoring event ${eventId} as still processing earlier event.`);
     return;
   }
   ignoreEvents = true;

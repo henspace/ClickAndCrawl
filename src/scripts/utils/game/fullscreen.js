@@ -31,6 +31,7 @@ import { AnimatedImage } from '../sprites/animation.js';
 import { Actor } from './actors.js';
 import HUD from './hud.js';
 import { LoopMethod } from '../arrays/indexer.js';
+import LOG from '../logging.js';
 
 /** @type {Actor} */
 let fullscreenButton;
@@ -57,10 +58,10 @@ function requestFullscreen(element, options) {
 export function addFullscreenButtonToHud() {
   addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
-      console.debug('Exiting fullscreen mode.');
+      LOG.debug('Exiting fullscreen mode.');
       fullscreenButtonImage.setCurrentIndex(0);
     } else {
-      console.debug('Entering fullscreen mode');
+      LOG.debug('Entering fullscreen mode');
       fullscreenButtonImage.setCurrentIndex(1);
     }
   });

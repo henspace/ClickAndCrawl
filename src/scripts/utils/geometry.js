@@ -28,6 +28,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import * as maths from './maths.js';
+
 /**
  * Simple 2D dimension
  * @typedef {Object} Dims2D
@@ -134,13 +136,32 @@ export class Velocity {
   }
 
   /**
-   * Get the angle in radians counterclockwise from x axis. Note that in the
-   * atan2 calculation the y axis is positive upwards but in the game coordinate
-   * system the y axis is positive downwards.
+   * Get the angle in radians counterclockwise from x axis. This uses cartesian
+   * coordinates where the y axis is positive upwards.
    * @returns {number}
    */
-  getDirection() {
+  getCartesianDirection() {
+    return Math.atan2(this.y, this.x);
+  }
+  /**
+   * Get the angle in radians counterclockwise from x axis. This uses screen
+   * coordinates where the y axis is positive downwards..
+   * @returns {number}
+   */
+  getScreenDirection() {
     return Math.atan2(-this.y, this.x);
+  }
+
+  /**
+   * Test if velocity effectively zero.
+   * @param {number} tolerance
+   * @returns {boolean}
+   */
+  isZero(tolerance) {
+    return (
+      maths.floatIsZero(this.x, tolerance) &&
+      maths.floatIsZero(this.y, tolerance)
+    );
   }
 }
 

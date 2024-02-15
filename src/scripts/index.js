@@ -27,17 +27,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import LOG from './utils/logging.js';
 import GAME from './utils/game/game.js';
 
 window.addEventListener('load', () => {
   const DESIGN_WIDTH = 800;
   const DESIGN_HEIGHT = 600;
-  GAME.initialise({
-    width: DESIGN_WIDTH,
-    height: DESIGN_HEIGHT,
-    maxScale: 2.4,
-    minScale: 1,
-    sizingMethod: 'COVER',
-    alpha: false,
-  });
+  try {
+    GAME.initialise({
+      width: DESIGN_WIDTH,
+      height: DESIGN_HEIGHT,
+      maxScale: 2.4,
+      minScale: 1,
+      sizingMethod: 'COVER',
+      alpha: false,
+    });
+  } catch (error) {
+    LOG.fatal(error);
+  }
 });

@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+import LOG from '../logging.js';
 import { Sprite } from '../sprites/sprite.js';
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import {
@@ -79,7 +79,7 @@ export class Tile extends UiClickHandler {
   sprite;
   /** @type {boolean} */
   obstacle;
-  /** @type {Object[]} */
+  /** @type {import('../game/actors.js').Actor[]} */
   #occupants;
   /** @type {Point} */
   #gridPoint;
@@ -129,21 +129,21 @@ export class Tile extends UiClickHandler {
   }
 
   /** Add occupant.
-   * @param {Object}
+   * @param {import('../game/actors.js').Actor
    */
   addOccupant(occupant) {
     this.#occupants.set(occupant, occupant);
   }
 
   /** Remove occupant.
-   * @param {Object}
+   * @param {import('../game/actors.js').Actor}
    */
   deleteOccupant(occupant) {
     this.#occupants.delete(occupant);
   }
 
   /** get occupants.
-   * @param {Object}
+   * @param {import('../game/actors.js').Actor[]}
    */
   getOccupants() {
     return this.#occupants;
@@ -180,7 +180,24 @@ export class Tile extends UiClickHandler {
       return false;
     }
     for (const occupant of this.#occupants.values()) {
-      if (occupant !== actor && occupant.obstacle) {
+      if (occupant !== actor && !occupant.isPassableByActor(actor)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Test if tile can be occupied by the actor
+   * @param {Object} actor
+   * @returns {boolean}
+   */
+  canBeOccupiedByActor(actor) {
+    if (this.obstacle) {
+      return false;
+    }
+    for (const occupant of this.#occupants.values()) {
+      if (occupant !== actor && !occupant.canShareLocationWithActor(actor)) {
         return false;
       }
     }
@@ -309,13 +326,18 @@ export class TileMap {
       });
     });
     if (!this.#entrance) {
-      console.error(
-        'No entrance has been set. Setting to the first ground tile'
-      );
+      LOG.error('No entrance has been set. Setting to the first ground tile');
       this.#entrance = this.#randomGround[0];
     }
   }
 
+  /**
+   * Get tilemap dimensions in terms of number of tiles.
+   * @returns {import('../geometry.js').Dims2D}
+   */
+  getDimsInTiles() {
+    return { width: this.#tilesX, height: this.#tilesY };
+  }
   /**
    * Process a tile's specific role.
    * @param {Tile} tile
@@ -325,9 +347,7 @@ export class TileMap {
       case TileRole.ENTRANCE:
         if (this.#entrance) {
           const gp = tile.gridPoint;
-          console.error(
-            `Duplicate entrance found at (${gp.x}, ${gp.y}). Ignored.`
-          );
+          LOG.error(`Duplicate entrance found at (${gp.x}, ${gp.y}). Ignored.`);
         } else {
           this.#entrance = tile;
         }
@@ -335,7 +355,7 @@ export class TileMap {
       case TileRole.EXIT:
         if (this.#exit) {
           const gp = tile.gridPoint;
-          console.error(`Duplicate exit found at (${gp.x}, ${gp.y}). Ignored.`);
+          LOG.error(`Duplicate exit found at (${gp.x}, ${gp.y}). Ignored.`);
         } else {
           this.#exit = tile;
         }
@@ -393,7 +413,7 @@ export class TileMap {
           this.#heroRayTracer.findReachedTiles();
         }
       } else {
-        console.error(`Hero at ${hero.position.toString()} but no tile found.`);
+        LOG.error(`Hero at ${hero.position.toString()} but no tile found.`);
       }
     }
   }
@@ -594,7 +614,7 @@ export class TileMap {
         return;
       }
     });
-    console.debug('Ignore click outside of highlighted area');
+    LOG.debug('Ignore click outside of highlighted area');
   }
 
   /**
@@ -634,6 +654,20 @@ export class TileMap {
     }
 
     return tile.isPassableByActor(actor);
+  }
+
+  /**
+   * Test if tile can be occupied by the actor
+   * @param {Point} gridPoint - row and col coordinates.
+   * @param {import('../game/actors.js').Actor} actor - actor trying to occupy location
+   * @returns {boolean}
+   */
+  canGridPointBeOccupiedByActor(gridPoint, actor) {
+    const tile = this.getTileAtGridPoint(gridPoint);
+    if (!tile) {
+      return false;
+    }
+    return tile.canBeOccupiedByActor(actor);
   }
 
   /**

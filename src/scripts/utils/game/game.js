@@ -38,6 +38,7 @@ import * as assetLoaders from '../assetLoaders.js';
 import parseScript from '../../scriptReaders/scriptParser.js';
 import SCENE_MANAGER from '../game/sceneManager.js';
 import UI from '../dom/ui.js';
+import LOG from '../logging.js';
 
 import * as pointerActions from '../dom/pointerActions.js';
 import TURN_MANAGER from './turnManager.js';
@@ -55,13 +56,13 @@ async function initialise(screenOptions) {
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
   // Need a menu here but for now, just load the test screen.
-  UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start")
+  UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start", 'door')
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneDefinitions(parseScript(script)))
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.START_GAME))
     .then(() => startGame())
     .catch((error) => {
-      console.error(error);
+      LOG.error(error);
       alert(`Fatal error in main game. ${error.message}`);
       return;
     });
@@ -114,7 +115,7 @@ function setupListeners() {
   );
 
   canvas.addEventListener('contextmenu', (event) => {
-    console.debug('Context menu');
+    LOG.debug('Context menu');
     const x = event.detail.x;
     const y = event.detail.y;
     const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);

@@ -43,7 +43,7 @@ const Radians = {
 };
 
 /**
- * Clip a value.
+ * Clip a value between min and max inclusive.
  * @param {number} value
  * @param {number} min
  * @param {number} max
@@ -62,6 +62,7 @@ export function clip(value, min, max) {
  * @enum {number}
  */
 export const CompassEightPoint = {
+  NONE: -1,
   N: 0,
   NE: 1,
   E: 2,
@@ -72,6 +73,27 @@ export const CompassEightPoint = {
   NW: 7,
 };
 
+/**
+ * Convert an angle to an eight point compass direction.
+ * Converts the angle to a compass direction.
+ * @param {number} angle - -PI/2 to +PI/2. This is the same range as values returned
+ * from the standard Math trigometric functions. Note that this expects the
+ * angle to be based on cartesian coordinates, +y upwards. For angles calculated
+ * using screen coordinates, +y downwards, you should negate the angle before
+ * calling.
+ * @param {number} angle - -PI/2 to +PI/2
+ * @returns {number} compass point. From CompassEightPoint enum.
+ */
+export function angleToFourPointCompass(angle) {
+  const absAngle = Math.abs(angle);
+  if (absAngle <= Radians.DEG_45) {
+    return CompassEightPoint.E;
+  }
+  if (absAngle <= Radians.DEG_135) {
+    return Math.sign(angle) > 0 ? CompassEightPoint.N : CompassEightPoint.S;
+  }
+  return CompassEightPoint.W;
+}
 /**
  * Convert an angle to an eight point compass direction.
  * Converts the angle to a compass direction.
@@ -121,4 +143,25 @@ export function getRandomIntInclusive(min, max) {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
   return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+}
+
+/**
+ * Test if float equals another float.
+ * @param {number} valueA
+ * @param {number} valueB
+ * @param {number} tolerance
+ * @returns {boolean}
+ */
+export function floatsAreEqual(valueA, valueB, tolerance) {
+  return valueA - valueB < tolerance;
+}
+
+/**
+ * Test if float is almost zero.
+ * @param {number} value
+ * @param {number} tolerance
+ * @returns {boolean}
+ */
+export function floatIsZero(value, tolerance) {
+  return Math.abs(value) < tolerance;
 }

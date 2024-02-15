@@ -28,6 +28,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import LOG from '../logging.js';
+
 /** Default timeout for transient modifiers. @type {number} */
 const DEFAULT_TIMEOUT_SECS = 10;
 
@@ -113,7 +115,7 @@ export class AbstractModifier {
    * @returns {AbstractModifier} - the modifier for the next update.
    */
   doUpdate(spriteUnused, deltaSecondsUnused) {
-    console.error('doUpdate should be overridden.');
+    LOG.error('doUpdate should be overridden.');
     return this;
   }
 }

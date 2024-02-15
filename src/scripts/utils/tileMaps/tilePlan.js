@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+import LOG from '../logging.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
 import { Point } from '../geometry.js';
 
@@ -426,7 +426,7 @@ function getDesignInfo(symbol, symbolMap) {
         symbolMap
       );
     } else {
-      console.error(`Failed to find symbol for ${symbol}`);
+      LOG.error(`Failed to find symbol for ${symbol}`);
     }
   }
   return info;

@@ -29,6 +29,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import WORLD from './world.js';
+import HUD from './hud.js';
+import SCREEN from './screen.js';
+
 /**
  * The base scene
  */
@@ -96,7 +100,12 @@ export class AbstractScene {
    * @param {number} deltaSeconds
    */
   update(deltaSeconds) {
+    SCREEN.clearCanvas();
+    SCREEN.setOpacity(this.#globalOpacity);
+    WORLD.update(deltaSeconds);
     this.doUpdate(deltaSeconds);
+    HUD.update(deltaSeconds);
+    SCREEN.setOpacity(1);
     if (this.#deltaOpacityPerSec !== 0) {
       this.#globalOpacity += deltaSeconds * this.#deltaOpacityPerSec;
       if (this.#globalOpacity > 1) {

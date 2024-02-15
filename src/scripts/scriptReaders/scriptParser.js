@@ -34,6 +34,7 @@ import ACTOR_MAP from './actorMap.js';
 import { SceneDefinition } from './sceneDefinitionParser.js';
 import { CharacterTraits } from '../dnd/traits.js';
 import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
+import LOG from '../utils/logging.js';
 
 /**
  * @typedef {Object} SectionParsingResult
@@ -46,6 +47,7 @@ import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
  * @enum {string}
  */
 const SectionId = {
+  HERO: 'HERO',
   LEVEL: 'LEVEL',
   CAST: 'CAST',
   MAP: 'MAP',
@@ -144,7 +146,7 @@ class AbstractSectionParser {
    * @param {string} message
    */
   ignoreError(message) {
-    console.debug(
+    LOG.debug(
       `Ignoring error parsing script on line ${this.lineIndex}: ${message}`
     );
   }
@@ -170,6 +172,60 @@ class IntroParser extends AbstractSectionParser {
    */
   parseLine(line) {
     this.sceneDefn.intro += line === '' ? '\n' : line;
+  }
+}
+
+/**
+ * Parser for the cast list.
+ */
+class HeroParser extends AbstractSectionParser {
+  /**
+   * Construct parser.
+   * @param {number} lines
+   * @param {number} startLine
+   * @param {SceneDefinition} sceneDefn
+   */
+  constructor(lines, startLine, sceneDefn) {
+    super(lines, startLine, sceneDefn);
+  }
+  /**
+   * Parse a line.
+   * @override
+   */
+  parseLine(line) {
+    const match = line.match(/^\s*(\w+?) *: *([\w,:= /]*)/);
+    if (match) {
+      this.#parseShortFormHero(match);
+    } else {
+      this.#parseLongFormHero(line);
+    }
+  }
+
+  /**
+   * Parse a short form single line actor definition.
+   * @param {string[]} matchResults - results from regex match.
+   */
+  #parseShortFormHero(matchResults) {
+    const name = matchResults[1];
+    const traitsDefn = matchResults[2];
+
+    try {
+      const traits = new CharacterTraits().setFromString(traitsDefn);
+      this.sceneDefn.hero = {
+        id: 'HERO',
+        name: name || 'mystery',
+        traits: traits,
+      };
+    } catch (error) {
+      this.fatalError(error.message);
+    }
+  }
+  /**
+   * Parse a line to build a long form, multiline actor
+   * @param {string} line - current line.
+   */
+  #parseLongFormHero(lineIgnored) {
+    this.fatalError('Long form actors not supported.');
   }
 }
 
@@ -271,8 +327,8 @@ class MapParser extends AbstractSectionParser {
         });
         this.sceneDefn.mapDesign = creator.generate();
         this.#randomised = true;
-        console.debug('Random map');
-        this.sceneDefn.mapDesign.forEach((line) => console.debug(line));
+        LOG.debug('Random map');
+        this.sceneDefn.mapDesign.forEach((line) => LOG.debug(line));
       } else {
         this.sceneDefn.mapDesign.push(line);
       }
@@ -295,6 +351,8 @@ let sceneDefinitions;
  */
 function getParserForId(sectionId, lineIndex, sceneDefn) {
   switch (sectionId) {
+    case SectionId.HERO:
+      return new HeroParser(lines, lineIndex + 1, sceneDefn); // skip the actual section ID line.
     case SectionId.LEVEL:
       return new IntroParser(lines, lineIndex + 1, sceneDefn); // skip the actual section ID line.
     case SectionId.CAST:

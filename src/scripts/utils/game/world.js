@@ -29,6 +29,7 @@
  */
 
 import SCREEN from './screen.js';
+import LOG from '../logging.js';
 
 /**
  * @type {TileMap}
@@ -93,7 +94,7 @@ function addPassiveSprite(sprite) {
  * @param {Sprite} sprite
  */
 function removePassiveSprite(sprite) {
-  console.debug('Remove passive sprite.');
+  LOG.debug('Remove passive sprite.');
   passiveSprites.delete(sprite);
 }
 

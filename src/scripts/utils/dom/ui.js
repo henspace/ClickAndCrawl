@@ -53,27 +53,31 @@ function createMessageElement(message) {
 
 /** Create a message that is removed on any click.
  * @param {string} message
+ * @param {string} className
  * @returns {Promise} fulfils to null
  */
-function showMessage(message) {
+function showMessage(message, className) {
   const container = createMessageElement(message);
-  SCREEN.displayOnGlass(container);
+  SCREEN.displayOnGlass(container, null, className);
 }
 
 /** Create an okDialog.
  * @param {string} message
  * @param {string} [okButtonLabel = 'OK']
+ * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showOkDialog(message, okButtonLabel = 'OK') {
+function showOkDialog(message, okButtonLabel = 'OK', className) {
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message));
   const buttonEl = document.createElement('button');
   buttonEl.appendChild(document.createTextNode(okButtonLabel));
   container.appendChild(buttonEl);
-  return SCREEN.displayOnGlass(container, [
-    { element: buttonEl, response: DialogResponse.OK },
-  ]);
+  return SCREEN.displayOnGlass(
+    container,
+    [{ element: buttonEl, response: DialogResponse.OK }],
+    className
+  );
 }
 
 /**

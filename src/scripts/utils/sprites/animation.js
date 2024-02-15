@@ -31,6 +31,7 @@
 import IMAGE_MANAGER from './imageManager.js';
 import GAME_CLOCK from '../time/clock.js';
 import { Indexer } from '../arrays/indexer.js';
+import LOG from '../logging.js';
 
 /**
  * Collection of SpriteBitmap objects
@@ -52,7 +53,7 @@ export class AnimatedImage {
    * @param {number} textureIndex
    * @param {Object | string} filenamePattern - if a string is parsed then the image is a single frame.
    * @param {string} filenamePattern.prefix
-   * @param {number} filenamePattern.startIndex - if undefined, then just a single image is used.
+   * @param {number} filenamePattern.startIndex - starting index.
    * @param {number} filePattern.padding - index is padded with leading zeros to padding length
    * @param {string} filenamePattern.suffix
    * @param {Object} options
@@ -62,11 +63,15 @@ export class AnimatedImage {
   constructor(textureIndex, filenamePattern, options) {
     this.#frames = [];
     this.#lastFrameCount = 0;
-    this.#framePeriodMs = Math.max(1, options.framePeriodMs);
     if (typeof filenamePattern === 'string') {
-      this.#frames.push(IMAGE_MANAGER.getFrame(textureIndex, filenamePattern));
+      this.#frames.push(
+        IMAGE_MANAGER.getSpriteBitmap(textureIndex, filenamePattern)
+      );
       return;
     }
+
+    this.#framePeriodMs = Math.max(1, options.framePeriodMs);
+
     let index = filenamePattern.startIndex ?? 0;
     let padding = filenamePattern.padding ?? 0;
     let textureFrame;
@@ -89,14 +94,18 @@ export class AnimatedImage {
    * @returns {import('./imageManager.js').SpriteBitmap}
    */
   getCurrentFrame() {
-    if (this.playing) {
-      const frameCount = GAME_CLOCK.getFrameCount(this.#framePeriodMs);
-      if (frameCount !== this.#lastFrameCount) {
-        this.#indexer.advanceBy(frameCount - this.#lastFrameCount);
-        this.#lastFrameCount = frameCount;
+    if (this.#frames.length > 1) {
+      if (this.playing) {
+        const frameCount = GAME_CLOCK.getFrameCount(this.#framePeriodMs);
+        if (frameCount !== this.#lastFrameCount) {
+          this.#indexer.advanceBy(frameCount - this.#lastFrameCount);
+          this.#lastFrameCount = frameCount;
+        }
       }
+      return this.#frames[this.#indexer.index];
+    } else {
+      return this.#frames[0];
     }
-    return this.#frames[this.#indexer.index];
   }
 
   /**
@@ -106,8 +115,10 @@ export class AnimatedImage {
    */
 
   setCurrentIndex(index) {
-    this.playing = false;
-    this.#indexer.index = index;
+    if (this.#frames.length > 1) {
+      this.playing = false;
+      this.#indexer.index = index;
+    }
   }
 
   /**
@@ -115,7 +126,11 @@ export class AnimatedImage {
    * @returns {number}
    */
   getCurrentIndex() {
-    return this.#indexer.index;
+    if (this.#frames.length > 1) {
+      return this.#indexer.index;
+    } else {
+      return 0;
+    }
   }
 }
 
@@ -159,14 +174,12 @@ export class KeyedAnimatedImages {
    * Set the current animation key. Ignored if it does not exist.
    * @param {string} key
    */
-  setCurrentImage(key) {
+  setCurrentKey(key) {
     //eslint-disable-next-line no-prototype-builtins
     if (this.#animatedImages.hasOwnProperty(key)) {
       this.#currentImage = this.#animatedImages[key];
     } else {
-      console.error(
-        `Attempt to set current key to nonexistent value of ${key}`
-      );
+      LOG.error(`Attempt to set current key to nonexistent value of ${key}`);
     }
   }
 

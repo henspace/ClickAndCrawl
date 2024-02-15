@@ -28,7 +28,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+import LOG from './logging.js';
 /**
  * @type {Object<string, URL>} Urls for dynamically loading resources
  */
@@ -49,7 +49,7 @@ export function loadTextFromUrl(url) {
     .then((response) => response.text())
     .then((text) => text)
     .catch((reason) => {
-      console.error(`Error fetching ${url}: ${reason}`);
+      LOG.error(`Error fetching ${url}: ${reason}`);
       return null;
     });
 }
@@ -64,7 +64,7 @@ export function loadJsonFromUrl(url) {
     .then((response) => response.text())
     .then((text) => text)
     .catch((reason) => {
-      console.error(`Error fetching ${url}: ${reason}`);
+      LOG.error(`Error fetching ${url}: ${reason}`);
       return null;
     });
 }

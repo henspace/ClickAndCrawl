@@ -29,11 +29,11 @@
  */
 
 /**
- * Abstract traits. This is basically a Map but with the key difference that
+ * This is basically a Map but with the key difference that
  * only keys set during the configuration are allowed. If no keys are provided,
  * the traits are regarded as freeform and any keys are allowed.
  */
-export class AbstractTraits {
+export class ActorTraits {
   /** Characteristics @type {Map<string, *>} */
   #traits;
   /** @type {boolean} */
@@ -45,7 +45,7 @@ export class AbstractTraits {
    */
   constructor(initialValues) {
     if (initialValues) {
-      this.#traits = initialValues;
+      this.#traits = new Map(initialValues);
       this.#freeform = false;
     } else {
       this.#traits = new Map();
@@ -80,7 +80,7 @@ export class AbstractTraits {
    * comma separated list of characteristics with each characteristic comprising
    * a keyword followed by a space or equals sign and then its value.
    * @param {string} definition
-   * @returns {AbstractTraits} returns this to allow chaining.
+   * @returns {ActorTraits} returns this to allow chaining.
    * @throws {Error} if definition invalid.
    */
   setFromString(definition) {
@@ -111,21 +111,37 @@ export class AbstractTraits {
       this.#traits.set(key, value);
     }
   }
+
+  /**
+   * Clone traits.
+   * @return {ActorTraits}
+   */
+  clone() {
+    const actorTraits = new ActorTraits(this.#traits);
+    actorTraits.#freeform = this.#freeform;
+    return actorTraits;
+  }
 }
 
 /**
  * DnD character traits
  */
-export class CharacterTraits extends AbstractTraits {
-  constructor() {
+export class CharacterTraits extends ActorTraits {
+  /**
+   *
+   * @param {Map<string, *>} initialTraits
+   */
+  constructor(initialTraits) {
     super(
-      new Map([
-        ['NAME', 'mystery'],
-        ['HP', 10],
-        ['HP_MAX', 10],
-        ['STR', 10],
-        ['STR_MAX', 10],
-      ])
+      initialTraits ??
+        new Map([
+          ['NAME', 'mystery'],
+          ['MOVEMENT', 'wander'],
+          ['HP', 10],
+          ['HP_MAX', 10],
+          ['STR', 10],
+          ['STR_MAX', 10],
+        ])
     );
   }
 }

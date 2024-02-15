@@ -6,6 +6,7 @@
   "scripts": {
     "prebuild": "node ./tools/cleanDir.js ./build",
     "build": "parcel build --dist-dir build --public-url . ",
+    "serveBuild": "node ./tools/server/server.js ./build 8081",
     "start": "parcel src/index.html",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
     "doc": "jsdoc -c jsdoc.json"

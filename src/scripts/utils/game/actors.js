@@ -29,7 +29,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { MultiGaugeTileRenderer } from '../sprites/spriteRenderers.js';
+import { EmptyInteraction } from '../../dnd/interact.js';
 import { UiClickHandler } from '../ui/interactions.js';
 
 /**
@@ -44,8 +44,12 @@ export class Actor extends UiClickHandler {
   maxTilesPerMove;
   /** @type {import('../sprites/sprite.js').Sprite} */
   sprite;
-  /** @type {AbstractTraits} */
+  /** @type {ActorTraits} */
   traits;
+  /** @type {AbstractInteraction} */
+  interaction;
+  /** @type {boolean} */
+  alive;
 
   /**
    * Create the actor.
@@ -53,9 +57,11 @@ export class Actor extends UiClickHandler {
    */
   constructor(sprite) {
     super();
+    this.interaction = new EmptyInteraction();
     this.sprite = sprite;
     this.sprite.obstacle = true;
     this.maxTilesPerMove = 4;
+    this.alive = true;
   }
 
   /** Set the underlying sprite visibility.
@@ -118,6 +124,32 @@ export class Actor extends UiClickHandler {
    */
   set velocity(nextVelocity) {
     this.sprite.velocity = nextVelocity;
+  }
+
+  /**
+   * Is this a wandering actor.
+   * @returns {boolean}
+   */
+  isWandering() {
+    return this?.traits.get('MOVE') === 'wander';
+  }
+
+  /**
+   * Is the actor passable?
+   * @param {Actor} otherActor
+   * @returns {boolean}
+   */
+  isPassableByActor(otherActorUnused) {
+    return !this.alive || !this.obstacle;
+  }
+
+  /**
+   * Can it share a tile location with another actor?
+   * @param {Actor} otherActor
+   * @returns {boolean}
+   */
+  canShareLocationWithActor(otherActorUnused) {
+    return !this.obstacle;
   }
 
   /**
