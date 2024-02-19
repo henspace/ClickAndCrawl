@@ -79,9 +79,8 @@ window.addEventListener('resize', () => {
     return; // it will get handled.
   }
   throttleTimer = window.setTimeout(() => {
+    resize();
     throttleTimer = null;
-    sizeScreen();
-    sizeGlass();
   }, 200);
 });
 
@@ -108,6 +107,7 @@ function setOptions(options) {
   gameElement = document.getElementById('game-content');
   fonts.initialise(options.width);
   canvas = document.createElement('canvas');
+  canvas.id = 'game-canvas';
   canvas.setAttribute('width', options.width);
   canvas.setAttribute('height', options.height);
   canvas.innerText = 'Loading the app.';
@@ -193,16 +193,25 @@ function sizeScreen() {
   canvas.style.width = `${displayedWidth}px`;
   canvas.style.height = `${displayedHeight}px`;
 
-  const visibleCanvasWidth = Math.min(
-    dims.width / scale,
-    displayedWidth / scale
-  );
-  const visibleCanvasHeight = Math.min(
-    dims.height / scale,
-    displayedHeight / scale
-  );
-  const visibleCanvasOffsetX = 0.5 * (canvasRect.width - visibleCanvasWidth);
-  const visibleCanvasOffsetY = 0.5 * (canvasRect.height - visibleCanvasHeight);
+  let visibleCanvasWidth;
+  let visibleCanvasHeight;
+  let visibleCanvasOffsetX;
+  let visibleCanvasOffsetY;
+  if (left < 0) {
+    visibleCanvasOffsetX = -left / scale;
+    visibleCanvasWidth = dims.width / scale;
+  } else {
+    visibleCanvasOffsetX = 0;
+    visibleCanvasWidth = canvasRect.width;
+  }
+  if (top < 0) {
+    visibleCanvasOffsetY = -top / scale;
+    visibleCanvasHeight = dims.height / scale;
+  } else {
+    visibleCanvasOffsetY = 0;
+    visibleCanvasHeight = canvasRect.height;
+  }
+
   visibleCanvasRect = new Rectangle(
     visibleCanvasOffsetX,
     visibleCanvasOffsetY,
@@ -245,6 +254,13 @@ function syncDomFonts() {
 }
 
 /**
+ * Resize the screen.
+ */
+function resize() {
+  sizeScreen();
+  sizeGlass();
+}
+/**
  * @typedef {Object} screenDetails
  * @property {HTMLCanvasElement} canvas
  * @property {number} width - design width
@@ -262,29 +278,13 @@ function clearCanvas() {
  * Get the bounds of the world that are plotted in the canvas.
  * @returns {Rectangle}
  */
-function geWorldInCanvasBounds() {
+function getWorldInCanvasBounds() {
   return new Rectangle(
     cameraPosition.x,
     cameraPosition.y,
     canvasRect.width,
     canvasRect.height
   );
-}
-
-/**
- * Get visible canvas bounds.
- */
-function getVisibleCanvasBounds() {
-  let left = (glassRect.x - canvasRect.x) * scale;
-  let top = (glassRect.y - canvasRect.y) * scale;
-  let right = left + glassRect.width * scale;
-  let bottom = top + glassRect.height * scale;
-  // now clip
-  left = Math.max(left, canvasRect.x);
-  top = Math.max(top, canvasRect.y);
-  right = Math.min(right, canvasRect.x + canvasRect.width);
-  bottom = Math.min(bottom, canvasRect.y + canvasRect.height);
-  return new Rectangle(left, top, right - left, bottom - top);
 }
 
 /**
@@ -307,6 +307,7 @@ function getContext2D() {
  * @typedef {Object} Closers
  * @property {Element} element - when clicked, this should close a display.
  * @property {number} response - the code returned if this element closed a display.
+ * @property {number} execute - addition function that will be executed. This must return a promise;
  */
 /**
  * Set the content of the glass layer. OnClick events are added automatically to the
@@ -319,6 +320,12 @@ function getContext2D() {
  */
 function displayOnGlass(element, closers, className) {
   const content = document.getElementById('glass-content');
+  if (content.childNodes.length > 0) {
+    LOG.error(
+      'Attempt to display additional message on glass when one is already present.'
+    );
+    return Promise.resolve();
+  }
   content.replaceChildren(element);
   if (className) {
     glass.className = className;
@@ -327,17 +334,26 @@ function displayOnGlass(element, closers, className) {
   }
   glass.style.display = 'block';
   glass.style.opacity = 1;
-  return new Promise((resolve) => {
-    if (closers) {
-      closers.forEach((closer) => {
-        closer.element.addEventListener('click', () =>
-          resolve(closer.response)
-        );
+  const promises = [];
+  if (closers) {
+    closers.forEach((closer) => {
+      const promise = new Promise((resolve) => {
+        closer.element.addEventListener('click', async () => {
+          if (closer.execute) {
+            await closer.execute();
+          }
+          resolve(closer.response);
+        });
       });
-    } else {
-      content.addEventListener('click', () => resolve());
-    }
-  }).then(() => wipeGlass());
+      promises.push(promise);
+    });
+  } else {
+    const promise = new Promise((resolve) =>
+      content.addEventListener('click', () => resolve())
+    );
+    promises.push(promise);
+  }
+  return Promise.race(promises).then(() => wipeGlass());
 }
 
 /**
@@ -499,6 +515,14 @@ function getGlassRect() {
 }
 
 /**
+ * Get the dimensions of the visible canvas.
+ * @returns {Rectangle}
+ */
+function getVisibleCanvasRect() {
+  return visibleCanvasRect;
+}
+
+/**
  * Set the global opacity.
  * @param {number} opacity
  */
@@ -517,12 +541,13 @@ const SCREEN = {
   getContext2D: getContext2D,
   getCanvasDimensions: getCanvasDimensions,
   getGlassRect: getGlassRect,
-  getVisibleCanvasBounds: getVisibleCanvasBounds,
-  geWorldInCanvasBounds: geWorldInCanvasBounds,
+  getWorldInCanvasBounds: getWorldInCanvasBounds,
+  getVisibleCanvasRect: getVisibleCanvasRect,
   glassPositionToWorld: glassPositionToWorld,
   isOnCanvas: isOnCanvas,
   isOnScreen: isOnScreen,
   panCamera: panCamera,
+  resize: resize,
   setOpacity: setOpacity,
   setOptions: setOptions,
   wipeGlass: wipeGlass,

@@ -378,7 +378,8 @@ export class RayTracer {
    */
   findReachedTiles() {
     this.#rayStartPoint = this.#tileMap.worldPointToGrid(this.#actor.position);
-    this.#bounds = this.#tileMap.getVisibleGridPointRect();
+    // this.#bounds = this.#tileMap.getVisibleGridPointRect();
+    this.#bounds = this.#tileMap.getMapGridPointRect();
     if (
       this.#lastStartPoint &&
       this.#lastStartPoint.coincident(this.#rayStartPoint) &&

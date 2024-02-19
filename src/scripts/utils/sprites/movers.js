@@ -30,6 +30,38 @@
 
 import { AbstractModifier } from './modifiers.js';
 
+class VariableSpeed {
+  /** @type {number} */
+  #speed;
+  /** @type {boolean} */
+  #linear;
+
+  /** Create variable speed.
+   * @param {number} speed - base speed.
+   * @param {boolean} linear - true if speed constant, otherwise speed faster if
+   * further away.
+   */
+  constructor(speed, linear) {
+    this.#speed = speed;
+    this.#linear = linear;
+  }
+
+  /**
+   * Get speed to move between points.
+   * @param {Point} pointA
+   * @param {Point} pointB
+   * @returns {number}
+   */
+  getSpeedBetweenPoints(pointA, pointB) {
+    if (this.#linear) {
+      return this.#speed;
+    } else {
+      const separation =
+        Math.abs(pointA.x - pointB.x) + Math.abs(pointA.y - pointB.y);
+      return (1 + 0.1 * separation) * this.#speed;
+    }
+  }
+}
 /**
  * Simple unbounded velocity mover
  */
@@ -162,7 +194,7 @@ export class Tracker extends AbstractModifier {
   /** @type {number} */
   #maxSeparation;
   /** @type {number} */
-  #speed;
+  #variableSpeed;
 
   /**
    *
@@ -170,13 +202,14 @@ export class Tracker extends AbstractModifier {
    * @param {import('./sprite.js').Sprite} options.prey
    * @param {number} options.maxSeparation - allowable distance between hunter and prey
    * @param {number} options.speed - pixels / second
+   * @param {boolean} options.linear - if linear the speed is constant, otherwise it speeds up if further away
    * @param {AbstractModifier} decoratedModifier
    */
   constructor(options, decoratedModifier) {
     super(decoratedModifier);
     this.#prey = options.prey;
     this.#maxSeparation = options.maxSeparation;
-    this.#speed = options.speed;
+    this.#variableSpeed = new VariableSpeed(options.speed, options.linear);
   }
 
   /**
@@ -188,10 +221,15 @@ export class Tracker extends AbstractModifier {
   doUpdate(hunter, deltaSeconds) {
     const preyPos = this.#prey.position;
     const hunterPos = hunter.position;
+    const approachSpeed = this.#variableSpeed.getSpeedBetweenPoints(
+      preyPos,
+      hunterPos
+    );
+
     if (!hunterPos.withinSquare(preyPos, this.#maxSeparation)) {
       const angle = hunterPos.getCartesianAngleTo(preyPos);
-      hunter.velocity.x = this.#speed * Math.cos(angle);
-      hunter.velocity.y = this.#speed * Math.sin(angle);
+      hunter.velocity.x = approachSpeed * Math.cos(angle);
+      hunter.velocity.y = approachSpeed * Math.sin(angle);
       const dx = hunter.velocity.x * deltaSeconds;
       const dy = hunter.velocity.y * deltaSeconds;
       hunter.position.x += this.getMinMove(dx, preyPos.x, hunterPos.x);
@@ -227,14 +265,14 @@ export class PathFollower extends AbstractModifier {
   #index;
   /** @type {import('../geometry.js').Point} */
   #targetPoint;
-  /** @type {number} */
-  #speed;
-
+  /** @type {VariableSpeed} */
+  #variableSpeed;
   /**
    *
    * @param {Object} options
    * @param {Point[]} options.path
    * @param {number} options.speed - pixels / second
+   * @param {boolean} options.linear - if linear the speed is constant, otherwise it speeds up if further away
    * @param {AbstractModifier} decoratedModifier
    */
   constructor(options, decoratedModifier) {
@@ -242,7 +280,7 @@ export class PathFollower extends AbstractModifier {
     this.#path = options.path;
     this.#index = 0;
     this.#targetPoint = options.path[0];
-    this.#speed = options.speed;
+    this.#variableSpeed = new VariableSpeed(options.speed, options.linear);
   }
 
   /**
@@ -253,10 +291,13 @@ export class PathFollower extends AbstractModifier {
    */
   doUpdate(subject, deltaSeconds) {
     const subjectPos = subject.position;
-
+    const approachSpeed = this.#variableSpeed.getSpeedBetweenPoints(
+      this.#targetPoint,
+      subjectPos
+    );
     const angle = subjectPos.getCartesianAngleTo(this.#targetPoint);
-    subject.velocity.x = this.#speed * Math.cos(angle);
-    subject.velocity.y = this.#speed * Math.sin(angle);
+    subject.velocity.x = approachSpeed * Math.cos(angle);
+    subject.velocity.y = approachSpeed * Math.sin(angle);
     const dx = subject.velocity.x * deltaSeconds;
     const dy = subject.velocity.y * deltaSeconds;
     subjectPos.x += this.getMinMove(dx, this.#targetPoint.x, subjectPos.x);

@@ -68,7 +68,7 @@ body {
   height: 100%;
 }
 
-canvas {
+#game-canvas {
   position: absolute;
 }
 

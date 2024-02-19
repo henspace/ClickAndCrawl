@@ -29,8 +29,6 @@
  */
 
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
-import textureMap from '../../assets/images/dungeon.json';
-import textureUrl from '../../assets/images/dungeon.png';
 
 import { TilePlan } from '../utils/tileMaps/tilePlan.js';
 import { TileMap } from '../utils/tileMaps/tileMap.js';
@@ -124,7 +122,7 @@ class ParsedScene extends AbstractScene {
 
   /** @override */
   doLoad() {
-    return IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl);
+    return Promise.resolve();
   }
 
   doInitialise() {

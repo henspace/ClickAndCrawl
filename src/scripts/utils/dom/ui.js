@@ -75,9 +75,31 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
   container.appendChild(buttonEl);
   return SCREEN.displayOnGlass(
     container,
-    [{ element: buttonEl, response: DialogResponse.OK }],
+    [{ element: buttonEl, response: DialogResponse.OK, execute: null }],
     className
   );
+}
+
+/** Create a menu dialog.
+ * @param {string} message
+ * @param {OptionButton[]} optionButton
+ * @param {string} className
+ * @returns {Promise} fulfils to DialogResponse.OK
+ */
+function showMenuDialog(message, optionButtons, className) {
+  const container = document.createElement('div');
+  container.appendChild(createMessageElement(message));
+  const closers = [];
+  optionButtons.forEach((button) => {
+    const buttonEl = button.getButton();
+    container.appendChild(buttonEl);
+    closers.push({
+      element: buttonEl,
+      response: 'Testing',
+      execute: null, //() => button.execute(),
+    });
+  });
+  return SCREEN.displayOnGlass(container, closers, className);
 }
 
 /**
@@ -86,6 +108,7 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
 const UI = {
   showMessage: showMessage,
   showOkDialog: showOkDialog,
+  showMenuDialog: showMenuDialog,
 };
 
 export default UI;

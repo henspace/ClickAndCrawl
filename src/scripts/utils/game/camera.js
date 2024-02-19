@@ -101,6 +101,17 @@ export class CameraDolly {
   }
 
   /**
+   * Pan the camera by dx, dy. Automatic tracking is switched off.
+   * @param {number} dx
+   * @param {number} dy
+   */
+  panBy(dx, dy) {
+    this.#sprite.position.x += dx;
+    this.#sprite.position.y += dy;
+    SCREEN.centreCanvasOn(this.#sprite.position);
+  }
+
+  /**
    * Set the trackingMethod
    * @param {number} method - CameraTracking enum
    */

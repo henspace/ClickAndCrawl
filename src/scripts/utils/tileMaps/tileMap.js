@@ -419,11 +419,19 @@ export class TileMap {
   }
 
   /**
+   * Get the tilemap bounds as a rectangle in gridpoints.
+   * @returns {Rectangle}
+   */
+  getMapGridPointRect() {
+    return new Rectangle(0, 0, this.#tilesX, this.#tilesY);
+  }
+
+  /**
    * Get the visible bounds as a rectangle in gridpoints.
    * @returns {Rectangle}
    */
   getVisibleGridPointRect() {
-    const visibleBounds = SCREEN.geWorldInCanvasBounds();
+    const visibleBounds = SCREEN.getWorldInCanvasBounds();
     const gridPointTL = this.worldPointToGrid(
       new Point(visibleBounds.x, visibleBounds.y)
     );

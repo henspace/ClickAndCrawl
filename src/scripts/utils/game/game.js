@@ -43,6 +43,10 @@ import LOG from '../logging.js';
 import * as pointerActions from '../dom/pointerActions.js';
 import TURN_MANAGER from './turnManager.js';
 
+import IMAGE_MANAGER from '../sprites/imageManager.js';
+import textureMap from '../../../assets/images/dungeon.json';
+import textureUrl from '../../../assets/images/dungeon.png';
+
 /** @type {DOMHighResTimeStamp} */
 let lastTimeStamp;
 
@@ -56,10 +60,13 @@ async function initialise(screenOptions) {
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
   // Need a menu here but for now, just load the test screen.
+
   UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start", 'door')
+    .then(() => IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl))
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneDefinitions(parseScript(script)))
-    .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.START_GAME))
+    .then(() => {})
+    .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
     .then(() => startGame())
     .catch((error) => {
       LOG.error(error);
@@ -111,6 +118,13 @@ function setupListeners() {
       const y = event.detail.y;
       const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
       HUD.resolvePointerCancel(mappedPositions);
+    }
+  );
+
+  canvas.addEventListener(
+    pointerActions.CUSTOM_POINTER_DRAG_EVENT_NAME,
+    (event) => {
+      SCENE_MANAGER.panCameraBy(-event.detail.dx, -event.detail.dy);
     }
   );
 

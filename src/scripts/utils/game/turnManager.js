@@ -42,6 +42,8 @@ import { pause } from '../timers.js';
 import { Point, Position, Velocity } from '../geometry.js';
 import LOG from '../logging.js';
 import * as maths from '../maths.js';
+import IMAGE_MANAGER from '../sprites/imageManager.js';
+import { OptionButton } from '../dom/menu.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -53,7 +55,7 @@ const TOO_MANY_TURNS_TO_REACH = 2;
  * @enum {number}
  */
 const EventId = {
-  START_GAME: 0,
+  MAIN_MENU: 0,
   CLICKED_FREE_GROUND: 1,
   CLICKED_ENTRANCE: 2,
   CLICKED_EXIT: 3,
@@ -283,23 +285,49 @@ class WaitingToStart extends State {
    * @param {Object} detail - object will depend on the eventId
    */
   async onEvent(eventId, pointUnused, detailUnused) {
-    if (eventId === EventId.START_GAME) {
-      this.transitionTo(new AtStart());
+    if (eventId === EventId.MAIN_MENU) {
+      this.transitionTo(new AtMainMenu());
     }
   }
 }
 
+/**
+ * At main Menu
+ */
+class AtMainMenu extends State {
+  onEntry() {
+    const play = new OptionButton(
+      'Play',
+      IMAGE_MANAGER.getSpriteBitmap(0, 'hero.png'),
+      () => {
+        alert('Play');
+        return Promise.resolve();
+      }
+    );
+    return UI.showMenuDialog(
+      'Welcome to the Scripted Dungeon',
+      [play],
+      'door'
+    ).then(() => this.transitionTo(new AtStart()));
+  }
+}
 /**
  * At start state
  */
 class AtStart extends State {
   onEntry() {
     LOG.log('Enter AtStart');
-    UI.showOkDialog(
+    return UI.showOkDialog(
       'You are in a dark and dingy dungeon.',
       'Conquer it!',
       'wall'
-    ).then(() => startFirstScene(this));
+    )
+      .then(() => SCENE_MANAGER.switchToFirstScene())
+      .then(() => {
+        heroActor.sprite.position =
+          WORLD.getTileMap().getWorldPositionOfTileByEntry();
+        return currentState.transitionTo(new HeroTurnIdle());
+      });
   }
 }
 
@@ -316,7 +344,8 @@ class AtGameOver extends State {
     });
     await pause(2)
       .then(() => UI.showOkDialog('Game over. You died.', 'Try again'))
-      .then(() => startFirstScene(this));
+      .then(() => SCENE_MANAGER.unloadCurrentScene())
+      .then(() => this.transitionTo(new AtMainMenu()));
   }
 }
 
@@ -326,9 +355,9 @@ class AtGameOver extends State {
 class AtGameCompleted extends State {
   async onEntry() {
     LOG.log('Enter AtGameCompleted');
-    await UI.showOkDialog("You've done it. Well done.", 'Try again').then(() =>
-      startFirstScene(this)
-    );
+    await UI.showOkDialog("You've done it. Well done.", 'Try again')
+      .then(() => SCENE_MANAGER.unloadCurrentScene())
+      .then(() => this.transitionTo(new AtMainMenu()));
   }
 }
 
@@ -569,19 +598,6 @@ function moveHeroToPoint(point) {
   } else {
     return Promise.resolve();
   }
-}
-
-/**
- * Start first scene.
- * @param {State} currentState
- * @returns {Promise} fulfils to undefined.
- */
-function startFirstScene(currentState) {
-  return SCENE_MANAGER.switchToFirstScene().then(() => {
-    heroActor.sprite.position =
-      WORLD.getTileMap().getWorldPositionOfTileByEntry();
-    return currentState.transitionTo(new HeroTurnIdle());
-  });
 }
 
 /**

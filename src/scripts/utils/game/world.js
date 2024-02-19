@@ -154,7 +154,7 @@ function update(deltaSeconds) {
  * @returns {boolean} true if resolved.
  */
 function resolveClick(positions) {
-  const tile = worldTileMap.getTileAtWorldPoint(positions.world);
+  const tile = worldTileMap?.getTileAtWorldPoint(positions.world);
   if (tile) {
     tile.actionClick(positions.world);
     return true;

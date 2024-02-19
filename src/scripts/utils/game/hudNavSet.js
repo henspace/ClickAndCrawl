@@ -119,10 +119,10 @@ export class NavigationButtons {
     this.#trackingButton = HUD.addButton(
       this.#trackingButtonImage,
       () => {
-        this.#setTrackingState(true);
+        this.setTrackingState(true);
       },
       () => {
-        this.#setTrackingState(false);
+        this.setTrackingState(false);
       }
     );
     this.#trackingButton.position.x = centreX;
@@ -134,7 +134,7 @@ export class NavigationButtons {
    * Set the tracking state.
    * @param {boolean} on
    */
-  #setTrackingState(on) {
+  setTrackingState(on) {
     if (on) {
       this.#trackingButtonImage.setCurrentIndex(1);
       this.#cameraDolly.setTrackingMethod(CameraTracking.HERO);
@@ -157,7 +157,7 @@ export class NavigationButtons {
       centreX,
       centreY - gridSize,
       () => {
-        this.#setTrackingState(false);
+        this.setTrackingState(false);
         this.#cameraDolly.setVelocity(0, -scrollSpeed);
       },
       () => this.#cameraDolly.setTrackingMethod(CameraTracking.OFF)
@@ -168,7 +168,7 @@ export class NavigationButtons {
       centreX + gridSize,
       centreY,
       () => {
-        this.#setTrackingState(false);
+        this.setTrackingState(false);
         this.#cameraDolly.setVelocity(scrollSpeed, 0);
       },
       () => this.#cameraDolly.setTrackingMethod(CameraTracking.OFF)
@@ -179,7 +179,7 @@ export class NavigationButtons {
       centreX,
       centreY + gridSize,
       () => {
-        this.#setTrackingState(false);
+        this.setTrackingState(false);
         this.#cameraDolly.setVelocity(0, scrollSpeed);
       },
       () => this.#cameraDolly.setTrackingMethod(CameraTracking.OFF)
@@ -190,7 +190,7 @@ export class NavigationButtons {
       centreX - gridSize,
       centreY,
       () => {
-        this.#setTrackingState(false);
+        this.setTrackingState(false);
         this.#cameraDolly.setVelocity(-scrollSpeed, 0);
       },
       () => this.#cameraDolly.setTrackingMethod(CameraTracking.OFF)

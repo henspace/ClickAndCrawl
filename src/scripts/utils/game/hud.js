@@ -35,6 +35,7 @@ import SCREEN from './screen.js';
 import { Sprite } from '../sprites/sprite.js';
 import { Position } from '../geometry.js';
 import { Rectangle } from '../geometry.js';
+import { NavigationButtons } from './hudNavSet.js';
 
 /**
  * @type {Map<string, Sprite>}
@@ -131,6 +132,20 @@ function update(deltaSeconds) {
     sprite.update(deltaSeconds);
     sprite.position = uiPos;
   });
+}
+
+/** Debug function. */
+function borderHUD() {
+  const rect = SCREEN.getVisibleCanvasRect();
+  const context = SCREEN.getContext2D();
+  context.strokeStyle = 'green';
+  context.lineWidth = 4;
+  SCREEN.getContext2D().strokeRect(
+    rect.x + 5,
+    rect.y + 5,
+    rect.width - 10,
+    rect.height - 10
+  );
 }
 
 /**

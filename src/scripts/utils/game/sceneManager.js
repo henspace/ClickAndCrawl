@@ -33,7 +33,7 @@ import HUD from './hud.js';
 import { addFullscreenButtonToHud } from './fullscreen.js';
 import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
 import WORLD from './world.js';
-import { CameraDolly } from './camera.js';
+import { CameraDolly, CameraTracking } from './camera.js';
 import LOG from '../logging.js';
 
 /** @type {import('../sprites/sprite.js').Sprite}  */
@@ -47,6 +47,8 @@ let currentScene;
 
 /** @type {import('./actors.js').Actor} */
 let hero;
+
+let navigationButtons;
 
 /**
  * Set camera dolly
@@ -62,7 +64,11 @@ function setCameraToTrack(sprite, speed, proportionSeparated) {
  * Create the HUD
  */
 function createHud() {
-  new NavigationButtons(cameraDolly, 48, NavigationLocation.BR);
+  navigationButtons = new NavigationButtons(
+    cameraDolly,
+    48,
+    NavigationLocation.BR
+  );
   addFullscreenButtonToHud();
 
   HUD.setVisible(true);
@@ -72,6 +78,7 @@ function createHud() {
  * Clear the HUD.
  */
 function clearHud() {
+  navigationButtons = null;
   HUD.clear();
   HUD.setVisible(false);
 }
@@ -111,9 +118,9 @@ function loadScene(scene) {
  * @returns {Promise} fulfills to null
  */
 function unloadScene(scene) {
-  WORLD.clearAll();
   if (scene) {
     return scene.unload().then(() => {
+      WORLD.clearAll();
       currentScene = null;
       clearHud();
       return Promise.resolve();
@@ -121,6 +128,14 @@ function unloadScene(scene) {
   } else {
     return Promise.resolve(null);
   }
+}
+
+/**
+ * Unload current scene
+ * @returns {Promise} fulfills to null
+ */
+function unloadCurrentScene() {
+  return unloadScene(currentScene);
 }
 /**
  * Configure the scenes from the script.
@@ -188,14 +203,27 @@ function update(deltaSeconds) {
 }
 
 /**
+ * Pan the camera.
+ * @param {number} dx
+ * @param {number} dy
+ */
+function panCameraBy(dx, dy) {
+  cameraDolly.panBy(dx, dy);
+  cameraDolly.setTrackingMethod(CameraTracking.OFF);
+  navigationButtons.setTrackingState(false);
+}
+
+/**
  * SCENE_MANAGER Singleton.
  */
 const SCENE_MANAGER = {
   areThereMoreScenes: areThereMoreScenes,
   setCameraToTrack: setCameraToTrack,
+  panCameraBy: panCameraBy,
   setSceneDefinitions: setSceneDefinitions,
   switchToFirstScene: switchToFirstScene,
   switchToNextScene: switchToNextScene,
+  unloadCurrentScene: unloadCurrentScene,
   update: update,
 };
 
