@@ -40,6 +40,7 @@ import { Colours } from '../constants/colours.js';
 import { Fight, Trade } from '../dnd/interact.js';
 import StdAnimations from './actorAnimationKeys.js';
 import * as maths from '../utils/maths.js';
+import GameConstants from '../utils/game/gameConstants.js';
 
 /**
  * Specialist traits renderer
@@ -210,7 +211,11 @@ function createAnimatedActor(imageName) {
   );
   keyedAnimation.setActor(actor);
   traitsRenderer.actor = actor;
-  actor.position = new Position(48, 48, 0);
+  actor.position = new Position(
+    GameConstants.TILE_SIZE,
+    GameConstants.TILE_SIZE,
+    0
+  );
   actor.velocity = { x: 0, y: 0, rotation: 0.1 };
   return actor;
 }

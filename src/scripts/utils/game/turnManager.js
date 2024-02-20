@@ -43,7 +43,7 @@ import { Point, Position, Velocity } from '../geometry.js';
 import LOG from '../logging.js';
 import * as maths from '../maths.js';
 import IMAGE_MANAGER from '../sprites/imageManager.js';
-import { OptionButton } from '../dom/menu.js';
+import { IconButtonControl } from '../dom/components.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -296,19 +296,16 @@ class WaitingToStart extends State {
  */
 class AtMainMenu extends State {
   onEntry() {
-    const play = new OptionButton(
-      'Play',
-      IMAGE_MANAGER.getSpriteBitmap(0, 'hero.png'),
-      () => {
-        alert('Play');
-        return Promise.resolve();
-      }
-    );
-    return UI.showMenuDialog(
-      'Welcome to the Scripted Dungeon',
-      [play],
-      'door'
-    ).then(() => this.transitionTo(new AtStart()));
+    const play = new IconButtonControl({
+      id: 'PLAY',
+      label: 'Play',
+      imageNameUp: 'hero-idle00.png',
+      imageNameDown: 'hero-idle01.png',
+      internalLabel: true,
+    });
+    return UI.showMenuDialog('Welcome to the Scripted Dungeon', [play], 'door')
+      .then((id) => alert(id))
+      .then(() => this.transitionTo(new AtStart()));
   }
 }
 /**

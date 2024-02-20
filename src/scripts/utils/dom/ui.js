@@ -51,14 +51,17 @@ function createMessageElement(message) {
   return element;
 }
 
-/** Create a message that is removed on any click.
+/** Create a message that is removed on any click. This sits above everything
+ * as a self contained popup.
  * @param {string} message
- * @param {string} className
- * @returns {Promise} fulfils to null
  */
-function showMessage(message, className) {
-  const container = createMessageElement(message);
-  SCREEN.displayOnGlass(container, null, className);
+function showMessage(message) {
+  const popup = document.createElement('div');
+  popup.appendChild(document.createTextNode(message));
+  popup.className = 'popup';
+  popup.style.opacity = 1;
+  document.body.appendChild(popup);
+  popup.addEventListener('click', () => popup.remove());
 }
 
 /** Create an okDialog.
@@ -82,21 +85,19 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
 
 /** Create a menu dialog.
  * @param {string} message
- * @param {OptionButton[]} optionButton
+ * @param {IconButtonControl[]} ActionButton
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showMenuDialog(message, optionButtons, className) {
+function showMenuDialog(message, actionButtons, className) {
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message));
   const closers = [];
-  optionButtons.forEach((button) => {
-    const buttonEl = button.getButton();
-    container.appendChild(buttonEl);
+  actionButtons.forEach((button) => {
+    container.appendChild(button.element);
     closers.push({
-      element: buttonEl,
-      response: 'Testing',
-      execute: null, //() => button.execute(),
+      element: button.element,
+      response: button.id,
     });
   });
   return SCREEN.displayOnGlass(container, closers, className);

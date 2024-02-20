@@ -28,8 +28,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
-
 import { TilePlan } from '../utils/tileMaps/tilePlan.js';
 import { TileMap } from '../utils/tileMaps/tileMap.js';
 import TURN_MANAGER from '../utils/game/turnManager.js';
@@ -37,13 +35,12 @@ import WORLD from '../utils/game/world.js';
 import ACTOR_MAP from './actorMap.js';
 import SCREEN from '../utils/game/screen.js';
 import { TILE_MAP_KEYS } from './symbolMapping.js';
-import UI from '../utils/dom/ui.js';
 import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../utils/game/sceneManager.js';
-import { CharacterTraits } from '../dnd/traits.js';
-import { Actor } from '../utils/game/actors.js';
+import GameConstants from '../utils/game/gameConstants.js';
 
-const GRID_SIZE = 48;
+const GRID_SIZE = GameConstants.TILE_SIZE;
+
 /** @type {Actor} */
 let lastHero;
 

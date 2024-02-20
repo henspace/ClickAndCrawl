@@ -148,3 +148,16 @@ button {
 .close-button::before {
   content: 'X';
 }
+
+.popup {
+  background-color: black;
+  border: 2px solid white;
+  left: 50vw;
+  top: 50vh;
+  opacity: 0;
+  position: absolute;
+  width: 75vw;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  transition: opacity 1s;
+}

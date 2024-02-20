@@ -1,7 +1,7 @@
 /**
- * @file Classes for managing menues.
+ * @file Settings
  *
- * @module utils/dom/menu
+ * @module utils/settings
  *
  * @license
  * {@link https://opensource.org/license/mit/|MIT}
@@ -27,50 +27,38 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import LOG from './logging.js';
 
-/**
- * Menu item.
- */
-export class OptionButton {
-  /** @type {string} */
-  #label;
-  /** @type {import("../sprites/imageManager.js").SpriteBitmap} */
-  #image;
-  /** @type {function():Promise} */
-  #action;
-
-  constructor(label, image, action) {
-    this.#label = label;
-    this.#image = image;
-    this.#action = action;
-  }
-
-  /** Get HTML element for the button.
-   * @returns {Element}
+/** Encapsulate storage. */
+class PersistentData {
+  /**
+   * Set value
+   * @param {string} key
+   * @param {*} value
    */
-  getButton() {
-    const container = document.createElement('button');
-    const canvas = document.createElement('canvas');
-    canvas.setAttribute('width', this.#image.width);
-    canvas.setAttribute('height', this.#image.height);
-    const context = canvas.getContext('2d');
-    context.drawImage(this.#image.image, 0, 0);
-    container.appendChild(canvas);
-    const labelEl = document.createElement('span');
-    labelEl.innerText = this.#label;
-    container.appendChild(labelEl);
-    return container;
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      LOG.error(`Cannot save setting. ${error.message}`);
+    }
   }
 
   /**
-   * executes the menu item's promise.
-   * @returns {Promise}
+   * Get a value.
+   * @param {string} key
+   * @param {*} defaultValue
+   * @returns {*} stored data or default value if not present or unparsable.
    */
-  execute() {
-    if (this.#action) {
-      return this.#action();
-    } else {
-      return Promise.resolve();
+  get(key, defaultValue) {
+    try {
+      const encodedValue = localStorage.getItem(key);
+      if (encodedValue !== null) {
+        return JSON.parse(encodedValue);
+      }
+    } catch (error) {
+      LOG.error(`Cannot parse value from localstorage. ${error.message}`);
     }
+    return defaultValue;
   }
 }

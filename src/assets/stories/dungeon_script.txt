@@ -8,10 +8,35 @@ monster x3: MOVE: hunt, HP: 5/25
 trader x1: MOVE: wander, HP: 10/25
 [Map]
 random
+
 [Level]
 The deeper you go, the harder it gets.
 [Cast]
 monster x4: HP: 10/25
 trader x1: HP: 10/25
+[Map]
+random
+
+[Level]
+The deeper you go, the harder it gets.
+[Cast]
+monster x5: HP: 10/25
+trader x1: HP: 10/25
+[Map]
+random
+
+[Level]
+The deeper you go, the harder it gets.
+[Cast]
+monster x6: HP: 10/25
+trader x1: HP: 10/25
+[Map]
+random
+
+[Level]
+The deeper you go, the harder it gets.
+[Cast]
+monster x7: HP: 10/25
+trader x3: HP: 10/25
 [Map]
 random

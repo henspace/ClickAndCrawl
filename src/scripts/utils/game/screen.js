@@ -353,7 +353,13 @@ function displayOnGlass(element, closers, className) {
     );
     promises.push(promise);
   }
-  return Promise.race(promises).then(() => wipeGlass());
+  let closingId;
+  return Promise.race(promises)
+    .then((id) => {
+      closingId = id;
+      return wipeGlass();
+    })
+    .then(() => closingId);
 }
 
 /**

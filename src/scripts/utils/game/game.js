@@ -47,6 +47,11 @@ import IMAGE_MANAGER from '../sprites/imageManager.js';
 import textureMap from '../../../assets/images/dungeon.json';
 import textureUrl from '../../../assets/images/dungeon.png';
 
+/**
+ * Tile size to use throughout the game
+ */
+const TILE_SIZE = 48;
+
 /** @type {DOMHighResTimeStamp} */
 let lastTimeStamp;
 
@@ -186,6 +191,7 @@ function showFps(fps) {
  * The game singleton
  */
 const GAME = {
+  TILE_SIZE: TILE_SIZE,
   initialise: initialise,
 };
 

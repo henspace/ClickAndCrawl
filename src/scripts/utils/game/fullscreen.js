@@ -28,7 +28,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { AnimatedImage } from '../sprites/animation.js';
-import { Actor } from './actors.js';
+import GameConstants from './gameConstants.js';
 import HUD from './hud.js';
 import { LoopMethod } from '../arrays/indexer.js';
 import LOG from '../logging.js';
@@ -85,6 +85,6 @@ export function addFullscreenButtonToHud() {
       document.exitFullscreen();
     }
   );
-  fullscreenButton.position.x = 48;
-  fullscreenButton.position.y = -48;
+  fullscreenButton.position.x = GameConstants.TILE_SIZE;
+  fullscreenButton.position.y = -GameConstants.TILE_SIZE;
 }
