@@ -1,10 +1,9 @@
 /**
- * @file Settings
+ * @file Settings dialog
  *
- * @module utils/settings
+ * @module dialogs/settingsDialog
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -27,38 +26,38 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import LOG from './logging.js';
 
-/** Encapsulate storage. */
-class PersistentData {
-  /**
-   * Set value
-   * @param {string} key
-   * @param {*} value
-   */
-  set(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      LOG.error(`Cannot save setting. ${error.message}`);
-    }
-  }
+import { createControl, ControlType } from '../utils/dom/components.js';
+import UI from '../utils/dom/ui.js';
 
-  /**
-   * Get a value.
-   * @param {string} key
-   * @param {*} defaultValue
-   * @returns {*} stored data or default value if not present or unparsable.
-   */
-  get(key, defaultValue) {
-    try {
-      const encodedValue = localStorage.getItem(key);
-      if (encodedValue !== null) {
-        return JSON.parse(encodedValue);
-      }
-    } catch (error) {
-      LOG.error(`Cannot parse value from localstorage. ${error.message}`);
-    }
-    return defaultValue;
-  }
+/** Settings */
+const SETTINGS = [
+  {
+    key: 'BLOOD_ON',
+    label: 'Blood on',
+    defValue: true,
+    controlType: ControlType.CHECKBOX,
+    persistent: true,
+    action: null,
+  },
+  {
+    key: 'UNUSED',
+    label: 'Not used yet',
+    defValue: false,
+    controlType: ControlType.CHECKBOX,
+    persistent: true,
+    action: null,
+  },
+];
+
+/**
+ * Display the settings dialog. This retrieves the current settings from local
+ * storage and allows modifications. Changes are saved immediately.
+ */
+export function showSettingsDialog() {
+  const controls = [];
+  SETTINGS.forEach((setting) => {
+    controls.push(createControl(setting));
+  });
+  return UI.showControlsDialog('Settings', controls, 'door');
 }

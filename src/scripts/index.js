@@ -2,12 +2,13 @@
  * @file Main entry point
  *
  * @module index
- *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ */
+/**
+ * @license {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
- *
+ */
+/**
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
  * the Software without restriction, including without limitation the rights to use,

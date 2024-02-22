@@ -4,8 +4,7 @@
  *
  * @module utils/game/turnManager/turnManager
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
  *
@@ -42,7 +41,7 @@ import { pause } from '../timers.js';
 import { Point, Position, Velocity } from '../geometry.js';
 import LOG from '../logging.js';
 import * as maths from '../maths.js';
-import IMAGE_MANAGER from '../sprites/imageManager.js';
+import { showMainMenu } from '../../dialogs/mainMenu.js';
 import { IconButtonControl } from '../dom/components.js';
 
 /**
@@ -91,6 +90,7 @@ class ReplayableActorMover {
     this.#tileMap = tileMap;
     this.#routeFinder = routeFinder;
   }
+
   /**
    * Move actor to hero using the route finder. The move takes place instantly
    * but can be replayed using the replay method.
@@ -303,9 +303,7 @@ class AtMainMenu extends State {
       imageNameDown: 'hero-idle01.png',
       internalLabel: true,
     });
-    return UI.showMenuDialog('Welcome to the Scripted Dungeon', [play], 'door')
-      .then((id) => alert(id))
-      .then(() => this.transitionTo(new AtStart()));
+    return showMainMenu().then(() => this.transitionTo(new AtStart()));
   }
 }
 /**
@@ -511,9 +509,17 @@ class ComputerTurnIdle extends State {
 
     const routeFinder = new RouteFinder(tileMap);
     const replayer = new MovementReplayer(tileMap, routeFinder);
+    const heroGridPoint = tileMap.worldPointToGrid(heroActor.position);
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor && actor.alive) {
-        replayer.addAndMoveActor(actor);
+        if (actor.isWandering()) {
+          const actorGridPoint = tileMap.worldPointToGrid(actor.position);
+          if (!actorGridPoint.isOtherClose(heroGridPoint, 1.5)) {
+            replayer.addAndMoveActor(actor);
+          }
+        } else {
+          replayer.addAndMoveActor(actor);
+        }
       }
     }
     await replayer.replay();

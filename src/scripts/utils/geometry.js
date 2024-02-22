@@ -3,8 +3,7 @@
  *
  * @module utils/geometry
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
  *
@@ -110,6 +109,18 @@ export class Point {
       Math.round(this.x) === Math.round(position.x) &&
       Math.round(this.y) === Math.round(position.y)
     );
+  }
+
+  /**
+   * Test if points are adjacent, i.e within one
+   * @param {Point} other
+   * @param {number} distance
+   * @returns {boolean}
+   */
+  isOtherClose(other, distance) {
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
+    return Math.pow(dx, 2) + Math.pow(dy, 2) <= Math.pow(distance, 2);
   }
 }
 /**

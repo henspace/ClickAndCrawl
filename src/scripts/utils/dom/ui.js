@@ -3,8 +3,7 @@
  *
  * @module utils/dom/ui
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -29,6 +28,7 @@
  */
 
 import SCREEN from '../game/screen.js';
+import { TextButtonControl } from './components.js';
 
 /**
  * Dialog response codes.
@@ -78,28 +78,43 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
   container.appendChild(buttonEl);
   return SCREEN.displayOnGlass(
     container,
-    [{ element: buttonEl, response: DialogResponse.OK, execute: null }],
+    [
+      {
+        element: buttonEl,
+        response: DialogResponse.OK,
+        closer: true,
+      },
+    ],
     className
   );
 }
 
-/** Create a menu dialog.
+/** Create a controls dialog.
  * @param {string} message
  * @param {IconButtonControl[]} ActionButton
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showMenuDialog(message, actionButtons, className) {
+function showControlsDialog(message, actionButtons, className) {
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message));
   const closers = [];
-  actionButtons.forEach((button) => {
+  actionButtons?.forEach((button) => {
     container.appendChild(button.element);
-    closers.push({
-      element: button.element,
-      response: button.id,
-    });
+    if (button.action) {
+      button.element.addEventListener('click', () => button.action());
+    } else {
+      closers.push({
+        element: button.element,
+        response: button.id,
+      });
+    }
   });
+  if (closers.length === 0) {
+    const okButton = new TextButtonControl({ label: 'OK' });
+    container.appendChild(okButton.element);
+    closers.push(okButton);
+  }
   return SCREEN.displayOnGlass(container, closers, className);
 }
 
@@ -109,7 +124,7 @@ function showMenuDialog(message, actionButtons, className) {
 const UI = {
   showMessage: showMessage,
   showOkDialog: showOkDialog,
-  showMenuDialog: showMenuDialog,
+  showControlsDialog: showControlsDialog,
 };
 
 export default UI;

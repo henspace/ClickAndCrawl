@@ -207,18 +207,18 @@
             <key type="filename">tiles/hero-walk-w01.png</key>
             <key type="filename">tiles/hero-walk-w02.png</key>
             <key type="filename">tiles/hero-walk-w03.png</key>
-            <key type="filename">tiles/hud-arrow-down-000.png</key>
-            <key type="filename">tiles/hud-arrow-down-001.png</key>
-            <key type="filename">tiles/hud-arrow-left-000.png</key>
-            <key type="filename">tiles/hud-arrow-left-001.png</key>
-            <key type="filename">tiles/hud-arrow-right-000.png</key>
-            <key type="filename">tiles/hud-arrow-right-001.png</key>
-            <key type="filename">tiles/hud-arrow-up-000.png</key>
-            <key type="filename">tiles/hud-arrow-up-001.png</key>
-            <key type="filename">tiles/hud-auto-centre-000.png</key>
-            <key type="filename">tiles/hud-auto-centre-001.png</key>
-            <key type="filename">tiles/hud-fullscreen-000.png</key>
-            <key type="filename">tiles/hud-fullscreen-001.png</key>
+            <key type="filename">tiles/hud-arrow-down00.png</key>
+            <key type="filename">tiles/hud-arrow-down01.png</key>
+            <key type="filename">tiles/hud-arrow-left00.png</key>
+            <key type="filename">tiles/hud-arrow-left01.png</key>
+            <key type="filename">tiles/hud-arrow-right00.png</key>
+            <key type="filename">tiles/hud-arrow-right01.png</key>
+            <key type="filename">tiles/hud-arrow-up00.png</key>
+            <key type="filename">tiles/hud-arrow-up01.png</key>
+            <key type="filename">tiles/hud-auto-centre00.png</key>
+            <key type="filename">tiles/hud-auto-centre01.png</key>
+            <key type="filename">tiles/hud-fullscreen00.png</key>
+            <key type="filename">tiles/hud-fullscreen01.png</key>
             <key type="filename">tiles/orc-dead00.png</key>
             <key type="filename">tiles/orc-idle00.png</key>
             <key type="filename">tiles/orc-idle01.png</key>
@@ -262,6 +262,20 @@
             <key type="filename">tiles/trader-walk-w02.png</key>
             <key type="filename">tiles/trader-walk-w03.png</key>
             <key type="filename">tiles/trader.png</key>
+            <key type="filename">tiles/ui-checkbox00.png</key>
+            <key type="filename">tiles/ui-checkbox01.png</key>
+            <key type="filename">tiles/ui-play00.png</key>
+            <key type="filename">tiles/ui-play01.png</key>
+            <key type="filename">tiles/ui-settings00.png</key>
+            <key type="filename">tiles/ui-settings01.png</key>
+            <key type="filename">tiles/ui-spinner-down00.png</key>
+            <key type="filename">tiles/ui-spinner-down01.png</key>
+            <key type="filename">tiles/ui-spinner-left00.png</key>
+            <key type="filename">tiles/ui-spinner-left01.png</key>
+            <key type="filename">tiles/ui-spinner-right00.png</key>
+            <key type="filename">tiles/ui-spinner-right01.png</key>
+            <key type="filename">tiles/ui-spinner-up00.png</key>
+            <key type="filename">tiles/ui-spinner-up01.png</key>
             <key type="filename">tiles/wall-B.png</key>
             <key type="filename">tiles/wall-BL.png</key>
             <key type="filename">tiles/wall-BLI.png</key>
@@ -299,6 +313,7 @@
                 <false/>
             </struct>
             <key type="filename">tiles/blood-splat.png</key>
+            <key type="filename">tiles/pow.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>

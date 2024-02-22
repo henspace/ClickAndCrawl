@@ -3,11 +3,10 @@
  *
  * @module utils/game/combat/combat
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
  * the Software without restriction, including without limitation the rights to use,

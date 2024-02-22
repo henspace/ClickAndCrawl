@@ -14,8 +14,7 @@
  *
  * @module utils/screen
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
  *
@@ -60,8 +59,7 @@ let canvasHalfHeight = 0;
 let canvasAlpha = true;
 let visibleCanvasRect = null;
 let gameElement = null;
-let glass = null;
-let glassRect = new Rectangle(0, 0, 0, 0);
+
 let left = 0;
 let top = 0;
 //let screenRect;
@@ -122,21 +120,7 @@ function setOptions(options) {
   sizingMethod = options.sizingMethod;
   canvasAlpha = options.alpha;
   sizeScreen();
-  addGlass();
-  sizeGlass();
-}
-
-/**
- * Create a Dom layer over the canvas
- */
-function addGlass() {
-  glass = document.createElement('div');
-  glass.id = 'glass';
-  gameElement.appendChild(glass);
-  glass.style.display = 'none';
-  const content = document.createElement('div');
-  content.id = 'glass-content';
-  glass.appendChild(content);
+  syncDomFonts();
 }
 
 /**
@@ -229,23 +213,6 @@ function sizeScreen() {
 }
 
 /**
- * Size the glass layer to fit over the screen
- */
-function sizeGlass() {
-  const dims = getDisplayDims();
-  const left = Math.max(parseInt(canvas.style.left), 0);
-  const top = Math.max(parseInt(canvas.style.top), 0);
-  const width = Math.min(parseInt(canvas.style.width), dims.width);
-  const height = Math.min(parseInt(canvas.style.height), dims.height);
-  glass.style.left = `${left}px`;
-  glass.style.top = `${top}px`;
-  glass.style.width = `${width}px`;
-  glass.style.height = `${height}px`;
-  syncDomFonts();
-  glassRect = new Rectangle(left, top, width, height);
-}
-
-/**
  * Adjust the font sizes to ensure glass in sync with canvas.
  */
 function syncDomFonts() {
@@ -258,7 +225,7 @@ function syncDomFonts() {
  */
 function resize() {
   sizeScreen();
-  sizeGlass();
+  syncDomFonts();
 }
 /**
  * @typedef {Object} screenDetails
@@ -307,7 +274,6 @@ function getContext2D() {
  * @typedef {Object} Closers
  * @property {Element} element - when clicked, this should close a display.
  * @property {number} response - the code returned if this element closed a display.
- * @property {number} execute - addition function that will be executed. This must return a promise;
  */
 /**
  * Set the content of the glass layer. OnClick events are added automatically to the
@@ -319,29 +285,23 @@ function getContext2D() {
  * @returns {Promise} fulfils to null when clicked.
  */
 function displayOnGlass(element, closers, className) {
-  const content = document.getElementById('glass-content');
-  if (content.childNodes.length > 0) {
-    LOG.error(
-      'Attempt to display additional message on glass when one is already present.'
-    );
-    return Promise.resolve();
-  }
-  content.replaceChildren(element);
+  const glass = document.createElement('div');
+  document.body.appendChild(glass);
+  glass.className = 'glass';
+  const glassContent = document.createElement('div');
+  glass.appendChild(glassContent);
+  glassContent.className = 'glass-content';
+  glassContent.appendChild(element);
   if (className) {
-    glass.className = className;
-  } else {
-    glass.className = '';
+    glass.classList.add(className);
   }
   glass.style.display = 'block';
   glass.style.opacity = 1;
   const promises = [];
-  if (closers) {
+  if (closers && closers.length > 0) {
     closers.forEach((closer) => {
       const promise = new Promise((resolve) => {
         closer.element.addEventListener('click', async () => {
-          if (closer.execute) {
-            await closer.execute();
-          }
           resolve(closer.response);
         });
       });
@@ -349,7 +309,7 @@ function displayOnGlass(element, closers, className) {
     });
   } else {
     const promise = new Promise((resolve) =>
-      content.addEventListener('click', () => resolve())
+      glassContent.addEventListener('click', () => resolve())
     );
     promises.push(promise);
   }
@@ -357,22 +317,21 @@ function displayOnGlass(element, closers, className) {
   return Promise.race(promises)
     .then((id) => {
       closingId = id;
-      return wipeGlass();
+      return wipeGlass(glass);
     })
     .then(() => closingId);
 }
 
 /**
  * Clear and close the glass layer. The layer is hidden and it's content removed.
+ * @param {Element} glass
  * @returns {Promise} fulfils to undefined. This is to allow opacity transition.
  */
-function wipeGlass() {
-  const content = document.getElementById('glass-content');
+function wipeGlass(glass) {
   glass.style.opacity = 0;
   return new Promise((resolve) => {
     window.setTimeout(() => {
-      content.innerHTML = '';
-      glass.style.display = 'none';
+      glass.remove();
       resolve();
     }, 500);
   });
@@ -482,14 +441,7 @@ function glassPositionToWorld(position) {
 
   let x = xOrigin + position.x;
   let y = yOrigin + position.y;
-  /*
-  let x = position.x < 0 ? glassRect.width + position.x : position.x;
-  let y = position.y < 0 ? glassRect.height + position.y : position.y;
-  const newPosition = new Position(
-    x / scale + 0.5 * (canvasRect.width - glassRect.width / scale),
-    y / scale + 0.5 * (canvasRect.height - glassRect.height / scale)
-  );
-  */
+
   return canvasPositionToWorld(new Position(x, y, position.rotation));
 }
 
@@ -509,15 +461,6 @@ function isOnScreen(rect) {
  */
 function isOnCanvas(rect) {
   return rect.overlaps(canvasRect);
-}
-
-/**
- * Get the dimensions of the glass rect. This is scaled to fit the canvas and
- * screen, so this rectangle, in canvas dimensions, is always visible.
- * @returns {Rectangle}
- */
-function getGlassRect() {
-  return glassRect;
 }
 
 /**
@@ -546,7 +489,6 @@ const SCREEN = {
   getCanvas: () => canvas,
   getContext2D: getContext2D,
   getCanvasDimensions: getCanvasDimensions,
-  getGlassRect: getGlassRect,
   getWorldInCanvasBounds: getWorldInCanvasBounds,
   getVisibleCanvasRect: getVisibleCanvasRect,
   glassPositionToWorld: glassPositionToWorld,

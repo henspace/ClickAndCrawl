@@ -18,7 +18,7 @@
 }
 
 :root {
-  --primary-base: rgb(32, 96, 32);
+  --primary-base: #4f381b;
   --primary-contrast: rgb(255, 255, 255);
   --primary-highlight: rgb(51, 153, 51);
 
@@ -76,7 +76,7 @@ body {
   overflow: hidden;
 }
 
-#glass {
+.glass {
   background-color: black;
   background-size: contain;
   background-position: center;
@@ -84,9 +84,11 @@ body {
   position: absolute;
   opacity: 0;
   transition: opacity 0.5s;
+  width: 100vw;
+  height: 100vh;
 }
 
-#glass-content {
+.glass-content {
   align-items: center;
   display: flex;
   flex-direction: column;
@@ -94,20 +96,21 @@ body {
   height: 100%;
 }
 
-#glass.door {
+.glass.door {
   background-image: url(../assets/images/dungeon-splash.jpg);
 }
 
-#glass.wall {
+.glass.wall {
   background-image: url(../assets/images/wall.jpg);
 }
 
-#glass-content > div {
+.glass-content > div {
   background-color: var(--window-base);
   border: 2px solid var(--window-contrast);
   color: var(--window-contrast);
   display: flex;
   flex-direction: column;
+  gap: 4px;
   justify-content: center;
   padding: 0.5rem;
   width: 70%;
@@ -129,12 +132,47 @@ h3 {
   font-size: 1.2rem;
 }
 
+label {
+  background-image: url(../assets/images/button-texture.jpg);
+  display: flex;
+  justify-content: space-between;
+  line-height: 48px;
+}
 button {
   background-color: var(--primary-base);
+  background-image: url(../assets/images/button-texture.jpg);
   color: var(--primary-contrast);
   font-family: 'UnifrakturCook', cursive;
   font-size: 1rem;
+  text-align: center;
 }
+
+button:hover {
+  cursor: pointer;
+}
+
+label .icon-button-external {
+  background: none;
+  background-image: none;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: 0px;
+}
+
+.glass-content label:nth-of-type(even) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-button-internal {
+  display: flex;
+  align-content: center;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .close-button {
   background-color: black;
   color: white;

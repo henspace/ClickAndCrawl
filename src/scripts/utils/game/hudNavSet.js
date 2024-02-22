@@ -3,8 +3,7 @@
  *
  * @module utils/game/hudNavSet
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -109,9 +108,9 @@ export class NavigationButtons {
     this.#trackingButtonImage = new AnimatedImage(
       0,
       {
-        prefix: 'hud-auto-centre-',
+        prefix: 'hud-auto-centre',
         startIndex: 0,
-        padding: 3,
+        padding: 2,
         suffix: '.png',
       },
       { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
@@ -153,7 +152,7 @@ export class NavigationButtons {
   #createArrowButtons(centreX, centreY, gridSize) {
     const scrollSpeed = SCROLL_TILES_PER_SEC * gridSize;
     this.#createMomentaryButton(
-      'hud-arrow-up-',
+      'hud-arrow-up',
       centreX,
       centreY - gridSize,
       () => {
@@ -164,7 +163,7 @@ export class NavigationButtons {
     );
 
     this.#createMomentaryButton(
-      'hud-arrow-right-',
+      'hud-arrow-right',
       centreX + gridSize,
       centreY,
       () => {
@@ -175,7 +174,7 @@ export class NavigationButtons {
     );
 
     this.#createMomentaryButton(
-      'hud-arrow-down-',
+      'hud-arrow-down',
       centreX,
       centreY + gridSize,
       () => {
@@ -186,7 +185,7 @@ export class NavigationButtons {
     );
 
     this.#createMomentaryButton(
-      'hud-arrow-left-',
+      'hud-arrow-left',
       centreX - gridSize,
       centreY,
       () => {
@@ -211,7 +210,7 @@ export class NavigationButtons {
       {
         prefix: imageNamePrefix,
         startIndex: 0,
-        padding: 3,
+        padding: 2,
         suffix: '.png',
       },
       { framePeriodMs: 1, loopMethod: LoopMethod.STOP }

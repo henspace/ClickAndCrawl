@@ -3,8 +3,7 @@
  *
  * @module dnd/interact
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -35,6 +34,8 @@ import { PathFollower } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
 import * as chance from './chance.js';
 import UI from '../utils/dom/ui.js';
+
+import PERSISTENT_DATA from '../utils/persistentData.js';
 
 /** Dummy interaction that does nothing
  */
@@ -160,11 +161,17 @@ export class Fight extends EmptyInteraction {
         resolve();
         return;
       } else {
-        addFadingImage(IMAGE_MANAGER.getSpriteBitmap(0, 'blood-splat.png'), {
-          lifetimeSecs: 1,
-          position: defender.position,
-          velocity: new Velocity(0, 0, 0),
-        });
+        addFadingImage(
+          IMAGE_MANAGER.getSpriteBitmap(
+            0,
+            PERSISTENT_DATA.get('BLOOD_ON') ? 'blood-splat.png' : 'pow.png'
+          ),
+          {
+            lifetimeSecs: 1,
+            position: defender.position,
+            velocity: new Velocity(0, 0, 0),
+          }
+        );
       }
       let defenderHP = defender.traits.get('HP');
       const damage = chance.damageInflicted(attacker, defender);

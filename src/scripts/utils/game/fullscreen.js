@@ -3,8 +3,7 @@
  *
  * @module utils/game/fullscreen
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -69,9 +68,9 @@ export function addFullscreenButtonToHud() {
   fullscreenButtonImage = new AnimatedImage(
     0,
     {
-      prefix: 'hud-fullscreen-',
+      prefix: 'hud-fullscreen',
       startIndex: 0,
-      padding: 3,
+      padding: 2,
       suffix: '.png',
     },
     { framePeriodMs: 1, loopMethod: LoopMethod.STOP }

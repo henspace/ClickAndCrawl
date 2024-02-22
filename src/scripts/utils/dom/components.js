@@ -3,8 +3,7 @@
  *
  * @module utils/dom/menu
  *
- * @license
- * {@link https://opensource.org/license/mit/|MIT}
+ * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -30,6 +29,7 @@
 
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import GameConstants from '../game/gameConstants.js';
+import PERSISTENT_DATA from '../persistentData.js';
 
 /**
  * Menu item.
@@ -86,6 +86,24 @@ export class ActionButton {
 }
 
 /**
+ * Text button
+ */
+export class TextButtonControl {
+  /**
+   * @type {Element}
+   */
+  element;
+  /** @type {string} */
+  id;
+
+  /** Create the button */
+  constructor(options) {
+    this.element = document.createElement('button');
+    this.element.appendChild(document.createTextNode(options.label));
+  }
+}
+
+/**
  * Universal control that can be used as an action button or a toggle selection.
  */
 export class IconButtonControl {
@@ -100,7 +118,7 @@ export class IconButtonControl {
   /** @type {boolean} */
   #selected;
   /** @type {function: Promise} */
-  #action;
+  action;
   /** @type {string} */
   id;
 
@@ -124,31 +142,39 @@ export class IconButtonControl {
       );
     }
     this.id = options.id;
-    this.#bitmapUp = IMAGE_MANAGER.getSpriteBitmap(0, options.imageNameUp);
-    this.#bitmapDown = options.imageNameDown
-      ? IMAGE_MANAGER.getSpriteBitmap(0, options.imageNameDown)
-      : this.#bitmapUp;
     const button = document.createElement('button');
-    const canvas = document.createElement('canvas');
-    canvas.setAttribute('width', GameConstants.TILE_SIZE);
-    canvas.setAttribute('height', GameConstants.TILE_SIZE);
-    this.#context = canvas.getContext('2d');
-    button.appendChild(canvas);
-    if (options.internalLabel) {
+    if (options.imageNameUp) {
+      this.#bitmapUp = IMAGE_MANAGER.getSpriteBitmap(0, options.imageNameUp);
+      this.#bitmapDown = options.imageNameDown
+        ? IMAGE_MANAGER.getSpriteBitmap(0, options.imageNameDown)
+        : this.#bitmapUp;
+      const canvas = document.createElement('canvas');
+      canvas.setAttribute('width', GameConstants.TILE_SIZE);
+      canvas.setAttribute('height', GameConstants.TILE_SIZE);
+      this.#context = canvas.getContext('2d');
+      button.appendChild(canvas);
+    }
+
+    if (options.internalLabel || !this.#context) {
       this.#element = button;
-      this.#element.appendChild(document.createTextNode(options.label));
+      button.classList.add('icon-button-internal');
+      const span = this.#element.appendChild(document.createElement('span'));
+      span.appendChild(document.createTextNode(options.label));
     } else {
+      button.classList.add('icon-button-external');
       this.#element = document.createElement('label');
       this.#element.appendChild(document.createTextNode(options.label));
       this.#element.appendChild(button);
     }
     this.#element.addEventListener('mousedown', () => this.#pressed());
-    this.#element.addEventListener('touchstart', () => this.#pressed());
+    this.#element.addEventListener('touchstart', () => this.#pressed(), {
+      passive: true,
+    });
     this.#element.addEventListener('mouseup', async () => this.#released());
     this.#element.addEventListener('touchend', async () => this.#released());
     this.#element.addEventListener('touchcancel', () => this.#cancelled());
     this.selected = false;
-    this.#action = options.action;
+    this.action = options.action;
   }
 
   /**
@@ -213,18 +239,6 @@ export class IconButtonControl {
       0.5 * (GameConstants.TILE_SIZE - spriteBitmap.height)
     );
   }
-
-  /**
-   * executes the menu item's promise.
-   * @returns {Promise}
-   */
-  execute() {
-    if (this.#action) {
-      return this.#action();
-    } else {
-      return Promise.resolve();
-    }
-  }
 }
 
 /**
@@ -238,10 +252,60 @@ export class CheckboxControl extends IconButtonControl {
   constructor(label) {
     super({
       label: label,
-      imageNameUp: 'ui-unchecked.png',
-      imageNameDown: 'ui-checked.png',
+      imageNameUp: 'ui-checkbox00.png',
+      imageNameDown: 'ui-checkbox01.png',
       internalLabel: false,
       action: null,
     });
   }
+}
+
+/**
+ * Control UI types.
+ * @enum {string}
+ */
+export const ControlType = {
+  TEXT_BUTTON: 'text button',
+  CHECKBOX: 'checkbox',
+};
+
+/**
+ * @typedef {Object} ControlDefinition
+ * @param {string} key - identification for the control. Used as a key for storage.
+ * @param {string} label - text displayed on control
+ * @param {*}   defValue - default value,
+ * @param {ControlType} controlType - type of control required,
+ * @param {boolean} persistent - whether the value is stored in persistent data.
+ * @param {function: Promise} action - action to perform when clicked.
+ */
+
+/**
+ * Create a control type.
+ * @param {ControlDefinition} definition
+ * @returns {IconButtonControl}
+ */
+export function createControl(definition) {
+  let control;
+  switch (definition.controlType) {
+    case ControlType.TEXT_BUTTON:
+      control = new TextButtonControl(definition);
+      break;
+    case ControlType.CHECKBOX:
+      control = new CheckboxControl(definition.label);
+      if (definition.persistent) {
+        control.selected = PERSISTENT_DATA.get(
+          definition.key,
+          definition.defValue
+        );
+        control.action = () => {
+          PERSISTENT_DATA.set(definition.key, control.selected);
+          return definition.action ? definition.action : Promise.resolve();
+        };
+      } else {
+        control.selected = definition.defValue;
+        control.action = definition.action;
+      }
+      break;
+  }
+  return control;
 }
