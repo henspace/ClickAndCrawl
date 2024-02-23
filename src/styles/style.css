@@ -151,21 +151,11 @@ button:hover {
   cursor: pointer;
 }
 
-label .icon-button-external {
-  background: none;
-  background-image: none;
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  line-height: 0px;
-}
-
 .glass-content label:nth-of-type(even) {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.icon-button-internal {
+.icon-button {
   display: flex;
   align-content: center;
   flex-direction: row;
@@ -198,4 +188,27 @@ label .icon-button-external {
   text-align: center;
   transform: translate(-50%, -50%);
   transition: opacity 1s;
+}
+.styled-checkbox {
+  display: inline-block;
+  line-height: 0px;
+}
+.styled-checkbox input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+.styled-checkbox input[type='checkbox'] ~ canvas.checked {
+  display: none;
+}
+.styled-checkbox input[type='checkbox']:checked ~ canvas.unchecked {
+  display: none;
+}
+.styled-checkbox input[type='checkbox']:checked ~ canvas.checked {
+  display: inline-block;
+}
+.styled-checkbox input[type='checkbox']:focus + canvas {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
 }

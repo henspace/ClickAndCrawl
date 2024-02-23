@@ -33,18 +33,18 @@ import UI from '../utils/dom/ui.js';
 /** Settings */
 const SETTINGS = [
   {
-    key: 'BLOOD_ON',
+    id: 'BLOOD_ON',
     label: 'Blood on',
     defValue: true,
-    controlType: ControlType.CHECKBOX,
+    controlType: ControlType.NATIVE_CHECKBOX,
     persistent: true,
     action: null,
   },
   {
-    key: 'UNUSED',
+    id: 'UNUSED',
     label: 'Not used yet',
     defValue: false,
-    controlType: ControlType.CHECKBOX,
+    controlType: ControlType.NATIVE_CHECKBOX,
     persistent: true,
     action: null,
   },

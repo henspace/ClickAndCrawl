@@ -42,7 +42,6 @@ import { Point, Position, Velocity } from '../geometry.js';
 import LOG from '../logging.js';
 import * as maths from '../maths.js';
 import { showMainMenu } from '../../dialogs/mainMenu.js';
-import { IconButtonControl } from '../dom/components.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -296,13 +295,6 @@ class WaitingToStart extends State {
  */
 class AtMainMenu extends State {
   onEntry() {
-    const play = new IconButtonControl({
-      id: 'PLAY',
-      label: 'Play',
-      imageNameUp: 'hero-idle00.png',
-      imageNameDown: 'hero-idle01.png',
-      internalLabel: true,
-    });
     return showMainMenu().then(() => this.transitionTo(new AtStart()));
   }
 }

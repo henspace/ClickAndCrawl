@@ -1,5 +1,5 @@
 /**
- * @file Classes for managing menues.
+ * @file Classes for managing menus.
  *
  * @module utils/dom/menu
  *
@@ -30,57 +30,103 @@
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import GameConstants from '../game/gameConstants.js';
 import PERSISTENT_DATA from '../persistentData.js';
+import LOG from '../logging.js';
+import SYSTEM from '../system.js';
 
 /**
- * Menu item.
+ * Base control
  */
-export class ActionButton {
+class BaseControl {
+  /**
+   * @type {Element}
+   */
+  _element;
+
   /** @type {string} */
-  #label;
-  /** @type {import("../sprites/imageManager.js").SpriteBitmap} */
-  #bitmap;
-  /** @type {function():Promise} */
+  #id;
+
+  /** @type {*} */
+  #value;
+
+  /** @type {boolean} */
+  #persistent;
+
+  /** @type {boolean} */
+  closes;
+
+  /** @type {function: Promise} */
   #action;
 
   /**
-   * Create the action button.
+   * Create base control
    * @param {Object} options
-   * @param {*} options.label
-   * @param {*} options.image
-   * @param {*} options.action
+   * @param {string} options.id
+   * @param {string} options.label
+   * @param {boolean} options.persistent - is data stored in persistent storage.
+   * @param {*} options.defValue - default value
+   * @param {boolean} closes - flag to indicate whether this control should be used
+   * to close a dialog or form when clicked.
    */
   constructor(options) {
-    this.#label = options.label;
-    this.#bitmap = options.image;
+    if (options.closes && options.action) {
+      throw new Error(
+        `Attempt made to create control ${options.id} that is set to close forms and perform and action. These are mutually exclusive.`
+      );
+    }
+    this.#id = options.id;
+    this.#persistent = options.persistent;
+    if (options.persistent) {
+      this.#value = PERSISTENT_DATA.get(this.#id, options.defValue);
+    } else {
+      this.#value = options.defValue;
+    }
+    this.closes = options.closes;
     this.#action = options.action;
-  }
-
-  /** Get HTML element for the button.
-   * @returns {Element}
-   */
-  getElement() {
-    const container = document.createElement('button');
-    const canvas = document.createElement('canvas');
-    canvas.setAttribute('width', this.#bitmap.width);
-    canvas.setAttribute('height', this.#bitmap.height);
-    const context = canvas.getContext('2d');
-    context.drawImage(this.#bitmap.image, 0, 0);
-    container.appendChild(canvas);
-    const labelEl = document.createElement('span');
-    labelEl.innerText = this.#label;
-    container.appendChild(labelEl);
-    return container;
+    this.listeners = 0;
   }
 
   /**
-   * executes the menu item's promise.
-   * @returns {Promise}
+   * Get the underlying element
+   * @returns {Element}
    */
-  execute() {
-    if (this.#action) {
-      return this.#action();
-    } else {
-      return Promise.resolve();
+  get element() {
+    return this._element;
+  }
+
+  /**
+   *
+   * @returns {*}
+   */
+  get value() {
+    return this.#value;
+  }
+
+  /**
+   * Set the value.
+   * @param {*} value
+   */
+  set value(value) {
+    if (value === this.#value) {
+      return;
+    }
+    if (this.#persistent) {
+      PERSISTENT_DATA.set(this.#id, value);
+    }
+    this.#value = value;
+  }
+
+  /**
+   * Enable action on event name.
+   * @param {string} eventName
+   */
+  enableActionOnEvent(eventName) {
+    if (this._element && this.#action) {
+      this._element.addEventListener(eventName, async (event) => {
+        LOG.debug(
+          `Click: current target ${event.currentTarget}, target ${event.target}`
+        );
+        await this.#action(event);
+      });
     }
   }
 }
@@ -88,175 +134,129 @@ export class ActionButton {
 /**
  * Text button
  */
-export class TextButtonControl {
-  /**
-   * @type {Element}
+export class TextButtonControl extends BaseControl {
+  /** Create the button.
+   * @param {Object} options - see BaseControl plus
+   * @param {function:Promise} action - function called on click.
    */
-  element;
-  /** @type {string} */
-  id;
-
-  /** Create the button */
   constructor(options) {
-    this.element = document.createElement('button');
-    this.element.appendChild(document.createTextNode(options.label));
+    super(options);
+    this._element = this.buildElement(options);
+    this.enableActionOnEvent('click');
+  }
+
+  /**
+   * @param {Object} options - see Constructor.
+   * @returns {Element}
+   */
+  buildElement(options) {
+    const element = document.createElement('button');
+    element.appendChild(document.createTextNode(options.label));
+    element.className = 'text-button';
+    return element;
   }
 }
 
 /**
- * Universal control that can be used as an action button or a toggle selection.
+ * Text button
  */
-export class IconButtonControl {
-  /** @type {import("../sprites/imageManager.js").SpriteBitmap} */
-  #bitmapUp;
-  /** @type {import("../sprites/imageManager.js").SpriteBitmap} */
-  #bitmapDown;
+export class BitmapButtonControl extends BaseControl {
+  /** Create the button.
+   * @param {Object} options - see BaseControl. Plus
+   * @param {function:Promise} action - function called on click.
+   * @param {number} imageIndex - index in image manager
+   * @param {string} imageName
+   */
+  constructor(options) {
+    super(options);
+    this._element = this.buildElement(options);
+    this.enableActionOnEvent('click');
+  }
+
+  /**
+   * @param {Object} options - see Constructor.
+   * @returns {Element}
+   */
+  buildElement(options) {
+    const element = document.createElement('button');
+    element.appendChild(document.createTextNode(options.label));
+    element.appendChild(
+      createBitmapElement(options.index, options.imageName, 'button-icon')
+    );
+    element.className = 'icon-button';
+    return element;
+  }
+}
+
+/**
+ * Create a bitmap element
+ * @param {number} index - index of images in the image manager
+ * @param {string} imageName
+ * @param {string} className
+ * @returns {Element}
+ */
+
+function createBitmapElement(index = 0, imageName, className) {
+  const bitmapImage = IMAGE_MANAGER.getSpriteBitmap(index, imageName);
+  const canvas = document.createElement('canvas');
+  canvas.setAttribute('width', GameConstants.TILE_SIZE);
+  canvas.setAttribute('height', GameConstants.TILE_SIZE);
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
+  context.drawImage(
+    bitmapImage.image,
+    0.5 * (GameConstants.TILE_SIZE - bitmapImage.width),
+    0.5 * (GameConstants.TILE_SIZE - bitmapImage.height)
+  );
+  canvas.className = className;
+  return canvas;
+}
+
+class NativeCheckboxControl extends BaseControl {
   /** @type {Element} */
-  #element;
-  /** @type {CanvasRenderingContext2D} */
-  #context;
-  /** @type {boolean} */
-  #selected;
-  /** @type {function: Promise} */
-  action;
-  /** @type {string} */
-  id;
+  #checkbox;
 
   /**
-   * Create a toggle control button. Buttons are sized the same size as a tile
-   * as defined in GameConstants.TILE_SIZE.
-   * @param {Object} options
+   * Create the NativeCheckboxControl
+   * @param {string} id
    * @param {string} label
-   * @param {string} id - used in responses.
-   * @param {string} options.imageNameUp - the image will be taken from the IMAGE_MANAGER using index 0.
-   * @param {string} [options.imageNameDown] - the image will be taken from the IMAGE_MANAGER using index 0.
-   * If not provided, the up button is used.
-   * @param {boolean} options.internalLabel - set whether the label in inside or outside the button.
-   * @param {function: Promise} options.action - action executed on release. If this is provided, the button is
-   * treated as a momentary button. Otherwise it is treated as a latched button or toggle button.
+   * @param {boolean} persistent
    */
-  constructor(options) {
-    if (!options.imageNameDown && !options.action) {
-      throw Error(
-        'Attempt to create a button with no down image and no action. One or other must be supplied.'
-      );
-    }
-    this.id = options.id;
-    const button = document.createElement('button');
-    if (options.imageNameUp) {
-      this.#bitmapUp = IMAGE_MANAGER.getSpriteBitmap(0, options.imageNameUp);
-      this.#bitmapDown = options.imageNameDown
-        ? IMAGE_MANAGER.getSpriteBitmap(0, options.imageNameDown)
-        : this.#bitmapUp;
-      const canvas = document.createElement('canvas');
-      canvas.setAttribute('width', GameConstants.TILE_SIZE);
-      canvas.setAttribute('height', GameConstants.TILE_SIZE);
-      this.#context = canvas.getContext('2d');
-      button.appendChild(canvas);
-    }
-
-    if (options.internalLabel || !this.#context) {
-      this.#element = button;
-      button.classList.add('icon-button-internal');
-      const span = this.#element.appendChild(document.createElement('span'));
-      span.appendChild(document.createTextNode(options.label));
-    } else {
-      button.classList.add('icon-button-external');
-      this.#element = document.createElement('label');
-      this.#element.appendChild(document.createTextNode(options.label));
-      this.#element.appendChild(button);
-    }
-    this.#element.addEventListener('mousedown', () => this.#pressed());
-    this.#element.addEventListener('touchstart', () => this.#pressed(), {
-      passive: true,
-    });
-    this.#element.addEventListener('mouseup', async () => this.#released());
-    this.#element.addEventListener('touchend', async () => this.#released());
-    this.#element.addEventListener('touchcancel', () => this.#cancelled());
-    this.selected = false;
-    this.action = options.action;
-  }
-
-  /**
-   * Get the underlying HTML element;
-   */
-  get element() {
-    return this.#element;
-  }
-
-  /**
-   * Get current selection state
-   * @returns {boolean}
-   */
-  get selected() {
-    return this.#selected;
-  }
-
-  /**
-   * Set current selection state.
-   * @param {boolean} value
-   */
-  set selected(value) {
-    this.#selected = value;
-    this.#showSelectionImage();
-  }
-
-  /** Handle pressed state. */
-  #pressed() {
-    this.#drawImage(this.#bitmapDown);
-  }
-
-  /** Handle released state. */
-  #released() {
-    this.#selected = !this.#selected;
-    this.#showSelectionImage();
-  }
-
-  /** Handle cancelled event. */
-  #cancelled() {
-    this.#showSelectionImage();
-  }
-
-  /** show image appropriate to the current selection state. */
-  #showSelectionImage() {
-    this.#drawImage(this.#selected ? this.#bitmapDown : this.#bitmapUp);
-  }
-
-  /**
-   * Draw image onto the button
-   * @param {import('../sprites/imageManager.js').SpriteBitmap} spriteBitmap
-   */
-  #drawImage(spriteBitmap) {
-    this.#context.clearRect(
-      0,
-      0,
-      GameConstants.TILE_SIZE,
-      GameConstants.TILE_SIZE
-    );
-    this.#context.drawImage(
-      spriteBitmap.image,
-      0.5 * (GameConstants.TILE_SIZE - spriteBitmap.width),
-      0.5 * (GameConstants.TILE_SIZE - spriteBitmap.height)
-    );
-  }
-}
-
-/**
- * IconButtonControl but with the icons set to the standard checkbox icons.
- */
-export class CheckboxControl extends IconButtonControl {
-  /**
-   * Create checkbox control.
-   * @param {string} label
-   */
-  constructor(label) {
+  constructor(id, label, persistent) {
     super({
+      id: id,
       label: label,
-      imageNameUp: 'ui-checkbox00.png',
-      imageNameDown: 'ui-checkbox01.png',
-      internalLabel: false,
-      action: null,
+      persistent: persistent,
+      closes: false,
     });
+    this._element = this.buildElement(label);
+    this.#checkbox.checked = this.value;
+    this._element.addEventListener('change', (event) => {
+      this.value = this.#checkbox.checked;
+    });
+  }
+
+  /**
+   * Build the element
+   * @param {string} label
+   * @returns {Element}
+   */
+  buildElement(label) {
+    const checkboxContainer = document.createElement('span');
+    checkboxContainer.className = 'styled-checkbox';
+    this.#checkbox = document.createElement('input');
+    this.#checkbox.setAttribute('type', 'checkbox');
+    checkboxContainer.appendChild(this.#checkbox);
+    checkboxContainer.appendChild(
+      createBitmapElement(0, 'ui-checkbox00.png', 'unchecked')
+    );
+    checkboxContainer.appendChild(
+      createBitmapElement(0, 'ui-checkbox01.png', 'checked')
+    );
+    const element = document.createElement('label');
+    element.appendChild(document.createTextNode(label));
+    element.appendChild(checkboxContainer);
+    return element;
   }
 }
 
@@ -267,6 +267,7 @@ export class CheckboxControl extends IconButtonControl {
 export const ControlType = {
   TEXT_BUTTON: 'text button',
   CHECKBOX: 'checkbox',
+  NATIVE_CHECKBOX: 'native checkbox',
 };
 
 /**
@@ -282,7 +283,7 @@ export const ControlType = {
 /**
  * Create a control type.
  * @param {ControlDefinition} definition
- * @returns {IconButtonControl}
+ * @returns {BaseControl}
  */
 export function createControl(definition) {
   let control;
@@ -290,21 +291,12 @@ export function createControl(definition) {
     case ControlType.TEXT_BUTTON:
       control = new TextButtonControl(definition);
       break;
-    case ControlType.CHECKBOX:
-      control = new CheckboxControl(definition.label);
-      if (definition.persistent) {
-        control.selected = PERSISTENT_DATA.get(
-          definition.key,
-          definition.defValue
-        );
-        control.action = () => {
-          PERSISTENT_DATA.set(definition.key, control.selected);
-          return definition.action ? definition.action : Promise.resolve();
-        };
-      } else {
-        control.selected = definition.defValue;
-        control.action = definition.action;
-      }
+    case ControlType.NATIVE_CHECKBOX:
+      control = new NativeCheckboxControl(
+        definition.id,
+        definition.label,
+        definition.persistent
+      );
       break;
   }
   return control;

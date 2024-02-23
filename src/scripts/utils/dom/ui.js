@@ -81,7 +81,7 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
     [
       {
         element: buttonEl,
-        response: DialogResponse.OK,
+        id: DialogResponse.OK,
         closer: true,
       },
     ],
@@ -91,7 +91,7 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
 
 /** Create a controls dialog.
  * @param {string} message
- * @param {IconButtonControl[]} ActionButton
+ * @param {BaseControl[]} actionButtons
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
@@ -101,9 +101,7 @@ function showControlsDialog(message, actionButtons, className) {
   const closers = [];
   actionButtons?.forEach((button) => {
     container.appendChild(button.element);
-    if (button.action) {
-      button.element.addEventListener('click', () => button.action());
-    } else {
+    if (button.closes) {
       closers.push({
         element: button.element,
         response: button.id,

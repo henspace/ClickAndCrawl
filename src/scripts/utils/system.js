@@ -1,10 +1,9 @@
 /**
- * @file Main menu
+ * @file System information
  *
- * @module menus/mainMenu
+ * @module utils/system
  *
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,35 +25,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
-import UI from '../utils/dom/ui.js';
-import { BitmapButtonControl } from '../utils/dom/components.js';
-import { showSettingsDialog } from './settingsDialog.js';
+import LOG from './logging.js';
 
 /**
- * Display the main menu. All actions are controlled by the main menu except play
- * which results in the menu resolving.
- * @returns {Promise} fulfils to undefined if play selected.
+ * Test if this is a touch enabled device.
+ * @returns {boolean}
  */
-export function showMainMenu() {
-  const play = new BitmapButtonControl({
-    id: 'PLAY',
-    label: 'Play',
-    imageName: 'ui-play00.png',
-    internalLabel: true,
-    closes: true,
-  });
-  const settings = new BitmapButtonControl({
-    id: 'SETTINGS',
-    label: 'Settings',
-    imageName: 'ui-settings00.png',
-    internalLabel: true,
-    action: () => showSettingsDialog(),
-    closes: false,
-  });
-  return UI.showControlsDialog(
-    'Welcome to the Scripted Dungeon',
-    [settings, play],
-    'door'
-  );
+function isTouchDevice() {
+  const touch = 'ontouchstart' in document.documentElement;
+  LOG.debug(`Device is ${touch ? '' : 'not '}touch enabled.`);
+  return touch;
 }
+
+const SYSTEM = {
+  isTouchDevice: isTouchDevice(),
+};
+export default SYSTEM;

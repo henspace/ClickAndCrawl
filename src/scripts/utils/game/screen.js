@@ -273,7 +273,7 @@ function getContext2D() {
 /**
  * @typedef {Object} Closers
  * @property {Element} element - when clicked, this should close a display.
- * @property {number} response - the code returned if this element closed a display.
+ * @property {number} response - the response returned if this element closed a display.
  */
 /**
  * Set the content of the glass layer. OnClick events are added automatically to the
@@ -313,13 +313,13 @@ function displayOnGlass(element, closers, className) {
     );
     promises.push(promise);
   }
-  let closingId;
+  let closingResponse;
   return Promise.race(promises)
-    .then((id) => {
-      closingId = id;
+    .then((response) => {
+      closingResponse = response;
       return wipeGlass(glass);
     })
-    .then(() => closingId);
+    .then(() => closingResponse);
 }
 
 /**
