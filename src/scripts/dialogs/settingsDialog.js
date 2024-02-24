@@ -29,6 +29,8 @@
 
 import { createControl, ControlType } from '../utils/dom/components.js';
 import UI from '../utils/dom/ui.js';
+import PERSISTENT_DATA from '../utils/persistentData.js';
+import SOUND_MANAGER from '../utils/soundManager.js';
 
 /** Settings */
 const SETTINGS = [
@@ -36,17 +38,33 @@ const SETTINGS = [
     id: 'BLOOD_ON',
     label: 'Blood on',
     defValue: true,
-    controlType: ControlType.NATIVE_CHECKBOX,
+    controlType: ControlType.CHECKBOX,
     persistent: true,
     action: null,
+    closes: false,
   },
   {
-    id: 'UNUSED',
-    label: 'Not used yet',
-    defValue: false,
-    controlType: ControlType.NATIVE_CHECKBOX,
+    id: 'MUSIC_VOLUME',
+    label: 'Music volume',
+    defValue: 50,
+    controlType: ControlType.RANGE,
     persistent: true,
     action: null,
+    onChange: (value) => SOUND_MANAGER.setMusicVolumePercent(value),
+    closes: false,
+  },
+  {
+    id: 'EFFECTS_VOLUME',
+    label: 'Effects volume',
+    defValue: 50,
+    controlType: ControlType.RANGE,
+    persistent: true,
+    action: null,
+    onChange: (value) => {
+      SOUND_MANAGER.setEffectsVolumePercent(value);
+      SOUND_MANAGER.playEffect('PUNCH');
+    },
+    closes: false,
   },
 ];
 
@@ -60,4 +78,16 @@ export function showSettingsDialog() {
     controls.push(createControl(setting));
   });
   return UI.showControlsDialog('Settings', controls, 'door');
+}
+
+/**
+ * Loads persistent settings from stored memory and calls their onChange method.
+ */
+export function initialiseSettings() {
+  SETTINGS.forEach((setting) => {
+    if (setting.persistent & setting.onChange) {
+      const value = PERSISTENT_DATA.get(setting.id, setting.defValue);
+      setting.onChange(value);
+    }
+  });
 }

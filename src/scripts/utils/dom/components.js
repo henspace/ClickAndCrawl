@@ -31,7 +31,6 @@ import IMAGE_MANAGER from '../sprites/imageManager.js';
 import GameConstants from '../game/gameConstants.js';
 import PERSISTENT_DATA from '../persistentData.js';
 import LOG from '../logging.js';
-import SYSTEM from '../system.js';
 
 /**
  * Base control
@@ -53,9 +52,6 @@ class BaseControl {
 
   /** @type {boolean} */
   closes;
-
-  /** @type {function: Promise} */
-  #action;
 
   /**
    * Create base control
@@ -81,7 +77,6 @@ class BaseControl {
       this.#value = options.defValue;
     }
     this.closes = options.closes;
-    this.#action = options.action;
     this.listeners = 0;
   }
 
@@ -114,21 +109,6 @@ class BaseControl {
     }
     this.#value = value;
   }
-
-  /**
-   * Enable action on event name.
-   * @param {string} eventName
-   */
-  enableActionOnEvent(eventName) {
-    if (this._element && this.#action) {
-      this._element.addEventListener(eventName, async (event) => {
-        LOG.debug(
-          `Click: current target ${event.currentTarget}, target ${event.target}`
-        );
-        await this.#action(event);
-      });
-    }
-  }
 }
 
 /**
@@ -142,7 +122,9 @@ export class TextButtonControl extends BaseControl {
   constructor(options) {
     super(options);
     this._element = this.buildElement(options);
-    this.enableActionOnEvent('click');
+    if (options.action) {
+      this._element.addEventListener('click', () => options.action());
+    }
   }
 
   /**
@@ -170,7 +152,9 @@ export class BitmapButtonControl extends BaseControl {
   constructor(options) {
     super(options);
     this._element = this.buildElement(options);
-    this.enableActionOnEvent('click');
+    if (options.action) {
+      this._element.addEventListener('click', () => options.action());
+    }
   }
 
   /**
@@ -212,27 +196,23 @@ function createBitmapElement(index = 0, imageName, className) {
   return canvas;
 }
 
-class NativeCheckboxControl extends BaseControl {
+class CheckboxControl extends BaseControl {
   /** @type {Element} */
   #checkbox;
 
   /**
-   * Create the NativeCheckboxControl
-   * @param {string} id
-   * @param {string} label
-   * @param {boolean} persistent
+   * Create the CheckboxControl
+   * @param {ControlDefinition} definition
    */
-  constructor(id, label, persistent) {
-    super({
-      id: id,
-      label: label,
-      persistent: persistent,
-      closes: false,
-    });
-    this._element = this.buildElement(label);
+  constructor(definition) {
+    super(definition);
+    this._element = this.buildElement(definition.label);
     this.#checkbox.checked = this.value;
     this._element.addEventListener('change', (event) => {
       this.value = this.#checkbox.checked;
+      if (definition.onChange) {
+        definition.onChange(this.value);
+      }
     });
   }
 
@@ -261,13 +241,53 @@ class NativeCheckboxControl extends BaseControl {
 }
 
 /**
+ * Range control
+ */
+export class RangeControl extends BaseControl {
+  /** @type {Element} */
+  #rangeInput;
+
+  /**
+   * Create the RangeControl
+   * @param {ControlDefinition} definition
+   */
+  constructor(definition) {
+    super(definition);
+    this._element = this.buildElement(definition.label);
+    this.#rangeInput.value = this.value;
+    this._element.addEventListener('change', (event) => {
+      this.value = this.#rangeInput.value;
+      if (definition.onChange) {
+        definition.onChange(this.value);
+      }
+    });
+  }
+
+  /**
+   * Build the element
+   * @param {string} label
+   * @returns {Element}
+   */
+  buildElement(label) {
+    const rangeContainer = document.createElement('span');
+    rangeContainer.className = 'styled-range';
+    this.#rangeInput = document.createElement('input');
+    this.#rangeInput.setAttribute('type', 'range');
+    rangeContainer.appendChild(this.#rangeInput);
+    const element = document.createElement('label');
+    element.appendChild(document.createTextNode(label));
+    element.appendChild(rangeContainer);
+    return element;
+  }
+}
+/**
  * Control UI types.
  * @enum {string}
  */
 export const ControlType = {
   TEXT_BUTTON: 'text button',
   CHECKBOX: 'checkbox',
-  NATIVE_CHECKBOX: 'native checkbox',
+  RANGE: 'range',
 };
 
 /**
@@ -278,6 +298,7 @@ export const ControlType = {
  * @param {ControlType} controlType - type of control required,
  * @param {boolean} persistent - whether the value is stored in persistent data.
  * @param {function: Promise} action - action to perform when clicked.
+ * @param {function} onChange - action to perform when value changes.
  */
 
 /**
@@ -288,16 +309,19 @@ export const ControlType = {
 export function createControl(definition) {
   let control;
   switch (definition.controlType) {
+    case ControlType.CHECKBOX:
+      control = new CheckboxControl(definition);
+      break;
+    case ControlType.RANGE:
+      control = new RangeControl(definition);
+      break;
     case ControlType.TEXT_BUTTON:
       control = new TextButtonControl(definition);
       break;
-    case ControlType.NATIVE_CHECKBOX:
-      control = new NativeCheckboxControl(
-        definition.id,
-        definition.label,
-        definition.persistent
+    default:
+      throw new Error(
+        `Attempt to create unrecognised control type ${definition.controlType}`
       );
-      break;
   }
   return control;
 }

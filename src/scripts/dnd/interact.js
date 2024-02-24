@@ -34,7 +34,7 @@ import { PathFollower } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
 import * as chance from './chance.js';
 import UI from '../utils/dom/ui.js';
-
+import SOUND_MANAGER from '../utils/soundManager.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 
 /** Dummy interaction that does nothing
@@ -153,6 +153,7 @@ export class Fight extends EmptyInteraction {
   #undertakeAttack(attacker, defender) {
     return new Promise((resolve) => {
       if (!chance.hits(attacker, defender)) {
+        SOUND_MANAGER.playEffect('MISS');
         addFadingText('Missed', {
           lifetimeSecs: 2,
           position: defender.position,
@@ -161,6 +162,7 @@ export class Fight extends EmptyInteraction {
         resolve();
         return;
       } else {
+        SOUND_MANAGER.playEffect('PUNCH');
         addFadingImage(
           IMAGE_MANAGER.getSpriteBitmap(
             0,
@@ -178,6 +180,7 @@ export class Fight extends EmptyInteraction {
       defenderHP = Math.max(0, defenderHP - damage);
       defender.traits.set('HP', defenderHP);
       if (defenderHP === 0) {
+        SOUND_MANAGER.playEffect('DIE');
         LOG.info('Killed actor.');
         defender.interaction = new SearchCorpse();
         defender.alive = false;

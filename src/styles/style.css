@@ -20,7 +20,7 @@
 :root {
   --primary-base: #4f381b;
   --primary-contrast: rgb(255, 255, 255);
-  --primary-highlight: rgb(51, 153, 51);
+  --primary-highlight: #352c22;
 
   --secondary-base: rgb(38, 38, 115);
   --secondary-contrast: rgb(255, 255, 255);
@@ -53,7 +53,7 @@
 }
 
 body {
-  background-color: black;
+  background-color: var(--window-base);
   color: var(--window-contrast);
   align-items: center;
   justify-content: center;
@@ -77,7 +77,7 @@ body {
 }
 
 .glass {
-  background-color: black;
+  background-color: var(--window-base);
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -211,4 +211,31 @@ button:hover {
 .styled-checkbox input[type='checkbox']:focus + canvas {
   outline: 5px auto Highlight;
   outline: 5px auto -webkit-focus-ring-color;
+}
+
+.styled-range input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 144px;
+}
+.styled-range input[type='range']::-webkit-slider-runnable-track,
+.styled-range input[type='range']::-moz-range-track {
+  background: var(--primary-contrast);
+  border-radius: 0.25rem;
+  margin-right: 0px;
+  height: 0.5rem;
+}
+.styled-range input[type='range']::-webkit-slider-thumb,
+.styled-range input[type='range']::-moz-range-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--primary-highlight);
+  background-image: url(../assets/images/tile-texture.jpg);
+  width: 44px;
+  height: 44px;
+  margin-top: calc(0.5 * (0.5rem - 44px));
+  border: solid 2px var(--primary-contrast);
+  border-radius: 10px;
 }

@@ -45,6 +45,8 @@ import TURN_MANAGER from './turnManager.js';
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import textureMap from '../../../assets/images/dungeon.json';
 import textureUrl from '../../../assets/images/dungeon.png';
+import SOUND_MANAGER from '../soundManager.js';
+import { initialiseSettings } from '../../dialogs/settingsDialog.js';
 
 /**
  * Tile size to use throughout the game
@@ -64,8 +66,36 @@ async function initialise(screenOptions) {
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
   // Need a menu here but for now, just load the test screen.
+  const musicUrl = new URL(
+    '../../../assets/audio/do-alto-do-trono-da-desolacao-trimmed.mp3',
+    import.meta.url
+  );
+  const effectsUrls = new Map([
+    [
+      'PUNCH',
+      new URL('../../../assets/audio/punch-trimmed.mp3', import.meta.url),
+    ],
+    [
+      'MISS',
+      new URL(
+        '../../../assets/audio/long-medium-swish-trimmed.mp3',
+        import.meta.url
+      ),
+    ],
 
+    [
+      'DIE',
+      new URL(
+        '../../../assets/audio/male-hurt-sound-trimmed.mp3',
+        import.meta.url
+      ),
+    ],
+  ]);
+  initialiseSettings();
   UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start", 'door')
+    .then(() => SOUND_MANAGER.loadAndPlayMusic(musicUrl))
+    .then(() => SOUND_MANAGER.loadEffects(effectsUrls))
+
     .then(() => IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl))
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneDefinitions(parseScript(script)))
