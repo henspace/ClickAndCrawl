@@ -28,15 +28,14 @@
  */
 
 import { Sprite } from '../utils/sprites/sprite.js';
-import { Actor } from '../utils/game/actors.js';
+import { Actor, ActorType } from '../utils/game/actors.js';
 import * as spriteRenderers from '../utils/sprites/spriteRenderers.js';
-import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
 import * as animation from '../utils/sprites/animation.js';
 import { Position } from '../utils/geometry.js';
 import SCREEN from '../utils/game/screen.js';
 import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/colours.js';
-import { Fight, Trade } from '../dnd/interact.js';
+import { Fight, Trade, FindArtefact } from '../dnd/interact.js';
 import StdAnimations from './actorAnimationKeys.js';
 import * as maths from '../utils/maths.js';
 import GameConstants from '../utils/game/gameConstants.js';
@@ -88,6 +87,9 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   /** @type{boolean}*/
   #aliveStatus;
 
+  /** @type {animation.AnimatedImage} */
+  #fallbackImage;
+
   /**
    * Create the keyed animated image
    * @param {string} key
@@ -96,6 +98,7 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   constructor(key, animatedImage) {
     super(key, animatedImage);
     this.#compassDir = maths.CompassEightPoint.NONE;
+    this.#fallbackImage = animatedImage;
   }
 
   /**
@@ -115,7 +118,8 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
       this.#aliveStatus = this.#actor?.alive;
       this.#setAnimationForState();
     }
-    return super.getCurrentFrame();
+    const frame = super.getCurrentFrame();
+    return frame ?? this.#fallbackImage.getCurrentFrame();
   }
 
   #getCurrentDirection() {
@@ -133,25 +137,25 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
    */
   #setAnimationForState() {
     if (!this.#actor.alive) {
-      return this.setCurrentKey(StdAnimations.definitions.DEAD.keyName);
+      return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('DEAD'));
     }
     switch (this.#compassDir) {
       case maths.CompassEightPoint.NONE:
-        this.setCurrentKey(StdAnimations.definitions.IDLE.keyName);
+        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('IDLE'));
         break;
       case maths.CompassEightPoint.E:
-        this.setCurrentKey(StdAnimations.definitions.WALK_EAST.keyName);
+        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_EAST'));
         break;
       case maths.CompassEightPoint.N:
       case maths.CompassEightPoint.NW:
       case maths.CompassEightPoint.NE:
-        this.setCurrentKey(StdAnimations.definitions.WALK_NORTH.keyName);
+        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_NORTH'));
         break;
       case maths.CompassEightPoint.W:
-        this.setCurrentKey(StdAnimations.definitions.WALK_WEST.keyName);
+        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_WEST'));
         break;
       default:
-        this.setCurrentKey(StdAnimations.definitions.WALK_SOUTH.keyName);
+        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_SOUTH'));
         break;
     }
   }
@@ -159,6 +163,7 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
 
 /**
  * Create set of standard animations.
+ * @param {string} imageName - root name for images.
  * @returns {animation.KeyedAnimatedImages}
  */
 function createStandardKeyFrames(imageName) {
@@ -166,26 +171,23 @@ function createStandardKeyFrames(imageName) {
     'still',
     new animation.AnimatedImage(0, `${imageName}.png`)
   );
-
-  for (const key in StdAnimations.definitions) {
-    const anim = StdAnimations.definitions[key];
-    keyedAnimations.addAnimatedImage(
-      StdAnimations.definitions[key].keyName,
-      new animation.AnimatedImage(
-        0,
-        {
-          prefix: StdAnimations.formFrameNameRoot(key, imageName),
-          suffix: '.png',
-          startIndex: 0,
-          padding: 2,
-        },
-        anim.options
-      )
-    );
-  }
-  keyedAnimations.setCurrentKey(StdAnimations.definitions.IDLE.keyName);
+  StdAnimations.peripatetic.addAllToKeyedAnimation(keyedAnimations, imageName);
   return keyedAnimations;
 }
+
+/**
+ * Create set of standard artefact animations.
+ * @returns {animation.KeyedAnimatedImages}
+ */
+function createArtefactKeyFrames(imageName) {
+  const keyedAnimations = new ActorStateAnimator(
+    'still',
+    new animation.AnimatedImage(0, `${imageName}.png`)
+  );
+  StdAnimations.artefact.addAllToKeyedAnimation(keyedAnimations, imageName);
+  return keyedAnimations;
+}
+
 /**
  * Create the actor.
  * @param {string} imageName - no extension
@@ -215,23 +217,36 @@ function createAnimatedActor(imageName) {
     GameConstants.TILE_SIZE,
     0
   );
-  actor.velocity = { x: 0, y: 0, rotation: 0.1 };
+  actor.velocity = { x: 0, y: 0, rotation: 0 };
   return actor;
 }
 
 /**
- * @param {string} imageName - without extension
+ * Create the artefact.
+ * @param {string} imageName - no extension
  * @returns {Actor}
  */
-function createUnanimatedActor(imageName) {
+function createAnimatedArtefact(imageName) {
+  const keyedAnimation = createArtefactKeyFrames(imageName);
+  const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
+    SCREEN.getContext2D(),
+    keyedAnimation
+  );
+
   const actor = new Actor(
     new Sprite({
-      renderer: new spriteRenderers.ImageSpriteCanvasRenderer(
-        SCREEN.getContext2D(),
-        IMAGE_MANAGER.getSpriteBitmap(0, `${imageName}.png`)
-      ),
-    })
+      renderer: [imageRenderer],
+    }),
+    ActorType.ARTEFACT
   );
+  keyedAnimation.setActor(actor);
+  actor.position = new Position(
+    GameConstants.TILE_SIZE,
+    GameConstants.TILE_SIZE,
+    0
+  );
+  actor.velocity = { x: 0, y: 0, rotation: 0 };
+  actor.interaction = new FindArtefact(actor);
   return actor;
 }
 
@@ -270,6 +285,7 @@ const ACTOR_MAP = new Map([
   ['HERO', { create: () => createAnimatedActor('hero') }],
   ['MONSTER', { create: () => createAnimatedFighter('orc') }],
   ['TRADER', { create: () => createAnimatedTrader('trader') }],
+  ['GOLD', { create: () => createAnimatedArtefact('hidden-artefact') }],
 ]);
 
 export default ACTOR_MAP;

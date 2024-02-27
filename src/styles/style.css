@@ -104,6 +104,10 @@ body {
   background-image: url(../assets/images/wall.jpg);
 }
 
+.glass.mask {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
 .glass-content > div {
   background-color: var(--window-base);
   border: 2px solid var(--window-contrast);

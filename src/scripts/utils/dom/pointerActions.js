@@ -36,6 +36,7 @@ export const CUSTOM_POINTER_DOWN_EVENT_NAME = 'custom-pointer-down-event';
 export const CUSTOM_POINTER_UP_EVENT_NAME = 'custom-pointer-up-event';
 export const CUSTOM_POINTER_CANCEL_EVENT_NAME = 'custom-pointer-cancel-event';
 export const CUSTOM_CLICK_EVENT_NAME = 'custom-click-event';
+export const CUSTOM_CONTEXT_MENU_EVENT_NAME = 'custom-conext-click-event';
 export const CUSTOM_POINTER_DRAG_EVENT_NAME = 'custom-pointer-drag-event';
 export const CUSTOM_POINTER_DRAG_END_EVENT_NAME =
   'custom-pointer-drag-end-event';
@@ -324,5 +325,13 @@ export function addPointerListeners(element) {
       });
     }
     dragData.suppressClickEvent = false;
+  });
+  element.addEventListener('contextmenu', (event) => {
+    LOG.debug('contextmenu');
+    event.preventDefault();
+    dispatchEvent(element, CUSTOM_CONTEXT_MENU_EVENT_NAME, {
+      x: event.offsetX,
+      y: event.offsetY,
+    });
   });
 }

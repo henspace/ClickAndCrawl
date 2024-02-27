@@ -28,12 +28,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { EmptyInteraction } from '../../dnd/interact.js';
+import { AbstractInteraction } from '../../dnd/interact.js';
 import { UiClickHandler } from '../ui/interactions.js';
 
 /**
  * @typedef {Map<string, *>} Traits
  */
+
+export const ActorType = {
+  HERO: 0,
+  ENEMY: 1,
+  ARTEFACT: 2,
+  PROP: 3,
+};
 /**
  * Actor class. An actor is a sprite that exists in the world and can interact
  * with other actors.
@@ -49,18 +56,37 @@ export class Actor extends UiClickHandler {
   interaction;
   /** @type {boolean} */
   alive;
+  /** @type {number} */
 
   /**
    * Create the actor.
    * @param {import('../sprites/sprite.js').Sprite} sprite
+   * @param {number} [type = ActorType.ENEMY] type of actor. See @link {ActorType}
    */
-  constructor(sprite) {
+  constructor(sprite, type = ActorType.ENEMY) {
     super();
-    this.interaction = new EmptyInteraction();
+    this.interaction = new AbstractInteraction();
     this.sprite = sprite;
     this.sprite.obstacle = true;
     this.maxTilesPerMove = 4;
     this.alive = true;
+    this.type = type;
+  }
+
+  /**
+   * Test if this actor is the hero.
+   * @returns {boolean}
+   */
+  isHero() {
+    return this.type === ActorType.HERO;
+  }
+
+  /**
+   * Test if this actor is an enemy.
+   * @returns {boolean}
+   */
+  isEnemy() {
+    return this.type === ActorType.ENEMY;
   }
 
   /** Set the underlying sprite visibility.

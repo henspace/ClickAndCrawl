@@ -39,7 +39,7 @@ import PERSISTENT_DATA from '../utils/persistentData.js';
 
 /** Dummy interaction that does nothing
  */
-export class EmptyInteraction {
+export class AbstractInteraction {
   /** Actor owning the interaction @type {Actor} */
   actor;
 
@@ -81,7 +81,7 @@ export class EmptyInteraction {
  * Class to handle fights.
  * @implements {ActorInteraction}
  */
-export class Fight extends EmptyInteraction {
+export class Fight extends AbstractInteraction {
   /**
    * Construct the interaction.
    * @param {Actor} actor - parent actor.
@@ -212,7 +212,7 @@ export class Fight extends EmptyInteraction {
  * Class to handle searching a corpse.
  * @implements {ActorInteraction}
  */
-export class SearchCorpse extends EmptyInteraction {
+export class SearchCorpse extends AbstractInteraction {
   /**
    * Construct the interaction.
    * @param {Actor} actor - parent actor.
@@ -236,7 +236,7 @@ export class SearchCorpse extends EmptyInteraction {
 /**
  * Class to handle trading.
  */
-export class Trade extends EmptyInteraction {
+export class Trade extends AbstractInteraction {
   /**
    * Construct the interaction.
    * @param {Actor} actor - parent actor.
@@ -252,5 +252,35 @@ export class Trade extends EmptyInteraction {
    */
   react(enactorUnused) {
     return UI.showOkDialog("Time to trade. I haven't written the code yet.");
+  }
+}
+
+/**
+ * Class to handle finding artefact
+ */
+export class FindArtefact extends AbstractInteraction {
+  /**
+   * Construct the interaction.
+   * @param {Actor} actor - parent actor.
+   */
+  constructor(actor) {
+    super(actor);
+  }
+
+  /**
+   * Trades are passive. Only the hero can initiate a trade.
+   * @param {import('../utils/game/actors.js').Actor} enactor
+   * @returns {Promise}
+   */
+  react(enactorUnused) {
+    if (this.actor.alive) {
+      return UI.showOkDialog(
+        "You've found a new artefact. I haven't written the code yet."
+      ).then(() => (this.actor.alive = false));
+    } else {
+      return UI.showOkDialog(
+        "You've already found this artefact. I haven't written the code yet."
+      );
+    }
   }
 }

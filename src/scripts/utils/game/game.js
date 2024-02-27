@@ -34,7 +34,7 @@ import GAME_CLOCK from '../time/clock.js';
 import * as debug from '../debug.js';
 import * as text from '../text/text.js';
 import * as assetLoaders from '../assetLoaders.js';
-import parseScript from '../../scriptReaders/scriptParser.js';
+import { getOndemandSceneList } from '../../scriptReaders/scriptParser.js';
 import SCENE_MANAGER from '../game/sceneManager.js';
 import UI from '../dom/ui.js';
 import LOG from '../logging.js';
@@ -47,6 +47,8 @@ import textureMap from '../../../assets/images/dungeon.json';
 import textureUrl from '../../../assets/images/dungeon.png';
 import SOUND_MANAGER from '../soundManager.js';
 import { initialiseSettings } from '../../dialogs/settingsDialog.js';
+import MESSAGES from '../messageManager.js';
+import MESSAGE_MAP from '../../constants/messageMap.js';
 
 /**
  * Tile size to use throughout the game
@@ -63,6 +65,7 @@ let lastTimeStamp;
  */
 async function initialise(screenOptions) {
   SCREEN.setOptions(screenOptions);
+  MESSAGES.setMap(MESSAGE_MAP);
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
   // Need a menu here but for now, just load the test screen.
@@ -92,13 +95,13 @@ async function initialise(screenOptions) {
     ],
   ]);
   initialiseSettings();
-  UI.showOkDialog('Welcome to the Scripted Dungeon', "Let's start", 'door')
+  UI.showOkDialog('WELCOME', 'START BUTTON', 'door')
     .then(() => SOUND_MANAGER.loadAndPlayMusic(musicUrl))
     .then(() => SOUND_MANAGER.loadEffects(effectsUrls))
 
     .then(() => IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl))
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
-    .then((script) => SCENE_MANAGER.setSceneDefinitions(parseScript(script)))
+    .then((script) => SCENE_MANAGER.setSceneList(getOndemandSceneList(script)))
     .then(() => {})
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
     .then(() => startGame())
@@ -162,16 +165,19 @@ function setupListeners() {
     }
   );
 
-  canvas.addEventListener('contextmenu', (event) => {
-    LOG.debug('Context menu');
-    const x = event.detail.x;
-    const y = event.detail.y;
-    const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
-    if (!HUD.resolveContextMenu(mappedPositions)) {
-      WORLD.resolveContextMenu(mappedPositions);
+  canvas.addEventListener(
+    pointerActions.CUSTOM_CONTEXT_MENU_EVENT_NAME,
+    (event) => {
+      LOG.debug('Context menu');
+      const x = event.detail.x;
+      const y = event.detail.y;
+      const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);
+      if (!HUD.resolveContextMenu(mappedPositions)) {
+        WORLD.resolveContextMenu(mappedPositions);
+      }
+      event.preventDefault();
     }
-    event.preventDefault();
-  });
+  );
 }
 
 /**

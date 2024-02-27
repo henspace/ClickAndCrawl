@@ -31,6 +31,7 @@ import IMAGE_MANAGER from './imageManager.js';
 import GAME_CLOCK from '../time/clock.js';
 import { Indexer } from '../arrays/indexer.js';
 import LOG from '../logging.js';
+import * as maths from '../maths.js';
 
 /**
  * Collection of SpriteBitmap objects
@@ -44,6 +45,8 @@ export class AnimatedImage {
   #indexer;
   /** @type {number} */
   #lastFrameCount;
+  /** offset used to randomise animations. @type {number} */
+  #timeOffset;
 
   /** Period in ms for frame animations @type {number}*/
   #framePeriodMs;
@@ -62,6 +65,7 @@ export class AnimatedImage {
   constructor(textureIndex, filenamePattern, options) {
     this.#frames = [];
     this.#lastFrameCount = 0;
+    this.#timeOffset = maths.getRandomInt(0, 1000);
     if (typeof filenamePattern === 'string') {
       this.#frames.push(
         IMAGE_MANAGER.getSpriteBitmap(textureIndex, filenamePattern)
@@ -95,7 +99,10 @@ export class AnimatedImage {
   getCurrentFrame() {
     if (this.#frames.length > 1) {
       if (this.playing) {
-        const frameCount = GAME_CLOCK.getFrameCount(this.#framePeriodMs);
+        const frameCount = GAME_CLOCK.getFrameCount(
+          this.#framePeriodMs,
+          this.#timeOffset
+        );
         if (frameCount !== this.#lastFrameCount) {
           this.#indexer.advanceBy(frameCount - this.#lastFrameCount);
           this.#lastFrameCount = frameCount;

@@ -52,6 +52,9 @@ export class AbstractScene {
   /** @type {import('./actors.js').Actor} */
   heroActor;
 
+  /** @type {string} */
+  intro;
+
   /**
    * Create the scene.
    * @param {number} [fadeInSecs = 2]

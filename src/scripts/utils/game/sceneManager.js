@@ -35,19 +35,61 @@ import WORLD from './world.js';
 import { CameraDolly, CameraTracking } from './camera.js';
 import LOG from '../logging.js';
 
+/**
+ * @interface SceneList
+ */
+/**
+ * Get the next scene.
+ * @function SceneList.getNext
+ * @param{number} index
+ * @returns {SceneDefinition}
+ *
+ */
+/**
+ * Has another scene.
+ * @function SceneList.hasNext
+ * @returns {boolean}
+ *
+ */
+/**
+ * Reset to the first scene.
+ * @function SceneList.reset
+ */
+
 /** @type {import('../sprites/sprite.js').Sprite}  */
 let cameraDolly;
 
-let sceneDefinitions;
-
-let currentIndex;
+/** @type {SceneList} */
+let sceneDefnList;
 
 let currentScene;
 
-/** @type {import('./actors.js').Actor} */
-let hero;
-
 let navigationButtons;
+
+/**
+ * Definition of a scene
+ */
+export class SceneDefinition {
+  /** @type {string} */
+  intro;
+  /** @type {ActorDefn[]} */
+  heroes;
+  /** @type {ActorDefn[]} */
+  enemies;
+  /** @type {ActorDefn[]} */
+  artefacts;
+  /** @type {string[]} */
+  mapDesign;
+  /**
+   * Construct an empty scene
+   */
+  constructor() {
+    this.heroes = [];
+    this.enemies = [];
+    this.artefacts = [];
+    this.mapDesign = [];
+  }
+}
 
 /**
  * Set camera dolly
@@ -93,7 +135,9 @@ function setScene(scene) {
     );
     return Promise.reject();
   }
-  return unloadScene(currentScene).then(() => loadScene(scene));
+  return unloadScene(currentScene)
+    .then(() => loadScene(scene))
+    .then(() => scene);
 }
 
 /**
@@ -138,22 +182,11 @@ function unloadCurrentScene() {
 }
 /**
  * Configure the scenes from the script.
- * @param {import('../../scriptReaders/index.js').SceneDefinition} sceneDefns
+ * @param {import('../../scriptReaders/index.js').SceneDefinition} listOfScenes
  */
-function setSceneDefinitions(sceneDefns) {
-  sceneDefinitions = sceneDefns;
-  currentIndex = -1;
-}
-
-/**
- * @returns {import('./scene.js').Scene} scene constructed from requested scene definition.
- * null if there are no more scenes.
- */
-function getNextScene() {
-  currentIndex++;
-  return currentIndex < sceneDefinitions.length
-    ? parseSceneDefinition(sceneDefinitions[currentIndex])
-    : null;
+function setSceneList(listOfScenes) {
+  sceneDefnList = listOfScenes;
+  sceneDefnList.reset();
 }
 
 /**
@@ -161,35 +194,34 @@ function getNextScene() {
  * @returns {boolean}
  */
 function areThereMoreScenes() {
-  return currentIndex < sceneDefinitions.length - 1;
-}
-
-/**
- * Reset the index and return the first scene.
- * @returns {import('./scene.js').Scene} scene constructed from requested scene definition.
- * null if there are no more scenes.
- */
-function getFirstScene() {
-  currentIndex = -1;
-  return getNextScene();
+  return sceneDefnList.hasNext();
 }
 
 /**
  * Switch to the first scene.
- * @returns {Promise} fulfils to undefined on success.
+ * @returns {Promise} fulfils to the loaded scene.
  * Rejects if no scenes.
  */
 function switchToFirstScene() {
-  return setScene(getFirstScene());
+  sceneDefnList.reset();
+  return setScene(getNextSceneFromList());
 }
 
 /**
  * Switch to the next scene.
- * @returns {Promise} fulfils to undefined on success.
+ * @returns {Promise} fulfils to the loaded scene.
  * Rejects if there are no more.
  */
 function switchToNextScene() {
-  return setScene(getNextScene());
+  return setScene(getNextSceneFromList());
+}
+
+/**
+ * Gets the next scene from the scene definition list.
+ * @returns {Scene}
+ */
+function getNextSceneFromList() {
+  return parseSceneDefinition(sceneDefnList.getNext());
 }
 
 /**
@@ -219,7 +251,7 @@ const SCENE_MANAGER = {
   areThereMoreScenes: areThereMoreScenes,
   setCameraToTrack: setCameraToTrack,
   panCameraBy: panCameraBy,
-  setSceneDefinitions: setSceneDefinitions,
+  setSceneList: setSceneList,
   switchToFirstScene: switchToFirstScene,
   switchToNextScene: switchToNextScene,
   unloadCurrentScene: unloadCurrentScene,

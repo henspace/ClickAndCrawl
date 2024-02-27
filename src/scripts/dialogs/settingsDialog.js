@@ -36,7 +36,7 @@ import SOUND_MANAGER from '../utils/soundManager.js';
 const SETTINGS = [
   {
     id: 'BLOOD_ON',
-    label: 'Blood on',
+    labelKey: 'BLOOD ON CONTROL',
     defValue: true,
     controlType: ControlType.CHECKBOX,
     persistent: true,
@@ -45,7 +45,7 @@ const SETTINGS = [
   },
   {
     id: 'MUSIC_VOLUME',
-    label: 'Music volume',
+    labelKey: 'MUSIC VOLUME CONTROL',
     defValue: 50,
     controlType: ControlType.RANGE,
     persistent: true,
@@ -55,7 +55,7 @@ const SETTINGS = [
   },
   {
     id: 'EFFECTS_VOLUME',
-    label: 'Effects volume',
+    labelKey: 'EFFECTS VOLUME CONTROL',
     defValue: 50,
     controlType: ControlType.RANGE,
     persistent: true,
@@ -77,7 +77,7 @@ export function showSettingsDialog() {
   SETTINGS.forEach((setting) => {
     controls.push(createControl(setting));
   });
-  return UI.showControlsDialog('Settings', controls, 'door');
+  return UI.showControlsDialog('SETTINGS DIALOG TITLE', controls, 'door');
 }
 
 /**

@@ -42,6 +42,8 @@ import { Point, Position, Velocity } from '../geometry.js';
 import LOG from '../logging.js';
 import * as maths from '../maths.js';
 import { showMainMenu } from '../../dialogs/mainMenu.js';
+import { Actor } from './actors.js';
+import * as actorDialogs from '../../dialogs/actorDialogs.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -304,12 +306,15 @@ class AtMainMenu extends State {
 class AtStart extends State {
   onEntry() {
     LOG.log('Enter AtStart');
-    return UI.showOkDialog(
-      'You are in a dark and dingy dungeon.',
-      'Conquer it!',
-      'wall'
-    )
+    return UI.showOkDialog('DUNGEON INTRO', 'ENTER DUNGEON BUTTON', 'wall')
       .then(() => SCENE_MANAGER.switchToFirstScene())
+      .then((scene) => {
+        if (scene.intro) {
+          return UI.showOkDialog(scene.intro, undefined, 'mask');
+        } else {
+          return;
+        }
+      })
       .then(() => {
         heroActor.sprite.position =
           WORLD.getTileMap().getWorldPositionOfTileByEntry();
@@ -330,7 +335,7 @@ class AtGameOver extends State {
       velocity: new Velocity(0, -100, 0),
     });
     await pause(2)
-      .then(() => UI.showOkDialog('Game over. You died.', 'Try again'))
+      .then(() => UI.showOkDialog('DEFEAT', 'TRY AGAIN BUTTON'))
       .then(() => SCENE_MANAGER.unloadCurrentScene())
       .then(() => this.transitionTo(new AtMainMenu()));
   }
@@ -342,7 +347,7 @@ class AtGameOver extends State {
 class AtGameCompleted extends State {
   async onEntry() {
     LOG.log('Enter AtGameCompleted');
-    await UI.showOkDialog("You've done it. Well done.", 'Try again')
+    await UI.showOkDialog('VICTORY', 'TRY AGAIN BUTTON')
       .then(() => SCENE_MANAGER.unloadCurrentScene())
       .then(() => this.transitionTo(new AtMainMenu()));
   }
@@ -374,8 +379,10 @@ class HeroTurnIdle extends State {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          if (detail?.filter === ClickEventFilter.COMBAT_TILE) {
-            LOG.error('Unexpected click on combat tile ignored.');
+          if (detail?.filter === ClickEventFilter.INTERACT_TILE) {
+            await interact(point);
+          } else if (detail?.filter === ClickEventFilter.OCCUPIED_TILE) {
+            await showOccupantDetails(detail.occupant);
           } else {
             await moveHeroToPoint(point);
           }
@@ -384,16 +391,13 @@ class HeroTurnIdle extends State {
 
         break;
       case EventId.CLICKED_ENTRANCE:
-        alert('Wow! Leaving so early. That bit of code is not ready yet.');
+        await UI.showOkDialog('ENTRANCE STUCK');
         break;
       case EventId.CLICKED_EXIT:
         LOG.log('Escaping');
-        await moveHeroToPoint(point);
-        if (SCENE_MANAGER.areThereMoreScenes()) {
-          await startNextScene(this);
-        } else {
-          this.transitionTo(new AtGameCompleted());
-        }
+        await moveHeroToPoint(point, false)
+          .then(() => UI.showOkDialog('OPEN EXIT'))
+          .then(() => startNextScene(this));
         break;
     }
     return Promise.resolve(null);
@@ -426,8 +430,10 @@ class HeroTurnFighting extends State {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          if (detail?.filter === ClickEventFilter.COMBAT_TILE) {
-            await this.#fight(point);
+          if (detail?.filter === ClickEventFilter.INTERACT_TILE) {
+            await interact(point);
+          } else if (detail?.filter === ClickEventFilter.OCCUPIED_TILE) {
+            await showOccupantDetails(detail.occupant);
           } else {
             await this.#tryToRun(point);
           }
@@ -440,53 +446,37 @@ class HeroTurnFighting extends State {
 
         break;
       case EventId.CLICKED_ENTRANCE:
-        alert('Wow! Leaving so early. That bit of code is not ready yet.');
+        UI.showOkDialog('ENTRANCE STUCK');
         break;
       case EventId.CLICKED_EXIT:
-        LOG.log('Escaping');
-        await moveHeroToPoint(point);
-        if (SCENE_MANAGER.areThereMoreScenes()) {
-          await startNextScene(this);
-        } else {
-          this.transitionTo(new AtGameCompleted());
-        }
+        await this.#tryToRun(point, false).then((success) => {
+          if (success) {
+            return UI.showOkDialog('OPEN EXIT WHILE FIGHTING').then(() =>
+              startNextScene(this)
+            );
+          } else {
+            return Promise.resolve();
+          }
+        });
         break;
     }
     return Promise.resolve(null);
   }
 
   /**
-   * Fight point
-   * @param {Point} point - position in world.
-   * @returns {Promise}
-   */
-  #fight(point) {
-    /** @type {import('../tileMaps/tileMap.js').TileMap} */
-    const tileMap = WORLD.getTileMap();
-    const tile = tileMap.getTileAtWorldPoint(point);
-    const targets = tile.getOccupants();
-    const promises = [];
-    for (const target of targets.values()) {
-      if (target.interaction) {
-        promises.push(target.interaction.react(heroActor));
-      }
-    }
-    return Promise.all(promises);
-  }
-
-  /**
    * Try to run
    * @param {Point} point - position in world.
-   * @returns {Promise}
+   * @param {boolean} [usePathFinder = true] - should path finder be used.
+   * @returns {Promise} fulfils to true if successful else false.
    */
-  #tryToRun(point) {
+  #tryToRun(point, usePathFinder = true) {
     const opponents = WORLD.getTileMap().getParticipants(heroActor);
     for (const opponent of opponents) {
       if (opponent.alive && !opponent.interaction.allowEscape(heroActor)) {
         return Promise.resolve(false);
       }
     }
-    return moveHeroToPoint(point);
+    return moveHeroToPoint(point, usePathFinder).then(() => true);
   }
 }
 
@@ -515,13 +505,15 @@ class ComputerTurnIdle extends State {
       }
     }
     await replayer.replay();
-    if (tileMap.getParticipants(heroActor).length === 0) {
-      this.transitionTo(new HeroTurnIdle());
-    } else {
-      this.transitionTo(new HeroTurnFighting());
+    const participants = tileMap.getParticipants(heroActor);
+    for (const actor of participants) {
+      if (actor.isEnemy()) {
+        this.transitionTo(new HeroTurnFighting());
+        return Promise.resolve(null);
+      }
     }
 
-    return Promise.resolve(null);
+    this.transitionTo(new HeroTurnIdle());
   }
 }
 
@@ -538,7 +530,7 @@ class ComputerTurnFighting extends State {
     const replayer = new MovementReplayer(tileMap, routeFinder);
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of WORLD.getActors().values()) {
-      if (actor !== heroActor && actor.alive) {
+      if (actor !== heroActor && actor.alive && actor.isEnemy()) {
         if (participants.includes(actor)) {
           await actor.interaction.enact(heroActor);
         } else {
@@ -570,20 +562,27 @@ function prepareHeroTurn() {
     heroActor.maxTilesPerMove
   );
   tileMap.setMovementRoutes(routes);
-  tileMap.setCombatActors(tileMap.getParticipants(heroActor));
+  tileMap.setInteractActors(tileMap.getParticipants(heroActor));
+  tileMap.calcReachableDoors(heroActor.position);
   return Promise.resolve(null);
 }
 
 /**
  * Move to point
  * @param {Point} point
+ * @param {boolean} [usePathFinder = true]
  * @returns {Promise}
  */
-function moveHeroToPoint(point) {
+function moveHeroToPoint(point, usePathFinder = true) {
   const tileMap = WORLD.getTileMap();
-  const waypoints = tileMap.getWaypointsToWorldPoint(point);
+  let waypoints;
+  if (usePathFinder) {
+    waypoints = tileMap.getWaypointsToWorldPoint(point);
+  } else {
+    waypoints = [heroActor.position, point];
+  }
   tileMap.setMovementRoutes(null);
-  tileMap.setCombatActors(null);
+  tileMap.setInteractActors(null);
   if (waypoints) {
     const modifier = new PathFollower(
       { path: waypoints, speed: 100 },
@@ -596,16 +595,47 @@ function moveHeroToPoint(point) {
 }
 
 /**
+ * Interact with point
+ * @param {Point} point - position in world.
+ * @returns {Promise}
+ */
+function interact(point) {
+  /** @type {import('../tileMaps/tileMap.js').TileMap} */
+  const tileMap = WORLD.getTileMap();
+  const tile = tileMap.getTileAtWorldPoint(point);
+  const targets = tile.getOccupants();
+  const promises = [];
+  for (const target of targets.values()) {
+    if (target.interaction) {
+      promises.push(target.interaction.react(heroActor));
+    }
+  }
+  return Promise.all(promises);
+}
+
+/**
  * Start next scene.
  * @param {State} currentState
  * @returns {Promise} fulfils to undefined.
  */
 function startNextScene(currentState) {
+  if (!SCENE_MANAGER.areThereMoreScenes()) {
+    return currentState.transitionTo(new AtGameCompleted());
+  }
   return SCENE_MANAGER.switchToNextScene().then(() => {
     heroActor.sprite.position =
       WORLD.getTileMap().getWorldPositionOfTileByEntry();
     return currentState.transitionTo(new HeroTurnIdle());
   });
+}
+
+/**
+ * Show occupant details.
+ * @param {Actor} occupant
+ * @returns {Promise} fulfils to undefined.
+ */
+function showOccupantDetails(occupant) {
+  return actorDialogs.showActorDetailsDialog(occupant);
 }
 
 /**

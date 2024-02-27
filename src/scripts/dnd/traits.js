@@ -27,6 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import * as maths from '../utils/maths.js';
 /**
  * This is basically a Map but with the key difference that
  * only keys set during the configuration are allowed. If no keys are provided,
@@ -71,7 +72,8 @@ export class ActorTraits {
    * @returns {*}
    */
   get(key) {
-    return this.#traits.get(key);
+    const value = this.#traits.get(key);
+    return value;
   }
 
   /**
@@ -83,10 +85,10 @@ export class ActorTraits {
    * @throws {Error} if definition invalid.
    */
   setFromString(definition) {
-    definition.split(',').forEach((item) => {
+    definition.split('|').forEach((item) => {
       const match = item.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
       if (match) {
-        this.#setAutoMaxValue(match[1], match[2]);
+        this.#setValue(match[1], match[2]);
       } else {
         throw new Error(`Invalid property definition'${item}'`);
       }
@@ -95,17 +97,27 @@ export class ActorTraits {
   }
 
   /**
-   * Set the trait for key to value. If value is a fraction, then the value for
-   * the key is set to the numerator and a new key key_MAX is created, set to the
-   * denominator.
+   * Set the trait for key to value.
+   * + If the value comprises two numbers separated by
+   * a /, the value for the key is set to the numerator and a new key key_MAX is created,
+   * set to the denominator.
+   * + If the value comprises two numbers separated by a >, the value for the key
+   * is set to a random value between (inclusive) the two values, and a new key key_MAX is created,set to the second number.
    * @param {string} key
    * @param {string} value
    */
-  #setAutoMaxValue(key, value) {
-    const minMaxMatch = value.match(/(\d+) *[/] *(\d+) */);
+  #setValue(key, value) {
+    const minMaxMatch = value.match(/(\d+) *([/]) *(\d+) */);
     if (minMaxMatch) {
-      this.#traits.set(key, minMaxMatch[1]);
-      this.#traits.set(`${key}_MAX`, minMaxMatch[2]);
+      if (minMaxMatch[2] === '>') {
+        this.#traits.set(
+          key,
+          maths.getRandomIntInclusive(minMaxMatch[1], minMaxMatch[3])
+        );
+      } else {
+        this.#traits.set(key, minMaxMatch[1]);
+      }
+      this.#traits.set(`${key}_MAX`, minMaxMatch[3]);
     } else {
       this.#traits.set(key, value);
     }
@@ -119,6 +131,14 @@ export class ActorTraits {
     const actorTraits = new ActorTraits(this.#traits);
     actorTraits.#freeform = this.#freeform;
     return actorTraits;
+  }
+
+  /**
+   * Get all traits. This is a copy of the underlying traits.
+   * @returns {Map<string, *>}
+   */
+  getAllTraits() {
+    return new Map(this.#traits);
   }
 }
 

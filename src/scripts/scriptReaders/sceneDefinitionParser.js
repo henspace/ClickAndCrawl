@@ -37,6 +37,7 @@ import { TILE_MAP_KEYS } from './symbolMapping.js';
 import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../utils/game/sceneManager.js';
 import GameConstants from '../utils/game/gameConstants.js';
+import { ActorType } from '../utils/game/actors.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -45,29 +46,9 @@ let lastHero;
 
 /**
  * @typedef {Object} ActorDefn
- * @property {string} name
+ * @property {string} id
  * @property {import('../dnd/traits.js').CharacterTraits} traits
  */
-/**
- * Definition of a scene
- */
-export class SceneDefinition {
-  /** @type {string} */
-  intro;
-  /** @type {ActorDefn} */
-  hero;
-  /** @type {ActorDefn[]} */
-  enemies;
-  /** @type {string[]} */
-  mapDesign;
-  /**
-   * Construct an empty scene
-   */
-  constructor() {
-    this.enemies = [];
-    this.mapDesign = [];
-  }
-}
 
 /**
  * Create the hero. If the scene definition doesn't have a hero definition, the
@@ -76,9 +57,11 @@ export class SceneDefinition {
  * @returns {Actor}
  */
 function createHero(sceneDefn) {
-  if (sceneDefn.hero) {
-    const actor = ACTOR_MAP.get(sceneDefn.hero.id).create();
-    actor.traits = sceneDefn.hero.traits.clone();
+  if (sceneDefn.heroes && sceneDefn.heroes[0]) {
+    const heroDefn = sceneDefn.heroes[0];
+    const actor = ACTOR_MAP.get(heroDefn.id).create();
+    actor.traits = heroDefn.traits.clone();
+    actor.type = ActorType.HERO;
     lastHero = actor;
     return actor;
   } else {
@@ -104,6 +87,21 @@ function createEnemies(sceneDefn) {
 }
 
 /**
+ * Create the enemies.
+ * @param {SceneDefinition} sceneDefn
+ * @returns {Actor[]}
+ */
+function createArtefacts(sceneDefn) {
+  const artefacts = [];
+  sceneDefn.artefacts.forEach((artefact) => {
+    const actor = ACTOR_MAP.get(artefact.id).create();
+    actor.traits = artefact.traits;
+    artefacts.push(actor);
+  });
+  return artefacts;
+}
+
+/**
  * Scene created from a scene definition.
  */
 class ParsedScene extends AbstractScene {
@@ -114,6 +112,7 @@ class ParsedScene extends AbstractScene {
   constructor(sceneDefn) {
     super();
     this.#sceneDefn = sceneDefn;
+    this.intro = sceneDefn.intro;
   }
 
   /** @override */
@@ -132,6 +131,10 @@ class ParsedScene extends AbstractScene {
     createEnemies(this.#sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
+    });
+    createArtefacts(this.#sceneDefn).forEach((artefact) => {
+      artefact.position = tileMap.getRandomFreeGroundTile().worldPoint;
+      WORLD.addArtefact(artefact);
     });
     SCENE_MANAGER.setCameraToTrack(this.heroActor.sprite, 200, 0);
     WORLD.addActor(this.heroActor);

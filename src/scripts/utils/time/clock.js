@@ -42,10 +42,11 @@ function updateTimeNow(timeNowMs) {
 /**
  * Get a frame counter.
  * @param {number} framePeriodMs - time between frames
+ * @param {number} [timeOffsetMs = 0] - offset to allow some randomisation
  * @returns {number}
  */
-function getFrameCount(framePeriodMs) {
-  return Math.floor(currentTimeMs / framePeriodMs);
+function getFrameCount(framePeriodMs, timeOffsetMs = 0) {
+  return Math.floor((currentTimeMs + timeOffsetMs) / framePeriodMs);
 }
 
 /**

@@ -122,7 +122,7 @@ export class Routes {
    */
   getWaypointsAsGridPoints(destination) {
     const points = this.getRouteToCoords(destination.x, destination.y);
-    if (points.length > 1) {
+    if (points && points.length > 1) {
       return points.slice(1);
     } else {
       return null;

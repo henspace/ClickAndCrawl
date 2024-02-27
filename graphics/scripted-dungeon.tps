@@ -207,6 +207,9 @@
             <key type="filename">tiles/hero-walk-w01.png</key>
             <key type="filename">tiles/hero-walk-w02.png</key>
             <key type="filename">tiles/hero-walk-w03.png</key>
+            <key type="filename">tiles/hidden-artefact-dead00.png</key>
+            <key type="filename">tiles/hidden-artefact-idle00.png</key>
+            <key type="filename">tiles/hidden-artefact.png</key>
             <key type="filename">tiles/hud-arrow-down00.png</key>
             <key type="filename">tiles/hud-arrow-down01.png</key>
             <key type="filename">tiles/hud-arrow-left00.png</key>

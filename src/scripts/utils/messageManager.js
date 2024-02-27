@@ -1,10 +1,9 @@
 /**
- * @file Main menu
+ * @file Message manager. Wrapper for all ui messages.
  *
- * @module menus/mainMenu
+ * @module utils/messageManager
  *
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,30 +26,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import UI from '../utils/dom/ui.js';
-import { BitmapButtonControl } from '../utils/dom/components.js';
-import { showSettingsDialog } from './settingsDialog.js';
+import * as maths from './maths.js';
+/**
+ * @type{Map<string, string}
+ */
+let messages;
 
 /**
- * Display the main menu. All actions are controlled by the main menu except play
- * which results in the menu resolving.
- * @returns {Promise} fulfils to undefined if play selected.
+ * Add text to the messages.
+ * @param {Map<string, string} messageMap
  */
-export function showMainMenu() {
-  const play = new BitmapButtonControl({
-    id: 'PLAY',
-    labelKey: 'PLAY BUTTON',
-    imageName: 'ui-play00.png',
-    internalLabel: true,
-    closes: true,
-  });
-  const settings = new BitmapButtonControl({
-    id: 'SETTINGS',
-    labelKey: 'SETTINGS BUTTON',
-    imageName: 'ui-settings00.png',
-    internalLabel: true,
-    action: () => showSettingsDialog(),
-    closes: false,
-  });
-  return UI.showControlsDialog('MAIN MENU TITLE', [settings, play], 'door');
+function setMap(messageMap) {
+  messages = messageMap;
 }
+
+/**
+ * Get a message based on the key.
+ * If the value is an array, a random element from the array is chosen.
+ * This is to allow variable messages.
+ * @param {string} key
+ */
+function getText(key) {
+  const value = messages.get(key);
+  if (value === undefined || value === null) {
+    return key;
+  }
+  if (Array.isArray(value)) {
+    return value[maths.getRandomInt(0, value.length)];
+  }
+  return value;
+}
+
+/**
+ * Object to access messages.
+ */
+const MESSAGES = {
+  setMap: setMap,
+  getText: getText,
+};
+
+export default MESSAGES;

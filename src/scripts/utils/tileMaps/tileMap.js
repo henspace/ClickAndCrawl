@@ -33,13 +33,16 @@ import {
   ImageSpriteCanvasRenderer,
   RectSpriteCanvasRenderer,
 } from '../sprites/spriteRenderers.js';
-import { Point, Rectangle } from '../geometry.js';
+import { Point, Rectangle, Position } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
 import TURN_MANAGER from '../game/turnManager.js';
+import { ActorType } from '../game/actors.js';
+import { OpenEntrance, OpenExit } from '../../dnd/interact.js';
+import { Actor } from '../game/actors.js';
 
 /**
  * Detail for click events.
@@ -47,7 +50,8 @@ import TURN_MANAGER from '../game/turnManager.js';
  */
 export const ClickEventFilter = {
   MOVEMENT_TILE: 0,
-  COMBAT_TILE: 1,
+  INTERACT_TILE: 1,
+  OCCUPIED_TILE: 2,
 };
 
 /**
@@ -175,6 +179,9 @@ export class Tile extends UiClickHandler {
    * @returns {boolean}
    */
   isPassableByActor(actor) {
+    if (this.#role === TileRole.ENTRANCE || this.#role === TileRole.EXIT) {
+      return false;
+    }
     if (this.obstacle) {
       return false;
     }
@@ -192,6 +199,12 @@ export class Tile extends UiClickHandler {
    * @returns {boolean}
    */
   canBeOccupiedByActor(actor) {
+    if (
+      (this.#role === TileRole.ENTRANCE || this.#role === TileRole.EXIT) &&
+      !actor.isHero()
+    ) {
+      return false;
+    }
     if (this.obstacle) {
       return false;
     }
@@ -239,10 +252,14 @@ export class TileMap {
   #movementGridPoints;
   /** @type {Sprite} */
   #movementTileHighlighter;
+  /** @type {Sprite} */
+  #reachableDoorTileHighlighter;
+  /** @type {Tile[]} */
+  #reachableDoorTileGridPoints;
   /** @type {Tile} */
-  #entrance;
+  #entranceTile;
   /** @type {Tile} */
-  #exit;
+  #exitTile;
   /** @type {Point} */
   #entryGridPointByDoor;
   /** @type {Point} */
@@ -252,9 +269,9 @@ export class TileMap {
   /** @type {RayTracer} */
   #heroRayTracer;
   /** @type {Tile[]} */
-  #combatTileGridPoints;
+  #interactTileGridPoints;
   /** @type {Sprite} */
-  #combatTileHighlighter;
+  #interactTileHighlighter;
 
   /**
    * Create tile map from 2D matrix
@@ -271,15 +288,23 @@ export class TileMap {
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: null,
+        fillStyle: 'rgba(255, 255, 255, 0.2)',
         strokeStyle: 'white',
       }),
     });
-    this.#combatTileHighlighter = new Sprite({
+    this.#reachableDoorTileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: null,
+        fillStyle: 'rgba(0, 255, 0, 0.2)',
+        strokeStyle: 'green',
+      }),
+    });
+    this.#interactTileHighlighter = new Sprite({
+      renderer: new RectSpriteCanvasRenderer(context, {
+        width: gridSize,
+        height: gridSize,
+        fillStyle: 'rgba(255, 0, 0, 0.2)',
         strokeStyle: 'red',
       }),
     });
@@ -313,7 +338,6 @@ export class TileMap {
             tile.setOnClick((target, point) =>
               this.#filterClick(target, point, tileDefn.onClick)
             );
-            tile.setOnContextClick(tileDefn.onContextClick);
           }
           this.processTileRole(tile);
           tileRow.push(tile);
@@ -324,9 +348,9 @@ export class TileMap {
         }
       });
     });
-    if (!this.#entrance) {
+    if (!this.#entranceTile) {
       LOG.error('No entrance has been set. Setting to the first ground tile');
-      this.#entrance = this.#randomGround[0];
+      this.#entranceTile = this.#randomGround[0];
     }
   }
 
@@ -344,19 +368,19 @@ export class TileMap {
   processTileRole(tile) {
     switch (tile.role) {
       case TileRole.ENTRANCE:
-        if (this.#entrance) {
+        if (this.#entranceTile) {
           const gp = tile.gridPoint;
           LOG.error(`Duplicate entrance found at (${gp.x}, ${gp.y}). Ignored.`);
         } else {
-          this.#entrance = tile;
+          this.#entranceTile = tile;
         }
         break;
       case TileRole.EXIT:
-        if (this.#exit) {
+        if (this.#exitTile) {
           const gp = tile.gridPoint;
           LOG.error(`Duplicate exit found at (${gp.x}, ${gp.y}). Ignored.`);
         } else {
-          this.#exit = tile;
+          this.#exitTile = tile;
         }
         break;
       case TileRole.GROUND:
@@ -411,8 +435,6 @@ export class TileMap {
         ) {
           this.#heroRayTracer.findReachedTiles();
         }
-      } else {
-        LOG.error(`Hero at ${hero.position.toString()} but no tile found.`);
       }
     }
   }
@@ -534,7 +556,7 @@ export class TileMap {
    * @returns {Point}
    */
   getGridPositionOfEntrance() {
-    return this.#entrance.gridPoint;
+    return this.#entranceTile.gridPoint;
   }
 
   /**
@@ -556,24 +578,44 @@ export class TileMap {
   }
 
   /**
-   * Set combat tiles
+   * Set interaction tiles
    * @param {Actor[]} actors - actors where combat can take place.
    */
-  setCombatActors(actors) {
-    this.#combatTileGridPoints = [];
+  setInteractActors(actors) {
+    this.#interactTileGridPoints = [];
     actors?.forEach((actor) => {
-      this.#combatTileGridPoints.push(this.worldPointToGrid(actor.position));
+      this.#interactTileGridPoints.push(this.worldPointToGrid(actor.position));
     });
   }
 
   /**
+   * Recalculate the reachable doors.
+   */
+  calcReachableDoors(heroPosition) {
+    this.#reachableDoorTileGridPoints = [];
+    const surrounds = this.getSurroundingTiles(
+      this.worldPointToGrid(heroPosition)
+    );
+    [surrounds.above, surrounds.right, surrounds.below, surrounds.left].forEach(
+      (tile) => {
+        if (tile.gridPoint.coincident(this.#exitTile.gridPoint)) {
+          this.#reachableDoorTileGridPoints.push(tile.gridPoint);
+        } else if (tile.gridPoint.coincident(this.#entranceTile.gridPoint)) {
+          this.#reachableDoorTileGridPoints.push(tile.gridPoint);
+        }
+      }
+    );
+  }
+
+  /**
    * Highlight routes marked by the highlighters. There are three possible highlights:
-   * movement, combat and interaction.
+   * movement, interaction and event tiles.
    * @param {number} deltaSeconds
    */
   #highlightTiles(deltaSeconds) {
     this.#highlightMovementTiles(deltaSeconds);
-    this.#highlightCombatTiles(deltaSeconds);
+    this.#highlightInteractTiles(deltaSeconds);
+    this.#highlightReachableDoorTiles(deltaSeconds);
   }
 
   /**
@@ -592,10 +634,22 @@ export class TileMap {
    * Highlight movement routes.
    * @param {number} deltaSeconds
    */
-  #highlightCombatTiles(deltaSeconds) {
-    this.#combatTileGridPoints?.forEach((gp) => {
-      this.#combatTileHighlighter.position = this.gridPointToWorldPoint(gp);
-      this.#combatTileHighlighter.update(deltaSeconds);
+  #highlightInteractTiles(deltaSeconds) {
+    this.#interactTileGridPoints?.forEach((gp) => {
+      this.#interactTileHighlighter.position = this.gridPointToWorldPoint(gp);
+      this.#interactTileHighlighter.update(deltaSeconds);
+    });
+  }
+
+  /**
+   * Highlight reachable door tiles.
+   * @param {number} deltaSeconds
+   */
+  #highlightReachableDoorTiles(deltaSeconds) {
+    this.#reachableDoorTileGridPoints?.forEach((gp) => {
+      this.#reachableDoorTileHighlighter.position =
+        this.gridPointToWorldPoint(gp);
+      this.#reachableDoorTileHighlighter.update(deltaSeconds);
     });
   }
 
@@ -608,19 +662,35 @@ export class TileMap {
    * @param {import('../sprites/sprite.js').SpriteClickHandler} clickHandler
    */
   #filterClick(target, point, clickHandler) {
-    if (this.#movementRoutes?.containsGridPoint(this.worldPointToGrid(point))) {
+    const gridPoint = this.worldPointToGrid(point);
+    if (this.#movementRoutes?.containsGridPoint(gridPoint)) {
       clickHandler(target, point, { filter: ClickEventFilter.MOVEMENT_TILE });
       return;
     }
-    const gridPoint = this.worldPointToGrid(point);
-    this.#combatTileGridPoints?.forEach((gp) => {
+
+    this.#interactTileGridPoints?.forEach((gp) => {
       if (gp.isCoincident(gridPoint)) {
         clickHandler(target, point, {
-          filter: ClickEventFilter.COMBAT_TILE,
+          filter: ClickEventFilter.INTERACT_TILE,
         });
         return;
       }
     });
+    this.#reachableDoorTileGridPoints?.forEach((gp) => {
+      if (gp.isCoincident(gridPoint)) {
+        clickHandler(target, point, {
+          filter: ClickEventFilter.INTERACT_TILE,
+        });
+        return;
+      }
+    });
+    const occupants = target.getOccupants();
+    if (occupants.size > 0) {
+      clickHandler(target, point, {
+        occupant: occupants.values().next().value,
+        filter: ClickEventFilter.OCCUPIED_TILE,
+      });
+    }
     LOG.debug('Ignore click outside of highlighted area');
   }
 

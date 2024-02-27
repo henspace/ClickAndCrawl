@@ -63,6 +63,12 @@ class SoundManager {
         this.#music.volume = this.#musicVolume;
         this.#music.loop = true;
         this.#music.play();
+        window.addEventListener('blur', () => {
+          this.#music.pause();
+        });
+        window.addEventListener('focus', () => {
+          this.#music.play();
+        });
       });
     }
   }

@@ -41,6 +41,11 @@ let worldTileMap;
 const actors = new Map();
 
 /**
+ * @type {Map<string, Sprite>}
+ */
+const artefacts = new Map();
+
+/**
  * Sprites that do not interact
  * @type {Map<string, Sprite>}
  */
@@ -78,6 +83,28 @@ function removeActor(target) {
   const gridPoint = worldTileMap.worldPointToGrid(target.position);
   worldTileMap.deleteOccupancyOfGridPoint(target, gridPoint);
   actors.delete(target);
+}
+
+/**
+ * Add a artefact to the world.
+ * @param {import('./actors.js').Actor}
+ */
+function addArtefact(target) {
+  artefacts.set(target, target);
+  worldTileMap.moveTileOccupancyGridPoint(
+    target,
+    null,
+    worldTileMap.worldPointToGrid(target.position)
+  );
+}
+/**
+ * Remove artefact from the world.
+ * @param {import('./actors.js').Actor}
+ */
+function removeArtefact(target) {
+  const gridPoint = worldTileMap.worldPointToGrid(target.position);
+  worldTileMap.deleteOccupancyOfGridPoint(target, gridPoint);
+  artefacts.delete(target);
 }
 
 /**
@@ -126,6 +153,7 @@ function removeTileMap() {
  */
 function clearAll() {
   actors.forEach((actor) => removeActor(actor));
+  artefacts.forEach((actor) => removeArtefact(actor));
   passiveSprites.forEach((sprite) => removePassiveSprite(sprite));
   removeTileMap();
 }
@@ -136,6 +164,17 @@ function clearAll() {
  */
 function update(deltaSeconds) {
   worldTileMap?.update(deltaSeconds);
+  artefacts.forEach((artefact) => {
+    const oldGridPoint = worldTileMap.worldPointToGrid(artefact.position);
+    artefact.visible = worldTileMap.canHeroSeeGridPoint(oldGridPoint);
+    artefact.update(deltaSeconds);
+    const newGridPoint = worldTileMap.worldPointToGrid(artefact.position);
+    worldTileMap.moveTileOccupancyGridPoint(
+      artefact,
+      oldGridPoint,
+      newGridPoint
+    );
+  });
   actors.forEach((actor) => {
     const oldGridPoint = worldTileMap.worldPointToGrid(actor.position);
     actor.visible = worldTileMap.canHeroSeeGridPoint(oldGridPoint);
@@ -193,13 +232,23 @@ function getActors() {
 }
 
 /**
+ * Get the artefacts
+ * @returns {Map<Actor, Actor>}
+ */
+function getArtefacts() {
+  return actors;
+}
+
+/**
  * World object singleton.
  */
 const WORLD = {
   addActor: addActor,
+  addArtefact: addArtefact,
   addPassiveSprite: addPassiveSprite,
   clearAll: clearAll,
   getActors: getActors,
+  getArtefacts: getArtefacts,
   getTileMap: getTileMap,
   getWorldDims: getWorldDims,
   removeTileMap: removeTileMap,
@@ -207,6 +256,7 @@ const WORLD = {
   resolveClick: resolveClick,
   resolveContextMenu: resolveContextMenu,
   removeActor: removeActor,
+  removeArtefact: removeArtefact,
   removePassiveSprite: removePassiveSprite,
   setTileMap: setTileMap,
   update: update,

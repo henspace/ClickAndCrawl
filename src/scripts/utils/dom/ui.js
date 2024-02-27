@@ -28,6 +28,7 @@
  */
 
 import SCREEN from '../game/screen.js';
+import MESSAGES from '../messageManager.js';
 import { TextButtonControl } from './components.js';
 
 /**
@@ -53,9 +54,10 @@ function createMessageElement(message) {
 
 /** Create a message that is removed on any click. This sits above everything
  * as a self contained popup.
- * @param {string} message
+ * @param {string} messageKey - message key for the message manager.
  */
-function showMessage(message) {
+function showMessage(messageKey) {
+  const message = MESSAGES.getText(messageKey);
   const popup = document.createElement('div');
   popup.appendChild(document.createTextNode(message));
   popup.className = 'popup';
@@ -65,12 +67,14 @@ function showMessage(message) {
 }
 
 /** Create an okDialog.
- * @param {string} message
- * @param {string} [okButtonLabel = 'OK']
+ * @param {string} messageKey
+ * @param {string} [okButtonLabelKey = 'OK']
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showOkDialog(message, okButtonLabel = 'OK', className) {
+function showOkDialog(messageKey, okButtonLabelKey = 'OK', className) {
+  const message = MESSAGES.getText(messageKey);
+  const okButtonLabel = MESSAGES.getText(okButtonLabelKey);
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message));
   const buttonEl = document.createElement('button');
@@ -89,15 +93,42 @@ function showOkDialog(message, okButtonLabel = 'OK', className) {
   );
 }
 
+/** Create an ok Dialog but just showing raw html.
+ * @param {Element} element
+ * @param {string} [okButtonLabelKey = 'OK']
+ * @param {string} className
+ * @returns {Promise} fulfils to DialogResponse.OK
+ */
+function showElementOkDialog(element, okButtonLabelKey = 'OK', className) {
+  const okButtonLabel = MESSAGES.getText(okButtonLabelKey);
+  const container = document.createElement('div');
+  container.appendChild(element);
+  const buttonEl = document.createElement('button');
+  buttonEl.appendChild(document.createTextNode(okButtonLabel));
+  container.appendChild(buttonEl);
+
+  return SCREEN.displayOnGlass(
+    container,
+    [
+      {
+        element: buttonEl,
+        id: DialogResponse.OK,
+        closer: true,
+      },
+    ],
+    className
+  );
+}
+
 /** Create a controls dialog.
- * @param {string} message
+ * @param {string} messageKey - key to message from MESSAGES.
  * @param {BaseControl[]} actionButtons
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showControlsDialog(message, actionButtons, className) {
+function showControlsDialog(messageKey, actionButtons, className) {
   const container = document.createElement('div');
-  container.appendChild(createMessageElement(message));
+  container.appendChild(createMessageElement(MESSAGES.getText(messageKey)));
   const closers = [];
   actionButtons?.forEach((button) => {
     container.appendChild(button.element);
@@ -109,7 +140,7 @@ function showControlsDialog(message, actionButtons, className) {
     }
   });
   if (closers.length === 0) {
-    const okButton = new TextButtonControl({ label: 'OK' });
+    const okButton = new TextButtonControl({ labelKey: 'OK' });
     container.appendChild(okButton.element);
     closers.push(okButton);
   }
@@ -122,6 +153,7 @@ function showControlsDialog(message, actionButtons, className) {
 const UI = {
   showMessage: showMessage,
   showOkDialog: showOkDialog,
+  showElementOkDialog: showElementOkDialog,
   showControlsDialog: showControlsDialog,
 };
 

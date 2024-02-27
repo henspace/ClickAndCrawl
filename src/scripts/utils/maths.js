@@ -130,7 +130,7 @@ export function angleToEightPointCompass(angle) {
 export function getRandomInt(min, max) {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
-  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
 }
 /**
  * Get random number between min and max, inclusive

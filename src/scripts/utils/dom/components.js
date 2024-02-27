@@ -30,6 +30,7 @@
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import GameConstants from '../game/gameConstants.js';
 import PERSISTENT_DATA from '../persistentData.js';
+import MESSAGES from '../messageManager.js';
 import LOG from '../logging.js';
 
 /**
@@ -57,7 +58,7 @@ class BaseControl {
    * Create base control
    * @param {Object} options
    * @param {string} options.id
-   * @param {string} options.label
+   * @param {string} options.labelKey - key to label from MESSAGES.
    * @param {boolean} options.persistent - is data stored in persistent storage.
    * @param {*} options.defValue - default value
    * @param {boolean} closes - flag to indicate whether this control should be used
@@ -133,7 +134,9 @@ export class TextButtonControl extends BaseControl {
    */
   buildElement(options) {
     const element = document.createElement('button');
-    element.appendChild(document.createTextNode(options.label));
+    element.appendChild(
+      document.createTextNode(MESSAGES.getText(options.labelKey))
+    );
     element.className = 'text-button';
     return element;
   }
@@ -163,7 +166,9 @@ export class BitmapButtonControl extends BaseControl {
    */
   buildElement(options) {
     const element = document.createElement('button');
-    element.appendChild(document.createTextNode(options.label));
+    element.appendChild(
+      document.createTextNode(MESSAGES.getText(options.labelKey))
+    );
     element.appendChild(
       createBitmapElement(options.index, options.imageName, 'button-icon')
     );
@@ -206,7 +211,7 @@ class CheckboxControl extends BaseControl {
    */
   constructor(definition) {
     super(definition);
-    this._element = this.buildElement(definition.label);
+    this._element = this.buildElement(MESSAGES.getText(definition.labelKey));
     this.#checkbox.checked = this.value;
     this._element.addEventListener('change', (event) => {
       this.value = this.#checkbox.checked;
@@ -253,7 +258,7 @@ export class RangeControl extends BaseControl {
    */
   constructor(definition) {
     super(definition);
-    this._element = this.buildElement(definition.label);
+    this._element = this.buildElement(MESSAGES.getText(definition.labelKey));
     this.#rangeInput.value = this.value;
     this._element.addEventListener('change', (event) => {
       this.value = this.#rangeInput.value;

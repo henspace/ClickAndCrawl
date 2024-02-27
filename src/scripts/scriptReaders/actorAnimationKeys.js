@@ -27,14 +27,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import LOG from '../utils/logging.js';
 import { LoopMethod } from '../utils/arrays/indexer.js';
+import {
+  KeyedAnimatedImages,
+  AnimatedImage,
+} from '../utils/sprites/animation.js';
 
 /**
- * Standard animation defintions for an actor.
- * It is assumed that animation images are formed from a root nam
+ * @typedef {Object} AnimationDefinition
+ * @property {string} keyName - animation key name.
+ * @property {string} suffix - appended to the image name for this animation
+ * @property {Object} options - passed to AnimatedImage constructor
  */
-const AnimationDefns = {
+/**
+ * @typedef {Object<string, AnimationDefinition} AnimationDefinitions
+ */
+/**
+ * Standard animation definitions for an actor.
+ * It is assumed that animation images are formed from a root name.
+ * @type {AnimationDefinitions}
+ */
+const PeripateticAnimationDefns = {
   DEAD: {
     keyName: 'DEAD',
     suffix: 'dead',
@@ -86,24 +99,93 @@ const AnimationDefns = {
 };
 
 /**
- * Form the frame name for an image
- * @param {string} key - the key name for the animation.
- * @param {string} imageName
+ * Standard animation definitions for an actor.
+ * It is assumed that animation images are formed from a root nam
  */
-function formFrameNameRoot(key, imageName) {
-  const suffix = AnimationDefns[key]?.suffix;
-  if (!suffix) {
-    throw new Error(
-      `Attempt made to use invalid standard animation key of '${key}'`
-    );
+const ArtefactAnimationDefns = {
+  DEAD: {
+    keyName: 'DEAD',
+    suffix: 'dead',
+    options: {
+      framePeriodMs: 100,
+      loopMethod: LoopMethod.STOP,
+    },
+  },
+  IDLE: {
+    keyName: 'IDLE',
+    suffix: 'idle',
+    options: {
+      framePeriodMs: 300,
+      loopMethod: LoopMethod.REVERSE,
+    },
+  },
+};
+
+/**
+ *
+ */
+class AnimationKeys {
+  /** @type {AnimationDefinitions} */
+  #definitions;
+  /**
+   * @param {AnimationDefinitions[]} definitions
+   */
+  constructor(definitions) {
+    this.#definitions = definitions;
   }
-  return `${imageName}-${suffix}`;
+  /**
+   * Form the frame name for an image
+   * @param {string} key - the key name for the animation.
+   * @param {string} imageName
+   */
+  #formFrameNameRoot(key, imageName) {
+    const suffix = this.#definitions[key]?.suffix;
+    if (!suffix) {
+      throw new Error(
+        `Attempt made to use invalid standard animation key of '${key}'`
+      );
+    }
+    return `${imageName}-${suffix}`;
+  }
+
+  /**
+   * Get the key name.
+   * @param {string} key
+   * @return {string}
+   */
+  getKeyName(key) {
+    return this.#definitions[key].keyName;
+  }
+  /**
+   * Add all animations to the keyed animation.
+   * @param {KeyedAnimatedImages} keyedAnimations
+   * @param {string} imageName - root name for the animation image.
+   */
+  addAllToKeyedAnimation(keyedAnimations, imageName) {
+    for (const key in this.#definitions) {
+      const anim = this.#definitions[key];
+      keyedAnimations.addAnimatedImage(
+        this.#definitions[key].keyName,
+        new AnimatedImage(
+          0,
+          {
+            prefix: this.#formFrameNameRoot(key, imageName),
+            suffix: '.png',
+            startIndex: 0,
+            padding: 2,
+          },
+          anim.options
+        )
+      );
+    }
+    keyedAnimations.setCurrentKey(this.#definitions.IDLE.keyName);
+  }
 }
 
 /** Object to access standard animations. */
 const StdAnimations = {
-  definitions: AnimationDefns,
-  formFrameNameRoot: formFrameNameRoot,
+  peripatetic: new AnimationKeys(PeripateticAnimationDefns),
+  artefact: new AnimationKeys(ArtefactAnimationDefns),
 };
 
 export default StdAnimations;
