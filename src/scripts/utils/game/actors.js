@@ -3,7 +3,8 @@
  * that can interact with the game.
  *
  * @module utils/game/actors
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -48,7 +49,7 @@ export const ActorType = {
 export class Actor extends UiClickHandler {
   /** @type {number} */
   maxTilesPerMove;
-  /** @type {import('../sprites/sprite.js').Sprite} */
+  /** @type {module:utils/sprites/sprite~Sprite} */
   sprite;
   /** @type {ActorTraits} */
   traits;
@@ -56,11 +57,14 @@ export class Actor extends UiClickHandler {
   interaction;
   /** @type {boolean} */
   alive;
-  /** @type {number} */
+  /** @type {string} */
+  description;
+  /** @type {string} */
+  iconImageName;
 
   /**
    * Create the actor.
-   * @param {import('../sprites/sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    * @param {number} [type = ActorType.ENEMY] type of actor. See @link {ActorType}
    */
   constructor(sprite, type = ActorType.ENEMY) {
@@ -120,7 +124,7 @@ export class Actor extends UiClickHandler {
 
   /**
    * Get the actor's position.
-   * @returns {import('../geometry.js').Position}
+   * @returns {module:utils/geometry~Position}
    */
   get position() {
     return this.sprite.position;
@@ -128,7 +132,7 @@ export class Actor extends UiClickHandler {
 
   /**
    * Set the actor's position.
-   * @param {import('../geometry.js').Position} value
+   * @param {module:utils/geometry~Position} value
    */
   set position(value) {
     this.sprite.position = value;
@@ -152,11 +156,19 @@ export class Actor extends UiClickHandler {
   }
 
   /**
+   * Get the sprite's image name.
+   * @returns {string} null if none.
+   */
+  getImageFilename() {
+    return this.sprite.getImageFilename();
+  }
+
+  /**
    * Is this a wandering actor.
    * @returns {boolean}
    */
   isWandering() {
-    return this?.traits.get('MOVE') === 'wander';
+    return this?.traits.get('MOVE') === 'WANDER';
   }
 
   /**

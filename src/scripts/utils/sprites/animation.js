@@ -2,7 +2,8 @@
  * @file Animation support
  *
  * @module utils/sprites/animation
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -39,7 +40,7 @@ import * as maths from '../maths.js';
 export class AnimatedImage {
   /** @type {boolean} */
   playing;
-  /** @type {import('./imageManager.js').SpriteBitmap[]} */
+  /** @type {module:utils/sprites/imageManager~SpriteBitmap[]} */
   #frames;
   /** @type {Indexer} */
   #indexer;
@@ -52,7 +53,6 @@ export class AnimatedImage {
   #framePeriodMs;
   /**
    * Construct animation.
-   * @param {number} textureIndex
    * @param {Object | string} filenamePattern - if a string is parsed then the image is a single frame.
    * @param {string} filenamePattern.prefix
    * @param {number} filenamePattern.startIndex - starting index.
@@ -62,14 +62,12 @@ export class AnimatedImage {
    * @param {number} options.framePeriodMs - period in ms for frame animations.
    * @param {LoopMethod} options.loopMethod - method of looping animation.
    */
-  constructor(textureIndex, filenamePattern, options) {
+  constructor(filenamePattern, options) {
     this.#frames = [];
     this.#lastFrameCount = 0;
     this.#timeOffset = maths.getRandomInt(0, 1000);
     if (typeof filenamePattern === 'string') {
-      this.#frames.push(
-        IMAGE_MANAGER.getSpriteBitmap(textureIndex, filenamePattern)
-      );
+      this.#frames.push(IMAGE_MANAGER.getSpriteBitmap(filenamePattern));
       return;
     }
 
@@ -82,7 +80,7 @@ export class AnimatedImage {
       const fileName = `${filenamePattern.prefix}${index
         .toString()
         .padStart(padding, '0')}${filenamePattern.suffix}`;
-      textureFrame = IMAGE_MANAGER.getSpriteBitmap(textureIndex, fileName); // imageManager.getFrame(textureIndex, fileName);
+      textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName);
       if (textureFrame) {
         this.#frames.push(textureFrame);
       }
@@ -94,7 +92,7 @@ export class AnimatedImage {
 
   /**
    * Get current frame
-   * @returns {import('./imageManager.js').SpriteBitmap}
+   * @returns {module:utils/sprites/imageManager~SpriteBitmap}
    */
   getCurrentFrame() {
     if (this.#frames.length > 1) {
@@ -191,7 +189,7 @@ export class KeyedAnimatedImages {
 
   /**
    * Get current frame
-   * @returns {import('./imageManager.js').SpriteBitmap}
+   * @returns {module:utils/sprites/imageManager~SpriteBitmap}
    */
   getCurrentFrame() {
     return this.#currentImage.getCurrentFrame();

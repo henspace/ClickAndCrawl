@@ -2,7 +2,8 @@
  * @file Handle logging. This allows easier access to logs on mobile devices.
  *
  * @module utils/logging
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).

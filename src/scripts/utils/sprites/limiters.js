@@ -2,7 +2,8 @@
  * @file Limiter for sprites
  *
  * @module utils/sprites/limiters
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -55,7 +56,7 @@ export class BoxLimiter extends AbstractModifier {
 
   /**
    *
-   * @param {import('../geometry.js').Rectangle} bounds
+   * @param {module:utils/geometry~Rectangle} bounds
    * @param {number} limitType - should be a LimitType value.
    * @param {number} decoratedModifier
    */
@@ -68,7 +69,7 @@ export class BoxLimiter extends AbstractModifier {
 
   /**
    * Update the sprite.
-   * @param {import('./sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    * @param {number} deltaSecondsUnused
    * @returns {AbstractModifier}
    */
@@ -90,7 +91,7 @@ export class BoxLimiter extends AbstractModifier {
 
   /**
    * Update the sprite constraining the centre to the bounds.
-   * @param {import('./sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    */
   #constrainCentre(sprite) {
     sprite.position.x = clip(
@@ -107,7 +108,7 @@ export class BoxLimiter extends AbstractModifier {
 
   /**
    * Update the sprite constraining so that is is always partially visible.
-   * @param {import('./sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    */
   #constrainPartial(sprite) {
     const spriteBox = sprite.getBoundingBox();
@@ -125,7 +126,7 @@ export class BoxLimiter extends AbstractModifier {
 
   /**
    * Update the sprite constraining so that is is always fully visible.
-   * @param {import('./sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    */
   #constrainFull(sprite) {
     const spriteBox = sprite.getBoundingBox();

@@ -2,7 +2,8 @@
  * @file Dialogs for use in the game
  *
  * @module utils/dom/ui
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).

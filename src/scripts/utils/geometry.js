@@ -2,7 +2,8 @@
  * @file Functions for dealing with geometry
  *
  * @module utils/geometry
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

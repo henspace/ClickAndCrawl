@@ -57,7 +57,9 @@ body {
   color: var(--window-contrast);
   align-items: center;
   justify-content: center;
-  font-family: 'UnifrakturCook', cursive;
+  font-family: 'Fondamento', cursive;
+  font-weight: 400;
+  font-style: normal;
   font-size: calc(var(--font-base-size) + 0.00390625 * var(--design-width));
   width: 100vw;
   height: 100vh;
@@ -94,6 +96,10 @@ body {
   flex-direction: column;
   justify-content: center;
   height: 100%;
+  overflow: auto;
+}
+.glass-content.overflow {
+  justify-content: flex-start;
 }
 
 .glass.door {
@@ -117,7 +123,17 @@ body {
   gap: 4px;
   justify-content: center;
   padding: 0.5rem;
-  width: 70%;
+  min-width: 70%;
+  margin: 4px;
+}
+
+.side-by-side {
+  display: flex;
+  flex-direction: row;
+}
+
+.side-by-side > div {
+  flex: 1;
 }
 
 h1,
@@ -146,7 +162,7 @@ button {
   background-color: var(--primary-base);
   background-image: url(../assets/images/button-texture.jpg);
   color: var(--primary-contrast);
-  font-family: 'UnifrakturCook', cursive;
+  font-family: 'Fondamento', cursive;
   font-size: 1rem;
   text-align: center;
 }

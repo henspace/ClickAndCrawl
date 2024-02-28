@@ -2,7 +2,8 @@
  * @file Create transient effects.
  *
  * @module utils/effects/transient
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -60,7 +61,7 @@ export function createFadingSprite(renderer, options) {
 
 /**
  * Create a transient image
- * @param {import('../sprites/imageManager.js').SpriteBitmap} imageName
+ * @param {module:utils/sprites/imageManager~SpriteBitmap} imageName
  * @param {Object} options
  * @param {Point} position
  * @param {Velocity} velocity

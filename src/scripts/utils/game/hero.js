@@ -2,7 +2,8 @@
  * @file Hero singleton who persists across the game/
  *
  * @module utils/game/hero
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -34,7 +35,7 @@ class Hero {
   actor;
   /**
    * Create the Hero.
-   * @param {import('../sprites/sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    */
   constructor() {}
 }

@@ -2,7 +2,8 @@
  * @file Map of names to actor factories in the dungeon.
  *
  * @module scriptReaders/actorMap
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -60,12 +61,12 @@ class ActorTraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
   }
   /**
    * Render the sprite.
-   * @param {import('../geometry.js').Position} position - this will have been adjusted to the screen.
+   * @param {module:utils/geometry~Position} position - this will have been adjusted to the screen.
    */
   render(position) {
     if (this.actor && this.actor.traits) {
-      const hp = this.actor.traits.get('HP');
-      const hpMax = this.actor.traits.get('HP_MAX');
+      const hp = this.actor.traits.get('HP', 0);
+      const hpMax = this.actor.traits.get('HP_MAX', 1);
       this.setLevel(0, hp / hpMax);
       this.setLevel(1, 1);
     }
@@ -191,9 +192,10 @@ function createArtefactKeyFrames(imageName) {
 /**
  * Create the actor.
  * @param {string} imageName - no extension
+ * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @returns {Actor}
  */
-function createAnimatedActor(imageName) {
+function createAnimatedActor(imageName, iconImageName) {
   const keyedAnimation = createStandardKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -218,15 +220,19 @@ function createAnimatedActor(imageName) {
     0
   );
   actor.velocity = { x: 0, y: 0, rotation: 0 };
+  actor.iconImageName = iconImageName
+    ? `${iconImageName}.png`
+    : `${imageName}.png`;
   return actor;
 }
 
 /**
  * Create the artefact.
  * @param {string} imageName - no extension
+ * * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @returns {Actor}
  */
-function createAnimatedArtefact(imageName) {
+function createAnimatedArtefact(imageName, iconImageName) {
   const keyedAnimation = createArtefactKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -247,6 +253,9 @@ function createAnimatedArtefact(imageName) {
   );
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.interaction = new FindArtefact(actor);
+  actor.iconImageName = iconImageName
+    ? `${iconImageName}.png`
+    : `${imageName}.png`;
   return actor;
 }
 
@@ -255,8 +264,8 @@ function createAnimatedArtefact(imageName) {
  * @param {string} imageName - without extension
  * @returns {Actor}
  */
-function createAnimatedFighter(imageName) {
-  const actor = createAnimatedActor(imageName);
+function createAnimatedFighter(imageName, iconImageName) {
+  const actor = createAnimatedActor(imageName, iconImageName);
   actor.interaction = new Fight(actor);
   return actor;
 }
@@ -264,10 +273,11 @@ function createAnimatedFighter(imageName) {
 /**
  * Create animated trader
  * @param {string} imageName - without extension
+ * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @returns {Actor}
  */
-function createAnimatedTrader(imageName) {
-  const actor = createAnimatedActor(imageName);
+function createAnimatedTrader(imageName, iconImageName) {
+  const actor = createAnimatedActor(imageName, iconImageName);
   actor.interaction = new Trade(actor);
   return actor;
 }
@@ -285,7 +295,7 @@ const ACTOR_MAP = new Map([
   ['HERO', { create: () => createAnimatedActor('hero') }],
   ['MONSTER', { create: () => createAnimatedFighter('orc') }],
   ['TRADER', { create: () => createAnimatedTrader('trader') }],
-  ['GOLD', { create: () => createAnimatedArtefact('hidden-artefact') }],
+  ['GOLD', { create: () => createAnimatedArtefact('hidden-artefact', 'gold') }],
 ]);
 
 export default ACTOR_MAP;

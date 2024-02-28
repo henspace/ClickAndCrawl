@@ -2,7 +2,8 @@
  * @file Test the room generator
  *
  * @module utils/tileMaps/roomGenerator.test
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).

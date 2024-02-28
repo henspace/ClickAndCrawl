@@ -1,8 +1,9 @@
 /**
  * @file Standard animation keys.
  *
- * @module scriptReaders\actorAnimationKeys
- *
+ * @module scriptReaders/actorAnimationKeys
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -40,7 +41,7 @@ import {
  * @property {Object} options - passed to AnimatedImage constructor
  */
 /**
- * @typedef {Object<string, AnimationDefinition} AnimationDefinitions
+ * @typedef {Object<string, AnimationDefinition>} AnimationDefinitions
  */
 /**
  * Standard animation definitions for an actor.
@@ -167,7 +168,6 @@ class AnimationKeys {
       keyedAnimations.addAnimatedImage(
         this.#definitions[key].keyName,
         new AnimatedImage(
-          0,
           {
             prefix: this.#formFrameNameRoot(key, imageName),
             suffix: '.png',

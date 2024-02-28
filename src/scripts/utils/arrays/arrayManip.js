@@ -2,7 +2,8 @@
  * @file Various utilities for handling arrays
  *
  * @module utils/arrays/arrayManip
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

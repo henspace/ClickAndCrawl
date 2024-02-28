@@ -3,7 +3,8 @@
  * as a singleton.
  *
  * @module utils/game/turnManager/turnManager
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -256,7 +257,7 @@ class State {
   /**
    * Handle event.
    * @param {number} eventId
-   * @param  {import('../sprites/sprite.js').Sprite} sprite - the sprite initiating the event
+   * @param  {module:utils/sprites/sprite~Sprite} sprite - the sprite initiating the event
    * @param {Object} detail - object will depend on the eventId
    * @returns {Promise} fulfills to null
    */
@@ -282,7 +283,7 @@ class WaitingToStart extends State {
   /**
    * @override
    * @param {number} eventId
-   * @param  {import('../sprites/sprite.js').Sprite} point - the point initiating the event
+   * @param  {module:utils/sprites/sprite~Sprite} point - the point initiating the event
    * @param {Object} detail - object will depend on the eventId
    */
   async onEvent(eventId, pointUnused, detailUnused) {
@@ -309,17 +310,18 @@ class AtStart extends State {
     return UI.showOkDialog('DUNGEON INTRO', 'ENTER DUNGEON BUTTON', 'wall')
       .then(() => SCENE_MANAGER.switchToFirstScene())
       .then((scene) => {
+        heroActor.sprite.position =
+          WORLD.getTileMap().getWorldPositionOfTileByEntry();
+        return scene;
+      })
+      .then((scene) => {
         if (scene.intro) {
           return UI.showOkDialog(scene.intro, undefined, 'mask');
         } else {
           return;
         }
       })
-      .then(() => {
-        heroActor.sprite.position =
-          WORLD.getTileMap().getWorldPositionOfTileByEntry();
-        return currentState.transitionTo(new HeroTurnIdle());
-      });
+      .then(() => currentState.transitionTo(new HeroTurnIdle()));
   }
 }
 
@@ -372,7 +374,7 @@ class HeroTurnIdle extends State {
   /**
    * @override
    * @param {number} eventId
-   * @param  {import('../sprites/sprite.js').Sprite} point - the point initiating the event
+   * @param  {module:utils/sprites/sprite~Sprite} point - the point initiating the event
    * @param {Object} detail - object will depend on the eventId
    */
   async onEvent(eventId, point, detail) {
@@ -423,7 +425,7 @@ class HeroTurnFighting extends State {
   /**
    * @override
    * @param {number} eventId
-   * @param  {import('../sprites/sprite.js').Sprite} point - the point initiating the event
+   * @param  {module:utils/sprites/sprite~Sprite} point - the point initiating the event
    * @param {Object} detail - object will depend on the eventId
    */
   async onEvent(eventId, point, detail) {
@@ -539,7 +541,7 @@ class ComputerTurnFighting extends State {
       }
     }
     await replayer.replay();
-    if (heroActor.traits.get('HP') === 0) {
+    if (heroActor.traits.get('HP', 0) === 0) {
       this.transitionTo(new AtGameOver());
     } else if (participants.length === 0) {
       this.transitionTo(new HeroTurnIdle());
@@ -600,7 +602,7 @@ function moveHeroToPoint(point, usePathFinder = true) {
  * @returns {Promise}
  */
 function interact(point) {
-  /** @type {import('../tileMaps/tileMap.js').TileMap} */
+  /** @type {module:utils/tileMaps/tileMap~TileMap} */
   const tileMap = WORLD.getTileMap();
   const tile = tileMap.getTileAtWorldPoint(point);
   const targets = tile.getOccupants();
@@ -641,7 +643,7 @@ function showOccupantDetails(occupant) {
 /**
  * Trigger an event. This will then be passed to the current State to handle.
  * @param {number} eventId
- * @param  {import('../sprites/sprite.js').Sprite} sprite - the sprite initiating the event
+ * @param  {module:utils/sprites/sprite~Sprite} sprite - the sprite initiating the event
  * @param {Object} detail - object will depend on the eventId
  */
 function triggerEvent(eventId, sprite, detail) {
@@ -657,7 +659,7 @@ function triggerEvent(eventId, sprite, detail) {
 
 /**
  * Set the current hero sprite.
- * @returns {import('./actors.js').Actor}
+ * @returns {module:utils/game/actors~Actor}
  */
 function getHeroActor() {
   return heroActor;
@@ -665,14 +667,14 @@ function getHeroActor() {
 
 /**
  * Start
- * @param {import('./actors.js').Actor} actor - the hero actor
+ * @param {module:utils/game/actors~Actor} actor - the hero actor
  */
 function setHero(actor) {
   heroActor = actor;
 }
 
 /**
- * @type {import('./actors.js').Actor}
+ * @type {module:utils/game/actors~Actor}
  */
 let heroActor;
 

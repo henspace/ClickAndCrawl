@@ -2,7 +2,8 @@
  * @file Path finders within a tile map
  *
  * @module utils/tileMaps/pathFinder
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -37,12 +38,12 @@ import * as maths from '../maths.js';
 export class Routes {
   /** @type {Map<string, Point[]>} */
   #routes;
-  /** @type {import('./tileMap.js').TileMap} */
+  /** @type {module:utils/tileMaps/tileMap~TileMap} */
   #tileMap;
 
   /**
    * Create routes.
-   * @param {import('./tileMap.js').TileMap} tileMap
+   * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
    */
   constructor(tileMap) {
     this.#tileMap = tileMap;
@@ -150,18 +151,18 @@ export class Routes {
  * Encapsulation of route finder for finding paths through routes.
  */
 export class RouteFinder {
-  /** Actor trying to find routes. @type {import('./tileMap.js').Actor} */
+  /** Actor trying to find routes. @type {module:utils/game/actors~Actor} */
   actor;
   /** @type {Route[]} */
   #routes;
-  /** @type {import('./tileMap.js').TileMap} */
+  /** @type {module:utils/tileMaps/tileMap~TileMap} */
   #tileMap;
   /** @type {Point} */
   #startPoint;
 
   /** Create the route finder.
-   * @param {import('./tileMap.js').TileMap} tileMap
-   * @param {import('./tileMap.js').Actor} actor
+   * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
+   * @param {module:utils/game/actors~Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;
@@ -347,13 +348,13 @@ export class RouteFinder {
  * Ray tracer from a starting point
  */
 export class RayTracer {
-  /** Actor tracing rays. @type {import('./tileMap.js').Actor} */
+  /** Actor tracing rays. @type {module:utils/game/actors~Actor} */
   #actor;
   /** Start point of the ray. @type {Point} */
   #rayStartPoint;
-  /** @type {import('./tileMap.js').TileMap} */
+  /** @type {module:utils/tileMaps/tileMap~TileMap} */
   #tileMap;
-  /** @type {Map<string, Point} */
+  /** @type {Map<string, Point>} */
   #reachedPoints;
   /** @type {Point}   */
   #lastStartPoint;
@@ -363,8 +364,8 @@ export class RayTracer {
   #lastBounds;
 
   /** Create the ray tracer.
-   * @param {import('./tileMap.js').TileMap} tileMap
-   * @param {import('./tileMap.js').Actor} actor
+   * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
+   * @param {module:utils/game/actors~Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;

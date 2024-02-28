@@ -4,7 +4,8 @@
  * Dungeons work as levels.
  *
  * @module scriptReaders/scriptParser
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -61,7 +62,7 @@ class AbstractSectionParser {
   /** Lines of the script. @type {string[]} */
   lines;
 
-  /** @type {number} lineIndex */
+  /** @type {number} */
   lineIndex;
 
   /**
@@ -181,9 +182,9 @@ class IntroParser extends AbstractSectionParser {
  * Parser for the cast list.
  */
 class CastParser extends AbstractSectionParser {
-  /** @type {import('./sceneDefinitionParser.js').ActorDefn} */
+  /** @type {module:scriptReaders/sceneDefinitionParser~ActorDefn} */
   #lastCastMember;
-  /** @type {import('./sceneDefinitionParser.js').ActorDefn[]} */
+  /** @type {module:scriptReaders/sceneDefinitionParser~ActorDefn[]} */
   #targetArray;
 
   /**
@@ -191,7 +192,7 @@ class CastParser extends AbstractSectionParser {
    * @param {number} lines
    * @param {number} startLine
    * @param {SceneDefinition} sceneDefn
-   * @param {import('./sceneDefinitionParser.js').ActorDefn[]} targetArray - destination for created definitions.
+   * @param {module:scriptReaders/sceneDefinitionParser~ActorDefn[]} targetArray - destination for created definitions.
    */
   constructor(lines, startLine, sceneDefn, targetArray) {
     super(lines, startLine, sceneDefn);
@@ -205,13 +206,13 @@ class CastParser extends AbstractSectionParser {
   parseLine(line) {
     let match = line.match(/^ *\+ *(.+)$/);
     if (match) {
-      return this._parseExtensionLine(match);
+      return this._parseExtendedTraits(match);
     }
     match = this.shortFormActorMatch(line);
     if (match) {
       return this._parseShortFormActor(match);
     }
-    this.fatalError('Unrecognised format.');
+    this._parseDescription(line);
   }
 
   /**
@@ -240,10 +241,12 @@ class CastParser extends AbstractSectionParser {
       if (ACTOR_MAP.has(actorId)) {
         try {
           const traits = new CharacterTraits().setFromString(traitsDefn);
-          this.#targetArray.push({
+          this.#lastCastMember = {
             id: actorId,
             traits: traits,
-          });
+            description: '',
+          };
+          this.#targetArray.push(this.#lastCastMember);
         } catch (error) {
           this.fatalError(error.message);
         }
@@ -253,16 +256,35 @@ class CastParser extends AbstractSectionParser {
     }
   }
   /**
-   * Parse a line to build a long form, multiline actor
+   * Parse a line to add more traits.
    * @param {string[]} matchResults - See String.match.
    */
-  _parseExtensionLine(matchResults) {
-    if (this.#lastCastMember) {
+  _parseExtendedTraits(matchResults) {
+    if (!this.#lastCastMember) {
       this.fatalError(
         'Cannot process extension line without preceding member line.'
       );
     } else {
       this.#lastCastMember.traits.setFromString(matchResults[1]);
+    }
+  }
+  /**
+   * Parse a line to add to the description..
+   * @param {string} line
+   */
+  _parseDescription(line) {
+    if (!this.#lastCastMember) {
+      this.fatalError(
+        `Cannot add description line without preceding member line.: ${line}`
+      );
+    } else {
+      if (line === '') {
+        this.#lastCastMember.description += '\n';
+      } else if (this.#lastCastMember.description === '') {
+        this.#lastCastMember.description += line;
+      } else {
+        this.#lastCastMember.description += ' ' + line;
+      }
     }
   }
 }

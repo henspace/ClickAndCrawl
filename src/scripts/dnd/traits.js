@@ -2,7 +2,8 @@
  * @file Dungeon and dragons properties
  *
  * @module dnd/traits
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -69,17 +70,19 @@ export class ActorTraits {
   /**
    * Get the trait value.
    * @param {string} key
+   * @param {*} defValue - default value;
    * @returns {*}
    */
-  get(key) {
+  get(key, defValue) {
     const value = this.#traits.get(key);
-    return value;
+    return value ?? defValue;
   }
 
   /**
    * Populate the traits from a string definition. The definition comprises a
    * comma separated list of characteristics with each characteristic comprising
    * a keyword followed by a space or equals sign and then its value.
+   * Keywords are converted to uppercase.
    * @param {string} definition
    * @returns {ActorTraits} returns this to allow chaining.
    * @throws {Error} if definition invalid.
@@ -87,13 +90,29 @@ export class ActorTraits {
   setFromString(definition) {
     definition.split('|').forEach((item) => {
       const match = item.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
+      const [key, value] = this.#imposeCase(match[1], match[2]);
       if (match) {
-        this.#setValue(match[1], match[2]);
+        this.#setValue(key, value);
       } else {
         throw new Error(`Invalid property definition'${item}'`);
       }
     });
     return this;
+  }
+
+  /**
+   * Adjust case to uppercase unless an excluded characteristic. Most values are
+   * converted to uppercase with a few exceptions.
+   * @param {string} key
+   * @param {string} value
+   * @returns {string[]]} first element has the adjusted key and the second the value.
+   */
+  #imposeCase(key, value) {
+    key = key.toUpperCase();
+    if (key !== 'NAME') {
+      value = value.toUpperCase();
+    }
+    return [key, value];
   }
 
   /**
@@ -134,11 +153,11 @@ export class ActorTraits {
   }
 
   /**
-   * Get all traits. This is a copy of the underlying traits.
+   * Get all traits. This is a copy of the underlying traits sorted by key name.
    * @returns {Map<string, *>}
    */
   getAllTraits() {
-    return new Map(this.#traits);
+    return new Map([...this.#traits.entries()].sort());
   }
 }
 
@@ -151,16 +170,6 @@ export class CharacterTraits extends ActorTraits {
    * @param {Map<string, *>} initialTraits
    */
   constructor(initialTraits) {
-    super(
-      initialTraits ??
-        new Map([
-          ['NAME', 'mystery'],
-          ['MOVEMENT', 'wander'],
-          ['HP', 10],
-          ['HP_MAX', 10],
-          ['STR', 10],
-          ['STR_MAX', 10],
-        ])
-    );
+    super(initialTraits ?? new Map([['NAME', 'mystery']]));
   }
 }

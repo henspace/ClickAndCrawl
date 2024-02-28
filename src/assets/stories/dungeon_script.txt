@@ -3,11 +3,15 @@ Welcome to the test dungeon. Beware all who enter here.
 This is just a test file to see if everything works.
 [Hero]
 hero: NAME: Reltub | HP: 25/25
+Our hero is a warrior who fell from grace after being accused of a crime
+he did not commit. He has accepted the challenge to find the Chalice of the Dark
+for the lord of Merchilia. If found, his family's honour will be restored.
 [Cast]
 monster x1>3: NAME: orc| MOVE: hunt| HP: 5/25
+Fearsome creatures of immeasurable cruelty and a hunger for human flesh.
 trader x1>3: NAME: trader| MOVE: wander| HP: 10/25
 [Artefacts]
-gold x3>5: NAME: Gold| GC: 10>25
+gold x3>5: NAME: Gold| GC: 10>25 | CARRY: purse
 [Map]
 random
 

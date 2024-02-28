@@ -2,7 +2,8 @@
  * @file Combat system
  *
  * @module utils/game/combat/combat
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).

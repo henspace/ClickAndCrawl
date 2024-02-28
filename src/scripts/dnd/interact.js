@@ -2,7 +2,8 @@
  * @file Handle fights and other interactions.
  *
  * @module dnd/interact
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -36,6 +37,7 @@ import * as chance from './chance.js';
 import UI from '../utils/dom/ui.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
+import * as actorDialogs from '../dialogs/actorDialogs.js';
 
 /** Dummy interaction that does nothing
  */
@@ -51,7 +53,7 @@ export class AbstractInteraction {
     this.actor = actor;
   }
   /**
-   * @param {import('../utils/game/actors.js').Actor} reactor
+   * @param {module:utils/game/actors~Actor} reactor
    * @returns {Promise}
    */
   enact(reactorUnused) {
@@ -59,7 +61,7 @@ export class AbstractInteraction {
   }
 
   /**
-   * @param {import('../utils/game/actors.js').Actor} enactor
+   * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
   react(enactorUnused) {
@@ -91,7 +93,7 @@ export class Fight extends AbstractInteraction {
   }
 
   /**
-   * @param {import('../utils/game/actors.js').Actor} reactor
+   * @param {module:utils/game/actors~Actor} reactor
    * @returns {Promise}
    */
   enact(reactor) {
@@ -99,7 +101,7 @@ export class Fight extends AbstractInteraction {
   }
 
   /**
-   * @param {import('../utils/game/actors.js').Actor} enactor
+   * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
   react(enactor) {
@@ -165,7 +167,6 @@ export class Fight extends AbstractInteraction {
         SOUND_MANAGER.playEffect('PUNCH');
         addFadingImage(
           IMAGE_MANAGER.getSpriteBitmap(
-            0,
             PERSISTENT_DATA.get('BLOOD_ON') ? 'blood-splat.png' : 'pow.png'
           ),
           {
@@ -175,7 +176,7 @@ export class Fight extends AbstractInteraction {
           }
         );
       }
-      let defenderHP = defender.traits.get('HP');
+      let defenderHP = defender.traits.get('HP', 0);
       const damage = chance.damageInflicted(attacker, defender);
       defenderHP = Math.max(0, defenderHP - damage);
       defender.traits.set('HP', defenderHP);
@@ -223,7 +224,7 @@ export class SearchCorpse extends AbstractInteraction {
 
   /**
    * Respond to a search
-   * @param {import('../utils/game/actors.js').Actor} reactor
+   * @param {module:utils/game/actors~Actor} reactor
    * @returns {Promise}
    */
   react(reactorUnused) {
@@ -247,7 +248,7 @@ export class Trade extends AbstractInteraction {
 
   /**
    * Trades are passive. Only the hero can initiate a trade.
-   * @param {import('../utils/game/actors.js').Actor} enactor
+   * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
   react(enactorUnused) {
@@ -269,14 +270,14 @@ export class FindArtefact extends AbstractInteraction {
 
   /**
    * Trades are passive. Only the hero can initiate a trade.
-   * @param {import('../utils/game/actors.js').Actor} enactor
+   * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
-  react(enactorUnused) {
+  react(enactor) {
     if (this.actor.alive) {
-      return UI.showOkDialog(
-        "You've found a new artefact. I haven't written the code yet."
-      ).then(() => (this.actor.alive = false));
+      return actorDialogs
+        .showArtefactFoundBy(this.actor, enactor)
+        .then(() => (this.actor.alive = false));
     } else {
       return UI.showOkDialog(
         "You've already found this artefact. I haven't written the code yet."

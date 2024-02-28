@@ -2,7 +2,8 @@
  * @file The main game. This is a singleton as there can only be a single game.
  *
  * @module utils/game/game
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

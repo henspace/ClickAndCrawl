@@ -2,7 +2,8 @@
  * @file Test for indexer
  *
  * @module utils/arrays/indexer-test
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

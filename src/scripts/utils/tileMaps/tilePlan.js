@@ -2,7 +2,8 @@
  * @file Tile map support
  *
  * @module utils/tileMaps/tilePlan
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -266,7 +267,7 @@ function isPartOfWall(symbol) {
 /**
  * Clarify the ground.
  * @param {string} value
- * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+ * @param {module:utils/arrays/arrayManip~Surrounds} surrounds
  * @return {string}
  */
 function clarifyGround(value, surrounds) {
@@ -286,7 +287,7 @@ function clarifyGround(value, surrounds) {
  * the doors is most likely to be placed assuming a left to right, top to bottom
  * design.
  * @param {string} value
- * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+ * @param {module:utils/arrays/arrayManip~Surrounds} surrounds
  * @returns {boolean}
  */
 function isEntryTile(value, surrounds) {
@@ -304,7 +305,7 @@ function isEntryTile(value, surrounds) {
  * the doors is most likely to be placed assuming a left to right, top to bottom
  * design.
  * @param {string} value
- * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+ * @param {module:utils/arrays/arrayManip~Surrounds} surrounds
  * @returns {boolean}
  */
 function isExitTile(value, surrounds) {
@@ -319,7 +320,7 @@ function isExitTile(value, surrounds) {
  * Distinguish the type of tile based on its surroundings.
  * This function does not handle corners.
  * @param {string} value
- * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+ * @param {module:utils/arrays/arrayManip~Surrounds} surrounds
  * @return {string}
  */
 function clarifyWallPart(value, surrounds) {

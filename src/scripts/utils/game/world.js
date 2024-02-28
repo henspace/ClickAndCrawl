@@ -2,7 +2,8 @@
  * @file World limitations
  *
  * @module utils/game/world
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -64,7 +65,7 @@ function getWorldDims() {
 
 /**
  * Add a actor to the world.
- * @param {import('./actors.js').Actor}
+ * @param {module:utils/game/actors~Actor}
  */
 function addActor(target) {
   actors.set(target, target);
@@ -77,7 +78,7 @@ function addActor(target) {
 
 /**
  * Remove actor from the world.
- * @param {import('./actors.js').Actor}
+ * @param {module:utils/game/actors~Actor}
  */
 function removeActor(target) {
   const gridPoint = worldTileMap.worldPointToGrid(target.position);
@@ -87,7 +88,7 @@ function removeActor(target) {
 
 /**
  * Add a artefact to the world.
- * @param {import('./actors.js').Actor}
+ * @param {module:utils/game/actors~Actor}
  */
 function addArtefact(target) {
   artefacts.set(target, target);
@@ -99,7 +100,7 @@ function addArtefact(target) {
 }
 /**
  * Remove artefact from the world.
- * @param {import('./actors.js').Actor}
+ * @param {module:utils/game/actors~Actor}
  */
 function removeArtefact(target) {
   const gridPoint = worldTileMap.worldPointToGrid(target.position);
@@ -188,7 +189,7 @@ function update(deltaSeconds) {
 
 /**
  * Resolve a ui click
- * @param {import('./screen.js').MappedPositions} positions - click coordinates in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click coordinates in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolveClick(positions) {
@@ -202,7 +203,7 @@ function resolveClick(positions) {
 
 /**
  * Resolve a context menu event
- * @param {import('./screen.js').MappedPositions} positions - click coordinates in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click coordinates in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolveContextMenu(positions) {
@@ -216,7 +217,7 @@ function resolveContextMenu(positions) {
 
 /**
  * Resolve a cancel event
- * @param {import('./screen.js').MappedPositions} positions - click coordinates in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click coordinates in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolveCancel(positionsUnused) {

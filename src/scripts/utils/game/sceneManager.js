@@ -2,7 +2,8 @@
  * @file Scene manager
  *
  * @module utils/game/sceneManager
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -56,7 +57,7 @@ import LOG from '../logging.js';
  * @function SceneList.reset
  */
 
-/** @type {import('../sprites/sprite.js').Sprite}  */
+/** @type {module:utils/sprites/sprite~Sprite}  */
 let cameraDolly;
 
 /** @type {SceneList} */
@@ -93,7 +94,7 @@ export class SceneDefinition {
 
 /**
  * Set camera dolly
- * @param {import('../sprites/sprite.js').Sprite} sprite
+ * @param {module:utils/sprites/sprite~Sprite} sprite
  * @param {number} speed - See {@link module:utils/game/camera.createCameraDolly}
  * @param {number} proportionSeparated - See {@link module:utils/game/camera.createCameraDolly}
  */
@@ -124,7 +125,7 @@ function clearHud() {
   HUD.setVisible(false);
 }
 /** Set the current scene, unloading any existing scene
- * @param {import('./scene.js').Scene} scene
+ * @param {module:utils/game/scene~Scene} scene
  * @returns {Promise} fulfils to undefined.
  * Rejects if scene is undefined or null.
  */
@@ -142,7 +143,7 @@ function setScene(scene) {
 
 /**
  * Load scene
- * @param {import('./scene.js').Scene} scene
+ * @param {module:utils/game/scene~Scene} scene
  * @returns {Promise} fulfills to null
  */
 function loadScene(scene) {
@@ -157,7 +158,7 @@ function loadScene(scene) {
 
 /**
  * Unload scene
- * @param {import('./scene.js').Scene} scene
+ * @param {module:utils/game/scene~Scene} scene
  * @returns {Promise} fulfills to null
  */
 function unloadScene(scene) {
@@ -182,7 +183,7 @@ function unloadCurrentScene() {
 }
 /**
  * Configure the scenes from the script.
- * @param {import('../../scriptReaders/index.js').SceneDefinition} listOfScenes
+ * @param {module:utils/game/sceneManager~SceneDefinition} listOfScenes
  */
 function setSceneList(listOfScenes) {
   sceneDefnList = listOfScenes;

@@ -2,7 +2,8 @@
  * @file Tile map
  *
  * @module utils/tileMaps/tileMap
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -69,8 +70,8 @@ export const TileRole = {
 /**
  * @typedef {Object} TileDefinition
  * @property {TileRole} role
- * @property {import('../sprites/sprite.js').SpriteClickHandler} onClick
- * @property {import('../sprites/sprite.js').SpriteClickHandler} onContextClick
+ * @property {module:utils/sprites/sprite~SpriteClickHandler} onClick
+ * @property {module:utils/sprites/sprite~SpriteClickHandler} onContextClick
  * @property {string} image - used to create the sprite.
  */
 
@@ -82,7 +83,7 @@ export class Tile extends UiClickHandler {
   sprite;
   /** @type {boolean} */
   obstacle;
-  /** @type {import('../game/actors.js').Actor[]} */
+  /** @type {module:utils/game/actors~Actor} */
   #occupants;
   /** @type {Point} */
   #gridPoint;
@@ -139,14 +140,14 @@ export class Tile extends UiClickHandler {
   }
 
   /** Remove occupant.
-   * @param {import('../game/actors.js').Actor}
+   * @param {module:utils/game/actors~Actor}
    */
   deleteOccupant(occupant) {
     this.#occupants.delete(occupant);
   }
 
   /** get occupants.
-   * @param {import('../game/actors.js').Actor[]}
+   * @param {module:utils/game/actors~Actor}
    */
   getOccupants() {
     return this.#occupants;
@@ -246,9 +247,9 @@ export class TileMap {
   #gridSize;
   #width;
   #height;
-  /** @type {import('./pathFinder.js').Routes} */
+  /** @type {module:utils/tileMaps/pathFinder~Routes} */
   #movementRoutes;
-  /** @type {Point{}} */
+  /** @type {Point[]} */
   #movementGridPoints;
   /** @type {Sprite} */
   #movementTileHighlighter;
@@ -323,7 +324,7 @@ export class TileMap {
           const sprite = new Sprite({
             renderer: new ImageSpriteCanvasRenderer(
               context,
-              IMAGE_MANAGER.getSpriteBitmap(0, tileDefn.image)
+              IMAGE_MANAGER.getSpriteBitmap(tileDefn.image)
             ),
           });
           const gridPoint = new Point(columnIndex, rowIndex);
@@ -356,7 +357,7 @@ export class TileMap {
 
   /**
    * Get tilemap dimensions in terms of number of tiles.
-   * @returns {import('../geometry.js').Dims2D}
+   * @returns {module:utils/geometry~Dims2D}
    */
   getDimsInTiles() {
     return { width: this.#tilesX, height: this.#tilesY };
@@ -478,7 +479,7 @@ export class TileMap {
   }
 
   /** Get world dimensions.
-   * @returns {import('../geometry.js').Dims2D}
+   * @returns {module:utils/geometry~Dims2D}
    */
   getDimensions() {
     return { width: this.#width, height: this.#height };
@@ -659,7 +660,7 @@ export class TileMap {
    * @param {Sprite} target - the sprite that was clicked. This prevents the need
    * to use 'this' which may not be correct in the context.
    * @param {Point} point - the position in the world that was clicked
-   * @param {import('../sprites/sprite.js').SpriteClickHandler} clickHandler
+   * @param {module:utils/sprites/sprite~SpriteClickHandler} clickHandler
    */
   #filterClick(target, point, clickHandler) {
     const gridPoint = this.worldPointToGrid(point);
@@ -721,7 +722,7 @@ export class TileMap {
   /**
    * Test if point is passable.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {import('../game/actors.js').Actor} actor - actor trying to pass
+   * @param {module:utils/game/actors~Actor} actor - actor trying to pass
    * @returns {boolean}
    */
   isGridPointPassableByActor(gridPoint, actor) {
@@ -736,7 +737,7 @@ export class TileMap {
   /**
    * Test if tile can be occupied by the actor
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {import('../game/actors.js').Actor} actor - actor trying to occupy location
+   * @param {module:utils/game/actors~Actor} actor - actor trying to occupy location
    * @returns {boolean}
    */
   canGridPointBeOccupiedByActor(gridPoint, actor) {
@@ -759,7 +760,7 @@ export class TileMap {
   /**
    * Test if point can be seen through.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {import('../game/actors.js').Actor} actor - actor trying to see
+   * @param {module:utils/game/actors~Actor} actor - actor trying to see
    * @returns {boolean}
    */
   isSeeThrough(gridPoint, actor) {

@@ -2,7 +2,8 @@
  * @file Support for emojis, especially as sprites.
  *
  * @module utils/text/emojis
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

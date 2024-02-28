@@ -2,7 +2,8 @@
  * @file Navigation button set for the HUD
  *
  * @module utils/game/hudNavSet
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -56,7 +57,7 @@ export class NavigationButtons {
   /** @type {Actor} */
   #trackingButton;
 
-  /** @type {import('../sprites/imageManager.js').SpriteBitmap} */
+  /** @type {module:utils/sprites/imageManager~SpriteBitmap} */
   #trackingButtonImage;
 
   /**
@@ -106,7 +107,6 @@ export class NavigationButtons {
    */
   #createCentreButton(centreX, centreY) {
     this.#trackingButtonImage = new AnimatedImage(
-      0,
       {
         prefix: 'hud-auto-centre',
         startIndex: 0,
@@ -206,7 +206,6 @@ export class NavigationButtons {
    */
   #createMomentaryButton(imageNamePrefix, x, y, callbackDown, callbackUp) {
     const animatedImage = new AnimatedImage(
-      0,
       {
         prefix: imageNamePrefix,
         startIndex: 0,

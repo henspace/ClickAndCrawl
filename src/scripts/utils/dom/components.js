@@ -2,7 +2,8 @@
  * @file Classes for managing menus.
  *
  * @module utils/dom/menu
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -118,7 +119,7 @@ class BaseControl {
 export class TextButtonControl extends BaseControl {
   /** Create the button.
    * @param {Object} options - see BaseControl plus
-   * @param {function:Promise} action - function called on click.
+   * @param {function():Promise} action - function called on click.
    */
   constructor(options) {
     super(options);
@@ -148,8 +149,7 @@ export class TextButtonControl extends BaseControl {
 export class BitmapButtonControl extends BaseControl {
   /** Create the button.
    * @param {Object} options - see BaseControl. Plus
-   * @param {function:Promise} action - function called on click.
-   * @param {number} imageIndex - index in image manager
+   * @param {function():Promise} action - function called on click.
    * @param {string} imageName
    */
   constructor(options) {
@@ -169,9 +169,7 @@ export class BitmapButtonControl extends BaseControl {
     element.appendChild(
       document.createTextNode(MESSAGES.getText(options.labelKey))
     );
-    element.appendChild(
-      createBitmapElement(options.index, options.imageName, 'button-icon')
-    );
+    element.appendChild(createBitmapElement(options.imageName, 'button-icon'));
     element.className = 'icon-button';
     return element;
   }
@@ -179,14 +177,15 @@ export class BitmapButtonControl extends BaseControl {
 
 /**
  * Create a bitmap element
- * @param {number} index - index of images in the image manager
  * @param {string} imageName
  * @param {string} className
  * @returns {Element}
  */
 
-function createBitmapElement(index = 0, imageName, className) {
-  const bitmapImage = IMAGE_MANAGER.getSpriteBitmap(index, imageName);
+export function createBitmapElement(imageName, className) {
+  const bitmapImage = IMAGE_MANAGER.getSpriteBitmap(
+    imageName ?? 'undefined.png'
+  );
   const canvas = document.createElement('canvas');
   canvas.setAttribute('width', GameConstants.TILE_SIZE);
   canvas.setAttribute('height', GameConstants.TILE_SIZE);
@@ -233,10 +232,10 @@ class CheckboxControl extends BaseControl {
     this.#checkbox.setAttribute('type', 'checkbox');
     checkboxContainer.appendChild(this.#checkbox);
     checkboxContainer.appendChild(
-      createBitmapElement(0, 'ui-checkbox00.png', 'unchecked')
+      createBitmapElement('ui-checkbox00.png', 'unchecked')
     );
     checkboxContainer.appendChild(
-      createBitmapElement(0, 'ui-checkbox01.png', 'checked')
+      createBitmapElement('ui-checkbox01.png', 'checked')
     );
     const element = document.createElement('label');
     element.appendChild(document.createTextNode(label));
@@ -302,8 +301,8 @@ export const ControlType = {
  * @param {*}   defValue - default value,
  * @param {ControlType} controlType - type of control required,
  * @param {boolean} persistent - whether the value is stored in persistent data.
- * @param {function: Promise} action - action to perform when clicked.
- * @param {function} onChange - action to perform when value changes.
+ * @param {function(): Promise} action - action to perform when clicked.
+ * @param {function()} onChange - action to perform when value changes.
  */
 
 /**
@@ -329,4 +328,30 @@ export function createControl(definition) {
       );
   }
   return control;
+}
+
+/**
+ * Create an element.
+ * @param {string} tagName
+ * @param {Object} options
+ * @param {string} options.className
+ * @param {string} options.text
+ * @param {string} options.html - has precedence over options.text.
+ * @param {Element} options.child - appended after text or html.
+ * @returns {Element}
+ */
+export function createElement(tagName, options) {
+  const element = document.createElement(tagName);
+  if (options.className) {
+    element.className = options.className;
+  }
+  if (options.html) {
+    element.innerHtml = options.html;
+  } else if (options.text) {
+    element.innerText = options.text;
+  }
+  if (options.child) {
+    element.appendChild(options.child);
+  }
+  return element;
 }

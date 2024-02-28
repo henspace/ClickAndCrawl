@@ -2,7 +2,8 @@
  * @file Debug utilities
  *
  * @module utils/debug
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

@@ -2,7 +2,8 @@
  * @file Colours used in the game.
  *
  * @module constants/colours
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).

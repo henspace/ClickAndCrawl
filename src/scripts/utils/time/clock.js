@@ -2,7 +2,8 @@
  * @file Time utilities. Two clocks exist in the games: real and turn based.
  *
  * @module utils/time/clock
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

@@ -2,7 +2,8 @@
  * @file Dialogs to show details of actors.
  *
  * @module dialogs/actorDialogs
- *
+ */
+/**
  * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -26,20 +27,67 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import UI from '../utils/dom/ui.js';
+import * as components from '../utils/dom/components.js';
+
 /**
  * Display details about the actor.
+ * @param {module:utils/game/actors~Actor} actor
  */
 export function showActorDetailsDialog(actor) {
-  const container = document.createElement('ul');
+  return UI.showElementOkDialog(createActorElement(actor));
+}
+
+/**
+ * Display details about the actor.
+ * @param {module:utils/game/actors~Actor} actor
+ */
+export function showArtefactFoundBy(artefact, actor) {
+  const sideBySide = document.createElement('div');
+  sideBySide.className = 'side-by-side';
+  sideBySide.appendChild(createActorElement(actor));
+  sideBySide.appendChild(createActorElement(artefact));
+  return UI.showElementOkDialog(sideBySide);
+}
+
+/**
+ * Create an element describing an actor.
+ * @param {module:utils/game/actors~Actor} actor
+ * @returns {Element}
+ */
+function createActorElement(actor) {
+  const container = document.createElement('div');
+  container.appendChild(components.createBitmapElement(actor.iconImageName));
+  container.appendChild(
+    components.createElement('span', { text: actor.traits.get('NAME') })
+  );
+  if (actor.description) {
+    const desc = document.createElement('p');
+    desc.innerText = actor.description;
+    container.appendChild(desc);
+  }
+  container.appendChild(createTraitsList(actor, ['NAME']));
+  return container;
+}
+/**
+ * Create an element showing an actors traits.
+ * @param {module:utils/game/actors~Actor} actor
+ * @param {string[]} excludedKeys
+ * @returns {Element}
+ */
+function createTraitsList(actor, excludedKeys) {
+  const traitsList = document.createElement('ul');
   actor.traits.getAllTraits().forEach((value, key) => {
-    const item = document.createElement('li');
-    const label = document.createElement('span');
-    label.innerText = key;
-    const content = document.createElement('span');
-    content.innerText = value;
-    container.appendChild(item);
-    item.appendChild(label);
-    item.appendChild(content);
+    if (!excludedKeys.includes(key)) {
+      const displayedKey = key?.replace('_', ' ');
+      const item = document.createElement('li');
+      const label = components.createElement('span', {
+        text: `${displayedKey}: `,
+      });
+      const content = components.createElement('span', { text: value });
+      traitsList.appendChild(item);
+      item.appendChild(label);
+      item.appendChild(content);
+    }
   });
-  UI.showElementOkDialog(container);
+  return traitsList;
 }

@@ -2,7 +2,8 @@
  * @file Faders which adjust opacity
  *
  * @module utils/sprites/faders
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -51,7 +52,7 @@ export class TimeFader extends AbstractModifier {
   /**
    * Adjust sprite opacity depending on time. When the time is complete, this
    * modify returns null to indicate completion.
-   * @param {import('./sprite.js').Sprite} sprite
+   * @param {module:utils/sprites/sprite~Sprite} sprite
    * @param {number} deltaSeconds - elapsed time
    * @returns {AbstractModifier}
    */

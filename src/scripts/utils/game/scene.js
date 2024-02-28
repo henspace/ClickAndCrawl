@@ -3,7 +3,8 @@
  * dungeon.
  *
  * @module utils/game/scene
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -49,7 +50,7 @@ export class AbstractScene {
   /** Fade out promise resolution @type {function}  */
   #fadeOutResolve;
 
-  /** @type {import('./actors.js').Actor} */
+  /** @type {module:utils/game/actors~Actor} */
   heroActor;
 
   /** @type {string} */

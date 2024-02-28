@@ -2,8 +2,9 @@
  * @file Load assets. This module is placed in the assets folder to simplify
  * dynamic imports using Parcel's import.meta.url property.
  *
- * @module utils\assetLoaders.js
- *
+ * @module utils/assetLoaders.js
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -29,7 +30,7 @@
  */
 import LOG from './logging.js';
 /**
- * @type {Object<string, URL>} Urls for dynamically loading resources
+ * Urls for dynamically loading resources @type {Object<string, URL>}
  */
 export const Urls = {
   DUNGEON_SCRIPT: new URL(

@@ -2,7 +2,8 @@
  * @file Basic sprite control
  *
  * @module utils/sprites/sprite
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -152,5 +153,24 @@ export class Sprite {
       boundsCanvas.width,
       boundsCanvas.height
     );
+  }
+
+  /**
+   * Get image file name used for passive renderers. If this is a multirenderer,
+   * the first one with a bitmap is returned.
+   * @returns {module:utils/sprites/imageManager~SpriteBitmap}
+   */
+  getImageFilename() {
+    if (!this.#renderer.forEach) {
+      return this.#renderer.getImageFilename();
+    } else {
+      for (const renderer of this.#renderer) {
+        const bitmap = renderer.getImageFilename();
+        if (bitmap) {
+          return bitmap;
+        }
+      }
+    }
+    return null;
   }
 }

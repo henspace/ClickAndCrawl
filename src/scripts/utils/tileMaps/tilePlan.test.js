@@ -2,7 +2,8 @@
  * @file Test tile plan
  *
  * @module utils/tileMaps/tilePlan.test
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

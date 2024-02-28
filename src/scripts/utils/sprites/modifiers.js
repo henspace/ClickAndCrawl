@@ -1,8 +1,9 @@
 /**
  * @file Modifiers for updates
  *
- * @module utils\sprites\modifiers
- *
+ * @module utils/sprites/modifiers
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

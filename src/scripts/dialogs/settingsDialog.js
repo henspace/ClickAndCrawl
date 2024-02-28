@@ -2,7 +2,8 @@
  * @file Settings dialog
  *
  * @module dialogs/settingsDialog
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).

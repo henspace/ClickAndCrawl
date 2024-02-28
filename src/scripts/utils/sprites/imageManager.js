@@ -2,7 +2,8 @@
  * @file Load and manage images. The image manager is implemented as a singleton.
  *
  * @module utils/sprites/imageManager
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -31,6 +32,7 @@ import LOG from '../logging.js';
 
 /**
  * @typedef {Object} SpriteBitmap
+ * @property {string} filename
  * @property {Image} image
  * @property {number} width
  * @property {number} height
@@ -38,8 +40,8 @@ import LOG from '../logging.js';
  * @property {number} centreY
  */
 
-/** @type {Array.Map<string, SpriteBitmap>} */
-let spriteMaps = [];
+/** @type {Map<string, SpriteBitmap>} */
+let spriteMap = new Map();
 
 /**
  * Load an image
@@ -88,8 +90,6 @@ function loadSpriteMap(spriteMapDef, textureUrl) {
  */
 function buildSpriteMap(spriteMapDef, texture) {
   const promises = [];
-  const map = new Map();
-  spriteMaps.push(map);
   spriteMapDef.frames.forEach((frame) => {
     promises.push(
       createImageBitmap(
@@ -100,13 +100,14 @@ function buildSpriteMap(spriteMapDef, texture) {
         frame.frame.h
       ).then((spriteImage) => {
         const spriteBitmap = {
+          filename: frame.filename,
           image: spriteImage,
           width: frame.frame.w,
           height: frame.frame.h,
           centreX: frame.sourceSize.w / 2 - frame.spriteSourceSize.x,
           centreY: frame.sourceSize.h / 2 - frame.spriteSourceSize.y,
         };
-        map.set(frame.filename, spriteBitmap);
+        spriteMap.set(frame.filename, spriteBitmap);
         return frame.filename;
       })
     );
@@ -116,14 +117,14 @@ function buildSpriteMap(spriteMapDef, texture) {
 }
 
 /**
- * @param {number} spriteMapIndex
  * @param {string} filename
+ * @param {boolean} quiet - if true, no message is logged if image not found.
  * @returns {SpriteBitmap} null if filename not found.
  */
-function getSpriteBitmap(spriteMapIndex, filename) {
-  const result = spriteMaps[spriteMapIndex].get(filename);
-  if (!result) {
-    LOG.debug(`Failed to find image ${filename} at index ${spriteMapIndex}`);
+function getSpriteBitmap(filename, quiet) {
+  const result = spriteMap.get(filename);
+  if (!result && !quiet) {
+    LOG.debug(`Failed to find image ${filename}.`);
   }
   return result;
 }

@@ -3,7 +3,8 @@
  * locked to the canvas coordinates.
  *
  * @module utils/game/hud
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -48,8 +49,8 @@ let visible = false;
  * Add a button to the hud. If two callbacks are provided, an AnimatedImage
  * is required with two frames.
  * @param {SpriteBitmap | AnimatedImage} image
- * @param {import('../ui/interactions.js').UiClickCallback} callbackOn
- * @param {import('../ui/interactions.js').UiClickCallback} callbackOff
+ * @param {module:ui/interactions~UiClickCallback} callbackOn
+ * @param {module:ui/interactions~UiClickCallback} callbackOff
  * @returns {Actor}
  */
 function addButton(image, callbackOn, callbackOff) {
@@ -79,8 +80,8 @@ function addButton(image, callbackOn, callbackOff) {
  * Add a momentary button to the hud. If two callbacks are provided, an AnimatedImage
  * is required with two frames.
  * @param {SpriteBitmap | AnimatedImage} image
- * @param {import('../ui/interactions.js').UiClickCallback} callbackOn
- * @param {import('../ui/interactions.js').UiClickCallback} callbackOff
+ * @param {module:ui/interactions~UiClickCallback} callbackOn
+ * @param {module:ui/interactions~UiClickCallback} callbackOff
  * @returns {Actor}
  */
 function addMomentaryButton(image, callbackOn, callbackOff) {
@@ -104,7 +105,7 @@ function addMomentaryButton(image, callbackOn, callbackOff) {
 
 /**
  * Remove sprite from the hud.
- * @param {import('../sprites/sprite.js').Sprite}
+ * @param {module:utils/sprites/sprite~Sprite}
  */
 function removeButton(target) {
   actors.delete(target);
@@ -149,7 +150,7 @@ function borderHUD() {
 
 /**
  * Check if the click is in a actor.
- * @param {import('./screen.js').MappedPositions} positions - canvas and world positions
+ * @param {module:ui/interactions~MappedPositions} positions - canvas and world positions
  * @param {Actor} actor
  */
 function isHittingActor(positions, actor) {
@@ -167,7 +168,7 @@ function isHittingActor(positions, actor) {
 
 /**
  * Resolve a ui click
- * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolveClick(positions) {
@@ -185,7 +186,7 @@ function resolveClick(positions) {
 
 /**
  * Resolve a pointer down
- * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolvePointerDown(positions) {
@@ -206,7 +207,7 @@ function resolvePointerDown(positions) {
 
 /**
  * Resolve a ui pointer up event
- * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolvePointerUp(positions) {
@@ -227,7 +228,7 @@ function resolvePointerUp(positions) {
 
 /**
  * Resolve a context menu event.
- * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolveContextMenu(positionsUnused) {
@@ -237,7 +238,7 @@ function resolveContextMenu(positionsUnused) {
 /**
  * Resolve a cancel event. For the HUD, a cancel event is treated the same as a pointer
  * up event.
- * @param {import('./screen.js').MappedPositions} positions - click in canvas and world coordinates.
+ * @param {module:ui/interactions~MappedPositions} positions - click in canvas and world coordinates.
  * @returns {boolean} true if resolved.
  */
 function resolvePointerCancel(positions) {

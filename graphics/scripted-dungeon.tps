@@ -186,6 +186,7 @@
             <key type="filename">tiles/floor2-SBE.png</key>
             <key type="filename">tiles/floor2-SBW.png</key>
             <key type="filename">tiles/floor2.png</key>
+            <key type="filename">tiles/gold.png</key>
             <key type="filename">tiles/hero-dead00.png</key>
             <key type="filename">tiles/hero-idle00.png</key>
             <key type="filename">tiles/hero-idle01.png</key>
@@ -279,6 +280,7 @@
             <key type="filename">tiles/ui-spinner-right01.png</key>
             <key type="filename">tiles/ui-spinner-up00.png</key>
             <key type="filename">tiles/ui-spinner-up01.png</key>
+            <key type="filename">tiles/undefined.png</key>
             <key type="filename">tiles/wall-B.png</key>
             <key type="filename">tiles/wall-BL.png</key>
             <key type="filename">tiles/wall-BLI.png</key>

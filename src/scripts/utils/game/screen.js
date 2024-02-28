@@ -13,7 +13,8 @@
  * whereas the canvas rect may effectively move around the world.
  *
  * @module utils/screen
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -84,7 +85,7 @@ window.addEventListener('resize', () => {
 
 /**
  * Get dimensions of the working area for the game.
- * @returns {import('../geometry.js').Dims2D}
+ * @returns {module:utils/geometry~Dims2D}
  */
 function getDisplayDims() {
   return { width: window.innerWidth, height: window.innerHeight };
@@ -297,6 +298,12 @@ function displayOnGlass(element, closers, className) {
   }
   glass.style.display = 'block';
   glass.style.opacity = 1;
+  // calculate if content overflows. This is used because of lack of CSS support
+  // for safe in Safari.
+  const contentHeight = glassContent.getBoundingClientRect().height;
+  if (glassContent.scrollHeight > contentHeight) {
+    glassContent.classList.add('overflow');
+  }
   const promises = [];
   if (closers && closers.length > 0) {
     closers.forEach((closer) => {

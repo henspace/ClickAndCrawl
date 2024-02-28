@@ -2,7 +2,8 @@
  * @file Random room generator
  *
  * @module utils/tileMaps/roomGenerator
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -174,7 +175,7 @@ export class RoomCreator {
 
   /**
    * Is this a vertical wall where a door could go.
-   * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+   * @param {module:utils/arrays/arrayManip~Surrounds} surrounds
    * @returns {boolean}
    */
   #isVerticalWall(surrounds) {
@@ -186,7 +187,7 @@ export class RoomCreator {
   }
   /**
    * Is this a Horizontal wall where a door could go.
-   * @param {import('../arrays/arrayManip.js').Surrounds} surrounds
+   * @param {module:utils/arrays/arrayManip~Surrounds} surrounds
    * @returns {boolean}
    */
   #isHorizontalWall(surrounds) {

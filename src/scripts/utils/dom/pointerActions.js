@@ -2,7 +2,8 @@
  * @file Functions to allow touch and mouse handling.
  *
  * @module utils/dom/pointerActions
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

@@ -2,7 +2,8 @@
  * @file Conversion of map plan keys to images and tile definitions.
  *
  * @module scriptReaders/symbolMapping
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -30,7 +31,7 @@ import { TileRole } from '../utils/tileMaps/tileMap.js';
 import TURN_MANAGER from '../utils/game/turnManager.js';
 
 /**
- * @typedef {import('./tileMap.js').TileDefinition} TileDefinition
+ * @typedef {module:scriptReaders/sceneDefinitionParser~TileDefinition} TileDefinition
  */
 
 /**

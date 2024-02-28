@@ -2,7 +2,8 @@
  * @file Test array functions
  *
  * @module utils/arrays/arrayManip.test
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler

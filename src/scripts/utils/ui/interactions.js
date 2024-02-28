@@ -2,7 +2,8 @@
  * @file Interactions with the ui
  *
  * @module utils/ui/interactions
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -30,7 +31,7 @@
 /**
  * @typedef {function} UiClickCallback
  * @param {Object} target - initial object that triggered the handler
- * @param {import('../geometry.js').Point} point - the position that was clicked in world coordinates
+ * @param {module:utils/geometry~Point} point - the position that was clicked in world coordinates
  */
 
 /**
@@ -75,7 +76,7 @@ export class UiClickHandler {
   }
   /**
    * Handle click
-   * @param {import('../geometry.js').Point} point
+   * @param {module:utils/geometry~Point} point
    */
   actionClick(point) {
     this.#onClick?.(this, point);
@@ -83,7 +84,7 @@ export class UiClickHandler {
 
   /**
    * Handle context click
-   * @param {import('../geometry.js').Point} point
+   * @param {module:utils/geometry~Point} point
    */
   actionContextClick(point) {
     this.#onContextClick?.(this, point);
@@ -91,7 +92,7 @@ export class UiClickHandler {
 
   /**
    * Handle pointer down
-   * @param {import('../geometry.js').Point} point
+   * @param {module:utils/geometry~Point} point
    */
   actionPointerDown(point) {
     this.#onPointerDown?.(this, point);
@@ -99,7 +100,7 @@ export class UiClickHandler {
 
   /**
    * Handle pointer up
-   * @param {import('../geometry.js').Point} point
+   * @param {module:utils/geometry~Point} point
    */
   actionPointerUp(point) {
     this.#onPointerUp?.(this, point);

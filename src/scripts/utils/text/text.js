@@ -2,7 +2,8 @@
  * @file Canvas functions for handling text.
  *
  * @module utils/text/text
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -59,7 +60,7 @@ export function getTextBounds(context, text) {
  * Wrap text based on https://codepen.io/nishiohirokazu/pen/jjNyye
  * @param {CanvasRenderingContext2D} context
  * @param {string} paragraph
- * @param {import('../geometry.js').Position} position
+ * @param {module:utils/geometry~Position} position
  * @param {Object} options
  * @param {number} options.xWrapPosition - position to wrap text.
  * @param {number} [options.lineSpacing = 1] - multiplier for line height. 1 shifts lines by the total font height.
@@ -95,7 +96,7 @@ function wrapParagraph(context, paragraph, position, options) {
  * Write text to the canvas. Text can be wrapped if required.
  * @param {CanvasRenderingContext2D} context
  * @param {*} text
- * @param {import('../geometry.js').Position} position
+ * @param {module:utils/geometry~Position} position
  * @param {Object} options
  * @param {number} [options.wrapAtX] - if null, undefined or zero, no wrapping occurs.
  * @param {number} [options.lineSpacing = 1] - multiplier for line height. 1 shifts lines by the total font height.

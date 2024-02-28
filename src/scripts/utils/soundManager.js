@@ -2,7 +2,8 @@
  * @file Sound manager
  *
  * @module utils/soundManager
- *
+ */
+/**
  * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -74,7 +75,7 @@ class SoundManager {
   }
   /**
    * Load the audio sounds.
-   * @param {Map<string, string} audioPaths
+   * @param {Map<string, string>} audioPaths
    * @returns {Promise} fulfils to undefined when all sounds are ready.
    */
   loadEffects(audioPaths) {

@@ -2,7 +2,8 @@
  * @file Message manager. Wrapper for all ui messages.
  *
  * @module utils/messageManager
- *
+ */
+/**
  * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
@@ -34,7 +35,7 @@ let messages;
 
 /**
  * Add text to the messages.
- * @param {Map<string, string} messageMap
+ * @param {Map<string, string>} messageMap
  */
 function setMap(messageMap) {
   messages = messageMap;

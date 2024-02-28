@@ -2,7 +2,8 @@
  * @file Convert a screen definition into a scene.
  *
  * @module scriptReaders/sceneDefinitionParser
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler (henspace.com).
@@ -47,7 +48,8 @@ let lastHero;
 /**
  * @typedef {Object} ActorDefn
  * @property {string} id
- * @property {import('../dnd/traits.js').CharacterTraits} traits
+ * @property {module:dnd/traits~CharacterTraits} traits
+ * @property {string} description
  */
 
 /**
@@ -62,6 +64,7 @@ function createHero(sceneDefn) {
     const actor = ACTOR_MAP.get(heroDefn.id).create();
     actor.traits = heroDefn.traits.clone();
     actor.type = ActorType.HERO;
+    actor.description = heroDefn.description;
     lastHero = actor;
     return actor;
   } else {
@@ -81,13 +84,14 @@ function createEnemies(sceneDefn) {
   sceneDefn.enemies.forEach((enemy) => {
     const actor = ACTOR_MAP.get(enemy.id).create();
     actor.traits = enemy.traits;
+    actor.description = enemy.description;
     enemies.push(actor);
   });
   return enemies;
 }
 
 /**
- * Create the enemies.
+ * Create the artefacts.
  * @param {SceneDefinition} sceneDefn
  * @returns {Actor[]}
  */
@@ -96,6 +100,7 @@ function createArtefacts(sceneDefn) {
   sceneDefn.artefacts.forEach((artefact) => {
     const actor = ACTOR_MAP.get(artefact.id).create();
     actor.traits = artefact.traits;
+    actor.description = artefact.description;
     artefacts.push(actor);
   });
   return artefacts;

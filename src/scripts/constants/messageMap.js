@@ -4,7 +4,8 @@ import MESSAGES from '../utils/messageManager.js';
  * @file Messages used in the application.
  *
  * @module constants/messages
- *
+ */
+/**
  * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *

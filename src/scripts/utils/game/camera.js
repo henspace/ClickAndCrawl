@@ -3,7 +3,8 @@
  * track a specified Sprite.
  *
  * @module utils/game/camera
- *
+ */
+/**
  * License {@link https://opensource.org/license/mit/|MIT}
  *
  * Copyright 2024 Steve Butler
@@ -47,11 +48,11 @@ export const CameraTracking = {
  * Camera dolly class
  */
 export class CameraDolly {
-  /** @type {import('../sprites/sprite.js').Sprite} */
+  /** @type {module:utils/sprites/sprite~Sprite} */
   #sprite;
-  /** @type @type {import('../sprites/modifiers.js').AbstractModifier} */
+  /** @type {module:utils/sprites/modifiers~AbstractModifier} */
   #heroTracker;
-  /** @type @type {import('../sprites/modifiers.js').AbstractModifier} */
+  /** @type {module:utils/sprites/modifiers~AbstractModifier} */
   #velocityTracker;
   /** @type {number} */
   #trackingMethod;

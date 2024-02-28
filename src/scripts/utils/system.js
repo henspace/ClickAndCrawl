@@ -2,7 +2,8 @@
  * @file System information
  *
  * @module utils/system
- *
+ */
+/**
  * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
