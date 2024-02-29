@@ -44,7 +44,7 @@ import GameConstants from '../utils/game/gameConstants.js';
 /**
  * Specialist traits renderer
  */
-class ActorTraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
+class TraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
   /** @type {Actor} */
   actor;
   /**
@@ -195,14 +195,14 @@ function createArtefactKeyFrames(imageName) {
  * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @returns {Actor}
  */
-function createAnimatedActor(imageName, iconImageName) {
+function createActor(imageName, iconImageName) {
   const keyedAnimation = createStandardKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
     keyedAnimation
   );
 
-  const traitsRenderer = new ActorTraitsRenderer(SCREEN.getContext2D(), {
+  const traitsRenderer = new TraitsRenderer(SCREEN.getContext2D(), {
     tileSize: WORLD.getTileMap().getGridSize() - 2,
     fillStyles: [Colours.HP_GAUGE, Colours.MORALE_GAUGE],
     strokeStyles: [],
@@ -229,10 +229,9 @@ function createAnimatedActor(imageName, iconImageName) {
 /**
  * Create the artefact.
  * @param {string} imageName - no extension
- * * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @returns {Actor}
  */
-function createAnimatedArtefact(imageName, iconImageName) {
+function createHiddenArtefact(imageName) {
   const keyedAnimation = createArtefactKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -253,9 +252,7 @@ function createAnimatedArtefact(imageName, iconImageName) {
   );
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.interaction = new FindArtefact(actor);
-  actor.iconImageName = iconImageName
-    ? `${iconImageName}.png`
-    : `${imageName}.png`;
+  actor.iconImageName = `${imageName}.png`;
   return actor;
 }
 
@@ -264,8 +261,8 @@ function createAnimatedArtefact(imageName, iconImageName) {
  * @param {string} imageName - without extension
  * @returns {Actor}
  */
-function createAnimatedFighter(imageName, iconImageName) {
-  const actor = createAnimatedActor(imageName, iconImageName);
+function createFighter(imageName, iconImageName) {
+  const actor = createActor(imageName, iconImageName);
   actor.interaction = new Fight(actor);
   return actor;
 }
@@ -276,8 +273,8 @@ function createAnimatedFighter(imageName, iconImageName) {
  * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @returns {Actor}
  */
-function createAnimatedTrader(imageName, iconImageName) {
-  const actor = createAnimatedActor(imageName, iconImageName);
+function createTrader(imageName, iconImageName) {
+  const actor = createActor(imageName, iconImageName);
   actor.interaction = new Trade(actor);
   return actor;
 }
@@ -290,12 +287,14 @@ function createAnimatedTrader(imageName, iconImageName) {
  * Map of actor creators which are used to create actors based on a key.
  * @type {Map<string, ActorMapCreator>}
  */
-
 const ACTOR_MAP = new Map([
-  ['HERO', { create: () => createAnimatedActor('hero') }],
-  ['MONSTER', { create: () => createAnimatedFighter('orc') }],
-  ['TRADER', { create: () => createAnimatedTrader('trader') }],
-  ['GOLD', { create: () => createAnimatedArtefact('hidden-artefact', 'gold') }],
+  ['HERO', { create: () => createActor('hero') }],
+  ['MONSTER', { create: () => createFighter('orc') }],
+  ['TRADER', { create: () => createTrader('trader') }],
+  [
+    'HIDDEN_ARTEFACT',
+    { create: () => createHiddenArtefact('hidden-artefact') },
+  ],
 ]);
 
 export default ACTOR_MAP;

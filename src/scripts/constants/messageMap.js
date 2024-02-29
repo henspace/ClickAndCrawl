@@ -1,5 +1,3 @@
-import MESSAGES from '../utils/messageManager.js';
-
 /**
  * @file Messages used in the application.
  *
@@ -29,6 +27,11 @@ import MESSAGES from '../utils/messageManager.js';
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
+  ['ARTEFACTS ALREADY TAKEN', "You search but there's nothing left here."],
+  [
+    'CANNOT STORE',
+    "You're carrying too much stuff to pick up what you've found.",
+  ],
   ['OK', 'OK'],
   ['WELCOME', 'Welcome to dungeon. How far will you get?'],
   ['MAIN MENU TITLE', 'The Scripted Dungeon'],
@@ -66,6 +69,14 @@ const MESSAGE_MAP = new Map([
     [
       'The exit is locked. You will need to find the key if you are ever to leave this dungeon.',
       'The door will not move. It appears to be locked. There must be a key here somewhere.',
+    ],
+  ],
+  [
+    'FOUND ARTEFACT',
+    [
+      'Good fortune smiles upon you. You found something.',
+      'You find something hidden in the ground.',
+      'Buried beneath the surface, you find something.',
     ],
   ],
   [

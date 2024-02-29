@@ -34,7 +34,7 @@ import * as maths from '../utils/maths.js';
  * only keys set during the configuration are allowed. If no keys are provided,
  * the traits are regarded as freeform and any keys are allowed.
  */
-export class ActorTraits {
+export class Traits {
   /** Characteristics @type {Map<string, *>} */
   #traits;
   /** @type {boolean} */
@@ -84,7 +84,7 @@ export class ActorTraits {
    * a keyword followed by a space or equals sign and then its value.
    * Keywords are converted to uppercase.
    * @param {string} definition
-   * @returns {ActorTraits} returns this to allow chaining.
+   * @returns {Traits} returns this to allow chaining.
    * @throws {Error} if definition invalid.
    */
   setFromString(definition) {
@@ -126,7 +126,7 @@ export class ActorTraits {
    * @param {string} value
    */
   #setValue(key, value) {
-    const minMaxMatch = value.match(/(\d+) *([/]) *(\d+) */);
+    const minMaxMatch = value.match(/(\d+) *([/>]) *(\d+) */);
     if (minMaxMatch) {
       if (minMaxMatch[2] === '>') {
         this.#traits.set(
@@ -144,10 +144,10 @@ export class ActorTraits {
 
   /**
    * Clone traits.
-   * @return {ActorTraits}
+   * @return {Traits}
    */
   clone() {
-    const actorTraits = new ActorTraits(this.#traits);
+    const actorTraits = new Traits(this.#traits);
     actorTraits.#freeform = this.#freeform;
     return actorTraits;
   }
@@ -164,7 +164,20 @@ export class ActorTraits {
 /**
  * DnD character traits
  */
-export class CharacterTraits extends ActorTraits {
+export class CharacterTraits extends Traits {
+  /**
+   *
+   * @param {Map<string, *>} initialTraits
+   */
+  constructor(initialTraits) {
+    super(initialTraits ?? new Map([['NAME', 'mystery']]));
+  }
+}
+
+/**
+ * DnD artefact traits
+ */
+export class ArtefactTraits extends Traits {
   /**
    *
    * @param {Map<string, *>} initialTraits

@@ -36,6 +36,7 @@ import { CharacterTraits } from '../dnd/traits.js';
 import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
 import * as maths from '../utils/maths.js';
 import LOG from '../utils/logging.js';
+import ARTEFACT_MAP from './artefactMap.js';
 
 /**
  * @typedef {Object} SectionParsingResult
@@ -238,7 +239,7 @@ class CastParser extends AbstractSectionParser {
       ? maths.getRandomIntInclusive(minNumber, maxNumber)
       : minNumber;
     for (let n = 0; n < qty; n++) {
-      if (ACTOR_MAP.has(actorId)) {
+      if (ACTOR_MAP.has(actorId) || ARTEFACT_MAP.has(actorId)) {
         try {
           const traits = new CharacterTraits().setFromString(traitsDefn);
           this.#lastCastMember = {

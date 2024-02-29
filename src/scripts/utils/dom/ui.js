@@ -30,7 +30,7 @@
 
 import SCREEN from '../game/screen.js';
 import MESSAGES from '../messageManager.js';
-import { TextButtonControl } from './components.js';
+import * as components from './components.js';
 
 /**
  * Dialog response codes.
@@ -95,14 +95,23 @@ function showOkDialog(messageKey, okButtonLabelKey = 'OK', className) {
 }
 
 /** Create an ok Dialog but just showing raw html.
+ * @param {string} title
  * @param {Element} element
  * @param {string} [okButtonLabelKey = 'OK']
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showElementOkDialog(element, okButtonLabelKey = 'OK', className) {
+function showElementOkDialog(
+  title,
+  element,
+  okButtonLabelKey = 'OK',
+  className
+) {
   const okButtonLabel = MESSAGES.getText(okButtonLabelKey);
   const container = document.createElement('div');
+  if (title) {
+    container.appendChild(components.createElement('p', { text: title }));
+  }
   container.appendChild(element);
   const buttonEl = document.createElement('button');
   buttonEl.appendChild(document.createTextNode(okButtonLabel));
@@ -141,7 +150,7 @@ function showControlsDialog(messageKey, actionButtons, className) {
     }
   });
   if (closers.length === 0) {
-    const okButton = new TextButtonControl({ labelKey: 'OK' });
+    const okButton = new components.TextButtonControl({ labelKey: 'OK' });
     container.appendChild(okButton.element);
     closers.push(okButton);
   }

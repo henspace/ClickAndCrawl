@@ -31,6 +31,7 @@
 
 import { AbstractInteraction } from '../../dnd/interact.js';
 import { UiClickHandler } from '../ui/interactions.js';
+import { ArtefactStoreManager } from './artefacts.js';
 
 /**
  * @typedef {Map<string, *>} Traits
@@ -51,7 +52,7 @@ export class Actor extends UiClickHandler {
   maxTilesPerMove;
   /** @type {module:utils/sprites/sprite~Sprite} */
   sprite;
-  /** @type {ActorTraits} */
+  /** @type {Traits} */
   traits;
   /** @type {AbstractInteraction} */
   interaction;
@@ -61,6 +62,8 @@ export class Actor extends UiClickHandler {
   description;
   /** @type {string} */
   iconImageName;
+  /** @type {ArtefactStoreManager} */
+  storeManager;
 
   /**
    * Create the actor.
@@ -75,6 +78,7 @@ export class Actor extends UiClickHandler {
     this.maxTilesPerMove = 4;
     this.alive = true;
     this.type = type;
+    this.storeManager = new ArtefactStoreManager();
   }
 
   /**

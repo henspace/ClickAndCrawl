@@ -38,6 +38,7 @@ import UI from '../utils/dom/ui.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
+import MESSAGES from '../utils/messageManager.js';
 
 /** Dummy interaction that does nothing
  */
@@ -274,14 +275,20 @@ export class FindArtefact extends AbstractInteraction {
    * @returns {Promise}
    */
   react(enactor) {
-    if (this.actor.alive) {
+    this.actor.alive = false;
+    const artefacts = this.actor.storeManager.getAllArtefacts();
+    if (artefacts.length > 0) {
+      const artefactToTake = artefacts[0]; // only expect one.
+      const allowTake = this.actor.storeManager.canAdd(artefactToTake);
       return actorDialogs
-        .showArtefactFoundBy(this.actor, enactor)
-        .then(() => (this.actor.alive = false));
+        .showArtefactFoundBy(artefactToTake, enactor, allowTake)
+        .then(() => {
+          if (allowTake) {
+            return UI.showOkDialog('Need to write code to take the artefact.');
+          }
+        });
     } else {
-      return UI.showOkDialog(
-        "You've already found this artefact. I haven't written the code yet."
-      );
+      return UI.showOkDialog(MESSAGES.getText('ARTEFACTS ALREADY TAKEN'));
     }
   }
 }

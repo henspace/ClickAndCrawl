@@ -29,38 +29,43 @@
 import UI from '../utils/dom/ui.js';
 import * as components from '../utils/dom/components.js';
 
+import MESSAGES from '../utils/messageManager.js';
+
 /**
  * Display details about the actor.
  * @param {module:utils/game/actors~Actor} actor
  */
 export function showActorDetailsDialog(actor) {
-  return UI.showElementOkDialog(createActorElement(actor));
+  return UI.showElementOkDialog(null, createActorElement(actor));
 }
 
 /**
- * Display details about the actor.
+ * Display details about an artefact found by the actor.
+ * @param {module:utils/game/artefacts~Artefact} artefact
  * @param {module:utils/game/actors~Actor} actor
+ * @param {boolean} allowTake - If true the caller can take the artefact.
  */
 export function showArtefactFoundBy(artefact, actor) {
   const sideBySide = document.createElement('div');
   sideBySide.className = 'side-by-side';
-  sideBySide.appendChild(createActorElement(actor));
+  sideBySide.appendChild(createActorElement(actor, true));
   sideBySide.appendChild(createActorElement(artefact));
-  return UI.showElementOkDialog(sideBySide);
+  return UI.showElementOkDialog(MESSAGES.getText('FOUND ARTEFACT'), sideBySide);
 }
 
 /**
  * Create an element describing an actor.
  * @param {module:utils/game/actors~Actor} actor
+ * @param {boolean} [hideDescription = false]
  * @returns {Element}
  */
-function createActorElement(actor) {
+function createActorElement(actor, hideDescription = false) {
   const container = document.createElement('div');
   container.appendChild(components.createBitmapElement(actor.iconImageName));
   container.appendChild(
     components.createElement('span', { text: actor.traits.get('NAME') })
   );
-  if (actor.description) {
+  if (!hideDescription && actor.description) {
     const desc = document.createElement('p');
     desc.innerText = actor.description;
     container.appendChild(desc);
@@ -76,7 +81,7 @@ function createActorElement(actor) {
  */
 function createTraitsList(actor, excludedKeys) {
   const traitsList = document.createElement('ul');
-  actor.traits.getAllTraits().forEach((value, key) => {
+  actor.traits?.getAllTraits().forEach((value, key) => {
     if (!excludedKeys.includes(key)) {
       const displayedKey = key?.replace('_', ' ');
       const item = document.createElement('li');

@@ -77,7 +77,7 @@ export const CompassEightPoint = {
  * Convert an angle to an eight point compass direction.
  * Converts the angle to a compass direction.
  * @param {number} angle - -PI/2 to +PI/2. This is the same range as values returned
- * from the standard Math trigometric functions. Note that this expects the
+ * from the standard Math trigonometric functions. Note that this expects the
  * angle to be based on cartesian coordinates, +y upwards. For angles calculated
  * using screen coordinates, +y downwards, you should negate the angle before
  * calling.
@@ -98,7 +98,7 @@ export function angleToFourPointCompass(angle) {
  * Convert an angle to an eight point compass direction.
  * Converts the angle to a compass direction.
  * @param {number} angle - -PI/2 to +PI/2. This is the same range as values returned
- * from the standard Math trigometric functions. Note that this expects the
+ * from the standard Math trigonometric functions. Note that this expects the
  * angle to be based on cartesian coordinates, +y upwards. For angles calculated
  * using screen coordinates, +y downwards, you should negate the angle before
  * calling.
@@ -164,4 +164,16 @@ export function floatsAreEqual(valueA, valueB, tolerance) {
  */
 export function floatIsZero(value, tolerance) {
   return Math.abs(value) < tolerance;
+}
+
+/**
+ * Safe version of parseInt which never returns NaN
+ * @param {number} value
+ * @param {number} [defValue = 0]
+ * @param {number} [radix]
+ * @returns {number} result of parseInt or defValue if NaN
+ */
+export function safeParseInt(value, defValue = 0, radix) {
+  const result = parseInt(value, radix);
+  return Number.isNaN(result) ? defValue : result;
 }

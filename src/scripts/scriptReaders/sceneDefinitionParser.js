@@ -39,6 +39,8 @@ import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../utils/game/sceneManager.js';
 import GameConstants from '../utils/game/gameConstants.js';
 import { ActorType } from '../utils/game/actors.js';
+import { Artefact } from '../utils/game/artefacts.js';
+import ARTEFACT_MAP from './artefactMap.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -98,9 +100,12 @@ function createEnemies(sceneDefn) {
 function createArtefacts(sceneDefn) {
   const artefacts = [];
   sceneDefn.artefacts.forEach((artefact) => {
-    const actor = ACTOR_MAP.get(artefact.id).create();
-    actor.traits = artefact.traits;
-    actor.description = artefact.description;
+    //const actor = ACTOR_MAP.get(artefact.id).create();
+    const actor = ACTOR_MAP.get('HIDDEN_ARTEFACT').create();
+    const hiddenArtefact = ARTEFACT_MAP.get(artefact.id).create();
+    hiddenArtefact.traits = artefact.traits;
+    hiddenArtefact.description = artefact.description;
+    actor.storeManager.addArtefact(hiddenArtefact);
     artefacts.push(actor);
   });
   return artefacts;
