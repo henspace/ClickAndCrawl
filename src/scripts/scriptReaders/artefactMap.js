@@ -26,6 +26,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import { safeParseInt } from '../utils/maths.js';
 /**
  * @typedef {Object} ArtefactMapCreator
  * @property {function():Actor} create
@@ -37,9 +38,13 @@ import { Artefact, ArtefactType } from '../utils/game/artefacts.js';
  * Create an artefact.
  * @param {string} imageName
  * @param {module:utils/game/artefacts~ArtefactTypeValue} artefactType
+ * @param {module:dnd/traits~Traits} traits
  */
-function createArtefact(imageName, artefactType) {
-  return new Artefact('', `${imageName}.png`, artefactType);
+function createArtefact(imageName, artefactType, traits) {
+  const artefact = new Artefact('', `${imageName}.png`, artefactType);
+  artefact.value = safeParseInt(traits?.get('GP', 0));
+  artefact.traits = traits;
+  return artefact;
 }
 
 /**
@@ -47,7 +52,14 @@ function createArtefact(imageName, artefactType) {
  * @type {Map<string, ActorMapCreator>}
  */
 const ARTEFACT_MAP = new Map([
-  ['GOLD', { create: () => createArtefact('gold', ArtefactType.GOLD) }],
+  [
+    'GOLD',
+    { create: (traits) => createArtefact('gold', ArtefactType.GOLD, traits) },
+  ],
+  [
+    'AXE',
+    { create: (traits) => createArtefact('axe', ArtefactType.WEAPON, traits) },
+  ],
 ]);
 
 export default ARTEFACT_MAP;

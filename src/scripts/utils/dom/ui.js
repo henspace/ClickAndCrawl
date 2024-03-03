@@ -29,8 +29,8 @@
  */
 
 import SCREEN from '../game/screen.js';
-import MESSAGES from '../messageManager.js';
 import * as components from './components.js';
+import { i18n } from '../messageManager.js';
 
 /**
  * Dialog response codes.
@@ -55,10 +55,9 @@ function createMessageElement(message) {
 
 /** Create a message that is removed on any click. This sits above everything
  * as a self contained popup.
- * @param {string} messageKey - message key for the message manager.
+ * @param {string} message - message for the message manager.
  */
-function showMessage(messageKey) {
-  const message = MESSAGES.getText(messageKey);
+function showMessage(message) {
   const popup = document.createElement('div');
   popup.appendChild(document.createTextNode(message));
   popup.className = 'popup';
@@ -68,18 +67,19 @@ function showMessage(messageKey) {
 }
 
 /** Create an okDialog.
- * @param {string} messageKey
- * @param {string} [okButtonLabelKey = 'OK']
- * @param {string} className
+ * @param {string} message
+ * @param {Object} options
+ * @param {string} [options.okButtonLabel = 'BUTTON OK']
+ * @param {string} options.className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showOkDialog(messageKey, okButtonLabelKey = 'OK', className) {
-  const message = MESSAGES.getText(messageKey);
-  const okButtonLabel = MESSAGES.getText(okButtonLabelKey);
+function showOkDialog(message, options) {
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message));
   const buttonEl = document.createElement('button');
-  buttonEl.appendChild(document.createTextNode(okButtonLabel));
+  buttonEl.appendChild(
+    document.createTextNode(options?.okButtonLabel ?? i18n`BUTTON OK`)
+  );
   container.appendChild(buttonEl);
   return SCREEN.displayOnGlass(
     container,
@@ -90,24 +90,23 @@ function showOkDialog(messageKey, okButtonLabelKey = 'OK', className) {
         closer: true,
       },
     ],
-    className
+    options?.className
   );
 }
 
 /** Create an ok Dialog but just showing raw html.
  * @param {string} title
  * @param {Element} element
- * @param {string} [okButtonLabelKey = 'OK']
+ * @param {string} [okButtonLabel = 'BUTTON OK']
  * @param {string} className
  * @returns {Promise} fulfils to DialogResponse.OK
  */
 function showElementOkDialog(
   title,
   element,
-  okButtonLabelKey = 'OK',
+  okButtonLabel = 'BUTTON OK',
   className
 ) {
-  const okButtonLabel = MESSAGES.getText(okButtonLabelKey);
   const container = document.createElement('div');
   if (title) {
     container.appendChild(components.createElement('p', { text: title }));
@@ -131,17 +130,35 @@ function showElementOkDialog(
 }
 
 /** Create a controls dialog.
- * @param {string} messageKey - key to message from MESSAGES.
- * @param {BaseControl[]} actionButtons
- * @param {string} className
- * @returns {Promise} fulfils to DialogResponse.OK
+ * @param {string | Element} mainContent -message or element to show..
+ * @param {Object} options
+ * @param {string} preamble - text placed before content..
+ * @param {BaseControl[]} options.actionButtons
+ * @param {boolean} options.row - if true, controls are in a row rather than the
+ * default column.
+ * @param {string} options.className
+ * @returns {Promise} fulfils to closures response value or DialogResponse.OK if
+ * no closers.
  */
-function showControlsDialog(messageKey, actionButtons, className) {
+function showControlsDialog(mainContent, options) {
   const container = document.createElement('div');
-  container.appendChild(createMessageElement(MESSAGES.getText(messageKey)));
+  if (options?.preamble) {
+    container.appendChild(
+      components.createElement('p', { text: options.preamble })
+    );
+  }
+  if (mainContent instanceof Element) {
+    container.appendChild(mainContent);
+  } else {
+    container.appendChild(createMessageElement(mainContent));
+  }
+  const actionButtons = components.createElement('div', {
+    className: options?.row ? 'action-buttons-row' : 'action-buttons-col',
+  });
+  container.appendChild(actionButtons);
   const closers = [];
-  actionButtons?.forEach((button) => {
-    container.appendChild(button.element);
+  options?.actionButtons?.forEach((button) => {
+    actionButtons.appendChild(button.element);
     if (button.closes) {
       closers.push({
         element: button.element,
@@ -150,11 +167,14 @@ function showControlsDialog(messageKey, actionButtons, className) {
     }
   });
   if (closers.length === 0) {
-    const okButton = new components.TextButtonControl({ labelKey: 'OK' });
-    container.appendChild(okButton.element);
+    const okButton = new components.TextButtonControl({
+      id: DialogResponse.OK,
+      label: i18n`BUTTON OK`,
+    });
+    actionButtons.appendChild(okButton.element);
     closers.push(okButton);
   }
-  return SCREEN.displayOnGlass(container, closers, className);
+  return SCREEN.displayOnGlass(container, closers, options?.className);
 }
 
 /**

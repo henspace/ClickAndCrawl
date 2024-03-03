@@ -31,8 +31,6 @@
 import IMAGE_MANAGER from '../sprites/imageManager.js';
 import GameConstants from '../game/gameConstants.js';
 import PERSISTENT_DATA from '../persistentData.js';
-import MESSAGES from '../messageManager.js';
-import LOG from '../logging.js';
 
 /**
  * Base control
@@ -59,7 +57,6 @@ class BaseControl {
    * Create base control
    * @param {Object} options
    * @param {string} options.id
-   * @param {string} options.labelKey - key to label from MESSAGES.
    * @param {boolean} options.persistent - is data stored in persistent storage.
    * @param {*} options.defValue - default value
    * @param {boolean} closes - flag to indicate whether this control should be used
@@ -80,6 +77,13 @@ class BaseControl {
     }
     this.closes = options.closes;
     this.listeners = 0;
+  }
+  /**
+   * Get the underlying id
+   * @returns {Element}
+   */
+  get id() {
+    return this.#id;
   }
 
   /**
@@ -119,7 +123,8 @@ class BaseControl {
 export class TextButtonControl extends BaseControl {
   /** Create the button.
    * @param {Object} options - see BaseControl plus
-   * @param {function():Promise} action - function called on click.
+   * @param {string} options.label
+   * @param {function():Promise} options.action - function called on click.
    */
   constructor(options) {
     super(options);
@@ -135,9 +140,7 @@ export class TextButtonControl extends BaseControl {
    */
   buildElement(options) {
     const element = document.createElement('button');
-    element.appendChild(
-      document.createTextNode(MESSAGES.getText(options.labelKey))
-    );
+    element.appendChild(document.createTextNode(options.label));
     element.className = 'text-button';
     return element;
   }
@@ -149,7 +152,8 @@ export class TextButtonControl extends BaseControl {
 export class BitmapButtonControl extends BaseControl {
   /** Create the button.
    * @param {Object} options - see BaseControl. Plus
-   * @param {function():Promise} action - function called on click.
+   * * @param {string} options.label
+   * @param {function():Promise} options.action - function called on click.
    * @param {string} imageName
    */
   constructor(options) {
@@ -166,9 +170,9 @@ export class BitmapButtonControl extends BaseControl {
    */
   buildElement(options) {
     const element = document.createElement('button');
-    element.appendChild(
-      document.createTextNode(MESSAGES.getText(options.labelKey))
-    );
+    if (options.label) {
+      element.appendChild(document.createTextNode(options.label));
+    }
     element.appendChild(createBitmapElement(options.imageName, 'button-icon'));
     element.className = 'icon-button';
     return element;
@@ -200,22 +204,26 @@ export function createBitmapElement(imageName, className) {
   return canvas;
 }
 
+/**
+ * Create a checkbox control
+ */
 class CheckboxControl extends BaseControl {
   /** @type {Element} */
   #checkbox;
 
   /**
    * Create the CheckboxControl
-   * @param {ControlDefinition} definition
+   * @param {ControlDefinition} options - see Base control plus
+   * @param {string} options.label
    */
-  constructor(definition) {
-    super(definition);
-    this._element = this.buildElement(MESSAGES.getText(definition.labelKey));
+  constructor(options) {
+    super(options);
+    this._element = this.buildElement(options.label);
     this.#checkbox.checked = this.value;
     this._element.addEventListener('change', (event) => {
       this.value = this.#checkbox.checked;
-      if (definition.onChange) {
-        definition.onChange(this.value);
+      if (options.onChange) {
+        options.onChange(this.value);
       }
     });
   }
@@ -253,16 +261,17 @@ export class RangeControl extends BaseControl {
 
   /**
    * Create the RangeControl
-   * @param {ControlDefinition} definition
+   * @param {ControlDefinition} options - see BaseControl plus
+   * @param {string} options.label
    */
-  constructor(definition) {
-    super(definition);
-    this._element = this.buildElement(MESSAGES.getText(definition.labelKey));
+  constructor(options) {
+    super(options);
+    this._element = this.buildElement(options.label);
     this.#rangeInput.value = this.value;
     this._element.addEventListener('change', (event) => {
       this.value = this.#rangeInput.value;
-      if (definition.onChange) {
-        definition.onChange(this.value);
+      if (options.onChange) {
+        options.onChange(this.value);
       }
     });
   }
@@ -354,4 +363,16 @@ export function createElement(tagName, options) {
     element.appendChild(options.child);
   }
   return element;
+}
+
+/**
+ * Create a button bar.
+ * @param {string[]} labels
+ */
+export function createButtonBar(labels) {
+  const bar = createElement('div', { className: 'button-bar' });
+  labels.forEach((label) => {
+    const button = createElement('button', { text: label });
+  });
+  return bar;
 }

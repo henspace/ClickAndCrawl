@@ -133,6 +133,7 @@ class ArtefactStore {
     const storedArtefact = this.#artefacts.get(artefact);
     if (storedArtefact) {
       this.#usedSpace -= storedArtefact.storageSpace;
+      this.#artefacts.delete(storedArtefact);
     }
     return storedArtefact;
   }
@@ -153,6 +154,10 @@ class ArtefactStore {
   canAdd(artefact) {
     return this.#maxSize - this.#usedSpace > artefact.storageSpace;
   }
+
+  /** Move from to.
+   *
+   */
 }
 
 /**
@@ -204,7 +209,11 @@ class GoldStore {
    * @returns {Artefact[]}
    */
   values() {
-    return [this.#artefact.clone()];
+    if (!this.#artefact || this.#artefact.value === 0) {
+      return [];
+    } else {
+      return [this.#artefact.clone()];
+    }
   }
 }
 
@@ -238,6 +247,7 @@ export class Artefact {
     this.description = description;
     this.iconImageName = iconImageName;
     this.artefactType = artefactType;
+    this.value = 0;
   }
 
   /** Get the storage space used by this artefact.
@@ -317,15 +327,16 @@ export class ArtefactStoreManager {
   /**
    * Test of an artefact can be stored anywhere.
    * @param {Artefact}
-   * @returns {boolean}
+   * @returns {ArtefactStore} null if it cannot be stored
    */
-  canAdd(artefact) {
+  findSuitableStore(artefact) {
     for (const storeType of artefact.getStoreTypes()) {
-      if (this.#stores.get(storeType).canAdd(artefact)) {
-        return true;
+      const store = this.#stores.get(storeType);
+      if (store.canAdd(artefact)) {
+        return store;
       }
     }
-    return false;
+    return null;
   }
 
   /**
@@ -338,16 +349,40 @@ export class ArtefactStoreManager {
   }
 
   /**
-   * Get all stored artefacts.
-   * @returns {Artefact[]}
+   * @typedef {Object} StorageDetails
+   * @property {ArtefactStore} store
+   * @property {Artefact} artefact
    */
-  getAllArtefacts() {
-    const artefacts = [];
+
+  /**
+   * Get all stored artefacts.
+   * @returns {StorageDetails[]}
+   */
+  getAllStorageDetails() {
+    const storageDetails = [];
     this.#stores.values().forEach((store) => {
       store.values().forEach((artefact) => {
-        artefacts.push(artefact);
+        storageDetails.push({ store: store, artefact: artefact });
       });
     });
-    return artefacts;
+    return storageDetails;
+  }
+
+  /**
+   * Get current gold. A convenience method to access the PURSE
+   * @returns {number}
+   */
+  getPurseValue() {
+    const content = this.#stores.get(StoreType.PURSE).values();
+    return content.length > 0 ? content[0].value : 0;
+  }
+
+  /**
+   * Convenience method to get contents of a store.
+   * @param {StoreTypeValue} storeType
+   * @returns {Artefact[]}
+   */
+  getStoreContents(storeType) {
+    return this.#stores.get(storeType).values();
   }
 }

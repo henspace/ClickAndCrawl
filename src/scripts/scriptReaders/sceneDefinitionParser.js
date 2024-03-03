@@ -63,8 +63,7 @@ let lastHero;
 function createHero(sceneDefn) {
   if (sceneDefn.heroes && sceneDefn.heroes[0]) {
     const heroDefn = sceneDefn.heroes[0];
-    const actor = ACTOR_MAP.get(heroDefn.id).create();
-    actor.traits = heroDefn.traits.clone();
+    const actor = ACTOR_MAP.get(heroDefn.id).create(heroDefn.traits.clone());
     actor.type = ActorType.HERO;
     actor.description = heroDefn.description;
     lastHero = actor;
@@ -84,8 +83,7 @@ function createHero(sceneDefn) {
 function createEnemies(sceneDefn) {
   const enemies = [];
   sceneDefn.enemies.forEach((enemy) => {
-    const actor = ACTOR_MAP.get(enemy.id).create();
-    actor.traits = enemy.traits;
+    const actor = ACTOR_MAP.get(enemy.id).create(enemy.traits);
     actor.description = enemy.description;
     enemies.push(actor);
   });
@@ -101,9 +99,10 @@ function createArtefacts(sceneDefn) {
   const artefacts = [];
   sceneDefn.artefacts.forEach((artefact) => {
     //const actor = ACTOR_MAP.get(artefact.id).create();
-    const actor = ACTOR_MAP.get('HIDDEN_ARTEFACT').create();
-    const hiddenArtefact = ARTEFACT_MAP.get(artefact.id).create();
-    hiddenArtefact.traits = artefact.traits;
+    const actor = ACTOR_MAP.get('HIDDEN_ARTEFACT').create(artefact.traits);
+    const hiddenArtefact = ARTEFACT_MAP.get(artefact.id).create(
+      artefact.traits
+    );
     hiddenArtefact.description = artefact.description;
     actor.storeManager.addArtefact(hiddenArtefact);
     artefacts.push(actor);

@@ -283,7 +283,7 @@ function getContext2D() {
  * @param {Closers[]} closers - array of Closers. If not provided then the entire display
  * is used.
  * @param {string} className
- * @returns {Promise} fulfils to null when clicked.
+ * @returns {Promise} fulfils to closers.response value
  */
 function displayOnGlass(element, closers, className) {
   const glass = document.createElement('div');

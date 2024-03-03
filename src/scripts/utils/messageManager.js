@@ -59,11 +59,43 @@ function getText(key) {
 }
 
 /**
+ * Look up the text. If not found, the key is returned unchanged. When looking
+ * up the key, any leading or trailing spaces are removed, but they are replaced
+ * in the result.
+ * @param {string} key
+ * @returns {string}
+ */
+function getTextWithSpaces(key) {
+  const match = key.match(/^( *)(.+?)( *)$/);
+  if (match) {
+    return `${match[1]}${getText(match[2])}${match[3]}`;
+  } else {
+    return key;
+  }
+}
+/**
+ * Template function for string literals. Note that text either side of embedded
+ * expressions will be treated as separate keys. Spaces either side of the keys,
+ * do not form part of the key but will be retained in the result.
+ * @param {string[]} strs
+ * @param  {...string} value - replacement values
+ */
+export function i18n(strs, ...values) {
+  let result = '';
+  strs.forEach((key, index) => {
+    const text = getTextWithSpaces(key);
+    result += text;
+    if (index < values.length) {
+      result += values[index];
+    }
+  });
+  return result;
+}
+/**
  * Object to access messages.
  */
-const MESSAGES = {
+export const MESSAGES = {
   setMap: setMap,
   getText: getText,
+  getTextWithSpaces: getTextWithSpaces,
 };
-
-export default MESSAGES;

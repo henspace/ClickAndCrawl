@@ -11,7 +11,8 @@ monster x1>3: NAME: orc| MOVE: hunt| HP: 5/25
 Fearsome creatures of immeasurable cruelty and a hunger for human flesh.
 trader x1>3: NAME: trader| MOVE: wander| HP: 10/25
 [Artefacts]
-gold x3>5: NAME: Gold coins| GC: 10>25
+gold x3>5: NAME: Gold coins| GP: 10>25
+axe x3>5: NAME: Rusty axe
 [Map]
 random
 

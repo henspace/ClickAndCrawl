@@ -27,72 +27,90 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
-  ['ARTEFACTS ALREADY TAKEN', "You search but there's nothing left here."],
+  ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
+  ['BUTTON INVENTORY', 'Inventory'],
+  ['BUTTON LEAVE ARTEFACT', 'Leave'],
+  ['BUTTON OK', 'OK'],
+  ['BUTTON PLAY', 'Play'],
+  ['BUTTON SETTINGS', 'Settings'],
+  ['BUTTON START', "Let's get started."],
+  ['BUTTON TAKE ARTEFACT', 'Take'],
+  ['BUTTON TRAITS', 'Traits'],
+  ['BUTTON TRY AGAIN', 'Try again'],
+
+  ['CONTROL BLOOD ON', 'Blood on'],
+  ['CONTROL EFFECTS VOLUME', 'Effect volume'],
+  ['CONTROL MUSIC VOLUME', 'Music volume'],
+
+  ['DIALOG TITLE SETTINGS', 'Adjust settings'],
+
+  ['MENU TITLE MAIN', 'The Scripted Dungeon'],
+
   [
-    'CANNOT STORE',
+    'MESSAGE ARTEFACTS ALREADY TAKEN',
+    "You search but there's nothing left here.",
+  ],
+  [
+    'MESSAGE CANNOT STORE',
     "You're carrying too much stuff to pick up what you've found.",
   ],
-  ['OK', 'OK'],
-  ['WELCOME', 'Welcome to dungeon. How far will you get?'],
-  ['MAIN MENU TITLE', 'The Scripted Dungeon'],
-  ['SETTINGS BUTTON', 'Settings'],
-  ['SETTINGS DIALOG TITLE', 'Adjust settings'],
-  ['PLAY BUTTON', 'Play'],
-  ['BLOOD ON CONTROL', 'Blood on'],
-  ['MUSIC VOLUME CONTROL', 'Music volume'],
-  ['EFFECTS VOLUME CONTROL', 'Effect volume'],
-
-  ['START BUTTON', "Let's get started."],
   [
-    'DUNGEON INTRO',
+    'MESSAGE DUNGEON INTRO',
     'You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
   ],
-  ['ENTER DUNGEON BUTTON', 'Enter if you dare'],
   [
-    'DEFEAT',
+    'MESSAGE DEFEAT',
     'Despite your valiant efforts, you died. Your legend will live on.',
   ],
   [
-    'VICTORY',
-    'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
-  ],
-  ['TRY AGAIN BUTTON', 'Try again'],
-  [
-    'ENTRANCE STUCK',
+    'MESSAGE ENTRANCE STUCK',
     [
       "The entrance is locked or jammed. You can't tell. Either way, you can't escape in that direction.",
       "You can't open the door. It seems locked or jammed. There's no way back.",
     ],
   ],
   [
-    'EXIT STUCK',
+    'MESSAGE EXIT STUCK',
     [
       'The exit is locked. You will need to find the key if you are ever to leave this dungeon.',
       'The door will not move. It appears to be locked. There must be a key here somewhere.',
     ],
   ],
   [
-    'FOUND ARTEFACT',
+    'MESSAGE FOUND ARTEFACT',
     [
       'Good fortune smiles upon you. You found something.',
       'You find something hidden in the ground.',
       'Buried beneath the surface, you find something.',
     ],
   ],
+
   [
-    'OPEN EXIT',
+    'MESSAGE OPEN EXIT',
     [
       'The door opens and you slip away.',
       "You decide that's enough exploring this dungeon and slip away into the darkness.",
     ],
   ],
   [
-    'OPEN EXIT WHILE FIGHTING',
+    'MESSAGE OPEN EXIT WHILE FIGHTING',
     [
       'A dangerous move, but despite the fighting, you manage to escape.',
       'Dodging a blow, you manage to open the door and make your escape.',
     ],
   ],
+  ['MESSAGE WELCOME', 'Welcome to dungeon. How far will you get?'],
+  [
+    'MESSAGE VICTORY',
+    'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
+  ],
+  // Miscellaneous words and phrases.
+  ['Backpack', 'Backpack'],
+  ['Body', 'Body'],
+  ['Feet', 'Feet'],
+  ['GOLD PIECES', ' gold pieces'],
+  ['Hands', 'Hands'],
+  ['Head', 'Head'],
 ]);
 
 export default MESSAGE_MAP;

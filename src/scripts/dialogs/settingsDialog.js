@@ -32,12 +32,13 @@ import { createControl, ControlType } from '../utils/dom/components.js';
 import UI from '../utils/dom/ui.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
+import { i18n, MESSAGES } from '../utils/messageManager.js';
 
 /** Settings */
 const SETTINGS = [
   {
     id: 'BLOOD_ON',
-    labelKey: 'BLOOD ON CONTROL',
+    labelKey: 'CONTROL BLOOD ON',
     defValue: true,
     controlType: ControlType.CHECKBOX,
     persistent: true,
@@ -46,7 +47,7 @@ const SETTINGS = [
   },
   {
     id: 'MUSIC_VOLUME',
-    labelKey: 'MUSIC VOLUME CONTROL',
+    labelKey: 'CONTROL MUSIC VOLUME',
     defValue: 50,
     controlType: ControlType.RANGE,
     persistent: true,
@@ -56,7 +57,7 @@ const SETTINGS = [
   },
   {
     id: 'EFFECTS_VOLUME',
-    labelKey: 'EFFECTS VOLUME CONTROL',
+    labelKey: 'CONTROL EFFECTS VOLUME',
     defValue: 50,
     controlType: ControlType.RANGE,
     persistent: true,
@@ -78,7 +79,10 @@ export function showSettingsDialog() {
   SETTINGS.forEach((setting) => {
     controls.push(createControl(setting));
   });
-  return UI.showControlsDialog('SETTINGS DIALOG TITLE', controls, 'door');
+  return UI.showControlsDialog(i18n`DIALOG TITLE SETTINGS`, {
+    actionButtons: controls,
+    className: 'door',
+  });
 }
 
 /**
@@ -86,6 +90,7 @@ export function showSettingsDialog() {
  */
 export function initialiseSettings() {
   SETTINGS.forEach((setting) => {
+    setting.label = MESSAGES.getText(setting.labelKey);
     if (setting.persistent & setting.onChange) {
       const value = PERSISTENT_DATA.get(setting.id, setting.defValue);
       setting.onChange(value);

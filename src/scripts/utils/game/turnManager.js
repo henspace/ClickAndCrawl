@@ -45,6 +45,7 @@ import * as maths from '../maths.js';
 import { showMainMenu } from '../../dialogs/mainMenu.js';
 import { Actor } from './actors.js';
 import * as actorDialogs from '../../dialogs/actorDialogs.js';
+import { i18n } from '../messageManager.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -307,7 +308,10 @@ class AtMainMenu extends State {
 class AtStart extends State {
   onEntry() {
     LOG.log('Enter AtStart');
-    return UI.showOkDialog('DUNGEON INTRO', 'ENTER DUNGEON BUTTON', 'wall')
+    return UI.showOkDialog(i18n`MESSAGE DUNGEON INTRO`, {
+      okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
+      className: 'wall',
+    })
       .then(() => SCENE_MANAGER.switchToFirstScene())
       .then((scene) => {
         heroActor.sprite.position =
@@ -316,7 +320,7 @@ class AtStart extends State {
       })
       .then((scene) => {
         if (scene.intro) {
-          return UI.showOkDialog(scene.intro, undefined, 'mask');
+          return UI.showOkDialog(scene.intro, { className: 'mask' });
         } else {
           return;
         }
@@ -337,7 +341,11 @@ class AtGameOver extends State {
       velocity: new Velocity(0, -100, 0),
     });
     await pause(2)
-      .then(() => UI.showOkDialog('DEFEAT', 'TRY AGAIN BUTTON'))
+      .then(() =>
+        UI.showOkDialog(i18n`MESSAGE DEFEAT`, {
+          okButtonLabel: i18n`BUTTON TRY AGAIN`,
+        })
+      )
       .then(() => SCENE_MANAGER.unloadCurrentScene())
       .then(() => this.transitionTo(new AtMainMenu()));
   }
@@ -349,7 +357,9 @@ class AtGameOver extends State {
 class AtGameCompleted extends State {
   async onEntry() {
     LOG.log('Enter AtGameCompleted');
-    await UI.showOkDialog('VICTORY', 'TRY AGAIN BUTTON')
+    await UI.showOkDialog(i18n`MESSAGE VICTORY`, {
+      okButtonLabel: i18n`BUTTON TRY AGAIN`,
+    })
       .then(() => SCENE_MANAGER.unloadCurrentScene())
       .then(() => this.transitionTo(new AtMainMenu()));
   }
@@ -393,12 +403,12 @@ class HeroTurnIdle extends State {
 
         break;
       case EventId.CLICKED_ENTRANCE:
-        await UI.showOkDialog('ENTRANCE STUCK');
+        await UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
       case EventId.CLICKED_EXIT:
         LOG.log('Escaping');
         await moveHeroToPoint(point, false)
-          .then(() => UI.showOkDialog('OPEN EXIT'))
+          .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT`))
           .then(() => startNextScene(this));
         break;
     }
@@ -448,13 +458,13 @@ class HeroTurnFighting extends State {
 
         break;
       case EventId.CLICKED_ENTRANCE:
-        UI.showOkDialog('ENTRANCE STUCK');
+        UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
       case EventId.CLICKED_EXIT:
         await this.#tryToRun(point, false).then((success) => {
           if (success) {
-            return UI.showOkDialog('OPEN EXIT WHILE FIGHTING').then(() =>
-              startNextScene(this)
+            return UI.showOkDialog(i18n`MESSAGE OPEN EXIT WHILE FIGHTING`).then(
+              () => startNextScene(this)
             );
           } else {
             return Promise.resolve();

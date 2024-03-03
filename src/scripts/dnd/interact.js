@@ -38,7 +38,8 @@ import UI from '../utils/dom/ui.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
-import MESSAGES from '../utils/messageManager.js';
+import { i18n } from '../utils/messageManager.js';
+import GameConstants from '../utils/game/gameConstants.js';
 
 /** Dummy interaction that does nothing
  */
@@ -189,8 +190,8 @@ export class Fight extends AbstractInteraction {
       } else {
         addFadingText(`-${damage} HP`, {
           lifetimeSecs: 2,
-          position: defender.position,
-          velocity: new Velocity(0, -200, 0),
+          position: new Point(defender.position.x, defender.position.y),
+          velocity: new Velocity(0, 0, 0),
         });
       }
       resolve(defenderHP);
@@ -276,19 +277,23 @@ export class FindArtefact extends AbstractInteraction {
    */
   react(enactor) {
     this.actor.alive = false;
-    const artefacts = this.actor.storeManager.getAllArtefacts();
-    if (artefacts.length > 0) {
-      const artefactToTake = artefacts[0]; // only expect one.
-      const allowTake = this.actor.storeManager.canAdd(artefactToTake);
+    const storageDetails = this.actor.storeManager.getAllStorageDetails();
+    if (storageDetails.length > 0) {
+      const storeToTakeFrom = storageDetails[0].store; // only expect one.
+      const artefactToTake = storageDetails[0].artefact; // only expect one.
+      const possibleStore =
+        enactor.storeManager.findSuitableStore(artefactToTake);
       return actorDialogs
-        .showArtefactFoundBy(artefactToTake, enactor, allowTake)
-        .then(() => {
-          if (allowTake) {
-            return UI.showOkDialog('Need to write code to take the artefact.');
+        .showArtefactFoundBy(artefactToTake, enactor, !!possibleStore)
+        .then((response) => {
+          if (response === 'TAKE') {
+            storeToTakeFrom.take(artefactToTake);
+            possibleStore.add(artefactToTake);
           }
+          return null;
         });
     } else {
-      return UI.showOkDialog(MESSAGES.getText('ARTEFACTS ALREADY TAKEN'));
+      return UI.showOkDialog(i18n`MESSAGE ARTEFACTS ALREADY TAKEN`);
     }
   }
 }

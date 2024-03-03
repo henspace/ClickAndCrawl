@@ -127,6 +127,24 @@ body {
   margin: 4px;
 }
 
+.glass-content .action-buttons-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.glass-content .action-buttons-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  justify-content: center;
+}
+
+.action-buttons-row button {
+  flex: 1;
+}
+
 .side-by-side {
   display: flex;
   flex-direction: row;
@@ -134,6 +152,12 @@ body {
 
 .side-by-side > div {
   flex: 1;
+}
+
+.store {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
 }
 
 h1,

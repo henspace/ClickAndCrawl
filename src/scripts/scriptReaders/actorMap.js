@@ -193,9 +193,10 @@ function createArtefactKeyFrames(imageName) {
  * Create the actor.
  * @param {string} imageName - no extension
  * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
+ * @param {module:dnd/traits~Traits} traits
  * @returns {Actor}
  */
-function createActor(imageName, iconImageName) {
+function createActor(imageName, iconImageName, traits) {
   const keyedAnimation = createStandardKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -219,6 +220,7 @@ function createActor(imageName, iconImageName) {
     GameConstants.TILE_SIZE,
     0
   );
+  actor.traits = traits;
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.iconImageName = iconImageName
     ? `${iconImageName}.png`
@@ -229,9 +231,10 @@ function createActor(imageName, iconImageName) {
 /**
  * Create the artefact.
  * @param {string} imageName - no extension
+ * @param {module:dnd/traits~Traits} traits
  * @returns {Actor}
  */
-function createHiddenArtefact(imageName) {
+function createHiddenArtefact(imageName, traits) {
   const keyedAnimation = createArtefactKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -253,16 +256,19 @@ function createHiddenArtefact(imageName) {
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.interaction = new FindArtefact(actor);
   actor.iconImageName = `${imageName}.png`;
+  actor.traits = traits;
   return actor;
 }
 
 /**
  * Create animated fighter
  * @param {string} imageName - without extension
+ * @param {string} iconImageName - without extension. Name of icon for dialogs.
+ * @param {module:dnd/traits~Traits} traits
  * @returns {Actor}
  */
-function createFighter(imageName, iconImageName) {
-  const actor = createActor(imageName, iconImageName);
+function createFighter(imageName, iconImageName, traits) {
+  const actor = createActor(imageName, iconImageName, traits);
   actor.interaction = new Fight(actor);
   return actor;
 }
@@ -271,29 +277,33 @@ function createFighter(imageName, iconImageName) {
  * Create animated trader
  * @param {string} imageName - without extension
  * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
- * @returns {Actor}
+* @param {module:dnd/traits~Traits} traits
+  
+* @returns {Actor}
  */
-function createTrader(imageName, iconImageName) {
-  const actor = createActor(imageName, iconImageName);
+function createTrader(imageName, iconImageName, traits) {
+  const actor = createActor(imageName, iconImageName, traits);
   actor.interaction = new Trade(actor);
   return actor;
 }
 
 /**
  * @typedef {Object} ActorMapCreator
- * @property {function():Actor} create
+ * @property {function(traits: string):Actor} create
  */
 /**
  * Map of actor creators which are used to create actors based on a key.
  * @type {Map<string, ActorMapCreator>}
  */
 const ACTOR_MAP = new Map([
-  ['HERO', { create: () => createActor('hero') }],
-  ['MONSTER', { create: () => createFighter('orc') }],
-  ['TRADER', { create: () => createTrader('trader') }],
+  ['HERO', { create: (traits) => createActor('hero', null, traits) }],
+  ['MONSTER', { create: (traits) => createFighter('orc', null, traits) }],
+  ['TRADER', { create: (traits) => createTrader('trader', null, traits) }],
   [
     'HIDDEN_ARTEFACT',
-    { create: () => createHiddenArtefact('hidden-artefact') },
+    {
+      create: (traits) => createHiddenArtefact('hidden-artefact', null, traits),
+    },
   ],
 ]);
 

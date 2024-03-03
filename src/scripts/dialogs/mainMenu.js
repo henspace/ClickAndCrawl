@@ -31,6 +31,7 @@
 import UI from '../utils/dom/ui.js';
 import { BitmapButtonControl } from '../utils/dom/components.js';
 import { showSettingsDialog } from './settingsDialog.js';
+import { i18n } from '../utils/messageManager.js';
 
 /**
  * Display the main menu. All actions are controlled by the main menu except play
@@ -40,18 +41,21 @@ import { showSettingsDialog } from './settingsDialog.js';
 export function showMainMenu() {
   const play = new BitmapButtonControl({
     id: 'PLAY',
-    labelKey: 'PLAY BUTTON',
+    label: i18n`BUTTON PLAY`,
     imageName: 'ui-play00.png',
     internalLabel: true,
     closes: true,
   });
   const settings = new BitmapButtonControl({
     id: 'SETTINGS',
-    labelKey: 'SETTINGS BUTTON',
+    label: i18n`BUTTON SETTINGS`,
     imageName: 'ui-settings00.png',
     internalLabel: true,
     action: () => showSettingsDialog(),
     closes: false,
   });
-  return UI.showControlsDialog('MAIN MENU TITLE', [settings, play], 'door');
+  return UI.showControlsDialog(i18n`MENU TITLE MAIN`, {
+    actionButtons: [settings, play],
+    className: 'door',
+  });
 }

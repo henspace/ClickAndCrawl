@@ -48,8 +48,9 @@ import textureMap from '../../../assets/images/dungeon.json';
 import textureUrl from '../../../assets/images/dungeon.png';
 import SOUND_MANAGER from '../soundManager.js';
 import { initialiseSettings } from '../../dialogs/settingsDialog.js';
-import MESSAGES from '../messageManager.js';
+
 import MESSAGE_MAP from '../../constants/messageMap.js';
+import { i18n, MESSAGES } from '../messageManager.js';
 
 /**
  * Tile size to use throughout the game
@@ -96,7 +97,10 @@ async function initialise(screenOptions) {
     ],
   ]);
   initialiseSettings();
-  UI.showOkDialog('WELCOME', 'START BUTTON', 'door')
+  UI.showOkDialog(i18n`MESSAGE WELCOME`, {
+    okButtonLabel: i18n`BUTTON START`,
+    className: 'door',
+  })
     .then(() => SOUND_MANAGER.loadAndPlayMusic(musicUrl))
     .then(() => SOUND_MANAGER.loadEffects(effectsUrls))
 

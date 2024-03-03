@@ -174,6 +174,7 @@
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
             <key type="filename">tiles/RIP.png</key>
+            <key type="filename">tiles/axe.png</key>
             <key type="filename">tiles/blank.png</key>
             <key type="filename">tiles/block.png</key>
             <key type="filename">tiles/door-B.png</key>
