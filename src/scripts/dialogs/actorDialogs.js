@@ -26,18 +26,123 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import UI from '../utils/dom/ui.js';
+import UI, { DialogResponse } from '../utils/dom/ui.js';
 import * as components from '../utils/dom/components.js';
 
 import { i18n } from '../utils/messageManager.js';
-import { StoreType } from '../utils/game/artefacts.js';
+import { ArtefactType, StoreType } from '../utils/game/artefacts.js';
+import SCENE_MANAGER from '../utils/game/sceneManager.js';
 
+/**
+ * Container for an inventory.
+ */
+class InventoryContainerElement {
+  /** @type {Actor} */
+  #actor;
+
+  /** @type {Element} */
+  #content;
+
+  /**
+   * Construct
+   * @param {Actor} actor;
+   */
+  constructor(actor) {
+    this.#actor = actor;
+    this.#content = components.createElement('div', { className: 'stores' });
+
+    this.#refresh();
+  }
+
+  /**
+   * Get the container element
+   */
+  get element() {
+    return this.#content;
+  }
+
+  /**
+   * Rebuild the list
+   */
+  #refresh() {
+    this.#content.replaceChildren();
+    const storesToShow = [
+      { label: i18n`Purse`, storeType: StoreType.PURSE },
+      { label: i18n`Head`, storeType: StoreType.HEAD },
+      { label: i18n`Body`, storeType: StoreType.BODY },
+      { label: i18n`Hands`, storeType: StoreType.HANDS },
+      { label: i18n`Feet`, storeType: StoreType.FEET },
+      { label: i18n`Backpack`, storeType: StoreType.BACKPACK },
+    ];
+    storesToShow.forEach((storeInfo) => {
+      const contents = this.#actor.storeManager.getStoreContents(
+        storeInfo.storeType
+      );
+      if (contents) {
+        const storeElement = this.#createStoreContents(
+          storeInfo.label,
+          storeInfo.storeType,
+          contents
+        );
+        this.#content.appendChild(storeElement);
+      }
+    });
+  }
+
+  /**
+   * Create element showing store contents.
+   * @param {string} label
+   * @param {StoreTypeValue} storeType
+   * @param {Artefact[]} contents
+   * @returns {Element}
+   */
+  #createStoreContents(label, storeType, contents) {
+    const container = components.createElement('div', {
+      className: 'store',
+    });
+    container.appendChild(
+      components.createElement('span', {
+        className: 'store-label',
+        text: label,
+      })
+    );
+    const contentsElement = components.createElement('div', {
+      className: 'store-contents',
+    });
+    container.appendChild(contentsElement);
+    contents.forEach((artefact) => {
+      const button = new components.BitmapButtonControl({
+        rightLabel: artefact.traits.get('NAME'),
+        imageName: artefact.iconImageName,
+        action: async () => {
+          await showArtefactDialog(this.#actor, artefact, storeType).then(
+            (response) => {
+              if (response === DialogResponse.OK) {
+                return;
+              } else {
+                this.#refresh();
+                return;
+              }
+            }
+          );
+        },
+      });
+      contentsElement.appendChild(button.element);
+    });
+    return container;
+  }
+}
 /**
  * Display details about the actor.
  * @param {module:utils/game/actors~Actor} actor
  */
 export function showActorDetailsDialog(actor) {
   const container = document.createElement('div');
+  container.appendChild(
+    components.createElement('span', {
+      text: i18n`Dungeon level: ${SCENE_MANAGER.getCurrentSceneLevel()}`,
+    })
+  );
   container.appendChild(createActorElement(actor, { hideTraits: true }));
   let button = new components.TextButtonControl({
     label: i18n`BUTTON INVENTORY`,
@@ -57,23 +162,13 @@ export function showActorDetailsDialog(actor) {
  * @param {Actor} actor
  */
 export function showInventory(actor) {
-  const container = document.createElement('div');
+  const container = components.createElement('div', { className: 'inventory' });
+
   container.appendChild(
     createActorElement(actor, { hideDescription: true, hideTraits: true })
   );
-  const storesToShow = [
-    [i18n`Head`, StoreType.HEAD],
-    [i18n`Body`, StoreType.BODY],
-    [i18n`Hands`, StoreType.HANDS],
-    [i18n`Feet`, StoreType.FEET],
-    [i18n`Backpack`, StoreType.BACKPACK],
-  ];
-  storesToShow.forEach((storeInfo) => {
-    const contents = actor.storeManager.getStoreContents(storeInfo[1]);
-    if (contents && contents.length > 0) {
-      container.appendChild(createStoreContents(storeInfo[0], contents));
-    }
-  });
+  const inventoryContainer = new InventoryContainerElement(actor);
+  container.appendChild(inventoryContainer.element);
   return UI.showControlsDialog(container);
 }
 
@@ -89,33 +184,11 @@ export function showTraits(actor) {
 }
 
 /**
- * Create element showing store contents.
- * @param {string} label
- * @param {Artefact[]} contents
- * @returns {Element}
- */
-function createStoreContents(label, contents) {
-  const container = components.createElement('div', {
-    className: 'store',
-    text: label,
-  });
-  const contentsElement = document.createElement('div');
-  container.appendChild(contentsElement);
-  contents.forEach((artefact) => {
-    const button = new components.BitmapButtonControl({
-      imageName: artefact.iconImageName,
-      action: () => UI.showOkDialog('Todo'),
-    });
-    container.appendChild(button.element);
-  });
-  return container;
-}
-
-/**
  * Display details about an artefact found by the actor.
  * @param {module:utils/game/artefacts~Artefact} artefact
  * @param {module:utils/game/actors~Actor} actor
  * @param {boolean} allowTake - If true the caller can take the artefact.
+ * @returns {Promise<string>} fulfils to TAKE or LEAVE
  */
 export function showArtefactFoundBy(artefact, actor, allowTake) {
   const sideBySide = document.createElement('div');
@@ -128,23 +201,129 @@ export function showArtefactFoundBy(artefact, actor, allowTake) {
 
   actionButtons.push(
     new components.TextButtonControl({
-      id: 'LEAVE',
       label: i18n`BUTTON LEAVE ARTEFACT`,
-      closes: true,
+      closes: 'LEAVE',
     })
   );
-  actionButtons.push(
-    new components.TextButtonControl({
-      id: 'TAKE',
-      label: i18n`BUTTON TAKE ARTEFACT`,
-      closes: true,
-    })
-  );
+  if (allowTake) {
+    actionButtons.push(
+      new components.TextButtonControl({
+        label: i18n`BUTTON TAKE ARTEFACT`,
+        closes: 'TAKE',
+      })
+    );
+  }
   return UI.showControlsDialog(sideBySide, {
     preamble: i18n`MESSAGE FOUND ARTEFACT`,
     actionButtons: actionButtons,
     row: true,
   });
+}
+
+/**
+ * Use artefact.
+ * @param {Actor} actor - who will use the artefact.
+ * @param {Artefact} artefact - the item to use.
+ * @param {StoreTypeValue} storeType
+ */
+async function showArtefactDialog(actor, artefact, storeType) {
+  switch (artefact.artefactType) {
+    case ArtefactType.WEAPON:
+    case ArtefactType.TWO_HANDED_WEAPON:
+    case ArtefactType.HEAD_GEAR:
+      return await showEquipDialog(actor, artefact, storeType);
+    case ArtefactType.FOOD:
+      return showFoodDialog(actor, artefact, storeType);
+    case ArtefactType.SPELL:
+      return showSpellDialog(actor, artefact, storeType);
+  }
+}
+
+/**
+ * Use weapon.
+ * @param {Actor} actor - who will use the artefact.
+ * @param {Artefact} artefact - the item to use.
+ * @param {StoreTypeValue} storeType
+ * @return {Promise} fulfils to undefined.
+ */
+async function showEquipDialog(actor, artefact, storeType) {
+  const container = components.createElement('div', {
+    className: 'use-weapon-dialog',
+  });
+  container.appendChild(createActorElement(artefact));
+
+  const actionButtons = [];
+  if (storeType === StoreType.BACKPACK) {
+    const button = new components.TextButtonControl({
+      label: i18n`BUTTON EQUIP`,
+      closes: 'EQUIP',
+    });
+    container.appendChild(button.element);
+    actionButtons.push(button);
+  } else {
+    const button = new components.TextButtonControl({
+      label: i18n`BUTTON UNEQUIP`,
+      closes: 'UNEQUIP',
+    });
+    container.appendChild(button.element);
+    actionButtons.push(button);
+  }
+  let button = new components.TextButtonControl({
+    label: i18n`BUTTON DISCARD`,
+    closes: 'DISCARD',
+  });
+  container.appendChild(button.element);
+  actionButtons.push(button);
+  button = new components.TextButtonControl({
+    label: i18n`BUTTON CANCEL`,
+    closes: 'CANCEL',
+  });
+  container.appendChild(button.element);
+  actionButtons.push(button);
+
+  await UI.showControlsDialog(container, {
+    actionButtons: actionButtons,
+    row: true,
+  }).then((response) => {
+    switch (response) {
+      case 'DISCARD':
+        if (storeType === StoreType.BACKPACK) {
+          actor.storeManager.discardStashed(artefact);
+        } else {
+          actor.storeManager.discardEquipped(artefact);
+        }
+        break;
+      case 'EQUIP':
+        actor.storeManager.equip(artefact);
+        break;
+      case 'UNEQUIP':
+        actor.storeManager.unequip(artefact);
+        break;
+    }
+    return;
+  });
+}
+
+/**
+ * Use food.
+ * @param {Actor} actor - who will use the artefact.
+ * @param {Artefact} artefact - the item to use.
+ * @param {StoreTypeValue} storeType
+ * @return {Promise} fulfils to undefined.
+ */
+function showFoodDialog(actor, artefact, storeType) {
+  return UI.showOkDialog('Use food dialog ToDo');
+}
+
+/**
+ * Use spell.
+ * @param {Actor} actor - who will use the artefact.
+ * @param {Artefact} artefact - the item to use.
+ * @param {StoreTypeValue} storeType
+ * @return {Promise} fulfils to undefined.
+ */
+function showSpellDialog(actor, artefact, storeType) {
+  return UI.showOkDialog('Use spell dialog ToDo');
 }
 
 /**
@@ -156,11 +335,20 @@ export function showArtefactFoundBy(artefact, actor, allowTake) {
  * @returns {Element}
  */
 function createActorElement(actor, options = {}) {
-  const container = document.createElement('div');
-  container.appendChild(components.createBitmapElement(actor.iconImageName));
-  container.appendChild(
-    components.createElement('span', { text: actor.traits.get('NAME') })
+  const container = components.createElement('div', {
+    className: 'actor-detail',
+  });
+  const idCard = components.createElement('div', {
+    className: 'actor-id-card',
+  });
+  container.appendChild(idCard);
+  idCard.appendChild(components.createBitmapElement(actor.iconImageName));
+  idCard.appendChild(
+    components.createElement('span', {
+      text: actor.traits?.get('NAME') ?? i18n`Unknown`,
+    })
   );
+
   if (!options.hideDescription && actor.description) {
     const desc = document.createElement('p');
     desc.innerText = actor.description;

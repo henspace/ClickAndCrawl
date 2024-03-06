@@ -43,7 +43,6 @@ const SETTINGS = [
     controlType: ControlType.CHECKBOX,
     persistent: true,
     action: null,
-    closes: false,
   },
   {
     id: 'MUSIC_VOLUME',
@@ -53,7 +52,6 @@ const SETTINGS = [
     persistent: true,
     action: null,
     onChange: (value) => SOUND_MANAGER.setMusicVolumePercent(value),
-    closes: false,
   },
   {
     id: 'EFFECTS_VOLUME',
@@ -66,7 +64,6 @@ const SETTINGS = [
       SOUND_MANAGER.setEffectsVolumePercent(value);
       SOUND_MANAGER.playEffect('PUNCH');
     },
-    closes: false,
   },
 ];
 

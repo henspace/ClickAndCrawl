@@ -31,7 +31,7 @@ import LOG from '../utils/logging.js';
 import { addFadingImage, addFadingText } from '../utils/effects/transient.js';
 import { Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
-import { PathFollower } from '../utils/sprites/movers.js';
+import { PathFollower, moveActorToPosition } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
 import * as chance from './chance.js';
 import UI from '../utils/dom/ui.js';
@@ -185,7 +185,7 @@ export class Fight extends AbstractInteraction {
       if (defenderHP === 0) {
         SOUND_MANAGER.playEffect('DIE');
         LOG.info('Killed actor.');
-        defender.interaction = new SearchCorpse();
+        defender.interaction = new InteractWithCorpse(defender);
         defender.alive = false;
       } else {
         addFadingText(`-${damage} HP`, {
@@ -215,7 +215,7 @@ export class Fight extends AbstractInteraction {
  * Class to handle searching a corpse.
  * @implements {ActorInteraction}
  */
-export class SearchCorpse extends AbstractInteraction {
+export class InteractWithCorpse extends AbstractInteraction {
   /**
    * Construct the interaction.
    * @param {Actor} actor - parent actor.
@@ -229,10 +229,27 @@ export class SearchCorpse extends AbstractInteraction {
    * @param {module:utils/game/actors~Actor} reactor
    * @returns {Promise}
    */
-  react(reactorUnused) {
+  async react(enactor) {
+    const choice = await this.#decideAction();
+    if (choice === 'MOVE') {
+      return moveActorToPosition(enactor, this.actor.position);
+    }
     return UI.showOkDialog(
       "A bit macabre, but you're trying to search a corpse. I haven't written the code yet."
     );
+  }
+
+  /**
+   * Decide on course of action.
+   * @returns {Promise<string>} fulfils to SEARCH or MOVE
+   */
+  async #decideAction() {
+    const choice = await UI.showChoiceDialog(
+      i18n`DIALOG TITLE CHOICES`,
+      i18n`MESSAGE SEARCH CORPSE OR MOVE`,
+      [i18n`BUTTON SEARCH`, i18n`BUTTON MOVE`]
+    );
+    return choice === 0 ? 'SEARCH' : 'MOVE';
   }
 }
 
@@ -275,8 +292,12 @@ export class FindArtefact extends AbstractInteraction {
    * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
-  react(enactor) {
+  async react(enactor) {
+    const choice = await this.#decideAction();
     this.actor.alive = false;
+    if (choice === 'MOVE') {
+      return moveActorToPosition(enactor, this.actor.position);
+    }
     const storageDetails = this.actor.storeManager.getAllStorageDetails();
     if (storageDetails.length > 0) {
       const storeToTakeFrom = storageDetails[0].store; // only expect one.
@@ -295,5 +316,22 @@ export class FindArtefact extends AbstractInteraction {
     } else {
       return UI.showOkDialog(i18n`MESSAGE ARTEFACTS ALREADY TAKEN`);
     }
+  }
+
+  /**
+   * Decide on course of action. If the artefact is still alive, the choice is
+   * always to search
+   * @returns {Promise<string>} fulfils to SEARCH or MOVE
+   */
+  async #decideAction() {
+    if (this.actor.alive) {
+      return Promise.resolve('SEARCH');
+    }
+    const choice = await UI.showChoiceDialog(
+      i18n`DIALOG TITLE CHOICES`,
+      i18n`MESSAGE SEARCH HOLE OR MOVE`,
+      [i18n`BUTTON SEARCH`, i18n`BUTTON MOVE`]
+    );
+    return choice === 0 ? 'SEARCH' : 'MOVE';
   }
 }

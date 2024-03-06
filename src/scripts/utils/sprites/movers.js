@@ -329,3 +329,18 @@ export class PathFollower extends AbstractModifier {
     }
   }
 }
+
+/**
+ * Move the actor to the position. This ignores any restriction and moves in
+ * a straight line.
+ * @param {Actor} actor
+ * @param {module:utils/geometry~Position} position
+ * @returns {Promise} fulfils to undefined on completion of move.
+ */
+export function moveActorToPosition(actor, position) {
+  const pathModifier = new PathFollower({
+    path: [position],
+    speed: 100,
+  });
+  return pathModifier.applyAsTransientToSprite(actor.sprite);
+}

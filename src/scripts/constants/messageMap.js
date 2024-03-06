@@ -27,21 +27,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
+  ['BUTTON CANCEL', 'Cancel'],
+  ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
+  ['BUTTON EQUIP', 'Equip'],
   ['BUTTON INVENTORY', 'Inventory'],
   ['BUTTON LEAVE ARTEFACT', 'Leave'],
+  ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
   ['BUTTON PLAY', 'Play'],
+  ['BUTTON SEARCH', 'Search'],
   ['BUTTON SETTINGS', 'Settings'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON TAKE ARTEFACT', 'Take'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
+  ['BUTTON UNEQUIP', 'Unequip'],
 
   ['CONTROL BLOOD ON', 'Blood on'],
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
-
+  ['DIALOG TITLE CHOICES', 'Choose!'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
 
   ['MENU TITLE MAIN', 'The Scripted Dungeon'],
@@ -61,6 +67,20 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE DEFEAT',
     'Despite your valiant efforts, you died. Your legend will live on.',
+  ],
+  [
+    'MESSAGE SEARCH CORPSE OR MOVE',
+    [
+      'You have a choice. Do you want to search the body or climb on top?',
+      "You've found a corpse, but what should you do? Search for weapons and treasure or climb on top of the body?",
+    ],
+  ],
+  [
+    'MESSAGE SEARCH HOLE OR MOVE',
+    [
+      'You] have a choice. Do you want to search this hole or move into it?',
+      "You've been here before. Do you want to search again or climb into the hole you dug?",
+    ],
   ],
   [
     'MESSAGE ENTRANCE STUCK',
@@ -84,7 +104,13 @@ const MESSAGE_MAP = new Map([
       'Buried beneath the surface, you find something.',
     ],
   ],
-
+  [
+    'MESSAGE GROUND DISTURBED',
+    [
+      'The ground appears to have been disturbed.',
+      "There's been some recent digging here.",
+    ],
+  ],
   [
     'MESSAGE OPEN EXIT',
     [
@@ -107,10 +133,12 @@ const MESSAGE_MAP = new Map([
   // Miscellaneous words and phrases.
   ['Backpack', 'Backpack'],
   ['Body', 'Body'],
+  ['Dungeon level:', 'Dungeon level:'],
   ['Feet', 'Feet'],
   ['GOLD PIECES', ' gold pieces'],
   ['Hands', 'Hands'],
   ['Head', 'Head'],
+  ['Unknown', 'Unknown'],
 ]);
 
 export default MESSAGE_MAP;

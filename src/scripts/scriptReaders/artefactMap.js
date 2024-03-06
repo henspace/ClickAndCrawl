@@ -60,6 +60,20 @@ const ARTEFACT_MAP = new Map([
     'AXE',
     { create: (traits) => createArtefact('axe', ArtefactType.WEAPON, traits) },
   ],
+  [
+    'POLEAXE',
+    {
+      create: (traits) =>
+        createArtefact('poleaxe', ArtefactType.TWO_HANDED_WEAPON, traits),
+    },
+  ],
+  [
+    'HELMET',
+    {
+      create: (traits) =>
+        createArtefact('helmet', ArtefactType.HEAD_GEAR, traits),
+    },
+  ],
 ]);
 
 export default ARTEFACT_MAP;

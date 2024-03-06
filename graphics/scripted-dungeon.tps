@@ -188,6 +188,7 @@
             <key type="filename">tiles/floor2-SBW.png</key>
             <key type="filename">tiles/floor2.png</key>
             <key type="filename">tiles/gold.png</key>
+            <key type="filename">tiles/helmet.png</key>
             <key type="filename">tiles/hero-dead00.png</key>
             <key type="filename">tiles/hero-idle00.png</key>
             <key type="filename">tiles/hero-idle01.png</key>
@@ -245,6 +246,7 @@
             <key type="filename">tiles/orc-walk-w01.png</key>
             <key type="filename">tiles/orc-walk-w02.png</key>
             <key type="filename">tiles/orc-walk-w03.png</key>
+            <key type="filename">tiles/poleaxe.png</key>
             <key type="filename">tiles/trader-dead00.png</key>
             <key type="filename">tiles/trader-idle-s03.png</key>
             <key type="filename">tiles/trader-idle00.png</key>

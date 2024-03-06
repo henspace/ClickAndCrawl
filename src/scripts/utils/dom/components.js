@@ -37,12 +37,13 @@ import PERSISTENT_DATA from '../persistentData.js';
  */
 class BaseControl {
   /**
+   * @type {string}
+   */
+  #id;
+  /**
    * @type {Element}
    */
   _element;
-
-  /** @type {string} */
-  #id;
 
   /** @type {*} */
   #value;
@@ -56,16 +57,20 @@ class BaseControl {
   /**
    * Create base control
    * @param {Object} options
-   * @param {string} options.id
    * @param {boolean} options.persistent - is data stored in persistent storage.
    * @param {*} options.defValue - default value
-   * @param {boolean} closes - flag to indicate whether this control should be used
+   * @param {boolean} options.closes - flag to indicate whether this control should be used
    * to close a dialog or form when clicked.
    */
   constructor(options) {
     if (options.closes && options.action) {
       throw new Error(
-        `Attempt made to create control ${options.id} that is set to close forms and perform and action. These are mutually exclusive.`
+        `Attempt made to create control that is set to close forms and perform and action. These are mutually exclusive.`
+      );
+    }
+    if (options.persistent && !options.id) {
+      throw new Error(
+        'Persistent controls must have an ID set in the options.'
       );
     }
     this.#id = options.id;
@@ -77,13 +82,6 @@ class BaseControl {
     }
     this.closes = options.closes;
     this.listeners = 0;
-  }
-  /**
-   * Get the underlying id
-   * @returns {Element}
-   */
-  get id() {
-    return this.#id;
   }
 
   /**
@@ -152,7 +150,8 @@ export class TextButtonControl extends BaseControl {
 export class BitmapButtonControl extends BaseControl {
   /** Create the button.
    * @param {Object} options - see BaseControl. Plus
-   * * @param {string} options.label
+   * @param {string} options.leftLabel
+   * @param {string} options.rightLabel
    * @param {function():Promise} options.action - function called on click.
    * @param {string} imageName
    */
@@ -170,10 +169,13 @@ export class BitmapButtonControl extends BaseControl {
    */
   buildElement(options) {
     const element = document.createElement('button');
-    if (options.label) {
-      element.appendChild(document.createTextNode(options.label));
+    if (options.leftLabel) {
+      element.appendChild(document.createTextNode(options.leftLabel));
     }
     element.appendChild(createBitmapElement(options.imageName, 'button-icon'));
+    if (options.rightLabel) {
+      element.appendChild(document.createTextNode(options.rightLabel));
+    }
     element.className = 'icon-button';
     return element;
   }

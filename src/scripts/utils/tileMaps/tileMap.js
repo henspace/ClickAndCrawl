@@ -269,7 +269,7 @@ export class TileMap {
   #randomGround;
   /** @type {RayTracer} */
   #heroRayTracer;
-  /** @type {Tile[]} */
+  /** @type {Point[]} */
   #interactTileGridPoints;
   /** @type {Sprite} */
   #interactTileHighlighter;
@@ -664,27 +664,35 @@ export class TileMap {
    */
   #filterClick(target, point, clickHandler) {
     const gridPoint = this.worldPointToGrid(point);
-    if (this.#movementRoutes?.containsGridPoint(gridPoint)) {
+    const movement = this.#movementRoutes?.containsGridPoint(gridPoint);
+    let interaction = false;
+    if (this.#interactTileGridPoints) {
+      for (const point of this.#interactTileGridPoints) {
+        if (point.isCoincident(gridPoint)) {
+          interaction = true;
+          break;
+        }
+      }
+    }
+    if (movement) {
       clickHandler(target, point, { filter: ClickEventFilter.MOVEMENT_TILE });
+      return;
+    } else if (interaction) {
+      clickHandler(target, point, { filter: ClickEventFilter.INTERACT_TILE });
       return;
     }
 
-    this.#interactTileGridPoints?.forEach((gp) => {
-      if (gp.isCoincident(gridPoint)) {
-        clickHandler(target, point, {
-          filter: ClickEventFilter.INTERACT_TILE,
-        });
-        return;
+    if (this.#reachableDoorTileGridPoints) {
+      for (const gp of this.#reachableDoorTileGridPoints) {
+        if (gp.isCoincident(gridPoint)) {
+          clickHandler(target, point, {
+            filter: ClickEventFilter.INTERACT_TILE,
+          });
+          return;
+        }
       }
-    });
-    this.#reachableDoorTileGridPoints?.forEach((gp) => {
-      if (gp.isCoincident(gridPoint)) {
-        clickHandler(target, point, {
-          filter: ClickEventFilter.INTERACT_TILE,
-        });
-        return;
-      }
-    });
+    }
+
     const occupants = target.getOccupants();
     if (occupants.size > 0) {
       clickHandler(target, point, {

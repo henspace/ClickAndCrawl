@@ -57,6 +57,13 @@ import LOG from '../logging.js';
  * @function SceneList.reset
  */
 
+/**
+ * Get the scene index. This will be the index of the last scene retrieved by
+ * a call to getNext.
+ * @function SceneList.getIndex
+ * @returns {number}
+ */
+
 /** @type {module:utils/sprites/sprite~Sprite}  */
 let cameraDolly;
 
@@ -66,6 +73,11 @@ let sceneDefnList;
 let currentScene;
 
 let navigationButtons;
+
+/**
+ * @type {number}
+ */
+let sceneLevel;
 
 /**
  * Definition of a scene
@@ -246,12 +258,21 @@ function panCameraBy(dx, dy) {
 }
 
 /**
+ * Get the current scene level.
+ * @returns {number}
+ */
+function getCurrentSceneLevel() {
+  return sceneDefnList.getIndex();
+}
+
+/**
  * SCENE_MANAGER Singleton.
  */
 const SCENE_MANAGER = {
   areThereMoreScenes: areThereMoreScenes,
-  setCameraToTrack: setCameraToTrack,
+  getCurrentSceneLevel: getCurrentSceneLevel,
   panCameraBy: panCameraBy,
+  setCameraToTrack: setCameraToTrack,
   setSceneList: setSceneList,
   switchToFirstScene: switchToFirstScene,
   switchToNextScene: switchToNextScene,

@@ -28,12 +28,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import * as maths from '../maths.js';
+
+import LOG from '../logging.js';
 
 /**
  * @typedef {Object} StoreTypeValue
  * @property {number} space - amount of space in store.
  * @property {boolean} gold - if true, a GoldStore is used.
+ * @property {boolean} spacesExpand - if true every artefact takes one space.
  */
 
 /**
@@ -41,33 +43,45 @@ import * as maths from '../maths.js';
  * @enum {StoreTypeValue}
  */
 export const StoreType = {
-  HEAD: { space: 1, gold: false },
-  BODY: { space: 1, gold: false },
-  HANDS: { space: 2, gold: false },
-  FEET: { space: 2, gold: false },
-  BACKPACK: { space: 8, gold: false },
-  PURSE: { space: Number.MAX_SAFE_INTEGER, gold: true },
+  HEAD: { space: 1, gold: false, spacesExpand: false },
+  BODY: { space: 1, gold: false, spacesExpand: false },
+  HANDS: { space: 2, gold: false, spacesExpand: false },
+  FEET: { space: 2, gold: false, spacesExpand: false },
+  BACKPACK: { space: 8, gold: false, spacesExpand: true },
+  PURSE: { space: Number.MAX_SAFE_INTEGER, gold: true, spacesExpand: false },
 };
 
 /**
  * @typedef {Object} ArtefactTypeValue
  * @property {number} storageSpace - how much storage is used.
- * @property {StoreTypeValue} storeTypes - how much storage is used.
+ * @property {{stash: StoreTypeValue, equip: StoreTypeValue}} storeType - storage locations
  */
 /**
  * Enumeration of artefact types
  * @enum {ArtefactTypeValue}
  */
 export const ArtefactType = {
+  FOOD: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK },
+  },
+  SPELL: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK },
+  },
   WEAPON: {
     storageSpace: 1,
-    storeTypes: [StoreType.BACKPACK, StoreType.HANDS],
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
   TWO_HANDED_WEAPON: {
     storageSpace: 2,
-    storeTypes: [StoreType.BACKPACK, StoreType.HANDS],
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
-  GOLD: { storageSpace: 0, storeTypes: [StoreType.PURSE] },
+  HEAD_GEAR: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HEAD },
+  },
+  GOLD: { storageSpace: 0, storeType: { stash: StoreType.PURSE } },
 };
 
 /**
@@ -100,14 +114,43 @@ class ArtefactStore {
   #artefacts;
   /** @type {number} */
   #usedSpace;
+  /** @type {boolean} */
+  #spacesExpand;
 
   /** Create store.
    * @param {number} maxSize;
+   * @param {boolean} spacesExpand - if true, each space can take an artefact of
+   * any size.
    */
-  constructor(maxSize) {
+  constructor(maxSize, spacesExpand) {
     this.#maxSize = maxSize;
     this.#usedSpace = 0;
     this.#artefacts = new Map();
+    this.#spacesExpand = spacesExpand;
+  }
+
+  /**
+   * Get free space
+   * @returns {number}
+   */
+  get freeSpace() {
+    return this.#maxSize - this.#usedSpace;
+  }
+
+  /**
+   * Get maximum space
+   * @returns {number}
+   */
+  get maxSpace() {
+    return this.#maxSize;
+  }
+
+  /**
+   * Test if empty
+   * @returns {boolean}
+   */
+  isEmpty() {
+    return this.#usedSpace === 0;
   }
 
   /**
@@ -117,9 +160,10 @@ class ArtefactStore {
    */
   add(artefact) {
     const space = this.#maxSize - this.#usedSpace;
-    if (space >= artefact.storageSpace) {
+    const requiredSpace = this.#spacesExpand ? 1 : artefact.storageSpace;
+    if (space >= requiredSpace) {
       this.#artefacts.set(artefact, artefact);
-      this.#usedSpace += artefact.storageSpace;
+      this.#usedSpace += requiredSpace;
       return true;
     }
     return false;
@@ -131,11 +175,24 @@ class ArtefactStore {
    */
   take(artefact) {
     const storedArtefact = this.#artefacts.get(artefact);
+    const requiredSpace = this.#spacesExpand ? 1 : storedArtefact.storageSpace;
     if (storedArtefact) {
-      this.#usedSpace -= storedArtefact.storageSpace;
+      this.#usedSpace -= requiredSpace;
       this.#artefacts.delete(storedArtefact);
     }
     return storedArtefact;
+  }
+
+  /**
+   * Take the first element.
+   * @returns {Artefact} null if empty.
+   */
+  takeFirst() {
+    if (this.isEmpty()) {
+      return null;
+    }
+    const firstArtefact = this.#artefacts.values().next().value;
+    return this.take(firstArtefact);
   }
 
   /**
@@ -154,10 +211,6 @@ class ArtefactStore {
   canAdd(artefact) {
     return this.#maxSize - this.#usedSpace > artefact.storageSpace;
   }
-
-  /** Move from to.
-   *
-   */
 }
 
 /**
@@ -172,6 +225,15 @@ class GoldStore {
    * @param {number} maxSize;
    */
   constructor() {}
+
+  /**
+   * Test if empty
+   * @override
+   * @returns {boolean}
+   */
+  isEmpty() {
+    return !this.#artefact;
+  }
   /**
    * @override
    */
@@ -258,6 +320,22 @@ export class Artefact {
   }
 
   /**
+   * Get stash store type
+   * @returns {StoreTypeValue}
+   */
+  get stashStoreType() {
+    return this.artefactType.storeType.stash;
+  }
+
+  /**
+   * Get equip store type
+   * @returns {StoreTypeValue}
+   */
+  get equipStoreType() {
+    return this.artefactType.storeType.equip;
+  }
+
+  /**
    * Get the buying price.
    * @returns {number}
    */
@@ -276,7 +354,7 @@ export class Artefact {
    * @returns {StoreTypeValue}
    */
   getDefaultStoreType() {
-    return this.artefactType.storeTypes[0];
+    return this.artefactType.storeType.stash;
   }
 
   /**
@@ -284,7 +362,11 @@ export class Artefact {
    * @returns {StoreTypeValue[]}
    */
   getStoreTypes() {
-    return this.artefactType.storeTypes;
+    const storeTypes = [this.artefactType.storeType.stash];
+    if (this.artefactType.storeType.equip) {
+      storeTypes.push(this.artefactType.storeType.equip);
+    }
+    return storeTypes;
   }
 
   /**
@@ -317,9 +399,15 @@ export class ArtefactStoreManager {
     for (const storeTypeName in StoreType) {
       const storeType = StoreType[storeTypeName];
       if (storeType.gold) {
-        this.#stores.set(storeType, new GoldStore(storeType.space));
+        this.#stores.set(
+          storeType,
+          new GoldStore(storeType.space, storeType.spacesExpand)
+        );
       } else {
-        this.#stores.set(storeType, new ArtefactStore(storeType.space));
+        this.#stores.set(
+          storeType,
+          new ArtefactStore(storeType.space, storeType.spacesExpand)
+        );
       }
     }
   }
@@ -379,10 +467,120 @@ export class ArtefactStoreManager {
 
   /**
    * Convenience method to get contents of a store.
+   *
    * @param {StoreTypeValue} storeType
-   * @returns {Artefact[]}
+   * @returns {Iterable<Artefact>} null if empty
    */
   getStoreContents(storeType) {
-    return this.#stores.get(storeType).values();
+    const store = this.#stores.get(storeType);
+    return store.isEmpty() ? null : store.values();
+  }
+
+  /**
+   * Discard an artefact that has been equipped.
+   * @param {Artefact} artefact
+   * @returns {boolean} true on success.
+   */
+  discardEquipped(artefact) {
+    const equipStore = this.#stores.get(artefact.equipStoreType);
+    if (!equipStore) {
+      LOG.error("Cannot discard artefact as there isn't an equip store.");
+      return false;
+    }
+    if (!equipStore.take(artefact)) {
+      LOG.error('Artefact could not be found so not discarded.');
+      return false;
+    }
+    return true;
+  }
+  /**
+   * Discard an artefact that has been stashed.
+   * @param {Artefact} artefact
+   * @returns {boolean} true on success.
+   */
+  discardStashed(artefact) {
+    const stashStore = this.#stores.get(artefact.stashStoreType);
+    if (!stashStore) {
+      LOG.error("Cannot discard artefact as there isn't a stash store.");
+      return false;
+    }
+    if (!stashStore.take(artefact)) {
+      LOG.error('Artefact could not be found so not discarded.');
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Equip artefact. The artefact should exist in the stash.
+   * If space is required, artefacts will be unequipped to make space.
+   * @param {Artefact} artefact
+   * @returns {boolean} true on success.
+   */
+  equip(artefact) {
+    const stashStore = this.#stores.get(artefact.stashStoreType);
+    const equipStore = this.#stores.get(artefact.equipStoreType);
+    if (!stashStore) {
+      LOG.error(
+        'Cannot equip artefact as there isn`t a stash store to take it from.'
+      );
+      return false;
+    }
+    if (!equipStore) {
+      LOG.error("Cannot equip artefact as there isn't an equip store.");
+      return false;
+    }
+    const spaceRequired = artefact.storageSpace;
+    if (spaceRequired > equipStore.maxSpace) {
+      LOG.error('The equip store cannot hold this item.');
+      return false;
+    }
+    const takenArtefact = stashStore.take(artefact);
+    if (!takenArtefact) {
+      LOG.error('Could not find artefact in the stash.');
+      return false;
+    }
+
+    while (equipStore.freeSpace < spaceRequired) {
+      const unequiped = equipStore.takeFirst();
+      stashStore.add(unequiped);
+    }
+    equipStore.add(artefact);
+    return true;
+  }
+
+  /**
+   * Unequip artefact. The artefact should exist in the equip store.
+   * If space is required in the stash, the attempt fails.
+   * @param {Artefact} artefact
+   * @returns {boolean} true on success.
+   */
+  unequip(artefact) {
+    const stashStore = this.#stores.get(artefact.stashStoreType);
+    const equipStore = this.#stores.get(artefact.equipStoreType);
+    if (!stashStore) {
+      LOG.error(
+        'Cannot unequip artefact as there isn`t a stash store to put it in.'
+      );
+      return false;
+    }
+    if (!equipStore) {
+      LOG.error(
+        "Cannot unequip artefact as there isn't an equip store to take it from."
+      );
+      return false;
+    }
+    const spaceRequired = artefact.storageSpace;
+    if (spaceRequired > stashStore.freeSpace) {
+      LOG.error('The stash store cannot hold this item.');
+      return false;
+    }
+    const takenArtefact = equipStore.take(artefact);
+    if (!takenArtefact) {
+      LOG.error("The artefact hasn't been equipped so can't unequip it.");
+      return false;
+    }
+    stashStore.add(artefact);
+    return true;
   }
 }

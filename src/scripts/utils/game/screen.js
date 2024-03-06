@@ -309,7 +309,7 @@ function displayOnGlass(element, closers, className) {
     closers.forEach((closer) => {
       const promise = new Promise((resolve) => {
         closer.element.addEventListener('click', async () => {
-          resolve(closer.response);
+          resolve(closer.closes);
         });
       });
       promises.push(promise);

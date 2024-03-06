@@ -189,7 +189,7 @@ export class Actor extends UiClickHandler {
    * @param {Actor} otherActor
    * @returns {boolean}
    */
-  canShareLocationWithActor(otherActorUnused) {
+  canShareLocationWithActor(otherActor) {
     return !this.obstacle;
   }
 

@@ -13,6 +13,8 @@ trader x1>3: NAME: trader| MOVE: wander| HP: 10/25
 [Artefacts]
 gold x3>5: NAME: Gold coins| GP: 10>25
 axe x3>5: NAME: Rusty axe
+poleaxe x3>5: NAME: Poleaxe
+helmet x3>5: NAME: Helmet
 [Map]
 random
 

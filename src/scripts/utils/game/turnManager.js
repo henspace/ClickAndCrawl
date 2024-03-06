@@ -391,9 +391,10 @@ class HeroTurnIdle extends State {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          if (detail?.filter === ClickEventFilter.INTERACT_TILE) {
+          const filter = detail?.filter;
+          if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
-          } else if (detail?.filter === ClickEventFilter.OCCUPIED_TILE) {
+          } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
             await showOccupantDetails(detail.occupant);
           } else {
             await moveHeroToPoint(point);
@@ -442,9 +443,10 @@ class HeroTurnFighting extends State {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          if (detail?.filter === ClickEventFilter.INTERACT_TILE) {
+          const filter = detail?.filter;
+          if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
-          } else if (detail?.filter === ClickEventFilter.OCCUPIED_TILE) {
+          } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
             await showOccupantDetails(detail.occupant);
           } else {
             await this.#tryToRun(point);
@@ -647,6 +649,14 @@ function startNextScene(currentState) {
  * @returns {Promise} fulfils to undefined.
  */
 function showOccupantDetails(occupant) {
+  if (!occupant) {
+    LOG.error('Clicked on tile but no occupant to view.');
+    return Promise.resolve();
+  }
+  const hidden = occupant.traits?.get('HIDDEN_ARTEFACT');
+  if (hidden) {
+    return UI.showOkDialog(i18n`MESSAGE GROUND DISTURBED`);
+  }
   return actorDialogs.showActorDetailsDialog(occupant);
 }
 

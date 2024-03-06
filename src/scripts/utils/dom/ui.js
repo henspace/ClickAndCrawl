@@ -86,12 +86,39 @@ function showOkDialog(message, options) {
     [
       {
         element: buttonEl,
-        id: DialogResponse.OK,
-        closer: true,
+        closes: DialogResponse.OK,
       },
     ],
     options?.className
   );
+}
+
+/**
+ * Create a choice dialog.
+ * @param {string} title
+ * @param {string} message
+ * @param {string[]} choices - labels for buttons.
+ * @returns {number} index of selected button.
+ */
+function showChoiceDialog(title, message, choices) {
+  const container = document.createElement('div');
+  if (title) {
+    container.appendChild(components.createElement('p', { text: title }));
+  }
+  container.appendChild(components.createElement('p', { text: message }));
+  const actionButtons = [];
+  choices?.forEach((choice, index) => {
+    const button = new components.TextButtonControl({
+      label: choice,
+      closes: index,
+    });
+    actionButtons.push(button);
+  });
+  return showControlsDialog(message, {
+    preamble: title,
+    actionButtons: actionButtons,
+    row: true,
+  });
 }
 
 /** Create an ok Dialog but just showing raw html.
@@ -121,8 +148,7 @@ function showElementOkDialog(
     [
       {
         element: buttonEl,
-        id: DialogResponse.OK,
-        closer: true,
+        closes: DialogResponse.OK,
       },
     ],
     className
@@ -159,10 +185,10 @@ function showControlsDialog(mainContent, options) {
   const closers = [];
   options?.actionButtons?.forEach((button) => {
     actionButtons.appendChild(button.element);
-    if (button.closes) {
+    if (button.closes !== null && button.closes !== undefined) {
       closers.push({
         element: button.element,
-        response: button.id,
+        closes: button.closes,
       });
     }
   });
@@ -181,6 +207,7 @@ function showControlsDialog(mainContent, options) {
  * The UI singleton.
  */
 const UI = {
+  showChoiceDialog: showChoiceDialog,
   showMessage: showMessage,
   showOkDialog: showOkDialog,
   showElementOkDialog: showElementOkDialog,

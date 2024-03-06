@@ -30,28 +30,17 @@
 
 import * as maths from '../utils/maths.js';
 /**
- * This is basically a Map but with the key difference that
- * only keys set during the configuration are allowed. If no keys are provided,
- * the traits are regarded as freeform and any keys are allowed.
+ * This is basically a Map
  */
 export class Traits {
   /** Characteristics @type {Map<string, *>} */
   #traits;
-  /** @type {boolean} */
-  #freeform;
-
   /**
    * Initialise the traits.
    * @param {Map<string, *>} initialValues
    */
   constructor(initialValues) {
-    if (initialValues) {
-      this.#traits = new Map(initialValues);
-      this.#freeform = false;
-    } else {
-      this.#traits = new Map();
-      this.#freeform = true;
-    }
+    this.#traits = new Map(initialValues);
   }
 
   /**
@@ -60,11 +49,7 @@ export class Traits {
    * @throws {Error} thrown if key invalid.
    */
   set(key, value) {
-    if (this.#freeform || this.#traits.has(key)) {
-      this.#traits.set(key, value);
-    } else {
-      throw new Error(`Attempt to set invalid key '${key}'`);
-    }
+    this.#traits.set(key, value);
   }
 
   /**
@@ -148,7 +133,6 @@ export class Traits {
    */
   clone() {
     const actorTraits = new Traits(this.#traits);
-    actorTraits.#freeform = this.#freeform;
     return actorTraits;
   }
 

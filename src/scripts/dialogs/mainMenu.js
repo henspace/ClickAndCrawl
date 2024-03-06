@@ -40,19 +40,16 @@ import { i18n } from '../utils/messageManager.js';
  */
 export function showMainMenu() {
   const play = new BitmapButtonControl({
-    id: 'PLAY',
-    label: i18n`BUTTON PLAY`,
+    leftLabel: i18n`BUTTON PLAY`,
     imageName: 'ui-play00.png',
     internalLabel: true,
-    closes: true,
+    closes: 'PLAY',
   });
   const settings = new BitmapButtonControl({
-    id: 'SETTINGS',
-    label: i18n`BUTTON SETTINGS`,
+    leftLabel: i18n`BUTTON SETTINGS`,
     imageName: 'ui-settings00.png',
     internalLabel: true,
     action: () => showSettingsDialog(),
-    closes: false,
   });
   return UI.showControlsDialog(i18n`MENU TITLE MAIN`, {
     actionButtons: [settings, play],

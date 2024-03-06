@@ -448,6 +448,8 @@ class OndemandSceneList {
   #nextScene;
   /** Flag to prevent unnecessary resets. @type {boolean} */
   #ignoreReset;
+  /** @type {number} */
+  #index;
 
   /**
    *
@@ -460,7 +462,14 @@ class OndemandSceneList {
   }
 
   /**
-   * Get the scene at the index.
+   * @returns {number}
+   */
+  getIndex() {
+    return this.#index;
+  }
+
+  /**
+   * Get the next scene.
    */
   getNext() {
     const scene = this.#nextScene;
@@ -468,6 +477,7 @@ class OndemandSceneList {
       this.#nextScene = this.#scriptParser.getNextScene();
     }
     this.#ignoreReset = false;
+    this.#index++;
     return scene;
   }
   /**
@@ -485,6 +495,7 @@ class OndemandSceneList {
     if (!this.#ignoreReset) {
       this.#scriptParser.reset();
       this.#nextScene = this.#scriptParser.getNextScene();
+      this.#index = -1;
       this.#ignoreReset = true;
     }
   }

@@ -40,6 +40,7 @@ import { Fight, Trade, FindArtefact } from '../dnd/interact.js';
 import StdAnimations from './actorAnimationKeys.js';
 import * as maths from '../utils/maths.js';
 import GameConstants from '../utils/game/gameConstants.js';
+import { CharacterTraits } from '../dnd/traits.js';
 
 /**
  * Specialist traits renderer
@@ -256,7 +257,8 @@ function createHiddenArtefact(imageName, traits) {
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.interaction = new FindArtefact(actor);
   actor.iconImageName = `${imageName}.png`;
-  actor.traits = traits;
+  actor.traits = traits ?? new CharacterTraits();
+  actor.traits.set('HIDDEN_ARTEFACT', true);
   return actor;
 }
 
