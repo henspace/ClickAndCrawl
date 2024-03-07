@@ -32,6 +32,7 @@
 import { AbstractInteraction } from '../../dnd/interact.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { ArtefactStoreManager } from './artefacts.js';
+import * as dice from '../dice.js';
 
 /**
  * @typedef {Map<string, *>} Traits
@@ -41,7 +42,8 @@ export const ActorType = {
   HERO: 0,
   ENEMY: 1,
   ARTEFACT: 2,
-  PROP: 3,
+  HIDDEN_ARTEFACT: 3,
+  TRADER: 4,
 };
 /**
  * Actor class. An actor is a sprite that exists in the world and can interact
@@ -173,6 +175,20 @@ export class Actor extends UiClickHandler {
    */
   isWandering() {
     return this?.traits.get('MOVE') === 'WANDER';
+  }
+
+  /**
+   * Test if the actor will interact.
+   * @returns {boolean}
+   */
+  willInteract() {
+    if (!this.interaction) {
+      return false;
+    }
+    if (this.isWandering()) {
+      return dice.rollDice(6) > 3;
+    }
+    return true;
   }
 
   /**

@@ -1,11 +1,10 @@
 /**
- * @file Simulation of dice
+ * @file Almanac of different actor types
  *
- * @module utils/dice
+ * @module dnd/almanacs/almanacActors
  */
 /**
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,35 +27,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import LOG from './logging.js';
-import * as maths from './maths.js';
-
-const MULTIDICE_REGEX = /(\d+)[dD](\d+)/;
+import { ActorType } from '../../utils/game/actors.js';
 /**
- * Roll a dice
- * @param {number} [sides = 6] - number of sides on the dice
- * @returns {number}
+ * @typedef {Object} AlmanacEntry
+ * @property {number} minLevel - minimum dungeon level at which this appears.
+ * @property {string} id - ID used to locate it in the actor or artefact map.
+ * @property {string} traits - string representation of traits.
  */
-export function rollDice(sides = 6) {
-  return maths.getRandomIntInclusive(1, sides);
-}
 
-/**
- * Roll multiple dice.
- * @param {string} dice - in format nDs. E.g. 1D6
- * @returns {number} result
+/** Almanac
+ * @type {Object<string, AlmanacEntry>}
  */
-export function rollMultiDice(dice) {
-  const match = dice.match(MULTIDICE_REGEX);
-  if (!match) {
-    LOG.error(
-      `String ${dice} not recognised as a dice roll. Defaulting to 1D6.`
-    );
-    return rollDice(6);
-  }
-  let result = 0;
-  for (let roll = 0; roll < match[1]; roll++) {
-    result += rollDice(match[2]);
-  }
-  return result;
-}
+const ALMANAC_OF_ACTORS = [
+  { id: 'hero', type: ActorType.HERO, minLevel: 0, traits: 'HP:20|EXP:0|AC:1' },
+  {
+    id: 'orc',
+    type: ActorType.ENEMY,
+    minLevel: 0,
+    traits: 'MOVE:HUNT|HP:2|EXP:0|AC:5',
+  },
+  {
+    id: 'trader',
+    type: ActorType.TRADER,
+    minLevel: 0,
+    traits: 'MOVE:WANDER|EXP:0|AC:1',
+  },
+];
+
+export default ALMANAC_OF_ACTORS;

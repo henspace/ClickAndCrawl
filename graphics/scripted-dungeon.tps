@@ -177,6 +177,7 @@
             <key type="filename">tiles/axe.png</key>
             <key type="filename">tiles/blank.png</key>
             <key type="filename">tiles/block.png</key>
+            <key type="filename">tiles/crystal-red.png</key>
             <key type="filename">tiles/door-B.png</key>
             <key type="filename">tiles/door-L.png</key>
             <key type="filename">tiles/door-R.png</key>
@@ -336,6 +337,7 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tiles/crystal-blue.png</key>
             <key type="filename">tiles/hero.png</key>
             <key type="filename">tiles/orc.png</key>
             <struct type="IndividualSpriteSettings">

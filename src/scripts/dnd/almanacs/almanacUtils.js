@@ -1,11 +1,10 @@
 /**
- * @file Simulation of dice
+ * @file Utilities for working with almanacs
  *
- * @module utils/dice
+ * @module dnd/almanacs/almanacUtils
  */
 /**
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,35 +27,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import LOG from './logging.js';
-import * as maths from './maths.js';
-
-const MULTIDICE_REGEX = /(\d+)[dD](\d+)/;
+import { MESSAGES } from '../../utils/messageManager.js';
+import LOG from '../../utils/logging.js';
 /**
- * Roll a dice
- * @param {number} [sides = 6] - number of sides on the dice
- * @returns {number}
+ * Takes an ID and creates a name.
+ * @param {string} [id = '?']
+ * @returns {string}
  */
-export function rollDice(sides = 6) {
-  return maths.getRandomIntInclusive(1, sides);
+export function createNameFromId(id = '?') {
+  if (id.len < 2) {
+    return id;
+  }
+  const name = id.replace('_', ' ');
+  return name.charAt(0).toUpperCase() + name.substring(1);
 }
 
 /**
- * Roll multiple dice.
- * @param {string} dice - in format nDs. E.g. 1D6
- * @returns {number} result
+ * Takes an ID and creates a description.
+ * If no description an empty string is returned.
+ * @param {string} id
+ * @returns {string}
  */
-export function rollMultiDice(dice) {
-  const match = dice.match(MULTIDICE_REGEX);
-  if (!match) {
-    LOG.error(
-      `String ${dice} not recognised as a dice roll. Defaulting to 1D6.`
-    );
-    return rollDice(6);
-  }
-  let result = 0;
-  for (let roll = 0; roll < match[1]; roll++) {
-    result += rollDice(match[2]);
+export function createDescriptionFromId(id) {
+  const messageKey = `DESCRIPTION ${id.toUpperCase()}`;
+  const result = MESSAGES.getText(messageKey);
+  if (messageKey === result) {
+    LOG.error(`No description set for ${messageKey}.`);
+    return '';
   }
   return result;
 }

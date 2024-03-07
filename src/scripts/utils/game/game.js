@@ -35,7 +35,7 @@ import GAME_CLOCK from '../time/clock.js';
 import * as debug from '../debug.js';
 import * as text from '../text/text.js';
 import * as assetLoaders from '../assetLoaders.js';
-import { getOndemandSceneList } from '../../scriptReaders/scriptParser.js';
+import { createAutoSceneList } from '../../scriptReaders/autoSceneList.js';
 import SCENE_MANAGER from '../game/sceneManager.js';
 import UI from '../dom/ui.js';
 import LOG from '../logging.js';
@@ -106,7 +106,7 @@ async function initialise(screenOptions) {
 
     .then(() => IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl))
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
-    .then((script) => SCENE_MANAGER.setSceneList(getOndemandSceneList(script)))
+    .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
     .then(() => {})
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
     .then(() => startGame())

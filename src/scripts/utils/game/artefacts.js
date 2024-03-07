@@ -43,12 +43,17 @@ import LOG from '../logging.js';
  * @enum {StoreTypeValue}
  */
 export const StoreType = {
-  HEAD: { space: 1, gold: false, spacesExpand: false },
-  BODY: { space: 1, gold: false, spacesExpand: false },
-  HANDS: { space: 2, gold: false, spacesExpand: false },
-  FEET: { space: 2, gold: false, spacesExpand: false },
-  BACKPACK: { space: 8, gold: false, spacesExpand: true },
-  PURSE: { space: Number.MAX_SAFE_INTEGER, gold: true, spacesExpand: false },
+  HEAD: { id: 'HEAD', space: 1, gold: false, spacesExpand: false },
+  BODY: { id: 'BODY', space: 1, gold: false, spacesExpand: false },
+  HANDS: { id: 'HANDS', space: 2, gold: false, spacesExpand: false },
+  FEET: { id: 'FEET', space: 2, gold: false, spacesExpand: false },
+  BACKPACK: { id: 'BACKPACK', space: 8, gold: false, spacesExpand: true },
+  PURSE: {
+    id: 'PURSE',
+    space: Number.MAX_SAFE_INTEGER,
+    gold: true,
+    spacesExpand: false,
+  },
 };
 
 /**
@@ -61,6 +66,10 @@ export const StoreType = {
  * @enum {ArtefactTypeValue}
  */
 export const ArtefactType = {
+  ARMOUR: {
+    storageSpace: 1,
+    storeType: { stash: null, equip: StoreType.BODY },
+  },
   FOOD: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
@@ -153,6 +162,15 @@ class ArtefactStore {
     return this.#usedSpace === 0;
   }
 
+  /** Get the space required by an artefact. If #spacesExpand
+   * this is always 1.
+   * @param {Artefact}
+   * @returns {number}
+   */
+  getRequiredSpace(artefact) {
+    return this.#spacesExpand ? 1 : artefact.storageSpace;
+  }
+
   /**
    *
    * @param {Artefact} artefact
@@ -160,7 +178,7 @@ class ArtefactStore {
    */
   add(artefact) {
     const space = this.#maxSize - this.#usedSpace;
-    const requiredSpace = this.#spacesExpand ? 1 : artefact.storageSpace;
+    const requiredSpace = this.getRequiredSpace(artefact);
     if (space >= requiredSpace) {
       this.#artefacts.set(artefact, artefact);
       this.#usedSpace += requiredSpace;
@@ -175,7 +193,7 @@ class ArtefactStore {
    */
   take(artefact) {
     const storedArtefact = this.#artefacts.get(artefact);
-    const requiredSpace = this.#spacesExpand ? 1 : storedArtefact.storageSpace;
+    const requiredSpace = this.getRequiredSpace(artefact);
     if (storedArtefact) {
       this.#usedSpace -= requiredSpace;
       this.#artefacts.delete(storedArtefact);
@@ -209,7 +227,8 @@ class ArtefactStore {
    * @returns {boolean}
    */
   canAdd(artefact) {
-    return this.#maxSize - this.#usedSpace > artefact.storageSpace;
+    const requiredSpace = this.getRequiredSpace(artefact);
+    return this.#maxSize - this.#usedSpace >= requiredSpace;
   }
 }
 
@@ -354,7 +373,9 @@ export class Artefact {
    * @returns {StoreTypeValue}
    */
   getDefaultStoreType() {
-    return this.artefactType.storeType.stash;
+    return (
+      this.artefactType.storeType.stash ?? this.artefactType.storeType.equip
+    );
   }
 
   /**
@@ -362,7 +383,10 @@ export class Artefact {
    * @returns {StoreTypeValue[]}
    */
   getStoreTypes() {
-    const storeTypes = [this.artefactType.storeType.stash];
+    const storeTypes = [];
+    if (this.artefactType.storeType.stash) {
+      storeTypes.push(this.artefactType.storeType.stash);
+    }
     if (this.artefactType.storeType.equip) {
       storeTypes.push(this.artefactType.storeType.equip);
     }
@@ -413,16 +437,20 @@ export class ArtefactStoreManager {
   }
 
   /**
-   * Test of an artefact can be stored anywhere.
+   * Get the store where an item should be stored. This is normally
+   * the stash store. If the stash store is null, the equip store is
+   * returned. This is because armour cannot be carried, just worn.
    * @param {Artefact}
    * @returns {ArtefactStore} null if it cannot be stored
    */
   findSuitableStore(artefact) {
-    for (const storeType of artefact.getStoreTypes()) {
-      const store = this.#stores.get(storeType);
-      if (store.canAdd(artefact)) {
-        return store;
-      }
+    let storeType = artefact.stashStoreType;
+    if (!storeType) {
+      storeType = artefact.equipStoreType;
+    }
+    const store = this.#stores.get(storeType);
+    if (store.canAdd(artefact)) {
+      return store;
     }
     return null;
   }

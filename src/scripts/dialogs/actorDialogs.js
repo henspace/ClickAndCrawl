@@ -111,21 +111,10 @@ class InventoryContainerElement {
     });
     container.appendChild(contentsElement);
     contents.forEach((artefact) => {
-      const button = new components.BitmapButtonControl({
-        rightLabel: artefact.traits.get('NAME'),
-        imageName: artefact.iconImageName,
-        action: async () => {
-          await showArtefactDialog(this.#actor, artefact, storeType).then(
-            (response) => {
-              if (response === DialogResponse.OK) {
-                return;
-              } else {
-                this.#refresh();
-                return;
-              }
-            }
-          );
-        },
+      const button = createArtefactButtonControl(artefact, {
+        owner: this.#actor,
+        storeType: storeType,
+        refresh: this.#refresh.bind(this),
       });
       contentsElement.appendChild(button.element);
     });
@@ -187,11 +176,15 @@ export function showTraits(actor) {
  * Display details about an artefact found by the actor.
  * @param {module:utils/game/artefacts~Artefact} artefact
  * @param {module:utils/game/actors~Actor} actor
- * @param {boolean} allowTake - If true the caller can take the artefact.
+ * @param {Object} options
+ * @param {boolean} options.cannotStore - If true the caller cannot take the artefact.
+ * @param {string} options.guidance - extra help
  * @returns {Promise<string>} fulfils to TAKE or LEAVE
  */
-export function showArtefactFoundBy(artefact, actor, allowTake) {
+export function showArtefactFoundBy(artefact, actor, options) {
+  const container = document.createElement('div');
   const sideBySide = document.createElement('div');
+  container.appendChild(sideBySide);
   sideBySide.className = 'side-by-side';
   sideBySide.appendChild(
     createActorElement(actor, { hideDescription: true, hideTraits: true })
@@ -205,7 +198,11 @@ export function showArtefactFoundBy(artefact, actor, allowTake) {
       closes: 'LEAVE',
     })
   );
-  if (allowTake) {
+  if (options.cannotStore) {
+    container.appendChild(
+      components.createElement('p', { text: options.guidance })
+    );
+  } else {
     actionButtons.push(
       new components.TextButtonControl({
         label: i18n`BUTTON TAKE ARTEFACT`,
@@ -213,7 +210,7 @@ export function showArtefactFoundBy(artefact, actor, allowTake) {
       })
     );
   }
-  return UI.showControlsDialog(sideBySide, {
+  return UI.showControlsDialog(container, {
     preamble: i18n`MESSAGE FOUND ARTEFACT`,
     actionButtons: actionButtons,
     row: true,
@@ -311,7 +308,7 @@ async function showEquipDialog(actor, artefact, storeType) {
  * @param {StoreTypeValue} storeType
  * @return {Promise} fulfils to undefined.
  */
-function showFoodDialog(actor, artefact, storeType) {
+function showFoodDialog(actorUnused, artefactUnused, storeTypeUnused) {
   return UI.showOkDialog('Use food dialog ToDo');
 }
 
@@ -322,7 +319,7 @@ function showFoodDialog(actor, artefact, storeType) {
  * @param {StoreTypeValue} storeType
  * @return {Promise} fulfils to undefined.
  */
-function showSpellDialog(actor, artefact, storeType) {
+function showSpellDialog(actorUnused, artefactUnused, storeTypeUnused) {
   return UI.showOkDialog('Use spell dialog ToDo');
 }
 
@@ -396,4 +393,31 @@ function createTraitsList(actor, excludedKeys, includeGold) {
     }
   });
   return traitsList;
+}
+
+/**
+ * @param {Artefact} artefact
+ * @param {Object} options
+ * @param {Actor} options.owner
+ * @param {StoreType} options.storeType
+ * @param {function():Promise} refresh - function to call if storage changed.
+ * @returns {components.BitmapButtonControl}
+ */
+function createArtefactButtonControl(artefact, options) {
+  return new components.BitmapButtonControl({
+    rightLabel: artefact.traits.get('NAME'),
+    imageName: artefact.iconImageName,
+    action: async () => {
+      await showArtefactDialog(options.owner, artefact, options.storeType).then(
+        (response) => {
+          if (response === DialogResponse.OK) {
+            return;
+          } else {
+            options.refresh?.();
+            return;
+          }
+        }
+      );
+    },
+  });
 }

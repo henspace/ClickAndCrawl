@@ -249,7 +249,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'mousemove',
     (event) => {
-      LOG.debug('mousemove');
       if (event.buttons & 1) {
         processMoveAction(
           EventSource.MOUSE,

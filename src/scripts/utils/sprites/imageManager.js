@@ -118,13 +118,21 @@ function buildSpriteMap(spriteMapDef, texture) {
 
 /**
  * @param {string} filename
- * @param {boolean} quiet - if true, no message is logged if image not found.
+ * @param {Object} options
+ * @param {string} options.fallback - image name to use if not found.
+ * @param {boolean} options.quiet - if true, no message is logged if image not found.
  * @returns {SpriteBitmap} null if filename not found.
  */
-function getSpriteBitmap(filename, quiet) {
-  const result = spriteMap.get(filename);
-  if (!result && !quiet) {
+function getSpriteBitmap(filename, options) {
+  let result = spriteMap.get(filename);
+  if (!result && !options?.quiet) {
     LOG.debug(`Failed to find image ${filename}.`);
+  }
+  if (!result && options?.fallback) {
+    result = spriteMap.get(options.fallback);
+    if (!result) {
+      LOG.debug(`Failed to find fallback image ${options.fallback}.`);
+    }
   }
   return result;
 }

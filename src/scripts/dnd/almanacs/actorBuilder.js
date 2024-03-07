@@ -1,11 +1,10 @@
 /**
- * @file Map of names to actor factories in the dungeon.
+ * @file Actor and artefact builder
  *
- * @module scriptReaders/actorMap
+ * @module dnd/almanacs/actorBuilder
  */
 /**
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,19 +27,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Sprite } from '../utils/sprites/sprite.js';
-import { Actor, ActorType } from '../utils/game/actors.js';
-import * as spriteRenderers from '../utils/sprites/spriteRenderers.js';
-import * as animation from '../utils/sprites/animation.js';
-import { Position } from '../utils/geometry.js';
-import SCREEN from '../utils/game/screen.js';
-import WORLD from '../utils/game/world.js';
-import { Colours } from '../constants/colours.js';
-import { Fight, Trade, FindArtefact } from '../dnd/interact.js';
-import StdAnimations from './actorAnimationKeys.js';
-import * as maths from '../utils/maths.js';
-import GameConstants from '../utils/game/gameConstants.js';
-import { CharacterTraits } from '../dnd/traits.js';
+import { Sprite } from '../../utils/sprites/sprite.js';
+import { Actor, ActorType } from '../../utils/game/actors.js';
+import * as spriteRenderers from '../../utils/sprites/spriteRenderers.js';
+import * as animation from '../../utils/sprites/animation.js';
+import { Position } from '../../utils/geometry.js';
+import SCREEN from '../../utils/game/screen.js';
+import WORLD from '../../utils/game/world.js';
+import { Colours } from '../../constants/colours.js';
+import { Fight, Trade, FindArtefact } from '../interact.js';
+import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
+import * as maths from '../../utils/maths.js';
+import GameConstants from '../../utils/game/gameConstants.js';
+import { CharacterTraits } from '../traits.js';
+import { MESSAGES } from '../../utils/messageManager.js';
+import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
 
 /**
  * Specialist traits renderer
@@ -193,7 +194,7 @@ function createArtefactKeyFrames(imageName) {
 /**
  * Create the actor.
  * @param {string} imageName - no extension
- * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
+ * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
  * @returns {Actor}
  */
@@ -263,13 +264,13 @@ function createHiddenArtefact(imageName, traits) {
 }
 
 /**
- * Create animated fighter
+ * Create animated enemy
  * @param {string} imageName - without extension
  * @param {string} iconImageName - without extension. Name of icon for dialogs.
  * @param {module:dnd/traits~Traits} traits
  * @returns {Actor}
  */
-function createFighter(imageName, iconImageName, traits) {
+function createEnemy(imageName, iconImageName, traits) {
   const actor = createActor(imageName, iconImageName, traits);
   actor.interaction = new Fight(actor);
   return actor;
@@ -290,23 +291,28 @@ function createTrader(imageName, iconImageName, traits) {
 }
 
 /**
- * @typedef {Object} ActorMapCreator
- * @property {function(traits: string):Actor} create
+ * Create an actor from an almanac entry.
+ * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
  */
-/**
- * Map of actor creators which are used to create actors based on a key.
- * @type {Map<string, ActorMapCreator>}
- */
-const ACTOR_MAP = new Map([
-  ['HERO', { create: (traits) => createActor('hero', null, traits) }],
-  ['MONSTER', { create: (traits) => createFighter('orc', null, traits) }],
-  ['TRADER', { create: (traits) => createTrader('trader', null, traits) }],
-  [
-    'HIDDEN_ARTEFACT',
-    {
-      create: (traits) => createHiddenArtefact('hidden-artefact', null, traits),
-    },
-  ],
-]);
+export function buildActor(almanacEntry) {
+  const traits = new CharacterTraits().setFromString(almanacEntry.traits);
+  traits.set('NAME', createNameFromId(almanacEntry.id));
+  let actor;
+  switch (almanacEntry.type) {
+    case ActorType.HERO:
+      actor = createActor('hero', null, traits);
+      break;
+    case ActorType.TRADER:
+      actor = createTrader('trader', null, traits);
+      break;
+    case ActorType.HIDDEN_ARTEFACT:
+      actor = createHiddenArtefact('hidden-artefact', null, traits);
+      break;
+    default:
+      actor = createEnemy(almanacEntry.id.toLowerCase(), null, traits);
+      break;
+  }
 
-export default ACTOR_MAP;
+  actor.description = createDescriptionFromId(almanacEntry.id);
+  return actor;
+}

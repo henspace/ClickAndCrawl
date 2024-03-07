@@ -27,6 +27,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
+  [
+    'ARMOUR CHAIN MAIL',
+    'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
+  ],
+  [
+    'ARMOUR HALF PLATE',
+    'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
+  ],
+  [
+    'ARMOUR LEATHER',
+    'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
+  ],
+  ['ARMOUR PADDED', 'Simple quilted layers of cloth and batting.'],
+  [
+    'ARMOUR PLATE',
+    'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
+  ],
+  [
+    'ARMOUR RING MAIL',
+    'Leather armour reinforced with heavy steel rings sown into the material.',
+  ],
+  [
+    'ARMOUR SCALE MAIL',
+    'Leather coat and legging covered with overlapping steel scales.',
+  ],
+  [
+    'ARMOUR STUDDED LEATHER',
+    'Tough and flexible leather armour with the addition of steel spikes and rivets.',
+  ],
   ['BUTTON CANCEL', 'Cancel'],
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
@@ -47,6 +76,11 @@ const MESSAGE_MAP = new Map([
   ['CONTROL BLOOD ON', 'Blood on'],
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
+  [
+    'DESCRIPTION HERO',
+    "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
+  ],
+  ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
   ['DIALOG TITLE CHOICES', 'Choose!'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
 
@@ -60,6 +94,11 @@ const MESSAGE_MAP = new Map([
     'MESSAGE CANNOT STORE',
     "You're carrying too much stuff to pick up what you've found.",
   ],
+  ['MESSAGE ENTER LEVEL', 'You enter level'],
+  [
+    'MESSAGE DOOR CLOSES BEHIND YOU',
+    "The door slams shut behind you. There's no way back.",
+  ],
   [
     'MESSAGE DUNGEON INTRO',
     'You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
@@ -67,6 +106,14 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE DEFEAT',
     'Despite your valiant efforts, you died. Your legend will live on.',
+  ],
+  [
+    'MESSAGE MAKE SPACE IN BACKPACK',
+    'You need to make space in your backpack by discarding or using something.',
+  ],
+  [
+    'MESSAGE MAKE SPACE IN EQUIP',
+    "You can't store this in your backpack. You need to wear it but you're already wearing something. If you want this, you'll need to unequip or discard something.",
   ],
   [
     'MESSAGE SEARCH CORPSE OR MOVE',

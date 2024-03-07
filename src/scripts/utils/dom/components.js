@@ -190,7 +190,8 @@ export class BitmapButtonControl extends BaseControl {
 
 export function createBitmapElement(imageName, className) {
   const bitmapImage = IMAGE_MANAGER.getSpriteBitmap(
-    imageName ?? 'undefined.png'
+    imageName ?? 'undefined.png',
+    { fallback: 'undefined.png' }
   );
   const canvas = document.createElement('canvas');
   canvas.setAttribute('width', GameConstants.TILE_SIZE);

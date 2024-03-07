@@ -46,6 +46,7 @@ import { showMainMenu } from '../../dialogs/mainMenu.js';
 import { Actor } from './actors.js';
 import * as actorDialogs from '../../dialogs/actorDialogs.js';
 import { i18n } from '../messageManager.js';
+import * as dice from '../dice.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -420,7 +421,7 @@ class HeroTurnIdle extends State {
 /**
  * State where the hero is in the map.
  */
-class HeroTurnFighting extends State {
+class HeroTurnInteracting extends State {
   constructor() {
     super();
   }
@@ -430,7 +431,7 @@ class HeroTurnFighting extends State {
    */
   async onEntry() {
     await super.onEntry();
-    LOG.log('Enter HeroTurnFighting');
+    LOG.log('Enter HeroTurnInteracting');
     await prepareHeroTurn();
   }
   /**
@@ -454,7 +455,7 @@ class HeroTurnFighting extends State {
           if (WORLD.getTileMap().getParticipants(heroActor).length === 0) {
             this.transitionTo(new ComputerTurnIdle());
           } else {
-            this.transitionTo(new ComputerTurnFighting());
+            this.transitionTo(new ComputerTurnInteracting());
           }
         }
 
@@ -508,12 +509,7 @@ class ComputerTurnIdle extends State {
     const heroGridPoint = tileMap.worldPointToGrid(heroActor.position);
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor && actor.alive) {
-        if (actor.isWandering()) {
-          const actorGridPoint = tileMap.worldPointToGrid(actor.position);
-          if (!actorGridPoint.isOtherClose(heroGridPoint, 1.5)) {
-            replayer.addAndMoveActor(actor);
-          }
-        } else {
+        if (!actor.isWandering() || dice.rollDice(6) > 3) {
           replayer.addAndMoveActor(actor);
         }
       }
@@ -522,7 +518,7 @@ class ComputerTurnIdle extends State {
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of participants) {
       if (actor.isEnemy()) {
-        this.transitionTo(new HeroTurnFighting());
+        this.transitionTo(new HeroTurnInteracting());
         return Promise.resolve(null);
       }
     }
@@ -531,21 +527,21 @@ class ComputerTurnIdle extends State {
   }
 }
 
-class ComputerTurnFighting extends State {
+class ComputerTurnInteracting extends State {
   constructor() {
     super();
   }
   async onEntry() {
     await super.onEntry();
-    LOG.log('Enter ComputerTurnFighting');
+    LOG.log('Enter ComputerTurnInteracting');
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
     const replayer = new MovementReplayer(tileMap, routeFinder);
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of WORLD.getActors().values()) {
-      if (actor !== heroActor && actor.alive && actor.isEnemy()) {
-        if (participants.includes(actor)) {
+      if (actor !== heroActor && actor.alive && actor.interaction) {
+        if (participants.includes(actor) && actor.willInteract()) {
           await actor.interaction.enact(heroActor);
         } else {
           replayer.addAndMoveActor(actor);
@@ -558,7 +554,7 @@ class ComputerTurnFighting extends State {
     } else if (participants.length === 0) {
       this.transitionTo(new HeroTurnIdle());
     } else {
-      this.transitionTo(new HeroTurnFighting());
+      this.transitionTo(new HeroTurnInteracting());
     }
 
     return Promise.resolve(null);
@@ -636,11 +632,20 @@ function startNextScene(currentState) {
   if (!SCENE_MANAGER.areThereMoreScenes()) {
     return currentState.transitionTo(new AtGameCompleted());
   }
-  return SCENE_MANAGER.switchToNextScene().then(() => {
-    heroActor.sprite.position =
-      WORLD.getTileMap().getWorldPositionOfTileByEntry();
-    return currentState.transitionTo(new HeroTurnIdle());
-  });
+  return SCENE_MANAGER.switchToNextScene()
+    .then((scene) => {
+      heroActor.sprite.position =
+        WORLD.getTileMap().getWorldPositionOfTileByEntry();
+      return scene;
+    })
+    .then((scene) => {
+      if (scene.intro) {
+        return UI.showOkDialog(scene.intro, { className: 'mask' });
+      } else {
+        return;
+      }
+    })
+    .then(() => currentState.transitionTo(new HeroTurnIdle()));
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
- * @file Map of artefacts
+ * @file Build artefact
  *
- * @module scriptReaders/artefactMap
+ * @module dnd/almanacs/artefactBuilder
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -26,14 +26,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import { safeParseInt } from '../utils/maths.js';
-/**
- * @typedef {Object} ArtefactMapCreator
- * @property {function():Actor} create
- */
-
-import { Artefact, ArtefactType } from '../utils/game/artefacts.js';
-
+import { safeParseInt } from '../../utils/maths.js';
+import { Artefact } from '../../utils/game/artefacts.js';
+import { Traits } from '../traits.js';
+import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
 /**
  * Create an artefact.
  * @param {string} imageName
@@ -48,32 +44,18 @@ function createArtefact(imageName, artefactType, traits) {
 }
 
 /**
- * Map of actor creators which are used to create actors based on a key.
- * @type {Map<string, ActorMapCreator>}
+ * Create an artefact from an almanac entry.
+ * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
+ * @returns {Artefact}
  */
-const ARTEFACT_MAP = new Map([
-  [
-    'GOLD',
-    { create: (traits) => createArtefact('gold', ArtefactType.GOLD, traits) },
-  ],
-  [
-    'AXE',
-    { create: (traits) => createArtefact('axe', ArtefactType.WEAPON, traits) },
-  ],
-  [
-    'POLEAXE',
-    {
-      create: (traits) =>
-        createArtefact('poleaxe', ArtefactType.TWO_HANDED_WEAPON, traits),
-    },
-  ],
-  [
-    'HELMET',
-    {
-      create: (traits) =>
-        createArtefact('helmet', ArtefactType.HEAD_GEAR, traits),
-    },
-  ],
-]);
-
-export default ARTEFACT_MAP;
+export function buildArtefact(almanacEntry) {
+  const traits = new Traits().setFromString(almanacEntry.traits);
+  traits.set('NAME', createNameFromId(almanacEntry.id));
+  const artefact = createArtefact(
+    almanacEntry.id.toLowerCase(),
+    almanacEntry.type,
+    traits
+  );
+  artefact.description = createDescriptionFromId(almanacEntry.id);
+  return artefact;
+}

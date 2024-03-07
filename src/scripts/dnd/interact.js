@@ -39,7 +39,6 @@ import SOUND_MANAGER from '../utils/soundManager.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
-import GameConstants from '../utils/game/gameConstants.js';
 
 /** Dummy interaction that does nothing
  */
@@ -304,8 +303,15 @@ export class FindArtefact extends AbstractInteraction {
       const artefactToTake = storageDetails[0].artefact; // only expect one.
       const possibleStore =
         enactor.storeManager.findSuitableStore(artefactToTake);
+      let options = {};
+      if (!possibleStore) {
+        options.cannotStore = true;
+        options.guidance = artefactToTake.stashStoreType
+          ? i18n`MESSAGE MAKE SPACE IN BACKPACK`
+          : i18n`MESSAGE MAKE SPACE IN EQUIP`;
+      }
       return actorDialogs
-        .showArtefactFoundBy(artefactToTake, enactor, !!possibleStore)
+        .showArtefactFoundBy(artefactToTake, enactor, options)
         .then((response) => {
           if (response === 'TAKE') {
             storeToTakeFrom.take(artefactToTake);

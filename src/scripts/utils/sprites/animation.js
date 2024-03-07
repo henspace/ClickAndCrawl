@@ -76,11 +76,20 @@ export class AnimatedImage {
     let index = filenamePattern.startIndex ?? 0;
     let padding = filenamePattern.padding ?? 0;
     let textureFrame;
+    let firstFrame = true;
     do {
       const fileName = `${filenamePattern.prefix}${index
         .toString()
         .padStart(padding, '0')}${filenamePattern.suffix}`;
-      textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName);
+      if (firstFrame) {
+        textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName, {
+          fallback: 'undefined.png',
+        });
+        firstFrame = false;
+      } else {
+        textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName, { quiet: true });
+      }
+
       if (textureFrame) {
         this.#frames.push(textureFrame);
       }

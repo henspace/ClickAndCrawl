@@ -75,11 +75,6 @@ let currentScene;
 let navigationButtons;
 
 /**
- * @type {number}
- */
-let sceneLevel;
-
-/**
  * Definition of a scene
  */
 export class SceneDefinition {

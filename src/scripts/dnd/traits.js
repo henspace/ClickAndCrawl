@@ -75,6 +75,9 @@ export class Traits {
   setFromString(definition) {
     definition.split('|').forEach((item) => {
       const match = item.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
+      if (!match) {
+        return;
+      }
       const [key, value] = this.#imposeCase(match[1], match[2]);
       if (match) {
         this.#setValue(key, value);

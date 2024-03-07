@@ -32,15 +32,15 @@ import { TilePlan } from '../utils/tileMaps/tilePlan.js';
 import { TileMap } from '../utils/tileMaps/tileMap.js';
 import TURN_MANAGER from '../utils/game/turnManager.js';
 import WORLD from '../utils/game/world.js';
-import ACTOR_MAP from './actorMap.js';
 import SCREEN from '../utils/game/screen.js';
 import { TILE_MAP_KEYS } from './symbolMapping.js';
 import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../utils/game/sceneManager.js';
 import GameConstants from '../utils/game/gameConstants.js';
 import { ActorType } from '../utils/game/actors.js';
-import { Artefact } from '../utils/game/artefacts.js';
-import ARTEFACT_MAP from './artefactMap.js';
+
+import { buildActor } from '../dnd/almanacs/actorBuilder.js';
+import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -63,9 +63,8 @@ let lastHero;
 function createHero(sceneDefn) {
   if (sceneDefn.heroes && sceneDefn.heroes[0]) {
     const heroDefn = sceneDefn.heroes[0];
-    const actor = ACTOR_MAP.get(heroDefn.id).create(heroDefn.traits.clone());
+    const actor = buildActor(heroDefn);
     actor.type = ActorType.HERO;
-    actor.description = heroDefn.description;
     lastHero = actor;
     return actor;
   } else {
@@ -82,9 +81,8 @@ function createHero(sceneDefn) {
  */
 function createEnemies(sceneDefn) {
   const enemies = [];
-  sceneDefn.enemies.forEach((enemy) => {
-    const actor = ACTOR_MAP.get(enemy.id).create(enemy.traits);
-    actor.description = enemy.description;
+  sceneDefn.enemies.forEach((almanacEntry) => {
+    const actor = buildActor(almanacEntry);
     enemies.push(actor);
   });
   return enemies;
@@ -97,13 +95,13 @@ function createEnemies(sceneDefn) {
  */
 function createArtefacts(sceneDefn) {
   const artefacts = [];
-  sceneDefn.artefacts.forEach((artefact) => {
-    //const actor = ACTOR_MAP.get(artefact.id).create();
-    const actor = ACTOR_MAP.get('HIDDEN_ARTEFACT').create(artefact.traits);
-    const hiddenArtefact = ARTEFACT_MAP.get(artefact.id).create(
-      artefact.traits
-    );
-    hiddenArtefact.description = artefact.description;
+  sceneDefn.artefacts.forEach((almanacEntry) => {
+    const actor = buildActor({
+      id: 'hidden_artefact',
+      type: ActorType.HIDDEN_ARTEFACT,
+      traits: '',
+    });
+    const hiddenArtefact = buildArtefact(almanacEntry);
     actor.storeManager.addArtefact(hiddenArtefact);
     artefacts.push(actor);
   });
