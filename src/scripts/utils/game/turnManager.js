@@ -658,8 +658,7 @@ function showOccupantDetails(occupant) {
     LOG.error('Clicked on tile but no occupant to view.');
     return Promise.resolve();
   }
-  const hidden = occupant.traits?.get('HIDDEN_ARTEFACT');
-  if (hidden) {
+  if (occupant.isHiddenArtefact()) {
     return UI.showOkDialog(i18n`MESSAGE GROUND DISTURBED`);
   }
   return actorDialogs.showActorDetailsDialog(occupant);

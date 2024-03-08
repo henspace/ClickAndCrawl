@@ -196,9 +196,10 @@ function createArtefactKeyFrames(imageName) {
  * @param {string} imageName - no extension
  * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
+ * @param {ActorType} actorType
  * @returns {Actor}
  */
-function createActor(imageName, iconImageName, traits) {
+function createActor(imageName, iconImageName, traits, actorType) {
   const keyedAnimation = createStandardKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -213,7 +214,8 @@ function createActor(imageName, iconImageName, traits) {
   const actor = new Actor(
     new Sprite({
       renderer: [traitsRenderer, imageRenderer],
-    })
+    }),
+    actorType
   );
   keyedAnimation.setActor(actor);
   traitsRenderer.actor = actor;
@@ -247,7 +249,7 @@ function createHiddenArtefact(imageName, traits) {
     new Sprite({
       renderer: [imageRenderer],
     }),
-    ActorType.ARTEFACT
+    ActorType.HIDDEN_ARTEFACT
   );
   keyedAnimation.setActor(actor);
   actor.position = new Position(
@@ -259,7 +261,6 @@ function createHiddenArtefact(imageName, traits) {
   actor.interaction = new FindArtefact(actor);
   actor.iconImageName = `${imageName}.png`;
   actor.traits = traits ?? new CharacterTraits();
-  actor.traits.set('HIDDEN_ARTEFACT', true);
   return actor;
 }
 
@@ -268,10 +269,11 @@ function createHiddenArtefact(imageName, traits) {
  * @param {string} imageName - without extension
  * @param {string} iconImageName - without extension. Name of icon for dialogs.
  * @param {module:dnd/traits~Traits} traits
+ * @param {ActorType} actorType
  * @returns {Actor}
  */
-function createEnemy(imageName, iconImageName, traits) {
-  const actor = createActor(imageName, iconImageName, traits);
+function createEnemy(imageName, iconImageName, traits, actorType) {
+  const actor = createActor(imageName, iconImageName, traits, actorType);
   actor.interaction = new Fight(actor);
   return actor;
 }
@@ -280,12 +282,12 @@ function createEnemy(imageName, iconImageName, traits) {
  * Create animated trader
  * @param {string} imageName - without extension
  * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
-* @param {module:dnd/traits~Traits} traits
-  
-* @returns {Actor}
+ * @param {module:dnd/traits~Traits} traits
+ * @param {ActorType} actorType
+ * @returns {Actor}
  */
-function createTrader(imageName, iconImageName, traits) {
-  const actor = createActor(imageName, iconImageName, traits);
+function createTrader(imageName, iconImageName, traits, actorType) {
+  const actor = createActor(imageName, iconImageName, traits, actorType);
   actor.interaction = new Trade(actor);
   return actor;
 }
@@ -300,16 +302,26 @@ export function buildActor(almanacEntry) {
   let actor;
   switch (almanacEntry.type) {
     case ActorType.HERO:
-      actor = createActor('hero', null, traits);
+      actor = createActor('hero', null, traits, almanacEntry.type);
       break;
     case ActorType.TRADER:
-      actor = createTrader('trader', null, traits);
+      actor = createTrader('trader', null, traits, almanacEntry.type);
       break;
     case ActorType.HIDDEN_ARTEFACT:
-      actor = createHiddenArtefact('hidden-artefact', null, traits);
+      actor = createHiddenArtefact(
+        'hidden-artefact',
+        null,
+        traits,
+        almanacEntry.type
+      );
       break;
     default:
-      actor = createEnemy(almanacEntry.id.toLowerCase(), null, traits);
+      actor = createEnemy(
+        almanacEntry.id.toLowerCase(),
+        null,
+        traits,
+        almanacEntry.type
+      );
       break;
   }
 

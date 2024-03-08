@@ -27,35 +27,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
-  [
-    'ARMOUR CHAIN MAIL',
-    'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
-  ],
-  [
-    'ARMOUR HALF PLATE',
-    'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
-  ],
-  [
-    'ARMOUR LEATHER',
-    'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
-  ],
-  ['ARMOUR PADDED', 'Simple quilted layers of cloth and batting.'],
-  [
-    'ARMOUR PLATE',
-    'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
-  ],
-  [
-    'ARMOUR RING MAIL',
-    'Leather armour reinforced with heavy steel rings sown into the material.',
-  ],
-  [
-    'ARMOUR SCALE MAIL',
-    'Leather coat and legging covered with overlapping steel scales.',
-  ],
-  [
-    'ARMOUR STUDDED LEATHER',
-    'Tough and flexible leather armour with the addition of steel spikes and rivets.',
-  ],
   ['BUTTON CANCEL', 'Cancel'],
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
@@ -76,11 +47,52 @@ const MESSAGE_MAP = new Map([
   ['CONTROL BLOOD ON', 'Blood on'],
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
+
+  [
+    'DESCRIPTION ARMOUR_CHAIN_MAIL',
+    'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
+  ],
+  [
+    'DESCRIPTION ARMOUR_HALF_PLATE',
+    'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
+  ],
+  [
+    'DESCRIPTION ARMOUR_LEATHER',
+    'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
+  ],
+  ['DESCRIPTION ARMOUR_PADDED', 'Simple quilted layers of cloth and batting.'],
+  [
+    'DESCRIPTION ARMOUR_PLATE',
+    'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
+  ],
+  [
+    'DESCRIPTION ARMOUR_RING_MAIL',
+    'Leather armour reinforced with heavy steel rings sown into the material.',
+  ],
+  [
+    'DESCRIPTION ARMOUR_SCALE_MAIL',
+    'Leather coat and legging covered with overlapping steel scales.',
+  ],
+  [
+    'DESCRIPTION ARMOUR_STUDDED_LEATHER',
+    'Tough and flexible leather armour with the addition of steel spikes and rivets.',
+  ],
+  ['DESCRIPTION CLUB', "A simple wooden club that's seen a lot of action."],
+  [
+    'DESCRIPTION GOLD',
+    'Various gold coins stamped with the image of latter day kings and queens.',
+  ],
   [
     'DESCRIPTION HERO',
     "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
   ],
+
+  ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
+  [
+    'DESCRIPTION TRADER',
+    'A wandering trader selling all manner of things gathered during many months in the dungeon.',
+  ],
   ['DIALOG TITLE CHOICES', 'Choose!'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
 
@@ -179,6 +191,7 @@ const MESSAGE_MAP = new Map([
   ],
   // Miscellaneous words and phrases.
   ['Backpack', 'Backpack'],
+  ['Wagon', 'Wagon'],
   ['Body', 'Body'],
   ['Dungeon level:', 'Dungeon level:'],
   ['Feet', 'Feet'],

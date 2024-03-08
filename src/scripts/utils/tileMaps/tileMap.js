@@ -53,6 +53,7 @@ export const ClickEventFilter = {
   MOVEMENT_TILE: 0,
   INTERACT_TILE: 1,
   OCCUPIED_TILE: 2,
+  HERO_TILE: 3,
 };
 
 /**
@@ -693,6 +694,15 @@ export class TileMap {
       }
     }
 
+    const hero = TURN_MANAGER.getHeroActor();
+    const heroGridPoint = this.worldPointToGrid(hero.position);
+    if (gridPoint.coincident(heroGridPoint)) {
+      clickHandler(target, point, {
+        occupant: hero,
+        filter: ClickEventFilter.OCCUPIED_TILE,
+      });
+      return;
+    }
     const occupants = target.getOccupants();
     if (occupants.size > 0) {
       clickHandler(target, point, {

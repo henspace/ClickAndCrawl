@@ -36,7 +36,8 @@ import { CharacterTraits } from '../dnd/traits.js';
 import LOG from '../utils/logging.js';
 import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
 import { i18n } from '../utils/messageManager.js';
-import { ActorType } from '../utils/game/actors.js';
+import { Actor, ActorType } from '../utils/game/actors.js';
+import { ArtefactType } from '../utils/game/artefacts.js';
 
 /**
  * @implements {module:game/sceneManager~SceneList}
@@ -149,7 +150,7 @@ class AutoSceneList {
   }
 
   /**
-   * Add enemies to scene.
+   * Add artefacts to scene.
    */
   #addArtefacts() {
     const possibleArtefacts = ALMANAC_OF_ARTEFACTS.filter(
@@ -181,19 +182,6 @@ class AutoSceneList {
     this.#sceneDefn.mapDesign = creator.generate();
     LOG.debug('Random map');
     this.#sceneDefn.mapDesign.forEach((line) => LOG.debug(line));
-  }
-
-  /**
-   * Create actor definition from AlmanacEntry
-   * @param {AlmanacEntry} almanacEntry
-   * @returns {module:scriptReaders/sceneDefinitionParser~ActorDefn}
-   */
-  #createActorDefn(almanacEntry) {
-    return {
-      id: almanacEntry.id,
-      description: MESSAGES.getText(`DESCRIPTION ${almanacEntry.id}`),
-      traits: new CharacterTraits().setFromString(almanacEntry.traits),
-    };
   }
 }
 

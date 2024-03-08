@@ -38,9 +38,12 @@ import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../utils/game/sceneManager.js';
 import GameConstants from '../utils/game/gameConstants.js';
 import { ActorType } from '../utils/game/actors.js';
+import { ArtefactType } from '../utils/game/artefacts.js';
 
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
+import * as maths from '../utils/maths.js';
+import ALMANAC_OF_ARTEFACTS from '../dnd/almanacs/almanacArtefacts.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -109,6 +112,29 @@ function createArtefacts(sceneDefn) {
 }
 
 /**
+ * Add an artefact from the array of possible artefacts.
+ * @param {Actor[]} actors
+ * @param {module:dnd/almanacs/almanacActors~AlmanacEntry[]} possibleArtefacts
+ * @param {Object} options
+ * @param {number} options.qty - number to add.
+ * @param {boolean} options.equip - if true, try to equip rather than stash.
+ */
+function addRandomArtefactsToActor(actor, possibleArtefacts, options) {
+  if (!possibleArtefacts || possibleArtefacts.length === 0) {
+    return;
+  }
+  while (options.qty-- > 0) {
+    const index = maths.getRandomInt(0, possibleArtefacts.length);
+    const artefact = buildArtefact(possibleArtefacts[index]);
+    if (options.equip && artefact.equipStoreType) {
+      actor.storeManager?.equip(artefact, { direct: true });
+    } else {
+      actor.storeManager?.stash(artefact, { direct: true });
+    }
+  }
+}
+
+/**
  * Scene created from a scene definition.
  */
 class ParsedScene extends AbstractScene {
@@ -128,6 +154,7 @@ class ParsedScene extends AbstractScene {
   }
 
   doInitialise() {
+    const level = SCENE_MANAGER.getCurrentSceneLevel();
     const tilePlan = TilePlan.generateTileMapPlan(
       this.#sceneDefn.mapDesign,
       TILE_MAP_KEYS
@@ -135,9 +162,29 @@ class ParsedScene extends AbstractScene {
     const tileMap = new TileMap(SCREEN.getContext2D(), tilePlan, GRID_SIZE);
     WORLD.setTileMap(tileMap);
     this.heroActor = createHero(this.#sceneDefn);
+    const possibleWeapons = ALMANAC_OF_ARTEFACTS.filter(
+      (artefact) =>
+        (artefact.type === ArtefactType.SHIELD ||
+          artefact.type === ArtefactType.WEAPON ||
+          artefact.type === ArtefactType.TWO_HANDED_WEAPON) &&
+        artefact.minLevel <= level
+    );
+    const possibleArtefacts = ALMANAC_OF_ARTEFACTS.filter(
+      (artefact) => artefact.minLevel <= level
+    );
     createEnemies(this.#sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
+      addRandomArtefactsToActor(enemy, possibleWeapons, {
+        qty: 1,
+        equip: true,
+      });
+      const minArtefacts = enemy.isTrader() ? 4 : 0;
+      const maxArtefacts = enemy.isTrader() ? 7 : 2;
+      addRandomArtefactsToActor(enemy, possibleArtefacts, {
+        qty: maths.getRandomIntInclusive(minArtefacts, maxArtefacts),
+        equip: false,
+      });
     });
     createArtefacts(this.#sceneDefn).forEach((artefact) => {
       artefact.position = tileMap.getRandomFreeGroundTile().worldPoint;

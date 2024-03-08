@@ -68,37 +68,41 @@ export class NavigationButtons {
    */
   constructor(cameraDolly, gridSize, location) {
     this.#cameraDolly = cameraDolly;
-    this.#createButtonSet(gridSize, location);
+    this.#createButtonSet(gridSize, location, false);
   }
 
   /**
    * Create the buttons.
    * @param {number} gridSize
    * @param {NavigationLocation} location
+   * @param {boolean} showArrows
    */
-  #createButtonSet(gridSize, location) {
+  #createButtonSet(gridSize, location, showArrows) {
+    const offset = showArrows ? 2 : 1;
     let centreX;
     let centreY;
     switch (location) {
       case NavigationLocation.TL:
-        centreX = 2 * gridSize;
-        centreY = 2 * gridSize;
+        centreX = offset * gridSize;
+        centreY = offset * gridSize;
         break;
       case NavigationLocation.TR:
-        centreX = -2 * gridSize;
-        centreY = 2 * gridSize;
+        centreX = -offset * gridSize;
+        centreY = offset * gridSize;
         break;
       case NavigationLocation.BR:
-        centreX = -2 * gridSize;
-        centreY = -2 * gridSize;
+        centreX = -offset * gridSize;
+        centreY = -offset * gridSize;
         break;
       case NavigationLocation.BL:
-        centreX = 2 * gridSize;
-        centreY = -2 * gridSize;
+        centreX = offset * gridSize;
+        centreY = -offset * gridSize;
         break;
     }
     this.#createCentreButton(centreX, centreY);
-    this.#createArrowButtons(centreX, centreY, gridSize);
+    if (showArrows) {
+      this.#createArrowButtons(centreX, centreY, gridSize);
+    }
   }
 
   /** Create the centre button.

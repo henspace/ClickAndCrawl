@@ -27,7 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { MESSAGES } from '../../utils/messageManager.js';
+import { MESSAGES, i18n } from '../../utils/messageManager.js';
 import LOG from '../../utils/logging.js';
 /**
  * Takes an ID and creates a name.
@@ -38,8 +38,9 @@ export function createNameFromId(id = '?') {
   if (id.len < 2) {
     return id;
   }
-  const name = id.replace('_', ' ');
-  return name.charAt(0).toUpperCase() + name.substring(1);
+  const name = id.replace(/_/g, ' ');
+  const capitalisedName = name.charAt(0).toUpperCase() + name.substring(1);
+  return MESSAGES.getText(capitalisedName);
 }
 
 /**

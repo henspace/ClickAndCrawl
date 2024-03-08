@@ -30,6 +30,7 @@
  */
 
 import LOG from '../logging.js';
+import { ActorType } from './actors.js';
 
 /**
  * @typedef {Object} StoreTypeValue
@@ -48,6 +49,7 @@ export const StoreType = {
   HANDS: { id: 'HANDS', space: 2, gold: false, spacesExpand: false },
   FEET: { id: 'FEET', space: 2, gold: false, spacesExpand: false },
   BACKPACK: { id: 'BACKPACK', space: 8, gold: false, spacesExpand: true },
+  WAGON: { id: 'WAGON', space: 8, gold: false, spacesExpand: true },
   PURSE: {
     id: 'PURSE',
     space: Number.MAX_SAFE_INTEGER,
@@ -68,7 +70,7 @@ export const StoreType = {
 export const ArtefactType = {
   ARMOUR: {
     storageSpace: 1,
-    storeType: { stash: null, equip: StoreType.BODY },
+    storeType: { stash: StoreType.WAGON, equip: StoreType.BODY },
   },
   FOOD: {
     storageSpace: 1,
@@ -79,6 +81,10 @@ export const ArtefactType = {
     storeType: { stash: StoreType.BACKPACK },
   },
   WEAPON: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
+  },
+  SHIELD: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
@@ -172,6 +178,15 @@ class ArtefactStore {
   }
 
   /**
+   * Test if store has artefact.
+   * @param {Artefact} artefact
+   * @returns {boolean}
+   */
+  has(artefact) {
+    return this.#artefacts.has(artefact);
+  }
+
+  /**
    *
    * @param {Artefact} artefact
    * @returns {boolean} true if stored; false if no room.
@@ -253,6 +268,16 @@ class GoldStore {
   isEmpty() {
     return !this.#artefact;
   }
+
+  /**
+   * Test if store has artefact.
+   * @override
+   * @param {Artefact} artefact
+   * @returns {boolean}
+   */
+  has(artefactUnused) {
+    return !!this.artefact;
+  }
   /**
    * @override
    */
@@ -262,6 +287,7 @@ class GoldStore {
     } else {
       this.#artefact.value += artefact.value;
     }
+    return true;
   }
 
   /**
@@ -354,6 +380,13 @@ export class Artefact {
     return this.artefactType.storeType.equip;
   }
 
+  /** Convenience method to test if the stash store is a wagon.
+   * @returns {boolean}
+   */
+  get stashInWagon() {
+    return this.stashStoreType === StoreType.WAGON;
+  }
+
   /**
    * Get the buying price.
    * @returns {number}
@@ -415,41 +448,80 @@ export class ArtefactStoreManager {
   /** @type {Map<StoreLocation, Artefact[]} */
   #stores;
 
+  /** @type {boolean} */
+  #hasWagon;
+
   /**
    * Construct artefact storage.
+   * @param {boolean} hasWagon
    */
-  constructor() {
+  constructor(hasWagon) {
     this.#stores = new Map();
+    this.#hasWagon = hasWagon;
     for (const storeTypeName in StoreType) {
       const storeType = StoreType[storeTypeName];
-      if (storeType.gold) {
-        this.#stores.set(
-          storeType,
-          new GoldStore(storeType.space, storeType.spacesExpand)
-        );
-      } else {
-        this.#stores.set(
-          storeType,
-          new ArtefactStore(storeType.space, storeType.spacesExpand)
-        );
-      }
+      this.#addStore(storeType);
     }
   }
 
   /**
+   * Test if this has a wagon
+   */
+  get hasWagon() {
+    return this.#hasWagon;
+  }
+
+  /**
+   *
+   * @param {StoreType} storeType
+   */
+  #addStore(storeType) {
+    if (storeType.gold) {
+      return this.#stores.set(
+        storeType,
+        new GoldStore(storeType.space, storeType.spacesExpand)
+      );
+    }
+    let storeValid = true;
+    if (this.#hasWagon && storeType === StoreType.BACKPACK) {
+      storeValid = false;
+    } else if (!this.#hasWagon && storeType === StoreType.WAGON) {
+      storeValid = false;
+    }
+    if (storeValid) {
+      this.#stores.set(
+        storeType,
+        new ArtefactStore(storeType.space, storeType.spacesExpand)
+      );
+    }
+  }
+
+  /** Get a store from the store type. Note that a trader's wagon serves
+   * both as a backpack and a wagon.
+   * @param {StoreTypeValue} storeType
+   * @returns {ArtefactStore}
+   */
+  getStore(storeType) {
+    if (this.#hasWagon && storeType === StoreType.BACKPACK) {
+      storeType = StoreType.WAGON;
+    }
+    return this.#stores.get(storeType);
+  }
+  /**
    * Get the store where an item should be stored. This is normally
-   * the stash store. If the stash store is null, the equip store is
-   * returned. This is because armour cannot be carried, just worn.
+   * the stash store. If a suitable stash store is not available, the equip store is
+   * returned. This is because armour cannot be carried, just worn. The exception is
+   * traders, who can store anything in their packs.
    * @param {Artefact}
    * @returns {ArtefactStore} null if it cannot be stored
    */
   findSuitableStore(artefact) {
     let storeType = artefact.stashStoreType;
-    if (!storeType) {
+    if (!this.#stores.has(storeType)) {
       storeType = artefact.equipStoreType;
     }
-    const store = this.#stores.get(storeType);
-    if (store.canAdd(artefact)) {
+    const store = this.getStore(storeType);
+    if (store?.canAdd(artefact)) {
       return store;
     }
     return null;
@@ -460,8 +532,8 @@ export class ArtefactStoreManager {
    * @returns {boolean} true if successful; false if no space.
    */
   addArtefact(artefact) {
-    const store = this.#stores.get(artefact.getDefaultStoreType());
-    return store.add(artefact);
+    const store = this.getStore(artefact.getDefaultStoreType());
+    return store?.add(artefact);
   }
 
   /**
@@ -489,7 +561,7 @@ export class ArtefactStoreManager {
    * @returns {number}
    */
   getPurseValue() {
-    const content = this.#stores.get(StoreType.PURSE).values();
+    const content = this.getStore(StoreType.PURSE).values();
     return content.length > 0 ? content[0].value : 0;
   }
 
@@ -500,8 +572,8 @@ export class ArtefactStoreManager {
    * @returns {Iterable<Artefact>} null if empty
    */
   getStoreContents(storeType) {
-    const store = this.#stores.get(storeType);
-    return store.isEmpty() ? null : store.values();
+    const store = this.getStore(storeType);
+    return !store || store.isEmpty() ? null : store.values();
   }
 
   /**
@@ -510,7 +582,7 @@ export class ArtefactStoreManager {
    * @returns {boolean} true on success.
    */
   discardEquipped(artefact) {
-    const equipStore = this.#stores.get(artefact.equipStoreType);
+    const equipStore = this.getStore(artefact.equipStoreType);
     if (!equipStore) {
       LOG.error("Cannot discard artefact as there isn't an equip store.");
       return false;
@@ -527,7 +599,7 @@ export class ArtefactStoreManager {
    * @returns {boolean} true on success.
    */
   discardStashed(artefact) {
-    const stashStore = this.#stores.get(artefact.stashStoreType);
+    const stashStore = this.getStore(artefact.stashStoreType);
     if (!stashStore) {
       LOG.error("Cannot discard artefact as there isn't a stash store.");
       return false;
@@ -540,15 +612,19 @@ export class ArtefactStoreManager {
   }
 
   /**
-   * Equip artefact. The artefact should exist in the stash.
+   * Equip artefact. The artefact should normally exist in the stash unless
+   * the options.direct flag is set.
    * If space is required, artefacts will be unequipped to make space.
    * @param {Artefact} artefact
+   * @param {Object} options
+   * @param {boolean} direct - if true, this can be a new object that does not
+   * exist in the stash.
    * @returns {boolean} true on success.
    */
-  equip(artefact) {
-    const stashStore = this.#stores.get(artefact.stashStoreType);
-    const equipStore = this.#stores.get(artefact.equipStoreType);
-    if (!stashStore) {
+  equip(artefact, options) {
+    const stashStore = this.getStore(artefact.stashStoreType);
+    const equipStore = this.getStore(artefact.equipStoreType);
+    if (!stashStore && !options.direct) {
       LOG.error(
         'Cannot equip artefact as there isn`t a stash store to take it from.'
       );
@@ -563,36 +639,41 @@ export class ArtefactStoreManager {
       LOG.error('The equip store cannot hold this item.');
       return false;
     }
-    const takenArtefact = stashStore.take(artefact);
-    if (!takenArtefact) {
+
+    const takenArtefact = stashStore?.take(artefact);
+    if (!takenArtefact && !options.direct) {
       LOG.error('Could not find artefact in the stash.');
       return false;
     }
 
     while (equipStore.freeSpace < spaceRequired) {
       const unequiped = equipStore.takeFirst();
-      stashStore.add(unequiped);
+      stashStore?.add(unequiped);
     }
-    equipStore.add(artefact);
-    return true;
+
+    return equipStore.add(artefact);
   }
 
   /**
-   * Unequip artefact. The artefact should exist in the equip store.
+   * Unequip and stash artefact. The artefact should normally exist in the equip stor unless
+   * the options.direct flag is set.
    * If space is required in the stash, the attempt fails.
    * @param {Artefact} artefact
+   * @param {Object} options
+   * @param {boolean} direct - if true, this can be a new object that does not
+   * exist in the stash.
    * @returns {boolean} true on success.
    */
-  unequip(artefact) {
-    const stashStore = this.#stores.get(artefact.stashStoreType);
-    const equipStore = this.#stores.get(artefact.equipStoreType);
+  stash(artefact, options) {
+    const stashStore = this.getStore(artefact.stashStoreType);
+    const equipStore = this.getStore(artefact.equipStoreType);
     if (!stashStore) {
       LOG.error(
         'Cannot unequip artefact as there isn`t a stash store to put it in.'
       );
       return false;
     }
-    if (!equipStore) {
+    if (!equipStore && !options.direct) {
       LOG.error(
         "Cannot unequip artefact as there isn't an equip store to take it from."
       );
@@ -603,12 +684,11 @@ export class ArtefactStoreManager {
       LOG.error('The stash store cannot hold this item.');
       return false;
     }
-    const takenArtefact = equipStore.take(artefact);
-    if (!takenArtefact) {
+    const takenArtefact = equipStore?.take(artefact);
+    if (!takenArtefact && !options.direct) {
       LOG.error("The artefact hasn't been equipped so can't unequip it.");
       return false;
     }
-    stashStore.add(artefact);
-    return true;
+    return stashStore.add(artefact);
   }
 }

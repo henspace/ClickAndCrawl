@@ -72,8 +72,15 @@ class InventoryContainerElement {
       { label: i18n`Body`, storeType: StoreType.BODY },
       { label: i18n`Hands`, storeType: StoreType.HANDS },
       { label: i18n`Feet`, storeType: StoreType.FEET },
-      { label: i18n`Backpack`, storeType: StoreType.BACKPACK },
     ];
+    if (this.#actor.isTrader()) {
+      storesToShow.push({ label: i18n`Wagon`, storeType: StoreType.WAGON });
+    } else {
+      storesToShow.push({
+        label: i18n`Backpack`,
+        storeType: StoreType.BACKPACK,
+      });
+    }
     storesToShow.forEach((storeInfo) => {
       const contents = this.#actor.storeManager.getStoreContents(
         storeInfo.storeType
@@ -183,13 +190,7 @@ export function showTraits(actor) {
  */
 export function showArtefactFoundBy(artefact, actor, options) {
   const container = document.createElement('div');
-  const sideBySide = document.createElement('div');
-  container.appendChild(sideBySide);
-  sideBySide.className = 'side-by-side';
-  sideBySide.appendChild(
-    createActorElement(actor, { hideDescription: true, hideTraits: true })
-  );
-  sideBySide.appendChild(createActorElement(artefact));
+  container.appendChild(createActorElement(artefact));
   const actionButtons = [];
 
   actionButtons.push(
@@ -228,6 +229,8 @@ async function showArtefactDialog(actor, artefact, storeType) {
     case ArtefactType.WEAPON:
     case ArtefactType.TWO_HANDED_WEAPON:
     case ArtefactType.HEAD_GEAR:
+    case ArtefactType.ARMOUR:
+    case ArtefactType.SHIELD:
       return await showEquipDialog(actor, artefact, storeType);
     case ArtefactType.FOOD:
       return showFoodDialog(actor, artefact, storeType);
@@ -250,22 +253,24 @@ async function showEquipDialog(actor, artefact, storeType) {
   container.appendChild(createActorElement(artefact));
 
   const actionButtons = [];
+  let button;
   if (storeType === StoreType.BACKPACK) {
-    const button = new components.TextButtonControl({
+    button = new components.TextButtonControl({
       label: i18n`BUTTON EQUIP`,
       closes: 'EQUIP',
     });
-    container.appendChild(button.element);
-    actionButtons.push(button);
-  } else {
-    const button = new components.TextButtonControl({
+  } else if (!artefact.stashInWagon || actor.storeManager.hasWagon) {
+    button = new components.TextButtonControl({
       label: i18n`BUTTON UNEQUIP`,
       closes: 'UNEQUIP',
     });
+  }
+  if (button) {
     container.appendChild(button.element);
     actionButtons.push(button);
   }
-  let button = new components.TextButtonControl({
+
+  button = new components.TextButtonControl({
     label: i18n`BUTTON DISCARD`,
     closes: 'DISCARD',
   });
@@ -284,7 +289,7 @@ async function showEquipDialog(actor, artefact, storeType) {
   }).then((response) => {
     switch (response) {
       case 'DISCARD':
-        if (storeType === StoreType.BACKPACK) {
+        if (storeType === StoreType.BACKPACK || storeType === StoreType.WAGON) {
           actor.storeManager.discardStashed(artefact);
         } else {
           actor.storeManager.discardEquipped(artefact);
@@ -294,7 +299,7 @@ async function showEquipDialog(actor, artefact, storeType) {
         actor.storeManager.equip(artefact);
         break;
       case 'UNEQUIP':
-        actor.storeManager.unequip(artefact);
+        actor.storeManager.stash(artefact);
         break;
     }
     return;

@@ -80,7 +80,9 @@ export class Actor extends UiClickHandler {
     this.maxTilesPerMove = 4;
     this.alive = true;
     this.type = type;
-    this.storeManager = new ArtefactStoreManager();
+    this.storeManager = new ArtefactStoreManager(
+      type === ActorType.TRADER || type === ActorType.HIDDEN_ARTEFACT
+    );
   }
 
   /**
@@ -97,6 +99,22 @@ export class Actor extends UiClickHandler {
    */
   isEnemy() {
     return this.type === ActorType.ENEMY;
+  }
+
+  /**
+   * Test if this actor is a trader.
+   * @returns {boolean}
+   */
+  isTrader() {
+    return this.type === ActorType.TRADER;
+  }
+
+  /**
+   * Test if this actor is a hidden artefact.
+   * @returns {boolean}
+   */
+  isHiddenArtefact() {
+    return this.type === ActorType.HIDDEN_ARTEFACT;
   }
 
   /** Set the underlying sprite visibility.
