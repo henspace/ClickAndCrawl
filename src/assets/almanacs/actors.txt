@@ -1,0 +1,4 @@
+# minLevel:number|ArtefactType:string|id:string|traits:string
+0|HERO|hero|HP:20|EXP:0|AC:1
+0|ENEMY|orc|MOVE:HUNT|HP:2|EXP:0|AC:5
+0|TRADER|trader|MOVE:WANDER|EXP:0|AC:1

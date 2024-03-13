@@ -29,6 +29,8 @@
 
 import { MESSAGES, i18n } from '../../utils/messageManager.js';
 import LOG from '../../utils/logging.js';
+import * as assetLoaders from '../../utils/assetLoaders.js';
+
 /**
  * Takes an ID and creates a name.
  * @param {string} [id = '?']

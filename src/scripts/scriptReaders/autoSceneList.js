@@ -27,8 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import ALMANAC_OF_ACTORS from '../dnd/almanacs/almanacActors.js';
-import ALMANAC_OF_ARTEFACTS from '../dnd/almanacs/almanacArtefacts.js';
+import { AlmanacLibrary } from '../dnd/almanacs/almanacs.js';
 import { SceneDefinition } from '../utils/game/sceneManager.js';
 import { MESSAGES } from '../utils/messageManager.js';
 import * as maths from '../utils/maths.js';
@@ -102,15 +101,13 @@ class AutoSceneList {
    * Add scene introduction.
    */
   #addIntro() {
-    this.#sceneDefn.intro =
-      i18n`MESSAGE ENTER LEVEL ${this.#index}. ` +
-      i18n`MESSAGE DOOR CLOSES BEHIND YOU`;
+    this.#sceneDefn.intro = i18n`MESSAGE ENTER LEVEL ${this.#index}`;
   }
   /**
    * Add hero to scene.
    */
   #addHero() {
-    const almanacEntry = ALMANAC_OF_ACTORS.find(
+    const almanacEntry = AlmanacLibrary.actors.find(
       (entry) => entry.type === ActorType.HERO
     );
     this.#sceneDefn.heroes.push(almanacEntry);
@@ -120,7 +117,7 @@ class AutoSceneList {
    * Add enemies to scene.
    */
   #addEnemies() {
-    const possibleEnemies = ALMANAC_OF_ACTORS.filter(
+    const possibleEnemies = AlmanacLibrary.actors.filter(
       (actor) => actor.type === ActorType.ENEMY && actor.minLevel <= this.#index
     );
 
@@ -136,7 +133,7 @@ class AutoSceneList {
    * Add enemies to scene.
    */
   #addTraders() {
-    const possibleEnemies = ALMANAC_OF_ACTORS.filter(
+    const possibleEnemies = AlmanacLibrary.actors.filter(
       (actor) =>
         actor.type === ActorType.TRADER && actor.minLevel <= this.#index
     );
@@ -153,7 +150,7 @@ class AutoSceneList {
    * Add artefacts to scene.
    */
   #addArtefacts() {
-    const possibleArtefacts = ALMANAC_OF_ARTEFACTS.filter(
+    const possibleArtefacts = AlmanacLibrary.artefacts.filter(
       (actor) => actor.minLevel <= this.#index
     );
 

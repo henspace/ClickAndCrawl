@@ -51,6 +51,7 @@ import { initialiseSettings } from '../../dialogs/settingsDialog.js';
 
 import MESSAGE_MAP from '../../constants/messageMap.js';
 import { i18n, MESSAGES } from '../messageManager.js';
+import { loadAlmanacs } from '../../dnd/almanacs/almanacs.js';
 
 /**
  * Tile size to use throughout the game
@@ -107,7 +108,12 @@ async function initialise(screenOptions) {
     .then(() => IMAGE_MANAGER.loadSpriteMap(textureMap, textureUrl))
     .then(() => assetLoaders.loadTextFromUrl(assetLoaders.Urls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
-    .then(() => {})
+    .then(() =>
+      loadAlmanacs({
+        actors: assetLoaders.Urls.ACTOR_ALMANAC,
+        artefacts: assetLoaders.Urls.ARTEFACT_ALMANAC,
+      })
+    )
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
     .then(() => startGame())
     .catch((error) => {

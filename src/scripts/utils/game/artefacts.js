@@ -31,11 +31,14 @@
 
 import LOG from '../logging.js';
 import { ActorType } from './actors.js';
+import * as coins from './coins.js';
+import { i18n } from '../messageManager.js';
+import { Traits } from '../../dnd/traits.js';
 
 /**
  * @typedef {Object} StoreTypeValue
  * @property {number} space - amount of space in store.
- * @property {boolean} gold - if true, a GoldStore is used.
+ * @property {boolean} money - if true, a MoneyStore is used.
  * @property {boolean} spacesExpand - if true every artefact takes one space.
  */
 
@@ -44,16 +47,16 @@ import { ActorType } from './actors.js';
  * @enum {StoreTypeValue}
  */
 export const StoreType = {
-  HEAD: { id: 'HEAD', space: 1, gold: false, spacesExpand: false },
-  BODY: { id: 'BODY', space: 1, gold: false, spacesExpand: false },
-  HANDS: { id: 'HANDS', space: 2, gold: false, spacesExpand: false },
-  FEET: { id: 'FEET', space: 2, gold: false, spacesExpand: false },
-  BACKPACK: { id: 'BACKPACK', space: 8, gold: false, spacesExpand: true },
-  WAGON: { id: 'WAGON', space: 8, gold: false, spacesExpand: true },
+  HEAD: { id: 'HEAD', space: 1, money: false, spacesExpand: false },
+  BODY: { id: 'BODY', space: 1, money: false, spacesExpand: false },
+  HANDS: { id: 'HANDS', space: 2, money: false, spacesExpand: false },
+  FEET: { id: 'FEET', space: 2, money: false, spacesExpand: false },
+  BACKPACK: { id: 'BACKPACK', space: 8, money: false, spacesExpand: true },
+  WAGON: { id: 'WAGON', space: 8, money: false, spacesExpand: true },
   PURSE: {
     id: 'PURSE',
     space: Number.MAX_SAFE_INTEGER,
-    gold: true,
+    money: true,
     spacesExpand: false,
   },
 };
@@ -96,8 +99,22 @@ export const ArtefactType = {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HEAD },
   },
-  GOLD: { storageSpace: 0, storeType: { stash: StoreType.PURSE } },
+  COINS: { storageSpace: 0, storeType: { stash: StoreType.PURSE } },
 };
+
+/**
+ * Convert a string to an ArtefactType
+ * @param {string} str - artefact type as string but excluding the ArtefactType.
+ * E.g. COIN.
+ * @returns {ArtefactType} null if invalid.
+ */
+export function strToArtefactType(str) {
+  const type = ArtefactType[str];
+  if (type === null || type === undefined) {
+    LOG.error(`Unrecognised artefact type: ${str}`);
+  }
+  return type;
+}
 
 /**
  * @interface StoreInterface
@@ -117,6 +134,14 @@ export const ArtefactType = {
  * @param {Artefact} artefact
  * @returns {boolean} true if it can be added.
  */
+/**
+ * @function StoreInterface.has
+ * @param {Artefact} artefact
+ * @returns {boolean} true if it has the artefact.
+ */
+/**
+ * @property {StoreType} StoreInterface.storeType
+ */
 
 /**
  * Store for artefacts
@@ -131,19 +156,29 @@ class ArtefactStore {
   #usedSpace;
   /** @type {boolean} */
   #spacesExpand;
+  /** @type {StoreType} */
+  #storeType;
 
   /** Create store.
    * @param {number} maxSize;
    * @param {boolean} spacesExpand - if true, each space can take an artefact of
    * any size.
    */
-  constructor(maxSize, spacesExpand) {
+  constructor(maxSize, spacesExpand, storeType) {
     this.#maxSize = maxSize;
     this.#usedSpace = 0;
     this.#artefacts = new Map();
     this.#spacesExpand = spacesExpand;
+    this.#storeType = storeType;
   }
 
+  /**
+   * Get the store type
+   * @returns {StoreType}
+   */
+  get storeType() {
+    return this.#storeType;
+  }
   /**
    * Get free space
    * @returns {number}
@@ -230,7 +265,7 @@ class ArtefactStore {
 
   /**
    * Iterable values in the store.
-   * @returns {Iterable}
+   * @returns {Iterable<Artefacts>}
    */
   values() {
     return this.#artefacts.values();
@@ -248,58 +283,82 @@ class ArtefactStore {
 }
 
 /**
- * Gold storage. This effectively merges artifacts into one combining the GC trait.
- * The last added artefact is used as the template
+ * Gold storage. This effectively merges artifacts into one combining the COST trait.
+ * Note that if only one artefact is added, it is returned. Once more than one has been
+ * added a composite money artefact is returne.
  * @implements {StoreInterface}
  */
-class GoldStore {
+class MoneyStore {
+  /** @type {Artefact} */
   #artefact;
+  /** @type {boolean} */
+  #multipleArtefacts;
 
   /** Create store.
    * @param {number} maxSize;
    */
-  constructor() {}
+  constructor() {
+    this.#multipleArtefacts = false;
+  }
 
+  /**
+   * Get store type
+   * @returns {StoreType}
+   */
+  get storeType() {
+    return StoreType.PURSE;
+  }
   /**
    * Test if empty
    * @override
    * @returns {boolean}
    */
   isEmpty() {
-    return !this.#artefact;
+    return !this.#artefact || this.#artefact.costInGp === 0;
   }
 
   /**
-   * Test if store has artefact.
+   * Test if store has any money.
    * @override
    * @param {Artefact} artefact
    * @returns {boolean}
    */
   has(artefactUnused) {
-    return !!this.artefact;
+    return this.#artefact.costInGp > 0;
   }
   /**
+   * The artefact is just used as a carrier for the cost.
    * @override
    */
   add(artefact) {
+    const costDetails = artefact.costDetails;
     if (!this.#artefact) {
       this.#artefact = artefact.clone();
-    } else {
-      this.#artefact.value += artefact.value;
+      return true;
     }
+    const currentCostDetails = this.#artefact.costDetails;
+    if (!this.#multipleArtefacts) {
+      this.#artefact = MoneyStore.createGoldCoinArtefact(
+        currentCostDetails.valueGp
+      );
+      this.#multipleArtefacts = true;
+    }
+
+    this.#artefact.costInGp = currentCostDetails.valueGp + costDetails.valueGp;
     return true;
   }
 
   /**
    * Retrieve an artefact.
    * @param {Artefact} artefact
-   * @returns {Artefact} value set to value of gold taken.
+   * @returns {Artefact} value set to value of gold taken which may be less
+   * than the requested amount..
    */
   take(artefact) {
-    const taken = Math.min(this.#artefact.value, artefact.value);
-    this.#artefact.value -= taken;
-    const result = this.#artefact.clone();
-    return result;
+    const taken = Math.min(this.#artefact.costInGp, artefact.costInGp);
+    this.#artefact.costInGp = this.#artefact.costInGp - taken;
+    artefact.costInGp = taken; //may be less than requested.
+    return artefact;
   }
 
   /**
@@ -313,14 +372,30 @@ class GoldStore {
 
   /**
    * Get iterable of values. For the gold store there is only one.
-   * @returns {Artefact[]}
+   * @returns {Iterable<Artefacts>}
    */
   values() {
-    if (!this.#artefact || this.#artefact.value === 0) {
-      return [];
+    if (!this.#artefact || this.#artefact.costInGp === 0) {
+      return [].values();
     } else {
-      return [this.#artefact.clone()];
+      return [this.#artefact.clone()].values();
     }
+  }
+
+  /**
+   * Create a gold coin artefact.
+   * @param {number} gp
+   * @returns {Artefact}
+   */
+  static createGoldCoinArtefact(gp) {
+    const artefact = new Artefact(
+      i18n`DESCRIPTION COINS`,
+      'coins.png',
+      ArtefactType.COINS
+    );
+    artefact.traits = new Traits([['NAME', 'Coins']]);
+    artefact.costInGp = gp;
+    return artefact;
   }
 }
 
@@ -328,19 +403,13 @@ class GoldStore {
  * Basic artefact.
  */
 export class Artefact {
-  /** mark up price when buying from trader */
-  static MARK_UP = 1.5;
-  /** mark down price when selling back to a trader */
-  static MARK_DOWN = 0.5;
-
   /** @type {string} */
   iconImageName;
   /** @type {string} */
   description;
   /** @type {ArtefactTypeValue} */
   artefactType;
-  /** Value of the artefact in gold coins. @type {number} */
-  value;
+
   /** @type {@module:dnd/traits/~ArtefactTraits} */
   traits;
 
@@ -354,7 +423,45 @@ export class Artefact {
     this.description = description;
     this.iconImageName = iconImageName;
     this.artefactType = artefactType;
-    this.value = 0;
+  }
+
+  /** Get the cost details.
+   * @returns {module:utils/game/coins~CoinDetails}
+   */
+  get costDetails() {
+    const coinDefn = this.traits?.get('COST');
+    return coins.getCoinDetails(coinDefn);
+  }
+  /**
+   * Get the artefact cost in GP;
+   * @returns {number}
+   */
+  get costInGp() {
+    const coinDefn = this.traits?.get('COST');
+    return coins.getValueInGp(coinDefn);
+  }
+
+  /**
+   * Get the artefact sell back price in GP. Coins are sold back at normal cost.
+   * @returns {number}
+   */
+  get sellBackPriceInGp() {
+    if (this.artefactType === ArtefactType.COINS) {
+      return this.costInGp;
+    } else {
+      return Math.round(75 * this.costInGp) / 100;
+    }
+  }
+
+  /**
+   * Set the artefact cost in GP;
+   * @param {number} gp
+   */
+  set costInGp(gp) {
+    if (!this.traits) {
+      throw new Error('Artefact has no traits so cannot set cost.');
+    }
+    this.traits.set('COST', coins.getCoinDefinition(gp));
   }
 
   /** Get the storage space used by this artefact.
@@ -385,21 +492,6 @@ export class Artefact {
    */
   get stashInWagon() {
     return this.stashStoreType === StoreType.WAGON;
-  }
-
-  /**
-   * Get the buying price.
-   * @returns {number}
-   */
-  getPriceToBuyFromTrader() {
-    return Math.floor(Artefact.MARK_UP * this.value);
-  }
-  /**
-   * Get the buying price.
-   * @returns {number}
-   */
-  getPriceToSellToTrader() {
-    return Math.floor(Artefact.MARK_DOWN * this.value);
   }
 
   /**
@@ -476,10 +568,10 @@ export class ArtefactStoreManager {
    * @param {StoreType} storeType
    */
   #addStore(storeType) {
-    if (storeType.gold) {
+    if (storeType.money) {
       return this.#stores.set(
         storeType,
-        new GoldStore(storeType.space, storeType.spacesExpand)
+        new MoneyStore(storeType.space, storeType.spacesExpand)
       );
     }
     let storeValid = true;
@@ -491,7 +583,7 @@ export class ArtefactStoreManager {
     if (storeValid) {
       this.#stores.set(
         storeType,
-        new ArtefactStore(storeType.space, storeType.spacesExpand)
+        new ArtefactStore(storeType.space, storeType.spacesExpand, storeType)
       );
     }
   }
@@ -543,6 +635,20 @@ export class ArtefactStoreManager {
    */
 
   /**
+   * Get the first stored artefact.
+   * @returns {StorageDetails} null if nothing found
+   */
+  getFirstStorageDetails() {
+    for (const store of this.#stores.values()) {
+      const artefacts = store.values();
+      const value = artefacts.next()?.value;
+      if (value) {
+        return { store: store, artefact: value };
+      }
+    }
+    return null;
+  }
+  /**
    * Get all stored artefacts.
    * @returns {StorageDetails[]}
    */
@@ -562,7 +668,27 @@ export class ArtefactStoreManager {
    */
   getPurseValue() {
     const content = this.getStore(StoreType.PURSE).values();
-    return content.length > 0 ? content[0].value : 0;
+    const artefact = content.next()?.value;
+    return artefact ? artefact.costInGp : 0;
+  }
+
+  /** Add gold to purse.
+   * @param {number} gp
+   */
+  addToPurse(gp) {
+    const artefact = MoneyStore.createGoldCoinArtefact(gp);
+    this.#stores.get(StoreType.PURSE).add(artefact);
+  }
+
+  /**
+   * Take gold from purse.
+   * @param {number} gp - amount to take.
+   * @returns {number} amount taken.
+   */
+  takeFromPurse(gp) {
+    const artefact = MoneyStore.createGoldCoinArtefact(gp);
+    const taken = this.#stores.get(StoreType.PURSE).take(artefact);
+    return taken.costInGp;
   }
 
   /**
@@ -577,18 +703,35 @@ export class ArtefactStoreManager {
   }
 
   /**
-   * Discard an artefact that has been equipped.
+   * Discard an artefact that has been equipped or stashed.
    * @param {Artefact} artefact
    * @returns {boolean} true on success.
    */
-  discardEquipped(artefact) {
+  discard(artefact) {
+    if (this.discardStashed(artefact, true)) {
+      return true;
+    } else {
+      return this.discardEquipped(artefact);
+    }
+  }
+  /**
+   * Discard an artefact that has been equipped.
+   * @param {Artefact} artefact
+   * @param {boolean} quiet
+   * @returns {boolean} true on success.
+   */
+  discardEquipped(artefact, quiet) {
     const equipStore = this.getStore(artefact.equipStoreType);
     if (!equipStore) {
-      LOG.error("Cannot discard artefact as there isn't an equip store.");
+      if (!quiet) {
+        LOG.error("Cannot discard artefact as there isn't an equip store.");
+      }
       return false;
     }
     if (!equipStore.take(artefact)) {
-      LOG.error('Artefact could not be found so not discarded.');
+      if (!quiet) {
+        LOG.error('Artefact could not be found so not discarded.');
+      }
       return false;
     }
     return true;
@@ -596,16 +739,21 @@ export class ArtefactStoreManager {
   /**
    * Discard an artefact that has been stashed.
    * @param {Artefact} artefact
+   * @param {boolean} quiet
    * @returns {boolean} true on success.
    */
-  discardStashed(artefact) {
+  discardStashed(artefact, quiet) {
     const stashStore = this.getStore(artefact.stashStoreType);
     if (!stashStore) {
-      LOG.error("Cannot discard artefact as there isn't a stash store.");
+      if (!quiet) {
+        LOG.error("Cannot discard artefact as there isn't a stash store.");
+      }
       return false;
     }
     if (!stashStore.take(artefact)) {
-      LOG.error('Artefact could not be found so not discarded.');
+      if (!quiet) {
+        LOG.error('Artefact could not be found so not discarded.');
+      }
       return false;
     }
     return true;
@@ -621,7 +769,7 @@ export class ArtefactStoreManager {
    * exist in the stash.
    * @returns {boolean} true on success.
    */
-  equip(artefact, options) {
+  equip(artefact, options = {}) {
     const stashStore = this.getStore(artefact.stashStoreType);
     const equipStore = this.getStore(artefact.equipStoreType);
     if (!stashStore && !options.direct) {
@@ -655,7 +803,7 @@ export class ArtefactStoreManager {
   }
 
   /**
-   * Unequip and stash artefact. The artefact should normally exist in the equip stor unless
+   * Unequip and stash artefact. The artefact should normally exist in the equip store unless
    * the options.direct flag is set.
    * If space is required in the stash, the attempt fails.
    * @param {Artefact} artefact
@@ -664,18 +812,18 @@ export class ArtefactStoreManager {
    * exist in the stash.
    * @returns {boolean} true on success.
    */
-  stash(artefact, options) {
+  stash(artefact, options = {}) {
     const stashStore = this.getStore(artefact.stashStoreType);
     const equipStore = this.getStore(artefact.equipStoreType);
     if (!stashStore) {
-      LOG.error(
-        'Cannot unequip artefact as there isn`t a stash store to put it in.'
+      LOG.info(
+        'Cannot stash artefact as there isn`t a suitable stash store to put it in.'
       );
       return false;
     }
     if (!equipStore && !options.direct) {
       LOG.error(
-        "Cannot unequip artefact as there isn't an equip store to take it from."
+        'No suitable equip store found. If stashing a new artefact, the direct option should be set.'
       );
       return false;
     }

@@ -177,7 +177,9 @@
             <key type="filename">tiles/axe.png</key>
             <key type="filename">tiles/blank.png</key>
             <key type="filename">tiles/block.png</key>
-            <key type="filename">tiles/crystal-red.png</key>
+            <key type="filename">tiles/coins.png</key>
+            <key type="filename">tiles/copper_coins.png</key>
+            <key type="filename">tiles/crystal_red.png</key>
             <key type="filename">tiles/door-B.png</key>
             <key type="filename">tiles/door-L.png</key>
             <key type="filename">tiles/door-R.png</key>
@@ -188,7 +190,7 @@
             <key type="filename">tiles/floor2-SBE.png</key>
             <key type="filename">tiles/floor2-SBW.png</key>
             <key type="filename">tiles/floor2.png</key>
-            <key type="filename">tiles/gold.png</key>
+            <key type="filename">tiles/gold_coins.png</key>
             <key type="filename">tiles/helmet.png</key>
             <key type="filename">tiles/hero-dead00.png</key>
             <key type="filename">tiles/hero-idle00.png</key>
@@ -247,7 +249,9 @@
             <key type="filename">tiles/orc-walk-w01.png</key>
             <key type="filename">tiles/orc-walk-w02.png</key>
             <key type="filename">tiles/orc-walk-w03.png</key>
+            <key type="filename">tiles/platinum_coins.png</key>
             <key type="filename">tiles/poleaxe.png</key>
+            <key type="filename">tiles/silver_coins.png</key>
             <key type="filename">tiles/trader-dead00.png</key>
             <key type="filename">tiles/trader-idle-s03.png</key>
             <key type="filename">tiles/trader-idle00.png</key>
@@ -337,7 +341,7 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">tiles/crystal-blue.png</key>
+            <key type="filename">tiles/crystal_blue.png</key>
             <key type="filename">tiles/hero.png</key>
             <key type="filename">tiles/orc.png</key>
             <struct type="IndividualSpriteSettings">

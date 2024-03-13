@@ -29,60 +29,83 @@
 import { ArtefactType } from '../../utils/game/artefacts.js';
 
 const ALMANAC_OF_ARTEFACTS = [
-  { id: 'gold', minLevel: 0, type: ArtefactType.GOLD, traits: 'GP:10>25' },
+  {
+    id: 'copper_coins',
+    minLevel: 0,
+    type: ArtefactType.COINS,
+    traits: 'COST:10>25 CP',
+  },
+  {
+    id: 'silver_coins',
+    minLevel: 0,
+    type: ArtefactType.COINS,
+    traits: 'COST:10>25 SP',
+  },
+  {
+    id: 'gold_coins',
+    minLevel: 0,
+    type: ArtefactType.COINS,
+    traits: 'COST:10>25 GP',
+  },
+  {
+    id: 'platinum_coins',
+    minLevel: 0,
+    type: ArtefactType.COINS,
+    traits: 'COST:10>25 PP',
+  },
   {
     id: 'armour_padded',
     minLevel: 0,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:11|COST:5',
+    traits: 'AC:11|COST:5 GP',
   },
   {
     id: 'armour_leather',
     minLevel: 0,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:11|COST:10',
+    traits: 'AC:11|COST:10 GP',
   },
   {
     id: 'armour_studded_leather',
     minLevel: 0,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:12|COST:45',
+    traits: 'AC:12|COST:45 GP',
   },
   {
     id: 'armour_scale_mail',
     minLevel: 1,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:14|COST:50',
+    traits: 'AC:14|COST:50 GP',
   },
   {
     id: 'armour_half_plate',
     minLevel: 1,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:15|COST:750',
+    traits: 'AC:15|COST:750 GP',
   },
   {
     id: 'armour_ring_mail',
     minLevel: 1,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:14|COST:30',
+    traits: 'AC:14|COST:30 GP',
   },
   {
     id: 'armour_chain_mail',
     minLevel: 1,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:16|COST:75',
+    traits: 'AC:16|COST:75 GP',
   },
   {
     id: 'armour_plate',
     minLevel: 1,
     type: ArtefactType.ARMOUR,
-    traits: 'AC:18|COST:1500',
+    traits: 'AC:18|COST:1500 GP',
   },
   {
     id: 'club',
     minLevel: 0,
     type: ArtefactType.WEAPON,
-    traits: 'COST: 1|DMG:1d4',
+    traits: 'COST: 1 SP|DMG:1d4',
   },
 ];
 

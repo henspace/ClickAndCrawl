@@ -172,7 +172,7 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
 function createStandardKeyFrames(imageName) {
   const keyedAnimations = new ActorStateAnimator(
     'still',
-    new animation.AnimatedImage(0, `${imageName}.png`)
+    new animation.AnimatedImage(`${imageName}.png`)
   );
   StdAnimations.peripatetic.addAllToKeyedAnimation(keyedAnimations, imageName);
   return keyedAnimations;
@@ -185,7 +185,7 @@ function createStandardKeyFrames(imageName) {
 function createArtefactKeyFrames(imageName) {
   const keyedAnimations = new ActorStateAnimator(
     'still',
-    new animation.AnimatedImage(0, `${imageName}.png`)
+    new animation.AnimatedImage(`${imageName}.png`)
   );
   StdAnimations.artefact.addAllToKeyedAnimation(keyedAnimations, imageName);
   return keyedAnimations;
@@ -297,7 +297,7 @@ function createTrader(imageName, iconImageName, traits, actorType) {
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
  */
 export function buildActor(almanacEntry) {
-  const traits = new CharacterTraits().setFromString(almanacEntry.traits);
+  const traits = new CharacterTraits().setFromString(almanacEntry.traitsString);
   traits.set('NAME', createNameFromId(almanacEntry.id));
   let actor;
   switch (almanacEntry.type) {

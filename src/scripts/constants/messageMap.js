@@ -28,6 +28,8 @@
  */
 const MESSAGE_MAP = new Map([
   ['BUTTON CANCEL', 'Cancel'],
+  ['BUTTON BARGE', 'Barge past'],
+  ['BUTTON BUY', 'Buy'],
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
   ['BUTTON EQUIP', 'Equip'],
@@ -35,14 +37,17 @@ const MESSAGE_MAP = new Map([
   ['BUTTON LEAVE ARTEFACT', 'Leave'],
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
+  ['BUTTON PILLAGE', 'Pillage'],
   ['BUTTON PLAY', 'Play'],
   ['BUTTON SEARCH', 'Search'],
+  ['BUTTON SELL', 'Sell'],
   ['BUTTON SETTINGS', 'Settings'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON TAKE ARTEFACT', 'Take'],
+  ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
-  ['BUTTON UNEQUIP', 'Unequip'],
+  ['BUTTON STASH', 'Stash'],
 
   ['CONTROL BLOOD ON', 'Blood on'],
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
@@ -78,9 +83,19 @@ const MESSAGE_MAP = new Map([
     'Tough and flexible leather armour with the addition of steel spikes and rivets.',
   ],
   ['DESCRIPTION CLUB', "A simple wooden club that's seen a lot of action."],
+  ['DESCRIPTION COPPER_COINS', 'Old copper coins of low value.'],
   [
-    'DESCRIPTION GOLD',
-    'Various gold coins stamped with the image of latter day kings and queens.',
+    'DESCRIPTION SILVER_COINS',
+    'Silver coins, worn and tarnished but still of value.',
+  ],
+  [
+    'DESCRIPTION GOLD_COINS',
+    'Gold coins stamped with the image of latter day kings and queens.',
+  ],
+  ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
+  [
+    'DESCRIPTION COINS',
+    'Various coins stamped with the image of latter day kings and queens.',
   ],
   [
     'DESCRIPTION HERO',
@@ -95,6 +110,8 @@ const MESSAGE_MAP = new Map([
   ],
   ['DIALOG TITLE CHOICES', 'Choose!'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
+  ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
+  ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
 
   ['MENU TITLE MAIN', 'The Scripted Dungeon'],
 
@@ -106,10 +123,9 @@ const MESSAGE_MAP = new Map([
     'MESSAGE CANNOT STORE',
     "You're carrying too much stuff to pick up what you've found.",
   ],
-  ['MESSAGE ENTER LEVEL', 'You enter level'],
   [
-    'MESSAGE DOOR CLOSES BEHIND YOU',
-    "The door slams shut behind you. There's no way back.",
+    'MESSAGE ENTER LEVEL',
+    "You enter level ${0}. The door slams shut behind you. There's no way back.",
   ],
   [
     'MESSAGE DUNGEON INTRO',
@@ -120,12 +136,16 @@ const MESSAGE_MAP = new Map([
     'Despite your valiant efforts, you died. Your legend will live on.',
   ],
   [
+    'MESSAGE INSUFFICIENT FUNDS',
+    "You don't have enough funds to purchase this item. The item costs ${0}\u{00A0}GP but you only have ${1}\u{00A0}GP.",
+  ],
+  [
     'MESSAGE MAKE SPACE IN BACKPACK',
     'You need to make space in your backpack by discarding or using something.',
   ],
   [
     'MESSAGE MAKE SPACE IN EQUIP',
-    "You can't store this in your backpack. You need to wear it but you're already wearing something. If you want this, you'll need to unequip or discard something.",
+    "This is too big to store. Sell or discard what you're wearing so you can wear this.",
   ],
   [
     'MESSAGE SEARCH CORPSE OR MOVE',
@@ -141,6 +161,7 @@ const MESSAGE_MAP = new Map([
       "You've been here before. Do you want to search again or climb into the hole you dug?",
     ],
   ],
+  ['MESSAGE TRADE OR BARGE', 'Do you want to trade or barge past this guy?'],
   [
     'MESSAGE ENTRANCE STUCK',
     [
@@ -190,15 +211,16 @@ const MESSAGE_MAP = new Map([
     'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
   ],
   // Miscellaneous words and phrases.
+
   ['Backpack', 'Backpack'],
-  ['Wagon', 'Wagon'],
   ['Body', 'Body'],
-  ['Dungeon level:', 'Dungeon level:'],
+  ['Dungeon level:', 'Dungeon level: ${0}'],
   ['Feet', 'Feet'],
   ['GOLD PIECES', ' gold pieces'],
   ['Hands', 'Hands'],
   ['Head', 'Head'],
   ['Unknown', 'Unknown'],
+  ['Wagon', 'Wagon'],
 ]);
 
 export default MESSAGE_MAP;

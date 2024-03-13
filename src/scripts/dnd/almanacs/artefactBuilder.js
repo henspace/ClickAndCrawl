@@ -26,10 +26,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import { safeParseInt } from '../../utils/maths.js';
+
 import { Artefact } from '../../utils/game/artefacts.js';
 import { Traits } from '../traits.js';
 import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
+import { CoinValue } from '../../utils/game/coins.js';
 /**
  * Create an artefact.
  * @param {string} imageName
@@ -38,7 +39,6 @@ import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
  */
 function createArtefact(imageName, artefactType, traits) {
   const artefact = new Artefact('', `${imageName}.png`, artefactType);
-  artefact.value = safeParseInt(traits?.get('GP', 0));
   artefact.traits = traits;
   return artefact;
 }
@@ -49,7 +49,7 @@ function createArtefact(imageName, artefactType, traits) {
  * @returns {Artefact}
  */
 export function buildArtefact(almanacEntry) {
-  const traits = new Traits().setFromString(almanacEntry.traits);
+  const traits = new Traits().setFromString(almanacEntry.traitsString);
   traits.set('NAME', createNameFromId(almanacEntry.id));
   const artefact = createArtefact(
     almanacEntry.id.toLowerCase(),

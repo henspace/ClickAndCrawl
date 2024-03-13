@@ -33,6 +33,7 @@ import { AbstractInteraction } from '../../dnd/interact.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { ArtefactStoreManager } from './artefacts.js';
 import * as dice from '../dice.js';
+import LOG from '../logging.js';
 
 /**
  * @typedef {Map<string, *>} Traits
@@ -45,6 +46,21 @@ export const ActorType = {
   HIDDEN_ARTEFACT: 3,
   TRADER: 4,
 };
+
+/**
+ * Convert a string to an ActorType
+ * @param {string} str - actor type as string but excluding the ActorType.
+ * E.g. HERO.
+ * @returns {ActorType} null if invalid.
+ */
+export function strToActorType(str) {
+  const type = ActorType[str];
+  if (type === null || type === undefined) {
+    LOG.error(`Unrecognised actor type: ${str}`);
+  }
+  return type;
+}
+
 /**
  * Actor class. An actor is a sprite that exists in the world and can interact
  * with other actors.

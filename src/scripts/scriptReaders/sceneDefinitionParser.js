@@ -43,7 +43,7 @@ import { ArtefactType } from '../utils/game/artefacts.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
-import ALMANAC_OF_ARTEFACTS from '../dnd/almanacs/almanacArtefacts.js';
+import { AlmanacLibrary } from '../dnd/almanacs/almanacs.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -102,7 +102,7 @@ function createArtefacts(sceneDefn) {
     const actor = buildActor({
       id: 'hidden_artefact',
       type: ActorType.HIDDEN_ARTEFACT,
-      traits: '',
+      traitsString: '',
     });
     const hiddenArtefact = buildArtefact(almanacEntry);
     actor.storeManager.addArtefact(hiddenArtefact);
@@ -162,14 +162,14 @@ class ParsedScene extends AbstractScene {
     const tileMap = new TileMap(SCREEN.getContext2D(), tilePlan, GRID_SIZE);
     WORLD.setTileMap(tileMap);
     this.heroActor = createHero(this.#sceneDefn);
-    const possibleWeapons = ALMANAC_OF_ARTEFACTS.filter(
+    const possibleWeapons = AlmanacLibrary.artefacts.filter(
       (artefact) =>
         (artefact.type === ArtefactType.SHIELD ||
           artefact.type === ArtefactType.WEAPON ||
           artefact.type === ArtefactType.TWO_HANDED_WEAPON) &&
         artefact.minLevel <= level
     );
-    const possibleArtefacts = ALMANAC_OF_ARTEFACTS.filter(
+    const possibleArtefacts = AlmanacLibrary.artefacts.filter(
       (artefact) => artefact.minLevel <= level
     );
     createEnemies(this.#sceneDefn).forEach((enemy) => {

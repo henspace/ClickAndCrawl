@@ -37,6 +37,11 @@ export const Urls = {
     '../../assets/stories/dungeon_script.txt',
     import.meta.url
   ),
+  ACTOR_ALMANAC: new URL('../../assets/almanacs/actors.txt', import.meta.url),
+  ARTEFACT_ALMANAC: new URL(
+    '../../assets/almanacs/artefacts.txt',
+    import.meta.url
+  ),
 };
 
 /**

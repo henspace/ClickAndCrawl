@@ -114,17 +114,20 @@ export class Traits {
    * @param {string} value
    */
   #setValue(key, value) {
-    const minMaxMatch = value.match(/(\d+) *([/>]) *(\d+) */);
+    const minMaxMatch = value.match(/(\d+) *([/>]) *(\d+)([a-zA-Z ]*)/);
     if (minMaxMatch) {
+      let traitValue;
+      const suffix = minMaxMatch[4].trimEnd();
       if (minMaxMatch[2] === '>') {
-        this.#traits.set(
-          key,
-          maths.getRandomIntInclusive(minMaxMatch[1], minMaxMatch[3])
+        traitValue = maths.getRandomIntInclusive(
+          minMaxMatch[1],
+          minMaxMatch[3]
         );
       } else {
-        this.#traits.set(key, minMaxMatch[1]);
+        traitValue = minMaxMatch[1];
       }
-      this.#traits.set(`${key}_MAX`, minMaxMatch[3]);
+      this.#traits.set(key, traitValue + suffix);
+      this.#traits.set(`${key}_MAX`, minMaxMatch[3] + suffix);
     } else {
       this.#traits.set(key, value);
     }

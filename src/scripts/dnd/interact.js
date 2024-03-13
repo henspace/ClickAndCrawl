@@ -234,9 +234,7 @@ export class InteractWithCorpse extends AbstractInteraction {
     if (choice === 'MOVE') {
       return moveActorToPosition(enactor, this.actor.position);
     }
-    return UI.showOkDialog(
-      "A bit macabre, but you're trying to search a corpse. I haven't written the code yet."
-    );
+    return actorDialogs.showPillageDialog(enactor, this.actor);
   }
 
   /**
@@ -267,11 +265,37 @@ export class Trade extends AbstractInteraction {
 
   /**
    * Trades are passive. Only the hero can initiate a trade.
+   * Note there is possibility for traders to block the exit, so
+   * the option to barge past is provided.
    * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
-  react(enactorUnused) {
-    return UI.showOkDialog("Time to trade. I haven't written the code yet.");
+  react(enactor) {
+    return UI.showChoiceDialog(
+      i18n`DIALOG TITLE CHOICES`,
+      i18n`MESSAGE TRADE OR BARGE`,
+      [i18n`BUTTON TRADE`, i18n`BUTTON BARGE`]
+    ).then((choice) => {
+      if (choice === 0) {
+        return actorDialogs.showTradeDialog(enactor, this.actor);
+      } else {
+        return this.#swapPositions(enactor);
+      }
+    });
+  }
+
+  /**
+   * Swap position with another actor
+   * @param {Actor} them
+   * @returns {Promise} fulfils to undefined when complete.
+   */
+  #swapPositions(them) {
+    const myPosition = Point.copy(this.actor.position);
+    const theirPosition = Point.copy(them.position);
+    return Promise.all([
+      moveActorToPosition(them, myPosition),
+      moveActorToPosition(this.actor, theirPosition),
+    ]);
   }
 }
 
@@ -288,7 +312,8 @@ export class FindArtefact extends AbstractInteraction {
   }
 
   /**
-   * Trades are passive. Only the hero can initiate a trade.
+   * Finding an artefact is a passive action and can only be initiated by another
+   * actor.
    * @param {module:utils/game/actors~Actor} enactor
    * @returns {Promise}
    */
@@ -298,29 +323,16 @@ export class FindArtefact extends AbstractInteraction {
     if (choice === 'MOVE') {
       return moveActorToPosition(enactor, this.actor.position);
     }
-    const storageDetails = this.actor.storeManager.getAllStorageDetails();
-    if (storageDetails.length > 0) {
-      const storeToTakeFrom = storageDetails[0].store; // only expect one.
-      const artefactToTake = storageDetails[0].artefact; // only expect one.
-      const possibleStore =
-        enactor.storeManager.findSuitableStore(artefactToTake);
-      let options = {};
-      if (!possibleStore) {
-        options.cannotStore = true;
-        options.guidance =
-          artefactToTake.stashStoreType === StoreType.WAGON
-            ? i18n`MESSAGE MAKE SPACE IN EQUIP`
-            : i18n`MESSAGE MAKE SPACE IN BACKPACK`;
-      }
-      return actorDialogs
-        .showArtefactFoundBy(artefactToTake, enactor, options)
-        .then((response) => {
-          if (response === 'TAKE') {
-            storeToTakeFrom.take(artefactToTake);
-            possibleStore.add(artefactToTake);
-          }
-          return null;
-        });
+    const storageDetails = this.actor.storeManager.getFirstStorageDetails();
+    if (storageDetails) {
+      return actorDialogs.showArtefactDialog({
+        preamble: i18n`MESSAGE FOUND ARTEFACT`,
+        currentOwner: this.actor,
+        prospectiveOwner: enactor,
+        storeType: storageDetails.store.storeType,
+        artefact: storageDetails.artefact,
+        actionType: actorDialogs.ArtefactActionType.FIND,
+      });
     } else {
       return UI.showOkDialog(i18n`MESSAGE ARTEFACTS ALREADY TAKEN`);
     }

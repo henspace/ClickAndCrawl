@@ -338,9 +338,12 @@ export class PathFollower extends AbstractModifier {
  * @returns {Promise} fulfils to undefined on completion of move.
  */
 export function moveActorToPosition(actor, position) {
-  const pathModifier = new PathFollower({
-    path: [position],
-    speed: 100,
-  });
+  const pathModifier = new PathFollower(
+    {
+      path: [position],
+      speed: 100,
+    },
+    actor.sprite.modifier
+  );
   return pathModifier.applyAsTransientToSprite(actor.sprite);
 }

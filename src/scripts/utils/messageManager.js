@@ -59,35 +59,34 @@ function getText(key) {
 }
 
 /**
- * Look up the text. If not found, the key is returned unchanged. When looking
- * up the key, any leading or trailing spaces are removed, but they are replaced
- * in the result.
- * @param {string} key
- * @returns {string}
- */
-function getTextWithSpaces(key) {
-  const match = key.match(/^( *)(.+?)( *)$/);
-  if (match) {
-    return `${match[1]}${getText(match[2])}${match[3]}`;
-  } else {
-    return key;
-  }
-}
-/**
- * Template function for string literals. Note that text either side of embedded
- * expressions will be treated as separate keys. Spaces either side of the keys,
- * do not form part of the key but will be retained in the result.
+ * Template function for string literals. If there are embedded expressions,
+ * the first non empty string is used as a replacement. Other strings
+ * are ignored. This is primarily to allow keys to appear
+ * before or after the replacement expressions.
+ * Then placeholders of ${n} are replaced by the
+ * replacement values at the appropriate index.
+ * Spaces around the key are replaced.
  * @param {string[]} strs
- * @param  {...string} value - replacement values
+ * @param  {...string} values - replacement values
  */
 export function i18n(strs, ...values) {
   let result = '';
-  strs.forEach((key, index) => {
-    const text = getTextWithSpaces(key);
-    result += text;
-    if (index < values.length) {
-      result += values[index];
+  let key;
+  for (const str of strs) {
+    const trimmed = str.trim();
+    if (trimmed !== '') {
+      key = trimmed;
+      break;
     }
+  }
+  if (!key) {
+    return values ? values.join(' ') : '';
+  }
+
+  result = getText(key);
+  values.forEach((value, index) => {
+    const placeHolder = `\${${index}}`;
+    result = result.replace(placeHolder, value);
   });
   return result;
 }
@@ -97,5 +96,4 @@ export function i18n(strs, ...values) {
 export const MESSAGES = {
   setMap: setMap,
   getText: getText,
-  getTextWithSpaces: getTextWithSpaces,
 };
