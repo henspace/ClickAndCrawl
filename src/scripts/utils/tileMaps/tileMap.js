@@ -148,7 +148,7 @@ export class Tile extends UiClickHandler {
   }
 
   /** get occupants.
-   * @param {module:utils/game/actors~Actor}
+   * @returns {module:utils/game/actors~Actor[]}
    */
   getOccupants() {
     return this.#occupants;
@@ -822,6 +822,15 @@ export class TileMap {
     }
   }
 
+  /**
+   * Get coincident actors.
+   * @param {Actor} actor
+   * @returns {Actor[]}
+   */
+  getCoincidentActors(actor) {
+    const tile = this.getTileAtWorldPoint(actor.position);
+    return tile.getOccupants();
+  }
   /**
    * Get all the participants around an actor. Diagonals are not included in
    * potential participants.

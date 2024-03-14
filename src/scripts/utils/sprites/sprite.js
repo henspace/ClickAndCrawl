@@ -48,8 +48,6 @@ export class Sprite {
   #velocity = new Velocity(0, 0, 0);
   /** @type {SpriteCanvasRenderer[]} */
   #renderer;
-  /** @type {boolean} */
-  #multiRenderers;
   /** @type {AbstractModifier} */
   modifier;
   /** @type {boolean} */
@@ -64,7 +62,6 @@ export class Sprite {
    */
   constructor(options) {
     this.#renderer = options?.renderer;
-    this.#multiRenderers = Array.isArray(this.#renderer);
     this.visible = true;
     this.opacity = 1;
   }
@@ -115,7 +112,7 @@ export class Sprite {
   }
 
   /**
-   * Update the sprite. Calls the sprite's mover and then renderer.
+   * Update the sprite. Calls the sprite's modifier and then renderer.
    * @param {number} deltaSeconds - elapsed time.
    */
   update(deltaSeconds) {

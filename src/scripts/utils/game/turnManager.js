@@ -43,10 +43,11 @@ import { Point, Position, Velocity } from '../geometry.js';
 import LOG from '../logging.js';
 import * as maths from '../maths.js';
 import { showMainMenu } from '../../dialogs/mainMenu.js';
-import { Actor } from './actors.js';
+import { MoveType } from './actors.js';
 import * as actorDialogs from '../../dialogs/actorDialogs.js';
 import { i18n } from '../messageManager.js';
 import * as dice from '../dice.js';
+import { buildActor } from '../../dnd/almanacs/actorBuilder.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -96,20 +97,38 @@ class ReplayableActorMover {
   }
 
   /**
-   * Move actor to hero using the route finder. The move takes place instantly
+   * Get a target grid position based on actor type
+   * @param {Point} actorGridPos
+   * @returns {Point}
+   */
+  #getTargetGridPoint(actorGridPos) {
+    switch (this.#actor.moveType) {
+      case MoveType.HUNT:
+        return this.#tileMap.worldPointToGrid(heroActor.position);
+      case MoveType.ORGANIC:
+      case MoveType.WANDER:
+      default:
+        return this.#getRandomGridPosition(
+          actorGridPos,
+          this.#actor.maxTilesPerMove
+        );
+    }
+  }
+  /**
+   * Move actor to new position using the route finder. The move takes place instantly
    * but can be replayed using the replay method.
    */
   moveInstantly() {
     this.#originalPosition = Position.copy(this.#actor.position);
     const actorGridPos = this.#tileMap.worldPointToGrid(this.#actor.position);
-    const targetGridPos = this.#actor.isWandering()
-      ? this.#getRandomGridPosition(actorGridPos, this.#actor.maxTilesPerMove)
-      : this.#tileMap.worldPointToGrid(heroActor.position);
+    const targetGridPos = this.#getTargetGridPoint(actorGridPos);
 
     const orthoSeparation =
       Math.abs(targetGridPos.x - actorGridPos.x) +
       Math.abs(targetGridPos.y - actorGridPos.y);
-    const maxSeparation = this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
+    const maxSeparation = this.#actor.isOrganic()
+      ? Number.MAX_SAFE_INTEGER
+      : this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
     if (
       orthoSeparation <= maxSeparation &&
       this.#tileMap.canHeroSeeGridPoint(actorGridPos)
@@ -179,10 +198,23 @@ class ReplayableActorMover {
    */
   replay() {
     this.#restorePosition();
+    this.#cloneIfOrganic();
     if (this.#modifier) {
       return this.#modifier.applyAsTransientToSprite(this.#actor.sprite);
     }
     return Promise.resolve();
+  }
+
+  /**
+   * Clone the actor if currently spawning.
+   */
+  #cloneIfOrganic() {
+    if (this.#actor.isOrganic()) {
+      const clonedActor = buildActor(this.#actor.almanacEntry);
+      clonedActor.position = this.#originalPosition;
+      clonedActor.maxTilesPerMove = 0;
+      WORLD.addActor(clonedActor);
+    }
   }
 }
 
@@ -208,10 +240,14 @@ class MovementReplayer {
   }
 
   /**
-   * Add the actor and move immediately to hero
+   * Add the actor and move immediately to hero. Note if the actor's movement
+   * is zero, the function does nothing.
    * @param {Actor} actor
    */
   addAndMoveActor(actor) {
+    if (actor.maxTilesPerMove === 0) {
+      return;
+    }
     const replayableMover = new ReplayableActorMover(
       actor,
       this.#tileMap,
@@ -502,11 +538,11 @@ class ComputerTurnIdle extends State {
   async onEntry() {
     await super.onEntry();
     LOG.log('Enter ComputerTurnIdle');
+    await applyOrganicToActors();
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
     const replayer = new MovementReplayer(tileMap, routeFinder);
-    const heroGridPoint = tileMap.worldPointToGrid(heroActor.position);
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor && actor.alive) {
         if (!actor.isWandering() || dice.rollDice(6) > 3) {
@@ -514,7 +550,13 @@ class ComputerTurnIdle extends State {
         }
       }
     }
+    for (const actor of WORLD.getOrganicActors().values()) {
+      if (actor.alive) {
+        replayer.addAndMoveActor(actor);
+      }
+    }
     await replayer.replay();
+
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of participants) {
       if (actor.isEnemy()) {
@@ -534,6 +576,7 @@ class ComputerTurnInteracting extends State {
   async onEntry() {
     await super.onEntry();
     LOG.log('Enter ComputerTurnInteracting');
+    await applyOrganicToActors();
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
@@ -548,7 +591,13 @@ class ComputerTurnInteracting extends State {
         }
       }
     }
+    for (const actor of WORLD.getOrganicActors().values()) {
+      if (actor.alive) {
+        replayer.addAndMoveActor(actor);
+      }
+    }
     await replayer.replay();
+
     if (heroActor.traits.get('HP', 0) === 0) {
       this.transitionTo(new AtGameOver());
     } else if (participants.length === 0) {
@@ -604,6 +653,24 @@ function moveHeroToPoint(point, usePathFinder = true) {
   }
 }
 
+/**
+ * Apply organic actions to all actors.
+ * @returns {Promise} fulfils to undefined on completion.
+ */
+function applyOrganicToActors() {
+  const tileMap = WORLD.getTileMap();
+  const promises = [];
+  WORLD.getOrganicActors().forEach((organic) => {
+    const participants = tileMap.getCoincidentActors(organic);
+    participants.forEach((actor) => {
+      if (actor.alive && !actor.isOrganic() && organic.interaction) {
+        promises.push(organic.interaction.enact(actor));
+      }
+    });
+  });
+
+  return Promise.all(promises);
+}
 /**
  * Interact with point
  * @param {Point} point - position in world.

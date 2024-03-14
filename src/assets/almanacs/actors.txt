@@ -1,4 +1,6 @@
-# minLevel:number|ArtefactType:string|id:string|traits:string
-0|HERO|hero|HP:20|EXP:0|AC:1
-0|ENEMY|orc|MOVE:HUNT|HP:2|EXP:0|AC:5
-0|TRADER|trader|MOVE:WANDER|EXP:0|AC:1
+# minLevel:number,ArtefactType:string,id:string,starting artefacts * traits:string
+# starting artefacts is a comma separated list of artefacts to start with.
+0,HERO,hero [armour_chain_mail,shield,shortsword,gold_coins] * HP:20,EXP:0,AC:10,_SPEED:4,STR:10,CON:10
+0,ENEMY,orc * MOVE:HUNT, HP:15,EXP:0,AC:13,_SPEED:3,STR:12,DEX:12
+0,TRADER,trader * MOVE:WANDER, EXP:0,AC:1,_SPEED:2,STR:10
+0,ENEMY,slime * MOVE:ORGANIC, EXP:0,AC:10,_SPEED:1,STR:10,DMG:1D6,SAVE:10CON

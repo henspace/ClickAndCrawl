@@ -104,6 +104,8 @@ const MESSAGE_MAP = new Map([
 
   ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
+  ['DESCRIPTION SHORTSWORD', 'A light and highly versatile sword.'],
+  ['DESCRIPTION SLIME', 'A green sticky substance that seems to be growing.'],
   [
     'DESCRIPTION TRADER',
     'A wandering trader selling all manner of things gathered during many months in the dungeon.',

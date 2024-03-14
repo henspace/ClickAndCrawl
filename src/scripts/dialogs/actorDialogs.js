@@ -544,8 +544,8 @@ function createActorElement(actor, options = {}) {
  * Create an element showing an actor's traits. Gold coins contained in the actor's
  * purse are included as a trait if includeGold flag is set.
  * @param {module:utils/game/actors~Actor} actor
- * @param {string[]} excludedKeys - Keys to ignore. Elements ending with _MAX are
- * automatically hidden.
+ * @param {string[]} excludedKeys - Keys to ignore. Elements starting with an
+ * underscore are automatically hidden.
  * @param {boolean} includeGold - flag to determine if gold pieces are included.
  * @returns {Element}
  */
@@ -563,7 +563,7 @@ function createTraitsList(actor, excludedKeys, includeGold) {
   }
 
   actor.traits?.getAllTraits().forEach((value, key) => {
-    if (!excludedKeys.includes(key) && !/.*_MAX/.test(key)) {
+    if (!excludedKeys.includes(key) && !key.startsWith('_')) {
       const displayedKey = key?.replace('_', ' ');
       const item = document.createElement('li');
       const label = components.createElement('span', {

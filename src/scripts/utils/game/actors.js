@@ -31,7 +31,7 @@
 
 import { AbstractInteraction } from '../../dnd/interact.js';
 import { UiClickHandler } from '../ui/interactions.js';
-import { ArtefactStoreManager } from './artefacts.js';
+import { ArtefactStoreManager, ArtefactType } from './artefacts.js';
 import * as dice from '../dice.js';
 import LOG from '../logging.js';
 
@@ -45,6 +45,18 @@ export const ActorType = {
   ARTEFACT: 2,
   HIDDEN_ARTEFACT: 3,
   TRADER: 4,
+};
+
+/**
+ * @typedef {string} MoveTypeValue
+ */
+/**
+ * @enum {MoveTypeValue}
+ */
+export const MoveType = {
+  WANDER: 'WANDER',
+  HUNT: 'HUNT',
+  ORGANIC: 'ORGANIC',
 };
 
 /**
@@ -66,6 +78,8 @@ export function strToActorType(str) {
  * with other actors.
  */
 export class Actor extends UiClickHandler {
+  /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry */
+  almanacEntry;
   /** @type {number} */
   maxTilesPerMove;
   /** @type {module:utils/sprites/sprite~Sprite} */
@@ -93,12 +107,21 @@ export class Actor extends UiClickHandler {
     this.interaction = new AbstractInteraction();
     this.sprite = sprite;
     this.sprite.obstacle = true;
-    this.maxTilesPerMove = 4;
+    this.maxTilesPerMove = 1;
     this.alive = true;
     this.type = type;
     this.storeManager = new ArtefactStoreManager(
-      type === ActorType.TRADER || type === ActorType.HIDDEN_ARTEFACT
+      type === ActorType.TRADER || type === ActorType.HIDDEN_ARTEFACT,
+      () => this.#updateTraitsFromStore()
     );
+  }
+
+  /**
+   * Refresh DnD properties.
+   */
+  #updateTraitsFromStore() {
+    const items = this.storeManager.getAllEquippedArtefacts();
+    this.traits.utiliseArtefacts(items);
   }
 
   /**
@@ -208,7 +231,23 @@ export class Actor extends UiClickHandler {
    * @returns {boolean}
    */
   isWandering() {
-    return this?.traits.get('MOVE') === 'WANDER';
+    return this?.traits.get('MOVE') === MoveType.WANDER;
+  }
+
+  /**
+   * Is this an organic actor.
+   * @returns {boolean}
+   */
+  isOrganic() {
+    return this?.traits.get('MOVE') === MoveType.ORGANIC;
+  }
+
+  /**
+   * Get the move type
+   * @returns {MoveTypeValue}
+   */
+  get moveType() {
+    return this?.traits.get('MOVE');
   }
 
   /**
@@ -240,7 +279,11 @@ export class Actor extends UiClickHandler {
    * @returns {boolean}
    */
   canShareLocationWithActor(otherActor) {
-    return !this.obstacle;
+    if (this.isOrganic()) {
+      return !otherActor.isOrganic() && !otherActor.isTrader(); // don't kill off traders.
+    } else {
+      return !this.obstacle;
+    }
   }
 
   /**

@@ -121,7 +121,7 @@ class AutoSceneList {
       (actor) => actor.type === ActorType.ENEMY && actor.minLevel <= this.#index
     );
 
-    const totalEnemies = maths.getRandomIntInclusive(2, 2);
+    const totalEnemies = maths.getRandomIntInclusive(5, 10);
     for (let enemyIndex = 0; enemyIndex < totalEnemies; enemyIndex++) {
       const almanacIndex = maths.getRandomInt(0, possibleEnemies.length);
       const almanacEntry = possibleEnemies[almanacIndex];

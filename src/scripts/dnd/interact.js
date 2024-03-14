@@ -39,8 +39,32 @@ import SOUND_MANAGER from '../utils/soundManager.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
-import { StoreType } from '../utils/game/artefacts.js';
+import * as dndAction from './dndAction.js';
 
+/**
+ * Apply damage to defender
+ * @param {Actor} defender
+ * @param {number} damage
+ * @returns {number} resulting HP of defender
+ */
+function applyDamage(defender, damage) {
+  let defenderHP = defender.traits.get('HP', 0);
+  defenderHP = Math.max(0, defenderHP - damage);
+  defender.traits.set('HP', defenderHP);
+  if (defenderHP === 0) {
+    SOUND_MANAGER.playEffect('DIE');
+    LOG.info('Killed actor.');
+    defender.interaction = new InteractWithCorpse(defender);
+    defender.alive = false;
+  } else {
+    addFadingText(`-${damage} HP`, {
+      lifetimeSecs: 2,
+      position: new Point(defender.position.x, defender.position.y),
+      velocity: new Velocity(0, 0, 0),
+    });
+  }
+  return defenderHP;
+}
 /** Dummy interaction that does nothing
  */
 export class AbstractInteraction {
@@ -156,7 +180,8 @@ export class Fight extends AbstractInteraction {
    */
   #undertakeAttack(attacker, defender) {
     return new Promise((resolve) => {
-      if (!chance.hits(attacker, defender)) {
+      const damage = dndAction.getMeleeDamage(attacker, defender);
+      if (damage <= 0) {
         SOUND_MANAGER.playEffect('MISS');
         addFadingText('Missed', {
           lifetimeSecs: 2,
@@ -165,35 +190,19 @@ export class Fight extends AbstractInteraction {
         });
         resolve();
         return;
-      } else {
-        SOUND_MANAGER.playEffect('PUNCH');
-        addFadingImage(
-          IMAGE_MANAGER.getSpriteBitmap(
-            PERSISTENT_DATA.get('BLOOD_ON') ? 'blood-splat.png' : 'pow.png'
-          ),
-          {
-            lifetimeSecs: 1,
-            position: defender.position,
-            velocity: new Velocity(0, 0, 0),
-          }
-        );
       }
-      let defenderHP = defender.traits.get('HP', 0);
-      const damage = chance.damageInflicted(attacker, defender);
-      defenderHP = Math.max(0, defenderHP - damage);
-      defender.traits.set('HP', defenderHP);
-      if (defenderHP === 0) {
-        SOUND_MANAGER.playEffect('DIE');
-        LOG.info('Killed actor.');
-        defender.interaction = new InteractWithCorpse(defender);
-        defender.alive = false;
-      } else {
-        addFadingText(`-${damage} HP`, {
-          lifetimeSecs: 2,
-          position: new Point(defender.position.x, defender.position.y),
+      SOUND_MANAGER.playEffect('PUNCH');
+      addFadingImage(
+        IMAGE_MANAGER.getSpriteBitmap(
+          PERSISTENT_DATA.get('BLOOD_ON') ? 'blood-splat.png' : 'pow.png'
+        ),
+        {
+          lifetimeSecs: 1,
+          position: defender.position,
           velocity: new Velocity(0, 0, 0),
-        });
-      }
+        }
+      );
+      const defenderHP = applyDamage(defender, damage);
       resolve(defenderHP);
     });
   }
@@ -353,5 +362,35 @@ export class FindArtefact extends AbstractInteraction {
       [i18n`BUTTON SEARCH`, i18n`BUTTON MOVE`]
     );
     return choice === 0 ? 'SEARCH' : 'MOVE';
+  }
+}
+
+/**
+ * Class to handle poisoning
+ */
+export class Poison extends AbstractInteraction {
+  /**
+   * Construct the interaction.
+   * @param {Actor} actor - parent actor.
+   */
+  constructor(actor) {
+    super(actor);
+  }
+  /**
+   * @param {module:utils/game/actors~Actor} reactor
+   * @returns {Promise}
+   */
+  enact(reactor) {
+    const damage = dndAction.getPoisonDamage(this.actor, reactor);
+    SOUND_MANAGER.playEffect('POISONED');
+    if (damage >= 0) {
+      addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
+        lifetimeSecs: 1,
+        position: reactor.position,
+        velocity: new Velocity(0, 0, 0),
+      });
+      applyDamage(reactor, damage);
+    }
+    return Promise.resolve();
   }
 }

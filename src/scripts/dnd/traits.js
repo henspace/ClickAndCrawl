@@ -29,18 +29,67 @@
  */
 
 import * as maths from '../utils/maths.js';
+import { ArtefactType } from '../utils/game/artefacts.js';
+import { biggestMultiDice } from '../utils/dice.js';
 /**
- * This is basically a Map
+ * This is basically a Map with some special derived characteristics.
  */
 export class Traits {
   /** Characteristics @type {Map<string, *>} */
   #traits;
+
+  /** @type {number} */
+  #compositeAc;
+  /** @type {number} */
+  #compositeDmg;
+
   /**
    * Initialise the traits.
    * @param {Map<string, *>} initialValues
    */
   constructor(initialValues) {
     this.#traits = new Map(initialValues);
+    this.#compositeAc = this.#traits.get('AC', 0);
+    this.#compositeDmg = this.#traits.get('DMG', '1D4');
+  }
+
+  /**
+   * Get the effective armour class;
+   * @returns {number}
+   */
+  get effectiveAc() {
+    return this.#compositeAc;
+  }
+
+  /**
+   * Get the effective damage.
+   * @returns {number}
+   */
+  get effectiveDamage() {
+    return this.#compositeDmg;
+  }
+
+  /**
+   * Update composite values.
+   * @param {Artefact[]} artefacts
+   */
+  utiliseArtefacts(artefacts) {
+    const baseArmourClass = this.get('AC', 0);
+    const baseDamage = this.get('DMG', '1D4');
+    let artefactsArmourClass = 0;
+    let artefactsDamage = '1D1';
+    for (const item of artefacts) {
+      if (item.artefactType === ArtefactType.ARMOUR) {
+        artefactsArmourClass += item.traits.get('AC', 0);
+      } else if (item.artefactType === ArtefactType.WEAPON) {
+        artefactsDamage = biggestMultiDice(
+          item.traits.get('DMG', '1D1'),
+          artefactsDamage
+        );
+      }
+    }
+    this.#compositeAc = Math.max(baseArmourClass, artefactsArmourClass);
+    this.#compositeDmg = biggestMultiDice(baseDamage, artefactsDamage);
   }
 
   /**
@@ -53,14 +102,14 @@ export class Traits {
   }
 
   /**
-   * Get the trait value.
+   * Get the trait value. This will look first for the key and then the key
+   * preceded by an underscore.
    * @param {string} key
    * @param {*} defValue - default value;
    * @returns {*}
    */
   get(key, defValue) {
-    const value = this.#traits.get(key);
-    return value ?? defValue;
+    return this.#traits.get(key) ?? this.#traits.get('_' + key) ?? defValue;
   }
 
   /**
@@ -73,7 +122,7 @@ export class Traits {
    * @throws {Error} if definition invalid.
    */
   setFromString(definition) {
-    definition.split('|').forEach((item) => {
+    definition.split(',').forEach((item) => {
       const match = item.match(/^\s*(\w+)\s*[=: ]\s*(.+?)\s*$/);
       if (!match) {
         return;
@@ -85,6 +134,8 @@ export class Traits {
         throw new Error(`Invalid property definition'${item}'`);
       }
     });
+    this.#compositeAc = this.#traits.get('AC', 0);
+    this.#compositeDmg = this.#traits.get('DMG', '1D4');
     return this;
   }
 

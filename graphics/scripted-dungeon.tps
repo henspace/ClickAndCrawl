@@ -252,6 +252,9 @@
             <key type="filename">tiles/platinum_coins.png</key>
             <key type="filename">tiles/poleaxe.png</key>
             <key type="filename">tiles/silver_coins.png</key>
+            <key type="filename">tiles/skull.png</key>
+            <key type="filename">tiles/slime-dead00.png</key>
+            <key type="filename">tiles/slime.png</key>
             <key type="filename">tiles/trader-dead00.png</key>
             <key type="filename">tiles/trader-idle-s03.png</key>
             <key type="filename">tiles/trader-idle00.png</key>
@@ -344,6 +347,10 @@
             <key type="filename">tiles/crystal_blue.png</key>
             <key type="filename">tiles/hero.png</key>
             <key type="filename">tiles/orc.png</key>
+            <key type="filename">tiles/slime-walk-e00.png</key>
+            <key type="filename">tiles/slime-walk-n00.png</key>
+            <key type="filename">tiles/slime-walk-s00.png</key>
+            <key type="filename">tiles/slime-walk-w00.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -355,6 +362,23 @@
                 <rect>12,12,24,25</rect>
                 <key>scale9Paddings</key>
                 <rect>12,12,24,25</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">tiles/slime-idle00.png</key>
+            <key type="filename">tiles/slime-idle01.png</key>
+            <key type="filename">tiles/slime-idle02.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>12,12,25,24</rect>
+                <key>scale9Paddings</key>
+                <rect>12,12,25,24</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

@@ -175,16 +175,12 @@ class ParsedScene extends AbstractScene {
     createEnemies(this.#sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
-      addRandomArtefactsToActor(enemy, possibleWeapons, {
-        qty: 1,
-        equip: true,
-      });
-      const minArtefacts = enemy.isTrader() ? 4 : 0;
-      const maxArtefacts = enemy.isTrader() ? 7 : 2;
-      addRandomArtefactsToActor(enemy, possibleArtefacts, {
-        qty: maths.getRandomIntInclusive(minArtefacts, maxArtefacts),
-        equip: false,
-      });
+      if (enemy.isTrader()) {
+        addRandomArtefactsToActor(enemy, possibleArtefacts, {
+          qty: 7,
+          equip: false,
+        });
+      }
     });
     createArtefacts(this.#sceneDefn).forEach((artefact) => {
       artefact.position = tileMap.getRandomFreeGroundTile().worldPoint;

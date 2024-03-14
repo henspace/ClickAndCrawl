@@ -36,6 +36,7 @@ import { strToArtefactType } from '../../utils/game/artefacts.js';
  * @property {number} minLevel
  * @property {string} id
  * @property {ArtefactType | ActorType} type
+ * @property {string} equipmentIds - comma separated equipment list
  * @property {string} traitsString
  */
 /**
@@ -55,7 +56,9 @@ export const AlmanacLibrary = {
  * @param {string} type - 'ACTOR' or 'ARTEFACT'
  */
 function parseAlmanacLine(line, type) {
-  const parts = line.match(/^ *(\d+) *\| *(\w*) *\| *(\w*) *\| *(.*)$/);
+  const parts = line.match(
+    /^ *(\d+) *, *(\w*) *, *(\w*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
+  );
   if (!parts) {
     LOG.error(`Invalid almanac entry ${line}`);
     return null;
@@ -68,8 +71,18 @@ function parseAlmanacLine(line, type) {
       : strToActorType(parts[2]);
   entry.id = parts[3];
   entry.name = almanacUtils.createNameFromId(entry.id);
-  entry.traitsString = parts[4];
+  entry.equipmentIds = csvToArray(parts[4]);
+  entry.traitsString = parts[5];
   return entry;
+}
+
+/**
+ * Parse comma separated list of equipment ids into array.
+ * @param {string} list
+ * @returns {string[]}
+ */
+function csvToArray(list) {
+  return list ? list.trim().split(/\s*,\s*/) : list;
 }
 
 /**

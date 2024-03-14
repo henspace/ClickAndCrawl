@@ -7,4 +7,9 @@ punch-trimmed.mp3 based on punch-41105.mp3 by Pixabay via Pixabay - trimmed
 male-hurt-sound-trimmed.mp3 based on male-hurt-sound-trimmed.mp3 by Pixabay via
 Pixabay - trimmed.
 
-long-medium-swish-trimmed.mp3 based on long-medium-swish-44324.mp3 by Pixabay via Pixabay
+long-medium-swish-trimmed.mp3 based on long-medium-swish-44324.mp3 by Pixabay
+via Pixabay
+
+bubbling-trimmed.mpw based on bubbling-6184.mp3
+[https://pixabay.com/sound-effects/bubbling-6184/] by Pixabay via Pixabay -
+trimmed

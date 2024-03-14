@@ -35,13 +35,15 @@ import { Position } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
 import WORLD from '../../utils/game/world.js';
 import { Colours } from '../../constants/colours.js';
-import { Fight, Trade, FindArtefact } from '../interact.js';
+import { Fight, Trade, FindArtefact, Poison } from '../interact.js';
 import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
 import * as maths from '../../utils/maths.js';
 import GameConstants from '../../utils/game/gameConstants.js';
 import { CharacterTraits } from '../traits.js';
-import { MESSAGES } from '../../utils/messageManager.js';
 import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
+import { AlmanacLibrary } from './almanacs.js';
+import { buildArtefact } from './artefactBuilder.js';
+import LOG from '../../utils/logging.js';
 
 /**
  * Specialist traits renderer
@@ -196,10 +198,10 @@ function createArtefactKeyFrames(imageName) {
  * @param {string} imageName - no extension
  * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
- * @param {ActorType} actorType
+ * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
  * @returns {Actor}
  */
-function createActor(imageName, iconImageName, traits, actorType) {
+function createActor(imageName, iconImageName, traits, almanacEntry) {
   const keyedAnimation = createStandardKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -215,7 +217,7 @@ function createActor(imageName, iconImageName, traits, actorType) {
     new Sprite({
       renderer: [traitsRenderer, imageRenderer],
     }),
-    actorType
+    almanacEntry.type
   );
   keyedAnimation.setActor(actor);
   traitsRenderer.actor = actor;
@@ -224,7 +226,9 @@ function createActor(imageName, iconImageName, traits, actorType) {
     GameConstants.TILE_SIZE,
     0
   );
+  actor.almanacEntry = almanacEntry;
   actor.traits = traits;
+  actor.maxTilesPerMove = maths.safeParseInt(traits.get('SPEED', 1), 1);
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.iconImageName = iconImageName
     ? `${iconImageName}.png`
@@ -269,12 +273,17 @@ function createHiddenArtefact(imageName, traits) {
  * @param {string} imageName - without extension
  * @param {string} iconImageName - without extension. Name of icon for dialogs.
  * @param {module:dnd/traits~Traits} traits
- * @param {ActorType} actorType
+ * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
  * @returns {Actor}
  */
-function createEnemy(imageName, iconImageName, traits, actorType) {
-  const actor = createActor(imageName, iconImageName, traits, actorType);
-  actor.interaction = new Fight(actor);
+function createEnemy(imageName, iconImageName, traits, almanacEntry) {
+  const actor = createActor(imageName, iconImageName, traits, almanacEntry);
+  if (actor.isOrganic()) {
+    actor.interaction = new Poison(actor);
+    actor.obstacle = false;
+  } else {
+    actor.interaction = new Fight(actor);
+  }
   return actor;
 }
 
@@ -283,7 +292,7 @@ function createEnemy(imageName, iconImageName, traits, actorType) {
  * @param {string} imageName - without extension
  * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
- * @param {ActorType} actorType
+ * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
  * @returns {Actor}
  */
 function createTrader(imageName, iconImageName, traits, actorType) {
@@ -292,6 +301,30 @@ function createTrader(imageName, iconImageName, traits, actorType) {
   return actor;
 }
 
+/**
+ * @param {Actor} actor
+ * @param {string[]} equipmentIds - ids of artefacts in the artefacts almanac.
+ */
+function equipActor(actor, equipmentIds) {
+  if (!equipmentIds) {
+    return;
+  }
+  for (const id of equipmentIds) {
+    const artefactEntry = AlmanacLibrary.artefacts.find(
+      (entry) => entry.id === id
+    );
+    if (artefactEntry) {
+      const artefact = buildArtefact(artefactEntry);
+      if (artefact.equipStoreType) {
+        actor.storeManager.equip(artefact, { direct: true });
+      } else {
+        actor.storeManager.stash(artefact, { direct: true });
+      }
+    } else {
+      LOG.error(`Cannot find ${id} artefact in almanac to equip actor.`);
+    }
+  }
+}
 /**
  * Create an actor from an almanac entry.
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
@@ -302,17 +335,17 @@ export function buildActor(almanacEntry) {
   let actor;
   switch (almanacEntry.type) {
     case ActorType.HERO:
-      actor = createActor('hero', null, traits, almanacEntry.type);
+      actor = createActor('hero', null, traits, almanacEntry);
       break;
     case ActorType.TRADER:
-      actor = createTrader('trader', null, traits, almanacEntry.type);
+      actor = createTrader('trader', null, traits, almanacEntry);
       break;
     case ActorType.HIDDEN_ARTEFACT:
       actor = createHiddenArtefact(
         'hidden-artefact',
         null,
         traits,
-        almanacEntry.type
+        almanacEntry
       );
       break;
     default:
@@ -320,11 +353,14 @@ export function buildActor(almanacEntry) {
         almanacEntry.id.toLowerCase(),
         null,
         traits,
-        almanacEntry.type
+        almanacEntry
       );
       break;
   }
 
   actor.description = createDescriptionFromId(almanacEntry.id);
+  if (almanacEntry.equipmentIds) {
+    equipActor(actor, almanacEntry.equipmentIds);
+  }
   return actor;
 }

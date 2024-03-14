@@ -53,6 +53,12 @@ const artefacts = new Map();
 const passiveSprites = new Map();
 
 /**
+ * Sprites that grow or spawn. These are drawn first.
+ * @type {Map<string, Sprite>}
+ */
+const organicActors = new Map();
+
+/**
  * Get the world dimensions. The dimensions are based on the worldTileMap size.
  * It defaults to the screen dimensions if no map has been set.
  * @returns {{number, number}} width and height
@@ -68,7 +74,11 @@ function getWorldDims() {
  * @param {module:utils/game/actors~Actor}
  */
 function addActor(target) {
-  actors.set(target, target);
+  if (target.isOrganic()) {
+    organicActors.set(target, target);
+  } else {
+    actors.set(target, target);
+  }
   worldTileMap.moveTileOccupancyGridPoint(
     target,
     null,
@@ -83,7 +93,11 @@ function addActor(target) {
 function removeActor(target) {
   const gridPoint = worldTileMap.worldPointToGrid(target.position);
   worldTileMap.deleteOccupancyOfGridPoint(target, gridPoint);
-  actors.delete(target);
+  if (target.isOrganic()) {
+    organicActors.delete(target);
+  } else {
+    actors.delete(target);
+  }
 }
 
 /**
@@ -153,6 +167,7 @@ function removeTileMap() {
  * Clear the map and all actors.
  */
 function clearAll() {
+  organicActors.forEach((actor) => removeActor(actor));
   actors.forEach((actor) => removeActor(actor));
   artefacts.forEach((actor) => removeArtefact(actor));
   passiveSprites.forEach((sprite) => removePassiveSprite(sprite));
@@ -165,6 +180,13 @@ function clearAll() {
  */
 function update(deltaSeconds) {
   worldTileMap?.update(deltaSeconds);
+  organicActors.forEach((actor) => {
+    const oldGridPoint = worldTileMap.worldPointToGrid(actor.position);
+    actor.visible = worldTileMap.canHeroSeeGridPoint(oldGridPoint);
+    actor.update(deltaSeconds);
+    const newGridPoint = worldTileMap.worldPointToGrid(actor.position);
+    worldTileMap.moveTileOccupancyGridPoint(actor, oldGridPoint, newGridPoint);
+  });
   artefacts.forEach((artefact) => {
     const oldGridPoint = worldTileMap.worldPointToGrid(artefact.position);
     artefact.visible = worldTileMap.canHeroSeeGridPoint(oldGridPoint);
@@ -233,6 +255,14 @@ function getActors() {
 }
 
 /**
+ * Get the organic actors
+ * @returns {Map<Actor, Actor>}
+ */
+function getOrganicActors() {
+  return organicActors;
+}
+
+/**
  * Get the artefacts
  * @returns {Map<Actor, Actor>}
  */
@@ -249,6 +279,7 @@ const WORLD = {
   addPassiveSprite: addPassiveSprite,
   clearAll: clearAll,
   getActors: getActors,
+  getOrganicActors: getOrganicActors,
   getArtefacts: getArtefacts,
   getTileMap: getTileMap,
   getWorldDims: getWorldDims,

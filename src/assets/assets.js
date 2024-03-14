@@ -1,12 +1,10 @@
 /**
- * @file Load assets. This module is placed in the assets folder to simplify
- * dynamic imports using Parcel's import.meta.url property.
+ * @file Urls
  *
- * @module utils/assetLoaders.js
+ * @module src/assets/urls.js
  */
 /**
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,34 +26,31 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import LOG from './logging.js';
+import textureMap from './images/dungeon.json';
 
 /**
- * Load text file from URL.
- * @param {URL} url
- * @return {Promise} fulfils to text or null.
+ * Urls for dynamically loading resources @type {Object<string, URL>}
  */
-export function loadTextFromUrl(url) {
-  return fetch(url)
-    .then((response) => response.text())
-    .then((text) => text)
-    .catch((reason) => {
-      LOG.error(`Error fetching ${url}: ${reason}`);
-      return null;
-    });
-}
+export const AssetUrls = {
+  ACTOR_ALMANAC: new URL('./almanacs/actors.txt', import.meta.url),
+  ARTEFACT_ALMANAC: new URL('./almanacs/artefacts.txt', import.meta.url),
+  DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
+  MUSIC: new URL(
+    './audio/do-alto-do-trono-da-desolacao-trimmed.mp3',
+    import.meta.url
+  ),
+  SOUND_EFFECTS_MAP: new Map([
+    ['PUNCH', new URL('./audio/punch-trimmed.mp3', import.meta.url)],
+    ['MISS', new URL('./audio/long-medium-swish-trimmed.mp3', import.meta.url)],
+    ['POISONED', new URL('./audio/bubbling-trimmed.mp3', import.meta.url)],
+    ['DIE', new URL('./audio/male-hurt-sound-trimmed.mp3', import.meta.url)],
+  ]),
+};
 
 /**
- * Load json from URL.
- * @param {URL} url
- * @return {Promise} fulfils to json object or null.
+ * @type {{data: Object, textureUrl: URL}}
  */
-export function loadJsonFromUrl(url) {
-  return fetch(url)
-    .then((response) => response.text())
-    .then((text) => text)
-    .catch((reason) => {
-      LOG.error(`Error fetching ${url}: ${reason}`);
-      return null;
-    });
-}
+export const SpriteSheet = {
+  data: textureMap,
+  textureUrl: new URL('./images/dungeon.png', import.meta.url),
+};

@@ -41,6 +41,13 @@ export function rollDice(sides = 6) {
   return maths.getRandomIntInclusive(1, sides);
 }
 
+/** Test to see if string is a multidice.
+ * @param {string} str
+ * @returns {boolean}
+ */
+export function isMultiDice(str) {
+  return MULTIDICE_REGEX.test(str);
+}
 /**
  * Roll multiple dice.
  * @param {string} dice - in format nDs. E.g. 1D6
@@ -56,7 +63,31 @@ export function rollMultiDice(dice) {
   }
   let result = 0;
   for (let roll = 0; roll < match[1]; roll++) {
-    result += rollDice(match[2]);
+    result += rollDice(parseInt(match[2]));
   }
   return result;
+}
+
+/**
+ * Get the maximum throw possible from a multidice.
+ * @param {string} dice
+ * @returns {number}
+ */
+export function maxThrow(dice) {
+  const match = dice.match(MULTIDICE_REGEX);
+  if (!match) {
+    LOG.error(`Invalid dice format: ${dice}`);
+    return 0;
+  }
+  return parseInt(match[1]) * parseInt(match[2]);
+}
+
+/**
+ * Compare two multidice definitions and return the largest.
+ * @param {string} diceA
+ * @param {string} diceB
+ * @returns {string}
+ */
+export function biggestMultiDice(diceA, diceB) {
+  return maxThrow(diceA) > maxThrow(diceB) ? diceA : diceB;
 }

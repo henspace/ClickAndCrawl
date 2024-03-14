@@ -543,17 +543,22 @@ export class ArtefactStoreManager {
   /** @type {boolean} */
   #hasWagon;
 
+  /** @type {function} */
+  #onChange;
+
   /**
    * Construct artefact storage.
    * @param {boolean} hasWagon
+   * @param {function()} onChange - called when there is an inventory change.
    */
-  constructor(hasWagon) {
+  constructor(hasWagon, onChange) {
     this.#stores = new Map();
     this.#hasWagon = hasWagon;
     for (const storeTypeName in StoreType) {
       const storeType = StoreType[storeTypeName];
       this.#addStore(storeType);
     }
+    this.#onChange = onChange;
   }
 
   /**
@@ -563,6 +568,14 @@ export class ArtefactStoreManager {
     return this.#hasWagon;
   }
 
+  /**
+   * Notify change.
+   */
+  #notifyChange() {
+    if (this.#onChange) {
+      this.#onChange();
+    }
+  }
   /**
    *
    * @param {StoreType} storeType
@@ -625,7 +638,9 @@ export class ArtefactStoreManager {
    */
   addArtefact(artefact) {
     const store = this.getStore(artefact.getDefaultStoreType());
-    return store?.add(artefact);
+    const result = store?.add(artefact);
+    this.#notifyChange();
+    return result;
   }
 
   /**
@@ -647,6 +662,24 @@ export class ArtefactStoreManager {
       }
     }
     return null;
+  }
+
+  /**
+   * Get all equipped artefacts.
+   * @returns {Artefact[]}
+   */
+  getAllEquippedArtefacts() {
+    const result = [];
+    const stores = [
+      this.#stores.get(StoreType.HEAD),
+      this.#stores.get(StoreType.BODY),
+      this.#stores.get(StoreType.HANDS),
+      this.#stores.get(StoreType.FEET),
+    ];
+    for (const store of stores) {
+      store.values().forEach((item) => result.push(item));
+    }
+    return result;
   }
   /**
    * Get all stored artefacts.
@@ -678,6 +711,7 @@ export class ArtefactStoreManager {
   addToPurse(gp) {
     const artefact = MoneyStore.createGoldCoinArtefact(gp);
     this.#stores.get(StoreType.PURSE).add(artefact);
+    this.#notifyChange();
   }
 
   /**
@@ -688,6 +722,7 @@ export class ArtefactStoreManager {
   takeFromPurse(gp) {
     const artefact = MoneyStore.createGoldCoinArtefact(gp);
     const taken = this.#stores.get(StoreType.PURSE).take(artefact);
+    this.#notifyChange();
     return taken.costInGp;
   }
 
@@ -734,6 +769,7 @@ export class ArtefactStoreManager {
       }
       return false;
     }
+    this.#notifyChange();
     return true;
   }
   /**
@@ -756,6 +792,7 @@ export class ArtefactStoreManager {
       }
       return false;
     }
+    this.#notifyChange();
     return true;
   }
 
@@ -799,7 +836,9 @@ export class ArtefactStoreManager {
       stashStore?.add(unequiped);
     }
 
-    return equipStore.add(artefact);
+    const result = equipStore.add(artefact);
+    this.#notifyChange();
+    return result;
   }
 
   /**
@@ -837,6 +876,8 @@ export class ArtefactStoreManager {
       LOG.error("The artefact hasn't been equipped so can't unequip it.");
       return false;
     }
-    return stashStore.add(artefact);
+    const result = stashStore.add(artefact);
+    this.#notifyChange();
+    return result;
   }
 }
