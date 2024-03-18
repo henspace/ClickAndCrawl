@@ -190,6 +190,16 @@
             <key type="filename">tiles/floor2-SBE.png</key>
             <key type="filename">tiles/floor2-SBW.png</key>
             <key type="filename">tiles/floor2.png</key>
+            <key type="filename">tiles/goblin-dead00.png</key>
+            <key type="filename">tiles/goblin-idle00.png</key>
+            <key type="filename">tiles/goblin-idle01.png</key>
+            <key type="filename">tiles/goblin-idle02.png</key>
+            <key type="filename">tiles/goblin-idle03.png</key>
+            <key type="filename">tiles/goblin-walk-e00.png</key>
+            <key type="filename">tiles/goblin-walk-n00.png</key>
+            <key type="filename">tiles/goblin-walk-s00.png</key>
+            <key type="filename">tiles/goblin-walk-w00.png</key>
+            <key type="filename">tiles/goblin.png</key>
             <key type="filename">tiles/gold_coins.png</key>
             <key type="filename">tiles/helmet.png</key>
             <key type="filename">tiles/hero-dead00.png</key>
@@ -228,6 +238,7 @@
             <key type="filename">tiles/hud-auto-centre01.png</key>
             <key type="filename">tiles/hud-fullscreen00.png</key>
             <key type="filename">tiles/hud-fullscreen01.png</key>
+            <key type="filename">tiles/miss.png</key>
             <key type="filename">tiles/orc-dead00.png</key>
             <key type="filename">tiles/orc-idle00.png</key>
             <key type="filename">tiles/orc-idle01.png</key>
@@ -328,8 +339,8 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tiles/blood-splat-twice.png</key>
             <key type="filename">tiles/blood-splat.png</key>
-            <key type="filename">tiles/pow.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>

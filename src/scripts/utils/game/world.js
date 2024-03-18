@@ -1,7 +1,7 @@
 /**
  * @file World limitations
  *
- * @module utils/game/world
+ * @module game/world
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -71,7 +71,7 @@ function getWorldDims() {
 
 /**
  * Add a actor to the world.
- * @param {module:utils/game/actors~Actor}
+ * @param {module:players/actors~Actor}
  */
 function addActor(target) {
   if (target.isOrganic()) {
@@ -88,7 +88,7 @@ function addActor(target) {
 
 /**
  * Remove actor from the world.
- * @param {module:utils/game/actors~Actor}
+ * @param {module:players/actors~Actor}
  */
 function removeActor(target) {
   const gridPoint = worldTileMap.worldPointToGrid(target.position);
@@ -102,7 +102,7 @@ function removeActor(target) {
 
 /**
  * Add a artefact to the world.
- * @param {module:utils/game/actors~Actor}
+ * @param {module:players/actors~Actor}
  */
 function addArtefact(target) {
   artefacts.set(target, target);
@@ -114,7 +114,7 @@ function addArtefact(target) {
 }
 /**
  * Remove artefact from the world.
- * @param {module:utils/game/actors~Actor}
+ * @param {module:players/actors~Actor}
  */
 function removeArtefact(target) {
   const gridPoint = worldTileMap.worldPointToGrid(target.position);

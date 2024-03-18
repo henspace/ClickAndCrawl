@@ -1,7 +1,7 @@
 /**
  * @file Fullscreen button
  *
- * @module utils/game/fullscreen
+ * @module game/fullscreen
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -28,14 +28,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { AnimatedImage } from '../sprites/animation.js';
-import GameConstants from './gameConstants.js';
-import HUD from './hud.js';
 import { LoopMethod } from '../arrays/indexer.js';
 import LOG from '../logging.js';
-
-/** @type {Actor} */
-let fullscreenButton;
-let fullscreenButtonImage;
 
 /**
  * Request full screen mode.
@@ -53,9 +47,26 @@ function requestFullscreen(element, options) {
 }
 
 /**
- * Add a full screen button to the HUD
+ * @typedef {Object} FullscreenButtonDefn
+ * @param {AnimatedImage} image
+ * @param {module:ui/interactions~UiClickCallback} callbackOn
+ * @param {module:ui/interactions~UiClickCallback} callbackOff
  */
-export function addFullscreenButtonToHud() {
+/**
+ * Create a full screen button.
+ * @returns {FullscreenButtonDefn}
+ */
+export function getFullscreenButtonDefn() {
+  let fullscreenButtonImage = new AnimatedImage(
+    {
+      prefix: 'hud-fullscreen',
+      startIndex: 0,
+      padding: 2,
+      suffix: '.png',
+    },
+    { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
+  );
+
   addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
       LOG.debug('Exiting fullscreen mode.');
@@ -66,24 +77,13 @@ export function addFullscreenButtonToHud() {
     }
   });
 
-  fullscreenButtonImage = new AnimatedImage(
-    {
-      prefix: 'hud-fullscreen',
-      startIndex: 0,
-      padding: 2,
-      suffix: '.png',
-    },
-    { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
-  );
-  fullscreenButton = HUD.addButton(
-    fullscreenButtonImage,
-    () => {
+  return {
+    image: fullscreenButtonImage,
+    callbackOn: () => {
       requestFullscreen(document.body, { navigationUI: 'hide' });
     },
-    () => {
+    callbackOff: () => {
       document.exitFullscreen();
-    }
-  );
-  fullscreenButton.position.x = GameConstants.TILE_SIZE;
-  fullscreenButton.position.y = -GameConstants.TILE_SIZE;
+    },
+  };
 }

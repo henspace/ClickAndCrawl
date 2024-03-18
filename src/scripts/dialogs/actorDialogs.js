@@ -30,8 +30,8 @@ import UI, { DialogResponse } from '../utils/dom/ui.js';
 import * as components from '../utils/dom/components.js';
 
 import { i18n } from '../utils/messageManager.js';
-import { ArtefactType, StoreType } from '../utils/game/artefacts.js';
-import SCENE_MANAGER from '../utils/game/sceneManager.js';
+import { ArtefactType, StoreType } from '../players/artefacts.js';
+import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import { gpAsString } from '../utils/game/coins.js';
 /**
  * @typedef {number} ArtefactActionTypeValue
@@ -499,7 +499,7 @@ function showSpellDialog(optionsUnused) {
 
 /**
  * Create an id card element for an actor.
- * @param {module:utils/game/actors~Actor} actor
+ * @param {module:players/actors~Actor|module:game/artefact~Artefacts} actor
  * @returns {Element}
  */
 function createIdCard(actor) {
@@ -512,11 +512,35 @@ function createIdCard(actor) {
       text: actor.traits?.get('NAME') ?? i18n`Unknown`,
     })
   );
+
+  const hp = actor.traits.getInt('HP');
+  if (hp) {
+    const hpMax = actor.traits.getInt('HP_MAX');
+    let hpText;
+    if (hpMax) {
+      hpText = i18n`(HP OUT OF VALUE) ${hp} ${hpMax}`;
+    } else {
+      hpText = i18n`(HP VALUE) ${hp}`;
+    }
+    idCard.appendChild(
+      components.createElement('span', {
+        text: hpText,
+      })
+    );
+  }
+  if (actor.traits.getCharacterLevel) {
+    idCard.appendChild(
+      components.createElement('span', {
+        text: i18n`CHARACTER LEVEL: ${actor.traits.getCharacterLevel()}`,
+      })
+    );
+  }
+
   return idCard;
 }
 /**
  * Create an element describing an actor.
- * @param {module:utils/game/actors~Actor} actor
+ * @param {module:players/actors~Actor} actor
  * @param {Object} options
  * @param {boolean} options.hideDescription
  * @param {boolean} options.hideTraits
@@ -543,7 +567,7 @@ function createActorElement(actor, options = {}) {
 /**
  * Create an element showing an actor's traits. Gold coins contained in the actor's
  * purse are included as a trait if includeGold flag is set.
- * @param {module:utils/game/actors~Actor} actor
+ * @param {module:players/actors~Actor|module:players/artefacts~Artefact} actor
  * @param {string[]} excludedKeys - Keys to ignore. Elements starting with an
  * underscore are automatically hidden.
  * @param {boolean} includeGold - flag to determine if gold pieces are included.
@@ -551,6 +575,14 @@ function createActorElement(actor, options = {}) {
  */
 function createTraitsList(actor, excludedKeys, includeGold) {
   const traitsList = document.createElement('ul');
+  if (actor.traits.getEffectiveAc) {
+    traitsList.appendChild(
+      components.createElement('li', {
+        text: i18n`AC (including armour)${actor.traits.getEffectiveAc()}`,
+      })
+    );
+  }
+
   if (includeGold) {
     const goldPieces = actor.storeManager?.getPurseValue();
     if (goldPieces) {
@@ -563,16 +595,21 @@ function createTraitsList(actor, excludedKeys, includeGold) {
   }
 
   actor.traits?.getAllTraits().forEach((value, key) => {
-    if (!excludedKeys.includes(key) && !key.startsWith('_')) {
-      const displayedKey = key?.replace('_', ' ');
-      const item = document.createElement('li');
-      const label = components.createElement('span', {
-        text: `${displayedKey}: `,
-      });
-      const content = components.createElement('span', { text: value });
-      traitsList.appendChild(item);
-      item.appendChild(label);
-      item.appendChild(content);
+    if (value && value !== '0') {
+      const displayedValue = Array.isArray(value) ? value.join(', ') : value;
+      if (!excludedKeys.includes(key) && !key.startsWith('_')) {
+        const displayedKey = key?.replace('_', ' ');
+        const item = document.createElement('li');
+        const label = components.createElement('span', {
+          text: `${displayedKey}: `,
+        });
+        const content = components.createElement('span', {
+          text: displayedValue,
+        });
+        traitsList.appendChild(item);
+        item.appendChild(label);
+        item.appendChild(content);
+      }
     }
   });
   return traitsList;
@@ -682,7 +719,7 @@ export function showPillageDialog(pillager, victim) {
 // Export dialogs
 /**
  * Display details about the actor.
- * @param {module:utils/game/actors~Actor} actor
+ * @param {module:players/actors~Actor} actor
  */
 export function showActorDetailsDialog(actor) {
   const container = document.createElement('div');
@@ -756,7 +793,9 @@ export function showArtefactDialog(options) {
             ? artefact.costInGp
             : artefact.sellBackPriceInGp;
           sourceStoreManager.addToPurse(money);
-          destStoreManager.takeFromPurse(money);
+          if (!options.prospectiveOwner.isTrader()) {
+            destStoreManager.takeFromPurse(money); // traders have unlimited funds
+          }
           sourceStoreManager.discard(artefact);
           if (artefact.stashInWagon && !destStoreManager.hasWagon) {
             destStoreManager.equip(artefact, { direct: true });

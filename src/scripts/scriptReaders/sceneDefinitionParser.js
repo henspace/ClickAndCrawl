@@ -30,20 +30,19 @@
 
 import { TilePlan } from '../utils/tileMaps/tilePlan.js';
 import { TileMap } from '../utils/tileMaps/tileMap.js';
-import TURN_MANAGER from '../utils/game/turnManager.js';
+import TURN_MANAGER from '../gameManagement/turnManager.js';
 import WORLD from '../utils/game/world.js';
 import SCREEN from '../utils/game/screen.js';
 import { TILE_MAP_KEYS } from './symbolMapping.js';
 import { AbstractScene } from '../utils/game/scene.js';
-import SCENE_MANAGER from '../utils/game/sceneManager.js';
+import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import GameConstants from '../utils/game/gameConstants.js';
-import { ActorType } from '../utils/game/actors.js';
-import { ArtefactType } from '../utils/game/artefacts.js';
+import { ActorType } from '../players/actors.js';
 
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
-import { AlmanacLibrary } from '../dnd/almanacs/almanacs.js';
+import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -112,24 +111,25 @@ function createArtefacts(sceneDefn) {
 }
 
 /**
- * Add an artefact from the array of possible artefacts.
+ * Add an artefact from the almanac.
  * @param {Actor[]} actors
- * @param {module:dnd/almanacs/almanacActors~AlmanacEntry[]} possibleArtefacts
+ * @param {string[]} almanacKeys
  * @param {Object} options
  * @param {number} options.qty - number to add.
  * @param {boolean} options.equip - if true, try to equip rather than stash.
  */
-function addRandomArtefactsToActor(actor, possibleArtefacts, options) {
-  if (!possibleArtefacts || possibleArtefacts.length === 0) {
-    return;
-  }
+function addRandomArtefactsToActor(actor, almanacKeys, options) {
   while (options.qty-- > 0) {
-    const index = maths.getRandomInt(0, possibleArtefacts.length);
-    const artefact = buildArtefact(possibleArtefacts[index]);
-    if (options.equip && artefact.equipStoreType) {
-      actor.storeManager?.equip(artefact, { direct: true });
-    } else {
-      actor.storeManager?.stash(artefact, { direct: true });
+    const index = maths.getRandomInt(0, almanacKeys.length);
+    const almanacKey = almanacKeys[index];
+    const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(almanacKey);
+    if (almanacEntry) {
+      const artefact = buildArtefact(almanacEntry);
+      if (options.equip && artefact.equipStoreType) {
+        actor.storeManager?.equip(artefact, { direct: true });
+      } else {
+        actor.storeManager?.stash(artefact, { direct: true });
+      }
     }
   }
 }
@@ -154,29 +154,24 @@ class ParsedScene extends AbstractScene {
   }
 
   doInitialise() {
-    const level = SCENE_MANAGER.getCurrentSceneLevel();
     const tilePlan = TilePlan.generateTileMapPlan(
       this.#sceneDefn.mapDesign,
       TILE_MAP_KEYS
     );
-    const tileMap = new TileMap(SCREEN.getContext2D(), tilePlan, GRID_SIZE);
-    WORLD.setTileMap(tileMap);
     this.heroActor = createHero(this.#sceneDefn);
-    const possibleWeapons = AlmanacLibrary.artefacts.filter(
-      (artefact) =>
-        (artefact.type === ArtefactType.SHIELD ||
-          artefact.type === ArtefactType.WEAPON ||
-          artefact.type === ArtefactType.TWO_HANDED_WEAPON) &&
-        artefact.minLevel <= level
+    const tileMap = new TileMap(
+      SCREEN.getContext2D(),
+      tilePlan,
+      GRID_SIZE,
+      this.heroActor
     );
-    const possibleArtefacts = AlmanacLibrary.artefacts.filter(
-      (artefact) => artefact.minLevel <= level
-    );
+    WORLD.setTileMap(tileMap);
+
     createEnemies(this.#sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
       if (enemy.isTrader()) {
-        addRandomArtefactsToActor(enemy, possibleArtefacts, {
+        addRandomArtefactsToActor(enemy, ['WEAPONS', 'ARMOUR', 'ARTEFACTS'], {
           qty: 7,
           equip: false,
         });

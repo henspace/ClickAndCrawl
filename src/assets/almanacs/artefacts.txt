@@ -1,16 +1,5 @@
 # minlevel:number,ArtefactType:string,id:string * traits:string
-0,COINS,copper_coins * COST:10>25 CP
-0,COINS,silver_coins * COST:10>25 SP
-0,COINS,gold_coins * COST:10>25 GP
-0,COINS,platinum_coins * COST:10>25 PP
-0,ARMOUR,armour_padded * AC:11,COST:5 GP
-0,ARMOUR,armour_leather * AC:11,COST:10 GP
-0,ARMOUR,armour_studded_leather * AC:12,COST:45 GP
-1,ARMOUR,armour_scale_mail * AC:14,COST:50 GP
-1,ARMOUR,armour_half_plate * AC:15,COST:750 GP
-1,ARMOUR,armour_ring_mail * AC:14,COST:30 GP
-1,ARMOUR,armour_chain_mail * AC:16,COST:75 GP
-1,ARMOUR,armour_plate * AC:18, COST:1500 GP
-0,WEAPON,club * COST: 1 SP,DMG:1d4
-0,WEAPON,shortsword * COST:10 GP , DMG:1D6
+
+
+
 

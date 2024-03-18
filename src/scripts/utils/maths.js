@@ -177,3 +177,14 @@ export function safeParseInt(value, defValue = 0, radix) {
   const result = parseInt(value, radix);
   return Number.isNaN(result) ? defValue : result;
 }
+
+/**
+ * Safe version of parseIntFloat which never returns NaN
+ * @param {number} value
+ * @param {number} [defValue = 0]
+ * @returns {number} result of parseFloat or defValue if NaN
+ */
+export function safeParseFloat(value, defValue = 0) {
+  const result = parseFloat(value);
+  return Number.isNaN(result) ? defValue : result;
+}

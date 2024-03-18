@@ -31,7 +31,7 @@
 import LOG from './logging.js';
 import * as maths from './maths.js';
 
-const MULTIDICE_REGEX = /(\d+)[dD](\d+)/;
+const MULTIDICE_REGEX = /(\d+)[dD](\d+)(?: *\+ *(\d+))?/;
 /**
  * Roll a dice
  * @param {number} [sides = 6] - number of sides on the dice
@@ -50,36 +50,51 @@ export function isMultiDice(str) {
 }
 /**
  * Roll multiple dice.
- * @param {string} dice - in format nDs. E.g. 1D6
+ * @param {string} dice - in format nDs. E.g. 1D6. If dice is falsy or incorrectly
+ * formatted the dice is taken as a 1D1. If it is an integer it is just taken as
+ * that many sided dice.
  * @returns {number} result
  */
 export function rollMultiDice(dice) {
+  if (!dice) {
+    return 1;
+  }
+  if (Number.isInteger(dice)) {
+    return rollDice(dice);
+  }
   const match = dice.match(MULTIDICE_REGEX);
   if (!match) {
     LOG.error(
-      `String ${dice} not recognised as a dice roll. Defaulting to 1D6.`
+      `String ${dice} not recognised as a dice roll. Defaulting to 1D1.`
     );
-    return rollDice(6);
+    return 1;
   }
   let result = 0;
   for (let roll = 0; roll < match[1]; roll++) {
     result += rollDice(parseInt(match[2]));
   }
-  return result;
+  const offset = match[3] ? parseInt(match[3]) : 0;
+  return result + offset;
 }
 
 /**
  * Get the maximum throw possible from a multidice.
- * @param {string} dice
+ * @param {string} dice - dice in format nDs. If dice is falsy,
+ * the dice is taken as a 1D1. The dice specifier can be followed by an positive
+ * offset. E.g. 2d6 + 8
  * @returns {number}
  */
-export function maxThrow(dice) {
+export function maxRoll(dice) {
+  if (!dice) {
+    return 1;
+  }
   const match = dice.match(MULTIDICE_REGEX);
   if (!match) {
     LOG.error(`Invalid dice format: ${dice}`);
     return 0;
   }
-  return parseInt(match[1]) * parseInt(match[2]);
+  const offset = match[3] ? parseInt(match[3]) : 0;
+  return parseInt(match[1]) * parseInt(match[2]) + offset;
 }
 
 /**
@@ -89,5 +104,5 @@ export function maxThrow(dice) {
  * @returns {string}
  */
 export function biggestMultiDice(diceA, diceB) {
-  return maxThrow(diceA) > maxThrow(diceB) ? diceA : diceB;
+  return maxRoll(diceA) > maxRoll(diceB) ? diceA : diceB;
 }

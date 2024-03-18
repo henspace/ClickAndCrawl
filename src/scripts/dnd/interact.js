@@ -33,21 +33,20 @@ import { Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
 import { PathFollower, moveActorToPosition } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
-import * as chance from './chance.js';
 import UI from '../utils/dom/ui.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
-import PERSISTENT_DATA from '../utils/persistentData.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
 import * as dndAction from './dndAction.js';
 
 /**
  * Apply damage to defender
+ * @param {Actor} attacker
  * @param {Actor} defender
  * @param {number} damage
  * @returns {number} resulting HP of defender
  */
-function applyDamage(defender, damage) {
+function applyDamage(attacker, defender, damage) {
   let defenderHP = defender.traits.get('HP', 0);
   defenderHP = Math.max(0, defenderHP - damage);
   defender.traits.set('HP', defenderHP);
@@ -56,6 +55,9 @@ function applyDamage(defender, damage) {
     LOG.info('Killed actor.');
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
+    if (attacker.isHero()) {
+      attacker.traits.adjustForDefeatOfActor(defender);
+    }
   } else {
     addFadingText(`-${damage} HP`, {
       lifetimeSecs: 2,
@@ -79,7 +81,7 @@ export class AbstractInteraction {
     this.actor = actor;
   }
   /**
-   * @param {module:utils/game/actors~Actor} reactor
+   * @param {module:players/actors~Actor} reactor
    * @returns {Promise}
    */
   enact(reactorUnused) {
@@ -87,7 +89,7 @@ export class AbstractInteraction {
   }
 
   /**
-   * @param {module:utils/game/actors~Actor} enactor
+   * @param {module:players/actors~Actor} enactor
    * @returns {Promise}
    */
   react(enactorUnused) {
@@ -95,13 +97,34 @@ export class AbstractInteraction {
   }
 
   /**
-   * Test to see if actor can run away from an interaction. If the actor cannot,
-   * a failed message appears. The actual move is not undertaken
+   * Test to see if the interaction can react.
+   * This should be overridden.
+   * @returns {boolean}
+   */
+  canReact() {
+    return false;
+  }
+
+  /**
+   * Test to see if the interaction can enact.
+   * This should be overridden.
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+
+  /**
+   * Test to see if actor can disengage from an interaction. Actors can
+   * always move away from an interaction. Disengaging is different in that
+   * following actions can be affected. The interaction will not do anything
+   * about the disengaging. This flag merely indicates whether callers should
+   * respect an attempt to disengage.
    * @param {Actor} escaper
    * @returns {boolean} true if can run
    */
-  allowEscape(escaperUnused) {
-    return true;
+  respectDisengage(escaperUnused) {
+    return false;
   }
 }
 
@@ -117,9 +140,22 @@ export class Fight extends AbstractInteraction {
   constructor(actor) {
     super(actor);
   }
-
   /**
-   * @param {module:utils/game/actors~Actor} reactor
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return true;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
+  /**
+   * @param {module:players/actors~Actor} reactor
    * @returns {Promise}
    */
   enact(reactor) {
@@ -127,7 +163,7 @@ export class Fight extends AbstractInteraction {
   }
 
   /**
-   * @param {module:utils/game/actors~Actor} enactor
+   * @param {module:players/actors~Actor} enactor
    * @returns {Promise}
    */
   react(enactor) {
@@ -140,15 +176,7 @@ export class Fight extends AbstractInteraction {
    * @param {Actor} escaper
    * @returns {boolean} true if can run
    */
-  allowEscape(escaper) {
-    if (!chance.evades(escaper, this.actor)) {
-      addFadingText('Failed to run.', {
-        lifetimeSecs: 2,
-        position: escaper.position,
-        velocity: new Velocity(0, -100, 0),
-      });
-      return false;
-    }
+  respectDisengage(escaperUnused) {
     return true;
   }
 
@@ -178,31 +206,38 @@ export class Fight extends AbstractInteraction {
    * @param {Actor} defender
    * @returns {Promise} fulfils to the defender's HP.
    */
-  #undertakeAttack(attacker, defender) {
+  #undertakeAllAttacks(attacker, defender) {
+    let totalDamage = 0;
+    let successfulAttacks = 0;
+    attacker.traits.getAttacks().forEach((attack) => {
+      const damage = dndAction.getMeleeDamage(attack, defender);
+      if (damage > 0) {
+        successfulAttacks++;
+        totalDamage += damage;
+      }
+    });
     return new Promise((resolve) => {
-      const damage = dndAction.getMeleeDamage(attacker, defender);
-      if (damage <= 0) {
+      if (totalDamage <= 0) {
         SOUND_MANAGER.playEffect('MISS');
-        addFadingText('Missed', {
-          lifetimeSecs: 2,
+        addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
+          lifetimeSecs: 1,
           position: defender.position,
-          velocity: new Velocity(0, -100, 0),
+          velocity: new Velocity(0, 0, 0),
         });
         resolve();
         return;
       }
-      SOUND_MANAGER.playEffect('PUNCH');
-      addFadingImage(
-        IMAGE_MANAGER.getSpriteBitmap(
-          PERSISTENT_DATA.get('BLOOD_ON') ? 'blood-splat.png' : 'pow.png'
-        ),
-        {
-          lifetimeSecs: 1,
-          position: defender.position,
-          velocity: new Velocity(0, 0, 0),
-        }
-      );
-      const defenderHP = applyDamage(defender, damage);
+      let hitSound = successfulAttacks > 1 ? 'DOUBLE PUNCH' : 'PUNCH';
+      let hitImage =
+        successfulAttacks > 1 ? 'blood-splat-twice.png' : 'blood-splat.png';
+
+      SOUND_MANAGER.playEffect(hitSound);
+      addFadingImage(IMAGE_MANAGER.getSpriteBitmap(hitImage), {
+        lifetimeSecs: 1,
+        position: defender.position,
+        velocity: new Velocity(0, 0, 0),
+      });
+      const defenderHP = applyDamage(attacker, defender, totalDamage);
       resolve(defenderHP);
     });
   }
@@ -215,7 +250,7 @@ export class Fight extends AbstractInteraction {
    */
   #resolveAttackerDefender(attacker, defender) {
     return this.#displayAttack(attacker, defender).then(() =>
-      this.#undertakeAttack(attacker, defender)
+      this.#undertakeAllAttacks(attacker, defender)
     );
   }
 }
@@ -234,8 +269,22 @@ export class InteractWithCorpse extends AbstractInteraction {
   }
 
   /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
+  /**
    * Respond to a search
-   * @param {module:utils/game/actors~Actor} reactor
+   * @param {module:players/actors~Actor} reactor
    * @returns {Promise}
    */
   async react(enactor) {
@@ -271,12 +320,25 @@ export class Trade extends AbstractInteraction {
   constructor(actor) {
     super(actor);
   }
-
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
   /**
    * Trades are passive. Only the hero can initiate a trade.
    * Note there is possibility for traders to block the exit, so
    * the option to barge past is provided.
-   * @param {module:utils/game/actors~Actor} enactor
+   * @param {module:players/actors~Actor} enactor
    * @returns {Promise}
    */
   react(enactor) {
@@ -319,11 +381,24 @@ export class FindArtefact extends AbstractInteraction {
   constructor(actor) {
     super(actor);
   }
-
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
   /**
    * Finding an artefact is a passive action and can only be initiated by another
    * actor.
-   * @param {module:utils/game/actors~Actor} enactor
+   * @param {module:players/actors~Actor} enactor
    * @returns {Promise}
    */
   async react(enactor) {
@@ -377,7 +452,21 @@ export class Poison extends AbstractInteraction {
     super(actor);
   }
   /**
-   * @param {module:utils/game/actors~Actor} reactor
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return true;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return false;
+  }
+  /**
+   * @param {module:players/actors~Actor} reactor
    * @returns {Promise}
    */
   enact(reactor) {
@@ -389,7 +478,7 @@ export class Poison extends AbstractInteraction {
         position: reactor.position,
         velocity: new Velocity(0, 0, 0),
       });
-      applyDamage(reactor, damage);
+      applyDamage(this.actor, reactor, damage);
     }
     return Promise.resolve();
   }

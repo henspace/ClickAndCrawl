@@ -3,7 +3,7 @@
  * Artefacts are items that exist in the game but are never rendered in the
  * tile map. They can be stored, or worn. Examples are money and weapons. They can
  * be held by actors, typically a trader or hiddenArtefact.
- * @module utils/game/artefacts
+ * @module players/artefacts
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -29,11 +29,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import LOG from '../logging.js';
+import LOG from '../utils/logging.js';
 import { ActorType } from './actors.js';
-import * as coins from './coins.js';
-import { i18n } from '../messageManager.js';
-import { Traits } from '../../dnd/traits.js';
+import * as coins from '../utils/game/coins.js';
+import { i18n } from '../utils/messageManager.js';
+import { Traits } from '../dnd/traits.js';
 
 /**
  * @typedef {Object} StoreTypeValue
@@ -389,6 +389,7 @@ class MoneyStore {
    */
   static createGoldCoinArtefact(gp) {
     const artefact = new Artefact(
+      'coins',
       i18n`DESCRIPTION COINS`,
       'coins.png',
       ArtefactType.COINS
@@ -404,6 +405,8 @@ class MoneyStore {
  */
 export class Artefact {
   /** @type {string} */
+  id;
+  /** @type {string} */
   iconImageName;
   /** @type {string} */
   description;
@@ -415,18 +418,20 @@ export class Artefact {
 
   /**
    * Create artefact.
+   * @param {string} id
    * @param {string} description
    * @param {string} iconImageName
    * @param {number} artefactType - artefact enumeration
    */
-  constructor(description, iconImageName, artefactType) {
+  constructor(id, description, iconImageName, artefactType) {
+    this.id = id;
     this.description = description;
     this.iconImageName = iconImageName;
     this.artefactType = artefactType;
   }
 
   /** Get the cost details.
-   * @returns {module:utils/game/coins~CoinDetails}
+   * @returns {module:game/coins~CoinDetails}
    */
   get costDetails() {
     const coinDefn = this.traits?.get('COST');
@@ -523,6 +528,7 @@ export class Artefact {
    */
   clone() {
     const clone = new Artefact(
+      this.id,
       this.description,
       this.iconImageName,
       this.artefactType

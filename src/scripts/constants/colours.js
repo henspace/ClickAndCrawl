@@ -33,6 +33,6 @@
  * @enum {string}
  */
 export const Colours = {
-  HP_GAUGE: 'rgba(255, 0, 0, 0.4)',
+  HP_GAUGE: 'rgba(204, 51, 0, 0.4)',
   MORALE_GAUGE: 'rgba(0, 0, 255, 0.4)',
 };

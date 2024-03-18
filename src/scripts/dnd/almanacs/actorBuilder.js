@@ -28,12 +28,11 @@
  */
 
 import { Sprite } from '../../utils/sprites/sprite.js';
-import { Actor, ActorType } from '../../utils/game/actors.js';
+import { Actor, ActorType, MoveType } from '../../players/actors.js';
 import * as spriteRenderers from '../../utils/sprites/spriteRenderers.js';
 import * as animation from '../../utils/sprites/animation.js';
 import { Position } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
-import WORLD from '../../utils/game/world.js';
 import { Colours } from '../../constants/colours.js';
 import { Fight, Trade, FindArtefact, Poison } from '../interact.js';
 import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
@@ -41,7 +40,7 @@ import * as maths from '../../utils/maths.js';
 import GameConstants from '../../utils/game/gameConstants.js';
 import { CharacterTraits } from '../traits.js';
 import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
-import { AlmanacLibrary } from './almanacs.js';
+import { ALMANAC_LIBRARY } from './almanacs.js';
 import { buildArtefact } from './artefactBuilder.js';
 import LOG from '../../utils/logging.js';
 
@@ -69,10 +68,9 @@ class TraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
    */
   render(position) {
     if (this.actor && this.actor.traits) {
-      const hp = this.actor.traits.get('HP', 0);
-      const hpMax = this.actor.traits.get('HP_MAX', 1);
+      const hp = this.actor.traits.getInt('HP', 0);
+      const hpMax = this.actor.traits.getInt('HP_MAX', 1);
       this.setLevel(0, hp / hpMax);
-      this.setLevel(1, 1);
     }
     super.render(position);
   }
@@ -141,6 +139,7 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
    * Only four points supported.
    */
   #setAnimationForState() {
+    const reverse = this.#actor.disengaging;
     if (!this.#actor.alive) {
       return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('DEAD'));
     }
@@ -149,18 +148,34 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
         this.setCurrentKey(StdAnimations.peripatetic.getKeyName('IDLE'));
         break;
       case maths.CompassEightPoint.E:
-        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_EAST'));
+        this.setCurrentKey(
+          StdAnimations.peripatetic.getKeyName(
+            reverse ? 'WALK_WEST' : 'WALK_EAST'
+          )
+        );
         break;
       case maths.CompassEightPoint.N:
       case maths.CompassEightPoint.NW:
       case maths.CompassEightPoint.NE:
-        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_NORTH'));
+        this.setCurrentKey(
+          StdAnimations.peripatetic.getKeyName(
+            reverse ? 'WALK_SOUTH' : 'WALK_NORTH'
+          )
+        );
         break;
       case maths.CompassEightPoint.W:
-        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_WEST'));
+        this.setCurrentKey(
+          StdAnimations.peripatetic.getKeyName(
+            reverse ? 'WALK_EAST' : 'WALK_WEST'
+          )
+        );
         break;
       default:
-        this.setCurrentKey(StdAnimations.peripatetic.getKeyName('WALK_SOUTH'));
+        this.setCurrentKey(
+          StdAnimations.peripatetic.getKeyName(
+            reverse ? 'WALK_NORTH' : 'WALK_SOUTH'
+          )
+        );
         break;
     }
   }
@@ -207,20 +222,30 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
     SCREEN.getContext2D(),
     keyedAnimation
   );
+  let renderers;
+  let traitsRenderer;
+  if (traits.get('MOVE') !== MoveType.ORGANIC) {
+    traitsRenderer = new TraitsRenderer(SCREEN.getContext2D(), {
+      tileSize: GameConstants.TILE_SIZE - 2,
+      fillStyles: [Colours.HP_GAUGE],
+      strokeStyles: [],
+    });
+    renderers = [traitsRenderer, imageRenderer];
+  } else {
+    renderers = [imageRenderer];
+  }
 
-  const traitsRenderer = new TraitsRenderer(SCREEN.getContext2D(), {
-    tileSize: WORLD.getTileMap().getGridSize() - 2,
-    fillStyles: [Colours.HP_GAUGE, Colours.MORALE_GAUGE],
-    strokeStyles: [],
-  });
   const actor = new Actor(
     new Sprite({
-      renderer: [traitsRenderer, imageRenderer],
+      renderer: renderers,
     }),
     almanacEntry.type
   );
   keyedAnimation.setActor(actor);
-  traitsRenderer.actor = actor;
+
+  if (traitsRenderer) {
+    traitsRenderer.actor = actor;
+  }
   actor.position = new Position(
     GameConstants.TILE_SIZE,
     GameConstants.TILE_SIZE,
@@ -309,10 +334,13 @@ function equipActor(actor, equipmentIds) {
   if (!equipmentIds) {
     return;
   }
+
   for (const id of equipmentIds) {
-    const artefactEntry = AlmanacLibrary.artefacts.find(
-      (entry) => entry.id === id
-    );
+    const artefactEntry = ALMANAC_LIBRARY.findById(id, [
+      'MONEY',
+      'WEAPONS',
+      'ARMOUR',
+    ]);
     if (artefactEntry) {
       const artefact = buildArtefact(artefactEntry);
       if (artefact.equipStoreType) {
@@ -330,7 +358,7 @@ function equipActor(actor, equipmentIds) {
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
  */
 export function buildActor(almanacEntry) {
-  const traits = new CharacterTraits().setFromString(almanacEntry.traitsString);
+  const traits = new CharacterTraits(almanacEntry.traitsString);
   traits.set('NAME', createNameFromId(almanacEntry.id));
   let actor;
   switch (almanacEntry.type) {

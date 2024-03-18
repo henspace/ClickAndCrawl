@@ -1,0 +1,1 @@
+0,HERO,hero [armour_chain_mail,shield,shortsword,gold_coins] * HIT_DICE:1D12,EXP:0, AC:10,_SPEED:3,PROF:armour&shield

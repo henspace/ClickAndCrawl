@@ -2,7 +2,7 @@
  * @file Actor classes. Actors encapsulate a Sprite and represent moving objects
  * that can interact with the game.
  *
- * @module utils/game/actors
+ * @module players/actors
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -29,11 +29,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { AbstractInteraction } from '../../dnd/interact.js';
-import { UiClickHandler } from '../ui/interactions.js';
+import { AbstractInteraction } from '../dnd/interact.js';
+import { UiClickHandler } from '../utils/ui/interactions.js';
 import { ArtefactStoreManager, ArtefactType } from './artefacts.js';
-import * as dice from '../dice.js';
-import LOG from '../logging.js';
+import * as dice from '../utils/dice.js';
+import LOG from '../utils/logging.js';
 
 /**
  * @typedef {Map<string, *>} Traits
@@ -90,6 +90,8 @@ export class Actor extends UiClickHandler {
   interaction;
   /** @type {boolean} */
   alive;
+  /** True if actor is disengaging from a fight. @type {boolean} */
+  disengaging;
   /** @type {string} */
   description;
   /** @type {string} */
@@ -109,6 +111,7 @@ export class Actor extends UiClickHandler {
     this.sprite.obstacle = true;
     this.maxTilesPerMove = 1;
     this.alive = true;
+    this.disengaging = false;
     this.type = type;
     this.storeManager = new ArtefactStoreManager(
       type === ActorType.TRADER || type === ActorType.HIDDEN_ARTEFACT,
@@ -269,8 +272,12 @@ export class Actor extends UiClickHandler {
    * @param {Actor} otherActor
    * @returns {boolean}
    */
-  isPassableByActor(otherActorUnused) {
-    return !this.alive || !this.obstacle;
+  isPassableByActor(otherActor) {
+    if (otherActor.isHero() && this.isHiddenArtefact()) {
+      return true;
+    } else {
+      return !this.alive || !this.obstacle;
+    }
   }
 
   /**
@@ -281,6 +288,8 @@ export class Actor extends UiClickHandler {
   canShareLocationWithActor(otherActor) {
     if (this.isOrganic()) {
       return !otherActor.isOrganic() && !otherActor.isTrader(); // don't kill off traders.
+    } else if (this.isHiddenArtefact()) {
+      return otherActor.isHero();
     } else {
       return !this.obstacle;
     }

@@ -123,6 +123,16 @@ export class Point {
     const dy = this.y - other.y;
     return Math.pow(dx, 2) + Math.pow(dy, 2) <= Math.pow(distance, 2);
   }
+  /**
+   * Get the absolute orthogonal separation between this and the other point.
+   * The separation is calculated by move in the x direction followed by the
+   * y direction. I.e. no diagonal movement.
+   * @param {Point} other
+   * @returns {number}
+   */
+  getOrthoSeparation(other) {
+    return Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
+  }
 }
 /**
  * Velocity class

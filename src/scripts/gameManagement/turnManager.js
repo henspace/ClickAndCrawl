@@ -2,7 +2,7 @@
  * @file Manage the game turns. The turnManager is a state machine and implemented
  * as a singleton.
  *
- * @module utils/game/turnManager/turnManager
+ * @module gameManagement/turnManager
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -28,32 +28,36 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import { RouteFinder } from '../tileMaps/pathFinder.js';
-import { PathFollower } from '../sprites/movers.js';
-import { ClickEventFilter } from '../tileMaps/tileMap.js';
+import { RouteFinder } from '../utils/tileMaps/pathFinder.js';
+import { PathFollower } from '../utils/sprites/movers.js';
+import { ClickEventFilter } from '../utils/tileMaps/tileMap.js';
 
-import WORLD from './world.js';
+import WORLD from '../utils/game/world.js';
 
-import UI from '../dom/ui.js';
+import UI from '../utils/dom/ui.js';
 import SCENE_MANAGER from './sceneManager.js';
 
-import { addFadingText } from '../effects/transient.js';
-import { pause } from '../timers.js';
-import { Point, Position, Velocity } from '../geometry.js';
-import LOG from '../logging.js';
-import * as maths from '../maths.js';
-import { showMainMenu } from '../../dialogs/mainMenu.js';
-import { MoveType } from './actors.js';
-import * as actorDialogs from '../../dialogs/actorDialogs.js';
-import { i18n } from '../messageManager.js';
-import * as dice from '../dice.js';
-import { buildActor } from '../../dnd/almanacs/actorBuilder.js';
+import { addFadingText } from '../utils/effects/transient.js';
+import { pause } from '../utils/timers.js';
+import { Point, Position, Velocity } from '../utils/geometry.js';
+import LOG from '../utils/logging.js';
+import * as maths from '../utils/maths.js';
+import { showMainMenu } from '../dialogs/mainMenu.js';
+import { MoveType } from '../players/actors.js';
+import * as actorDialogs from '../dialogs/actorDialogs.js';
+import { i18n } from '../utils/messageManager.js';
+import * as dice from '../utils/dice.js';
+import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
  * if it will bother trying to reach the hero.
  */
-const TOO_MANY_TURNS_TO_REACH = 2;
+const TOO_MANY_TURNS_TO_REACH = 1.5;
+/**
+ * Max number of tiles that the hero can move for it to be allowed as disengagment.
+ */
+const MAX_TILES_FOR_DISENGAGEMENT = 2;
 /**
  * Enumeration of supported events
  * @enum {number}
@@ -83,17 +87,21 @@ class ReplayableActorMover {
   #tileMap;
   /** @type {RouteFinder} */
   #routeFinder;
+  /** @type {boolean} */
+  #heroDisengaging;
 
   /**
    *
    * @param {Actor} actor
    * @param {TileMap} tileMap
    * @param {RouteFinder} routeFinder
+   * @param {boolean} heroDisengaging
    */
-  constructor(actor, tileMap, routeFinder) {
+  constructor(actor, tileMap, routeFinder, heroDisengaging) {
     this.#actor = actor;
     this.#tileMap = tileMap;
     this.#routeFinder = routeFinder;
+    this.#heroDisengaging = heroDisengaging;
   }
 
   /**
@@ -102,17 +110,25 @@ class ReplayableActorMover {
    * @returns {Point}
    */
   #getTargetGridPoint(actorGridPos) {
-    switch (this.#actor.moveType) {
-      case MoveType.HUNT:
-        return this.#tileMap.worldPointToGrid(heroActor.position);
-      case MoveType.ORGANIC:
-      case MoveType.WANDER:
-      default:
-        return this.#getRandomGridPosition(
-          actorGridPos,
-          this.#actor.maxTilesPerMove
-        );
+    if (this.#actor.moveType === MoveType.HUNT) {
+      if (this.#heroDisengaging) {
+        return actorGridPos; // frozen
+      } else {
+        const heroGridPos = this.#tileMap.worldPointToGrid(heroActor.position);
+        const orthoSeparation =
+          actorGridPos.getOrthoSeparation(heroGridPos) - 1;
+        const maxHuntSeparation =
+          this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
+        if (orthoSeparation <= maxHuntSeparation) {
+          return this.#tileMap.worldPointToGrid(heroActor.position);
+        }
+      }
     }
+    // everything else falls back to random walk.
+    return this.#getRandomGridPosition(
+      actorGridPos,
+      this.#actor.maxTilesPerMove
+    );
   }
   /**
    * Move actor to new position using the route finder. The move takes place instantly
@@ -123,14 +139,8 @@ class ReplayableActorMover {
     const actorGridPos = this.#tileMap.worldPointToGrid(this.#actor.position);
     const targetGridPos = this.#getTargetGridPoint(actorGridPos);
 
-    const orthoSeparation =
-      Math.abs(targetGridPos.x - actorGridPos.x) +
-      Math.abs(targetGridPos.y - actorGridPos.y);
-    const maxSeparation = this.#actor.isOrganic()
-      ? Number.MAX_SAFE_INTEGER
-      : this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
     if (
-      orthoSeparation <= maxSeparation &&
+      !targetGridPos.coincident(actorGridPos) &&
       this.#tileMap.canHeroSeeGridPoint(actorGridPos)
     ) {
       this.#routeFinder.actor = this.#actor;
@@ -228,15 +238,19 @@ class MovementReplayer {
   #routeFinder;
   /** @type {ReplayableActorMover[]} */
   #movers;
+  /** @type {boolean} */
+  #heroDisengaging;
   /**
    *
    * @param {TileMap} tileMap
    * @param {RouteFinder} routeFinder
+   * @param {boolean} heroDisengaging
    */
-  constructor(tileMap, routeFinder) {
+  constructor(tileMap, routeFinder, heroDisengaging) {
     this.#movers = [];
     this.#tileMap = tileMap;
     this.#routeFinder = routeFinder;
+    this.#heroDisengaging = heroDisengaging;
   }
 
   /**
@@ -251,7 +265,8 @@ class MovementReplayer {
     const replayableMover = new ReplayableActorMover(
       actor,
       this.#tileMap,
-      this.#routeFinder
+      this.#routeFinder,
+      this.#heroDisengaging
     );
     replayableMover.moveInstantly();
     this.#movers.push(replayableMover);
@@ -480,13 +495,13 @@ class HeroTurnInteracting extends State {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          const filter = detail?.filter;
+          const filter = await disambiguateFilter(detail?.filter);
           if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
           } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
             await showOccupantDetails(detail.occupant);
           } else {
-            await this.#tryToRun(point);
+            await this.#tryToDisengage(point);
           }
           if (WORLD.getTileMap().getParticipants(heroActor).length === 0) {
             this.transitionTo(new ComputerTurnIdle());
@@ -500,7 +515,7 @@ class HeroTurnInteracting extends State {
         UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
       case EventId.CLICKED_EXIT:
-        await this.#tryToRun(point, false).then((success) => {
+        await this.#tryToDisengage(point, false).then((success) => {
           if (success) {
             return UI.showOkDialog(i18n`MESSAGE OPEN EXIT WHILE FIGHTING`).then(
               () => startNextScene(this)
@@ -520,12 +535,21 @@ class HeroTurnInteracting extends State {
    * @param {boolean} [usePathFinder = true] - should path finder be used.
    * @returns {Promise} fulfils to true if successful else false.
    */
-  #tryToRun(point, usePathFinder = true) {
-    const opponents = WORLD.getTileMap().getParticipants(heroActor);
+  #tryToDisengage(point, usePathFinder = true) {
+    const tileMap = WORLD.getTileMap();
+    const opponents = tileMap.getParticipants(heroActor);
+    let respectDisengage = false;
     for (const opponent of opponents) {
-      if (opponent.alive && !opponent.interaction.allowEscape(heroActor)) {
-        return Promise.resolve(false);
+      if (opponent.alive && opponent.interaction.respectDisengage(heroActor)) {
+        respectDisengage = true;
+        break;
       }
+    }
+    const currentGridPoint = tileMap.worldPointToGrid(heroActor.position);
+    const targetGridPoint = tileMap.worldPointToGrid(point);
+    const movement = currentGridPoint.getOrthoSeparation(targetGridPoint);
+    if (respectDisengage && movement <= MAX_TILES_FOR_DISENGAGEMENT) {
+      heroActor.disengaging = true;
     }
     return moveHeroToPoint(point, usePathFinder).then(() => true);
   }
@@ -542,7 +566,11 @@ class ComputerTurnIdle extends State {
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
-    const replayer = new MovementReplayer(tileMap, routeFinder);
+    const replayer = new MovementReplayer(
+      tileMap,
+      routeFinder,
+      heroActor.disengaging
+    );
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor && actor.alive) {
         if (!actor.isWandering() || dice.rollDice(6) > 3) {
@@ -580,7 +608,11 @@ class ComputerTurnInteracting extends State {
     const tileMap = WORLD.getTileMap();
 
     const routeFinder = new RouteFinder(tileMap);
-    const replayer = new MovementReplayer(tileMap, routeFinder);
+    const replayer = new MovementReplayer(
+      tileMap,
+      routeFinder,
+      heroActor.disengaging
+    );
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of WORLD.getActors().values()) {
       if (actor !== heroActor && actor.alive && actor.interaction) {
@@ -615,6 +647,7 @@ class ComputerTurnInteracting extends State {
  * @returns {Promise}
  */
 function prepareHeroTurn() {
+  heroActor.disengaging = false;
   const tileMap = WORLD.getTileMap();
   const routes = new RouteFinder(tileMap, heroActor).getAllRoutesFrom(
     tileMap.worldPointToGrid(heroActor.sprite.position),
@@ -749,8 +782,28 @@ function triggerEvent(eventId, sprite, detail) {
 }
 
 /**
+ * @param {ClickEventFilter} filter
+ * @returns {Promise<ClickEventFilter>}
+ */
+function disambiguateFilter(filter) {
+  if (filter === ClickEventFilter.MOVE_OR_INTERACT_TILE) {
+    return UI.showChoiceDialog(
+      i18n`DIALOG TITLE CHOICES`,
+      i18n`MESSAGE SEARCH OR MOVE`,
+      [i18n`BUTTON MOVE`, i18n`BUTTON SEARCH`]
+    ).then((choice) => {
+      if (choice === 0) {
+        return ClickEventFilter.MOVEMENT_TILE;
+      } else {
+        return ClickEventFilter.INTERACT_TILE;
+      }
+    });
+  }
+  return filter;
+}
+/**
  * Set the current hero sprite.
- * @returns {module:utils/game/actors~Actor}
+ * @returns {module:players/actors~Actor}
  */
 function getHeroActor() {
   return heroActor;
@@ -758,14 +811,14 @@ function getHeroActor() {
 
 /**
  * Start
- * @param {module:utils/game/actors~Actor} actor - the hero actor
+ * @param {module:players/actors~Actor} actor - the hero actor
  */
 function setHero(actor) {
   heroActor = actor;
 }
 
 /**
- * @type {module:utils/game/actors~Actor}
+ * @type {module:players/actors~Actor}
  */
 let heroActor;
 

@@ -49,7 +49,6 @@ const MESSAGE_MAP = new Map([
   ['BUTTON TRY AGAIN', 'Try again'],
   ['BUTTON STASH', 'Stash'],
 
-  ['CONTROL BLOOD ON', 'Blood on'],
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
 
@@ -97,6 +96,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION COINS',
     'Various coins stamped with the image of latter day kings and queens.',
   ],
+  ['DESCRIPTION DAGGER', 'A short and very sharp piercing weapon.'],
   [
     'DESCRIPTION HERO',
     "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
@@ -104,13 +104,21 @@ const MESSAGE_MAP = new Map([
 
   ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
+  [
+    'DESCRIPTION GOBLIN',
+    "Small humanoid creature.Treat with caution. They're small but vicious.",
+  ],
+  [
+    'DESCRIPTION SHIELD',
+    'A wooden shield, carried in one hand and offering some protection.',
+  ],
   ['DESCRIPTION SHORTSWORD', 'A light and highly versatile sword.'],
   ['DESCRIPTION SLIME', 'A green sticky substance that seems to be growing.'],
   [
     'DESCRIPTION TRADER',
     'A wandering trader selling all manner of things gathered during many months in the dungeon.',
   ],
-  ['DIALOG TITLE CHOICES', 'Choose!'],
+  ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
@@ -159,9 +167,13 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE SEARCH HOLE OR MOVE',
     [
-      'You] have a choice. Do you want to search this hole or move into it?',
+      'You have a choice. Do you want to search this hole or move into it?',
       "You've been here before. Do you want to search again or climb into the hole you dug?",
     ],
+  ],
+  [
+    'MESSAGE SEARCH OR MOVE',
+    'You have a choice. Do you want to search this tile or move onto it?',
   ],
   ['MESSAGE TRADE OR BARGE', 'Do you want to trade or barge past this guy?'],
   [
@@ -213,7 +225,7 @@ const MESSAGE_MAP = new Map([
     'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
   ],
   // Miscellaneous words and phrases.
-
+  ['AC (including armour)', 'AC (+armour): ${0}'],
   ['Backpack', 'Backpack'],
   ['Body', 'Body'],
   ['Dungeon level:', 'Dungeon level: ${0}'],
@@ -221,6 +233,9 @@ const MESSAGE_MAP = new Map([
   ['GOLD PIECES', ' gold pieces'],
   ['Hands', 'Hands'],
   ['Head', 'Head'],
+  ['(HP OUT OF VALUE)', '(HP:\u{00A0}${0}/${1})'],
+  ['(HP VALUE)', '(HP:\u{00A0}${0})'],
+  ['CHARACTER LEVEL:', 'level: ${0}'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
 ]);

@@ -27,19 +27,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { AlmanacLibrary } from '../dnd/almanacs/almanacs.js';
-import { SceneDefinition } from '../utils/game/sceneManager.js';
-import { MESSAGES } from '../utils/messageManager.js';
+import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
+import { SceneDefinition } from '../gameManagement/sceneManager.js';
 import * as maths from '../utils/maths.js';
-import { CharacterTraits } from '../dnd/traits.js';
 import LOG from '../utils/logging.js';
 import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
 import { i18n } from '../utils/messageManager.js';
-import { Actor, ActorType } from '../utils/game/actors.js';
-import { ArtefactType } from '../utils/game/artefacts.js';
 
 /**
- * @implements {module:game/sceneManager~SceneList}
+ * @implements {module:gameManagement/sceneManager~SceneList}
  */
 class AutoSceneList {
   /** @type {number} */
@@ -107,9 +103,10 @@ class AutoSceneList {
    * Add hero to scene.
    */
   #addHero() {
-    const almanacEntry = AlmanacLibrary.actors.find(
-      (entry) => entry.type === ActorType.HERO
-    );
+    const almanacEntry = ALMANAC_LIBRARY.findById('hero', ['HEROES']);
+    if (!almanacEntry) {
+      throw new Error(`Could not find hero in almanacs.`);
+    }
     this.#sceneDefn.heroes.push(almanacEntry);
   }
 
@@ -117,14 +114,12 @@ class AutoSceneList {
    * Add enemies to scene.
    */
   #addEnemies() {
-    const possibleEnemies = AlmanacLibrary.actors.filter(
-      (actor) => actor.type === ActorType.ENEMY && actor.minLevel <= this.#index
-    );
-
     const totalEnemies = maths.getRandomIntInclusive(5, 10);
     for (let enemyIndex = 0; enemyIndex < totalEnemies; enemyIndex++) {
-      const almanacIndex = maths.getRandomInt(0, possibleEnemies.length);
-      const almanacEntry = possibleEnemies[almanacIndex];
+      const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(
+        'ENEMIES',
+        this.#index
+      );
       this.#sceneDefn.enemies.push(almanacEntry);
     }
   }
@@ -133,15 +128,12 @@ class AutoSceneList {
    * Add enemies to scene.
    */
   #addTraders() {
-    const possibleEnemies = AlmanacLibrary.actors.filter(
-      (actor) =>
-        actor.type === ActorType.TRADER && actor.minLevel <= this.#index
-    );
-
     const totalTraders = 1;
     for (let traderIndex = 0; traderIndex < totalTraders; traderIndex++) {
-      const almanacIndex = maths.getRandomInt(0, possibleEnemies.length);
-      const almanacEntry = possibleEnemies[almanacIndex];
+      const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(
+        'TRADERS',
+        this.#index
+      );
       this.#sceneDefn.enemies.push(almanacEntry);
     }
   }
@@ -150,19 +142,19 @@ class AutoSceneList {
    * Add artefacts to scene.
    */
   #addArtefacts() {
-    const possibleArtefacts = AlmanacLibrary.artefacts.filter(
-      (actor) => actor.minLevel <= this.#index
-    );
-
     const totalArtefacts = maths.getRandomIntInclusive(10, 10);
     for (
       let artefactIndex = 0;
       artefactIndex < totalArtefacts;
       artefactIndex++
     ) {
-      const almanacIndex = maths.getRandomInt(0, possibleArtefacts.length);
-      const almanacEntry = possibleArtefacts[almanacIndex];
-      this.#sceneDefn.artefacts.push(almanacEntry);
+      const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(
+        ['WEAPONS', 'MONEY', 'ARTEFACTS'],
+        this.#index
+      );
+      if (almanacEntry) {
+        this.#sceneDefn.artefacts.push(almanacEntry);
+      }
     }
   }
 
@@ -185,7 +177,7 @@ class AutoSceneList {
 /**
  * Create a new auto scene list
  * @param {string} script
- * @returns {module:game/sceneManager~SceneList}
+ * @returns {module:gameManagement/sceneManager~SceneList}
  */
 export function createAutoSceneList(scriptUnused) {
   return new AutoSceneList();

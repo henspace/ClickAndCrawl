@@ -2,7 +2,7 @@
  * @file Encapsulation of a Scene. A scene equates normally to a level in a
  * dungeon.
  *
- * @module utils/game/scene
+ * @module game/scene
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -30,7 +30,6 @@
  */
 
 import WORLD from './world.js';
-import HUD from './hud.js';
 import SCREEN from './screen.js';
 
 /**
@@ -50,7 +49,7 @@ export class AbstractScene {
   /** Fade out promise resolution @type {function}  */
   #fadeOutResolve;
 
-  /** @type {module:utils/game/actors~Actor} */
+  /** @type {module:players/actors~Actor} */
   heroActor;
 
   /** @type {string} */
@@ -107,7 +106,6 @@ export class AbstractScene {
     SCREEN.setOpacity(this.#globalOpacity);
     WORLD.update(deltaSeconds);
     this.doUpdate(deltaSeconds);
-    HUD.update(deltaSeconds);
     SCREEN.setOpacity(1);
     if (this.#deltaOpacityPerSec !== 0) {
       this.#globalOpacity += deltaSeconds * this.#deltaOpacityPerSec;

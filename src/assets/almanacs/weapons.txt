@@ -1,0 +1,3 @@
+0,WEAPON,club * COST: 1 SP,DMG:1d4, TYPE: simple melee light
+0,WEAPON,dagger * COST:2GP, DMG:1d4, TYPE: simple melee finesse light thrown
+0,WEAPON,shortsword * COST:10 GP , DMG:1D6, TYPE: martial melee light

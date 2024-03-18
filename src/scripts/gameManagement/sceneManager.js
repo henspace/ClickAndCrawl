@@ -1,7 +1,7 @@
 /**
  * @file Scene manager
  *
- * @module utils/game/sceneManager
+ * @module gameManagement/sceneManager
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -28,13 +28,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { parseSceneDefinition } from '../../scriptReaders/sceneDefinitionParser.js';
-import HUD from './hud.js';
-import { addFullscreenButtonToHud } from './fullscreen.js';
-import { NavigationButtons, NavigationLocation } from './hudNavSet.js';
-import WORLD from './world.js';
-import { CameraDolly, CameraTracking } from './camera.js';
-import LOG from '../logging.js';
+import { parseSceneDefinition } from '../scriptReaders/sceneDefinitionParser.js';
+import HUD from '../hud/hud.js';
+import { getFullscreenButtonDefn } from '../utils/game/fullscreen.js';
+import { NavigationButtons, NavigationLocation } from '../hud/hudNavSet.js';
+import WORLD from '../utils/game/world.js';
+import { CameraDolly, CameraTracking } from '../utils/game/camera.js';
+import LOG from '../utils/logging.js';
+import GameConstants from '../utils/game/gameConstants.js';
 
 /**
  * @interface SceneList
@@ -102,8 +103,8 @@ export class SceneDefinition {
 /**
  * Set camera dolly
  * @param {module:utils/sprites/sprite~Sprite} sprite
- * @param {number} speed - See {@link module:utils/game/camera.createCameraDolly}
- * @param {number} proportionSeparated - See {@link module:utils/game/camera.createCameraDolly}
+ * @param {number} speed - See {@link module:game/camera.createCameraDolly}
+ * @param {number} proportionSeparated - See {@link module:game/camera.createCameraDolly}
  */
 function setCameraToTrack(sprite, speed, proportionSeparated) {
   cameraDolly = new CameraDolly(sprite, speed, proportionSeparated);
@@ -118,8 +119,14 @@ function createHud() {
     48,
     NavigationLocation.BR
   );
-  addFullscreenButtonToHud();
-
+  const fullscreenButtonDefn = getFullscreenButtonDefn();
+  const fullscreenButton = HUD.addButton(
+    fullscreenButtonDefn.image,
+    fullscreenButtonDefn.callbackOn,
+    fullscreenButtonDefn.callbackOff
+  );
+  fullscreenButton.position.x = GameConstants.TILE_SIZE;
+  fullscreenButton.position.y = -GameConstants.TILE_SIZE;
   HUD.setVisible(true);
 }
 
@@ -132,7 +139,7 @@ function clearHud() {
   HUD.setVisible(false);
 }
 /** Set the current scene, unloading any existing scene
- * @param {module:utils/game/scene~Scene} scene
+ * @param {module:game/scene~Scene} scene
  * @returns {Promise} fulfils to undefined.
  * Rejects if scene is undefined or null.
  */
@@ -150,7 +157,7 @@ function setScene(scene) {
 
 /**
  * Load scene
- * @param {module:utils/game/scene~Scene} scene
+ * @param {module:game/scene~Scene} scene
  * @returns {Promise} fulfills to null
  */
 function loadScene(scene) {
@@ -165,7 +172,7 @@ function loadScene(scene) {
 
 /**
  * Unload scene
- * @param {module:utils/game/scene~Scene} scene
+ * @param {module:game/scene~Scene} scene
  * @returns {Promise} fulfills to null
  */
 function unloadScene(scene) {
@@ -190,7 +197,7 @@ function unloadCurrentScene() {
 }
 /**
  * Configure the scenes from the script.
- * @param {module:utils/game/sceneManager~SceneDefinition} listOfScenes
+ * @param {module:gameManagement/sceneManager~SceneDefinition} listOfScenes
  */
 function setSceneList(listOfScenes) {
   sceneDefnList = listOfScenes;

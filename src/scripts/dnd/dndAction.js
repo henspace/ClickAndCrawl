@@ -29,50 +29,26 @@
 
 import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
+import { characteristicToModifier } from './traits.js';
 
 /**
- * Convert a value to a modifier.
- * @param {number} value
- * @returns {number}
- */
-function valueToModifier(value) {
-  return Math.floor((value - 10) / 2);
-}
-/**
  * Roll an attack and damage dice.
- * @param {module:utils/game/actors~Actor} attacker
- * @param {module:utils/game/actors~Actor} target
+ * @param {module:dnd/traits~AttackDetail} attack
+ * @param {module:players/actors~Actor} target
  * @returns {number} amount of damage
  */
-export function getMeleeDamage(attacker, target) {
-  const armourClass = target.traits.effectiveAc;
-  const strength = attacker.traits.get('STR', 1);
-  const strengthModifier = valueToModifier(strength);
+export function getMeleeDamage(attack, target) {
   const attackRoll = dice.rollDice(20);
   // handle fate and curses.
   if (attackRoll === 1) {
     return 0; // cursed.
   } else if (attackRoll === 20) {
-    return 2 * damageRoll(attacker, target); // critical hit
+    return 2 * attack.rollForDamage(); // critical hit
   }
-  const modifiers = strengthModifier; // ToDo include dexterity
-  if (attackRoll + modifiers >= armourClass) {
-    return damageRoll(attacker, target);
+  if (attackRoll >= target.traits.getEffectiveAc()) {
+    return attack.rollForDamage();
   }
   return 0;
-}
-
-/**
- * Roll a damage dice.
- * @param {module:utils/game/actors~Actor} attacker
- * @param {module:utils/game/actors~Actor} target
- * @returns {boolean} true if successful
- */
-function damageRoll(attacker, target) {
-  const damageDice = target.traits.get('DMG', '1D4');
-  const damage = dice.rollMultiDice(damageDice);
-  const modifiers = 0; // ToDo
-  return damage + modifiers;
 }
 
 /**
@@ -93,7 +69,7 @@ export function getPoisonDamage(attacker, target) {
   }
   const saveCharacteristicValue = target.traits.get(saveDetail[2]);
   let modifier = saveCharacteristicValue
-    ? valueToModifier(saveCharacteristicValue)
+    ? characteristicToModifier(saveCharacteristicValue)
     : 0;
   if (dice.rollDice(20) + modifier >= saveDetail[1]) {
     return 0;

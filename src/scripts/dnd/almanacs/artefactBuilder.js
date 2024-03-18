@@ -27,18 +27,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Artefact } from '../../utils/game/artefacts.js';
+import { Artefact } from '../../players/artefacts.js';
 import { Traits } from '../traits.js';
 import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
-import { CoinValue } from '../../utils/game/coins.js';
+
 /**
  * Create an artefact.
+ * @param {string} id
  * @param {string} imageName
- * @param {module:utils/game/artefacts~ArtefactTypeValue} artefactType
+ * @param {module:players/artefacts~ArtefactTypeValue} artefactType
  * @param {module:dnd/traits~Traits} traits
  */
-function createArtefact(imageName, artefactType, traits) {
-  const artefact = new Artefact('', `${imageName}.png`, artefactType);
+function createArtefact(id, imageName, artefactType, traits) {
+  const artefact = new Artefact(id, '', `${imageName}.png`, artefactType);
   artefact.traits = traits;
   return artefact;
 }
@@ -49,9 +50,10 @@ function createArtefact(imageName, artefactType, traits) {
  * @returns {Artefact}
  */
 export function buildArtefact(almanacEntry) {
-  const traits = new Traits().setFromString(almanacEntry.traitsString);
+  const traits = new Traits(almanacEntry.traitsString);
   traits.set('NAME', createNameFromId(almanacEntry.id));
   const artefact = createArtefact(
+    almanacEntry.id,
     almanacEntry.id.toLowerCase(),
     almanacEntry.type,
     traits

@@ -1,7 +1,7 @@
 /**
  * @file Combat system
  *
- * @module utils/game/combat/combat
+ * @module game/combat/combat
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}

@@ -1,7 +1,7 @@
 /**
  * @file Coins
  *
- * @module utils/game/coins
+ * @module game/coins
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}

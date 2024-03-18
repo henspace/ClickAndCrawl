@@ -29,8 +29,9 @@
 import LOG from '../../utils/logging.js';
 import * as almanacUtils from './almanacUtils.js';
 import * as assetLoaders from '../../utils/assetLoaders.js';
-import { strToActorType } from '../../utils/game/actors.js';
-import { strToArtefactType } from '../../utils/game/artefacts.js';
+import { strToActorType } from '../../players/actors.js';
+import { strToArtefactType } from '../../players/artefacts.js';
+import * as maths from '../../utils/maths.js';
 /**
  * @typedef {Object} AlmanacEntry
  * @property {number} minLevel
@@ -42,20 +43,111 @@ import { strToArtefactType } from '../../utils/game/artefacts.js';
 /**
  * @typedef {AlmanacEntry[]} Almanac
  */
-/**
- * @type {{actors: Almanac, artefacts: Almanac}}
- */
-export const AlmanacLibrary = {
-  actors: {},
-  artefacts: {},
-};
+
+class AlmanacLibrary {
+  /** @type {Map<string, Almanac>} */
+  #almanacs;
+
+  constructor() {
+    this.#almanacs = new Map();
+  }
+
+  /**
+   * Add Almanac
+   * @param {string} key
+   * @param {Almanac} almanac
+   */
+  addAlmanac(key, almanac) {
+    this.#almanacs.set(key, almanac);
+  }
+
+  /**
+   * Get Alamanac
+   * @param {string} key
+   * @returns {Almanac}
+   */
+  getAlmanac(key) {
+    const result = this.#almanacs.get(key);
+    if (!result) {
+      LOG`Attempt to get non-existent almanac ${key}`;
+    }
+    return result;
+  }
+  /**
+   * Get a random entry from the key
+   * @param {string | string[]} keyOrKeys - almanac
+   * @param {number} maxLevel
+   * @returns {AlmanacEntry} null if none found.
+   */
+  getRandomEntry(keyOrKeys, maxLevel) {
+    let key;
+    if (Array.isArray(keyOrKeys)) {
+      const index = maths.getRandomInt(0, keyOrKeys.length);
+      key = keyOrKeys[index];
+    } else {
+      key = keyOrKeys;
+    }
+    let almanac;
+
+    if (Number.isInteger(maxLevel)) {
+      almanac = this.getAlmanac(key)?.filter(
+        (entry) => entry.minLevel <= maxLevel
+      );
+    } else {
+      almanac = this.getAlmanac(key);
+    }
+
+    if (almanac) {
+      const index = maths.getRandomInt(0, almanac.length);
+      return almanac[index];
+    }
+    LOG.error(`Failed to find almanac with key ${key}`);
+    return;
+  }
+
+  /** Find an entry by its id.
+   * @param {string} id
+   * @param {string[]} keys - the almanacs to search
+   * @returns {AlmanacEntry}
+   */
+  findById(id, keys) {
+    if (!keys) {
+      keys = this.#almanacs.keys();
+    }
+    for (const key of keys) {
+      const result = this.#almanacs.get(key)?.find((entry) => entry.id === id);
+      if (result) {
+        return result;
+      }
+    }
+    LOG.error(`Failed to find almanac entry for '${id}' in ${keys.join(', ')}`);
+    return;
+  }
+
+  /**
+   *
+   * @param {string} key - almanac key
+   * @param {*} type - entry type
+   * @returns {module:players/artefacts~ArtefactTypeValue | module:players/artefacts~ActorTypeValue }
+   */
+  getItemType(key, type) {
+    switch (key) {
+      case 'HEROES':
+      case 'ENEMIES':
+      case 'TRADERS':
+        return strToActorType(type);
+      default:
+        return strToArtefactType(type);
+    }
+  }
+}
 
 /**
  * Parse almanac line almanac entry
  * @param {string} line
- * @param {string} type - 'ACTOR' or 'ARTEFACT'
+ * @param {string} almanacKey
  */
-function parseAlmanacLine(line, type) {
+function parseAlmanacLine(line, almanacKey) {
   const parts = line.match(
     /^ *(\d+) *, *(\w*) *, *(\w*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
   );
@@ -65,10 +157,7 @@ function parseAlmanacLine(line, type) {
   }
   const entry = {};
   entry.minLevel = parseInt(parts[1]);
-  entry.type =
-    type === 'ARTEFACTS'
-      ? strToArtefactType(parts[2])
-      : strToActorType(parts[2]);
+  entry.type = ALMANAC_LIBRARY.getItemType(almanacKey, parts[2]);
   entry.id = parts[3];
   entry.name = almanacUtils.createNameFromId(entry.id);
   entry.equipmentIds = csvToArray(parts[4]);
@@ -88,16 +177,16 @@ function csvToArray(list) {
 /**
  * Parse text file into almanac
  * @param {string} text
- * @param {string} type - 'ACTOR' or 'ARTEFACT'
+ * @param {string} key - Almanac key
  * @returns {Almanac}
  */
-function parseAlmanacText(text, type) {
+function parseAlmanacText(text, key) {
   const almanac = [];
   const lines = text.split(/[\r\n]+/);
   lines.forEach((line) => {
     line = line.trim();
     if (line !== '' && !line.startsWith('#')) {
-      const entry = parseAlmanacLine(line, type);
+      const entry = parseAlmanacLine(line, key);
       if (entry) {
         almanac.push(entry);
       }
@@ -108,19 +197,21 @@ function parseAlmanacText(text, type) {
 
 /**
  * Create the actor almanac
- * @param {Object} urls
- * @param {URL} urls.actors - url for the actors almanac
- * @param {URL} urls.artefacts - url for the artefacts almanac
+ * @param {Map<string, URL>} urls
  * @returns {Promise} fulfils to undefined when complete
  */
-export function loadAlmanacs(urls) {
-  assetLoaders
-    .loadTextFromUrl(urls.actors)
-    .then((text) => {
-      AlmanacLibrary.actors = parseAlmanacText(text, 'ACTORS');
-    })
-    .then(() => assetLoaders.loadTextFromUrl(urls.artefacts))
-    .then((text) => {
-      AlmanacLibrary.artefacts = parseAlmanacText(text, 'ARTEFACTS');
+export function loadAlmanacs(urlMap) {
+  const promises = [];
+  urlMap.forEach((url, key) => {
+    const promise = assetLoaders.loadTextFromUrl(url).then((text) => {
+      ALMANAC_LIBRARY.addAlmanac(key, parseAlmanacText(text, key));
     });
+    promises.push(promise);
+  });
+  return Promise.all(promises);
 }
+
+/**
+ * @type {Map<string, Almanac>}
+ */
+export const ALMANAC_LIBRARY = new AlmanacLibrary();

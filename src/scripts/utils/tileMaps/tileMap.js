@@ -34,16 +34,12 @@ import {
   ImageSpriteCanvasRenderer,
   RectSpriteCanvasRenderer,
 } from '../sprites/spriteRenderers.js';
-import { Point, Rectangle, Position } from '../geometry.js';
+import { Point, Rectangle } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
-import TURN_MANAGER from '../game/turnManager.js';
-import { ActorType } from '../game/actors.js';
-import { OpenEntrance, OpenExit } from '../../dnd/interact.js';
-import { Actor } from '../game/actors.js';
 
 /**
  * Detail for click events.
@@ -54,6 +50,7 @@ export const ClickEventFilter = {
   INTERACT_TILE: 1,
   OCCUPIED_TILE: 2,
   HERO_TILE: 3,
+  MOVE_OR_INTERACT_TILE: 4,
 };
 
 /**
@@ -84,7 +81,7 @@ export class Tile extends UiClickHandler {
   sprite;
   /** @type {boolean} */
   obstacle;
-  /** @type {module:utils/game/actors~Actor} */
+  /** @type {module:players/actors~Actor} */
   #occupants;
   /** @type {Point} */
   #gridPoint;
@@ -134,21 +131,21 @@ export class Tile extends UiClickHandler {
   }
 
   /** Add occupant.
-   * @param {import('../game/actors.js').Actor
+   * @param {import('..utils/game/actors.js').Actor
    */
   addOccupant(occupant) {
     this.#occupants.set(occupant, occupant);
   }
 
   /** Remove occupant.
-   * @param {module:utils/game/actors~Actor}
+   * @param {module:players/actors~Actor}
    */
   deleteOccupant(occupant) {
     this.#occupants.delete(occupant);
   }
 
   /** get occupants.
-   * @returns {module:utils/game/actors~Actor[]}
+   * @returns {module:players/actors~Actor[]}
    */
   getOccupants() {
     return this.#occupants;
@@ -274,6 +271,8 @@ export class TileMap {
   #interactTileGridPoints;
   /** @type {Sprite} */
   #interactTileHighlighter;
+  /** @type {Actor} */
+  #heroActor;
 
   /**
    * Create tile map from 2D matrix
@@ -281,7 +280,8 @@ export class TileMap {
    * @param {TilePlan} plan
    * @param {number} gridSize - in world coordinates
    */
-  constructor(context, plan, gridSize) {
+  constructor(context, plan, gridSize, heroActor) {
+    this.#heroActor = heroActor;
     const matrix = plan.matrix;
     this.#entryGridPointByDoor = plan.entryPointByDoor;
     this.#exitGridPointByDoor = plan.exitPointByDoor;
@@ -423,12 +423,11 @@ export class TileMap {
    * Set up the ray tracer if not already set.
    */
   #setRayTracer() {
-    const hero = TURN_MANAGER.getHeroActor();
-    if (hero) {
+    if (this.#heroActor) {
       if (!this.#heroRayTracer) {
-        this.#heroRayTracer = new RayTracer(this, hero);
+        this.#heroRayTracer = new RayTracer(this, this.#heroActor);
       }
-      const heroTile = this.getTileAtWorldPoint(hero.position);
+      const heroTile = this.getTileAtWorldPoint(this.#heroActor.position);
       if (heroTile) {
         const heroTileRole = heroTile.role;
         if (
@@ -581,12 +580,16 @@ export class TileMap {
 
   /**
    * Set interaction tiles
-   * @param {Actor[]} actors - actors where combat can take place.
+   * @param {Actor[]} actors - actors where a reaction can take place.
    */
   setInteractActors(actors) {
     this.#interactTileGridPoints = [];
     actors?.forEach((actor) => {
-      this.#interactTileGridPoints.push(this.worldPointToGrid(actor.position));
+      if (actor.interaction.canReact()) {
+        this.#interactTileGridPoints.push(
+          this.worldPointToGrid(actor.position)
+        );
+      }
     });
   }
 
@@ -675,7 +678,11 @@ export class TileMap {
         }
       }
     }
-    if (movement) {
+    if (movement && interaction) {
+      clickHandler(target, point, {
+        filter: ClickEventFilter.MOVE_OR_INTERACT_TILE,
+      });
+    } else if (movement) {
       clickHandler(target, point, { filter: ClickEventFilter.MOVEMENT_TILE });
       return;
     } else if (interaction) {
@@ -694,11 +701,10 @@ export class TileMap {
       }
     }
 
-    const hero = TURN_MANAGER.getHeroActor();
-    const heroGridPoint = this.worldPointToGrid(hero.position);
+    const heroGridPoint = this.worldPointToGrid(this.#heroActor.position);
     if (gridPoint.coincident(heroGridPoint)) {
       clickHandler(target, point, {
-        occupant: hero,
+        occupant: this.#heroActor,
         filter: ClickEventFilter.OCCUPIED_TILE,
       });
       return;
@@ -740,7 +746,7 @@ export class TileMap {
   /**
    * Test if point is passable.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {module:utils/game/actors~Actor} actor - actor trying to pass
+   * @param {module:players/actors~Actor} actor - actor trying to pass
    * @returns {boolean}
    */
   isGridPointPassableByActor(gridPoint, actor) {
@@ -755,7 +761,7 @@ export class TileMap {
   /**
    * Test if tile can be occupied by the actor
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {module:utils/game/actors~Actor} actor - actor trying to occupy location
+   * @param {module:players/actors~Actor} actor - actor trying to occupy location
    * @returns {boolean}
    */
   canGridPointBeOccupiedByActor(gridPoint, actor) {
@@ -778,7 +784,7 @@ export class TileMap {
   /**
    * Test if point can be seen through.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {module:utils/game/actors~Actor} actor - actor trying to see
+   * @param {module:players/actors~Actor} actor - actor trying to see
    * @returns {boolean}
    */
   isSeeThrough(gridPoint, actor) {

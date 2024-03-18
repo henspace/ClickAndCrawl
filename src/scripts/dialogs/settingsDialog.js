@@ -37,14 +37,6 @@ import { i18n, MESSAGES } from '../utils/messageManager.js';
 /** Settings */
 const SETTINGS = [
   {
-    id: 'BLOOD_ON',
-    labelKey: 'CONTROL BLOOD ON',
-    defValue: true,
-    controlType: ControlType.CHECKBOX,
-    persistent: true,
-    action: null,
-  },
-  {
     id: 'MUSIC_VOLUME',
     labelKey: 'CONTROL MUSIC VOLUME',
     defValue: 50,

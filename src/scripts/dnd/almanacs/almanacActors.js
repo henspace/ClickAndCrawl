@@ -27,7 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ActorType } from '../../utils/game/actors.js';
+import { ActorType } from '../..utils/game/actors.js';
 /**
  * @typedef {Object} AlmanacEntry
  * @property {number} minLevel - minimum dungeon level at which this appears.

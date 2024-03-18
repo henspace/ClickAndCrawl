@@ -34,8 +34,6 @@ import * as debug from '../debug.js';
 import SCREEN from '../game/screen.js';
 import { MIN_POINT, MAX_POINT, Rectangle } from '../geometry.js';
 import * as animation from './animation.js'; //eslint-disable-line no-unused-vars
-import HUD from '../game/hud.js';
-import { Sprite } from './sprite.js';
 
 /**
  * @typedef {Object} RenderGeometry

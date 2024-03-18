@@ -2,7 +2,7 @@
  * @file Camera dolly class. This provides a mechanism to allow the canvas to
  * track a specified Sprite.
  *
- * @module utils/game/camera
+ * @module game/camera
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}

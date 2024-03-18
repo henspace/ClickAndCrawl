@@ -1,7 +1,7 @@
 /**
  * @file The main game. This is a singleton as there can only be a single game.
  *
- * @module utils/game/game
+ * @module gameManagement/game
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -27,30 +27,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import SCREEN from './screen.js';
-import WORLD from './world.js';
-import HUD from './hud.js';
-import { checkEmojis } from '../text/emojis.js';
-import GAME_CLOCK from '../time/clock.js';
-import * as debug from '../debug.js';
-import * as text from '../text/text.js';
-import * as assetLoaders from '../assetLoaders.js';
-import { createAutoSceneList } from '../../scriptReaders/autoSceneList.js';
-import SCENE_MANAGER from '../game/sceneManager.js';
-import UI from '../dom/ui.js';
-import LOG from '../logging.js';
+import SCREEN from '../utils/game/screen.js';
+import WORLD from '../utils/game/world.js';
+import HUD from '../hud/hud.js';
+import { checkEmojis } from '../utils/text/emojis.js';
+import GAME_CLOCK from '../utils/time/clock.js';
+import * as debug from '../utils/debug.js';
+import * as text from '../utils/text/text.js';
+import * as assetLoaders from '../utils/assetLoaders.js';
+import { createAutoSceneList } from '../scriptReaders/autoSceneList.js';
+import SCENE_MANAGER from './sceneManager.js';
+import UI from '../utils/dom/ui.js';
+import LOG from '../utils/logging.js';
 
-import * as pointerActions from '../dom/pointerActions.js';
+import * as pointerActions from '../utils/dom/pointerActions.js';
 import TURN_MANAGER from './turnManager.js';
 
-import IMAGE_MANAGER from '../sprites/imageManager.js';
-import SOUND_MANAGER from '../soundManager.js';
-import { initialiseSettings } from '../../dialogs/settingsDialog.js';
+import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
+import SOUND_MANAGER from '../utils/soundManager.js';
+import { initialiseSettings } from '../dialogs/settingsDialog.js';
 
-import MESSAGE_MAP from '../../constants/messageMap.js';
-import { i18n, MESSAGES } from '../messageManager.js';
-import { loadAlmanacs } from '../../dnd/almanacs/almanacs.js';
-import { AssetUrls, SpriteSheet } from '../../../assets/assets.js';
+import MESSAGE_MAP from '../constants/messageMap.js';
+import { i18n, MESSAGES } from '../utils/messageManager.js';
+import { loadAlmanacs } from '../dnd/almanacs/almanacs.js';
+import { AssetUrls, SpriteSheet } from '../../assets/assets.js';
 
 /**
  * Tile size to use throughout the game
@@ -62,7 +62,7 @@ let lastTimeStamp;
 
 /**
  * Initialise the game engine.
- * @param {Object} screenOptions - @see {@link module:utils/game/screen~setScreen} for
+ * @param {Object} screenOptions - @see {@link module:game/screen~setScreen} for
  * details of options.
  */
 async function initialise(screenOptions) {
@@ -84,12 +84,7 @@ async function initialise(screenOptions) {
     )
     .then(() => assetLoaders.loadTextFromUrl(AssetUrls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
-    .then(() =>
-      loadAlmanacs({
-        actors: AssetUrls.ACTOR_ALMANAC,
-        artefacts: AssetUrls.ARTEFACT_ALMANAC,
-      })
-    )
+    .then(() => loadAlmanacs(AssetUrls.ALMANAC_MAP))
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
     .then(() => startGame())
     .catch((error) => {
@@ -183,6 +178,7 @@ function gameLoop(timeStamp) {
   if (lastTimeStamp) {
     const deltaSeconds = (timeStamp - lastTimeStamp) / 1000;
     SCENE_MANAGER.update(deltaSeconds);
+    HUD.update(deltaSeconds);
     if (debug.OPTIONS.showFps) {
       showFps(1 / deltaSeconds);
     }

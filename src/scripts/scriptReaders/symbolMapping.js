@@ -28,7 +28,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { TileRole } from '../utils/tileMaps/tileMap.js';
-import TURN_MANAGER from '../utils/game/turnManager.js';
+import TURN_MANAGER from '../gameManagement/turnManager.js';
 
 /**
  * @typedef {module:scriptReaders/sceneDefinitionParser~TileDefinition} TileDefinition

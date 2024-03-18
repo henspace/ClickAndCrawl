@@ -2,7 +2,7 @@
  * @file Heads-up display. Unlike the world, this never pans and so positions are
  * locked to the canvas coordinates.
  *
- * @module utils/game/hud
+ * @module hud/hud
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -29,12 +29,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Actor } from './actors.js';
-import { ImageSpriteCanvasRenderer } from '../sprites/spriteRenderers.js';
-import SCREEN from './screen.js';
-import { Sprite } from '../sprites/sprite.js';
-import { Position } from '../geometry.js';
-import { Rectangle } from '../geometry.js';
+import { Actor } from '../players/actors.js';
+import { ImageSpriteCanvasRenderer } from '../utils/sprites/spriteRenderers.js';
+import SCREEN from '../utils/game/screen.js';
+import { Sprite } from '../utils/sprites/sprite.js';
+import { Position } from '../utils/geometry.js';
+import { Rectangle } from '../utils/geometry.js';
 import { NavigationButtons } from './hudNavSet.js';
 
 /**

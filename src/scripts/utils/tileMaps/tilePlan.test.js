@@ -29,7 +29,7 @@
  */
 
 import { test, expect } from '@jest/globals';
-import { generateTileMapPlan } from './tilePlan.js';
+import { TilePlan } from './tilePlan.js';
 
 const map = new Map([
   [' ', undefined],
@@ -65,7 +65,7 @@ test('Test plan from design', () => {
     [map.get('#-BL'), map.get('#-B'), map.get('#-BR')],
   ];
 
-  const plan = generateTileMapPlan(design, map);
+  const plan = TilePlan.generateTileMapPlan(design, map);
   expect(plan).toHaveLength(expectations.length);
   expectations.forEach((rowValue, rowIndex) => {
     rowValue.forEach((colValue, colIndex) => {
@@ -83,7 +83,7 @@ test('Test plan doors from design', () => {
     [map.get('#-BL'), map.get('--B'), map.get('#-BR')],
   ];
 
-  const plan = generateTileMapPlan(design, map);
+  const plan = TilePlan.generateTileMapPlan(design, map);
   expect(plan).toHaveLength(expectations.length);
   expectations.forEach((rowValue, rowIndex) => {
     rowValue.forEach((colValue, colIndex) => {
@@ -138,7 +138,7 @@ test('Test plan from design with internal corners', () => {
     ],
   ];
 
-  const plan = generateTileMapPlan(design, map);
+  const plan = TilePlan.generateTileMapPlan(design, map);
   expect(plan).toHaveLength(expectations.length);
   expectations.forEach((rowValue, rowIndex) => {
     rowValue.forEach((colValue, colIndex) => {

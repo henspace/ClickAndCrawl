@@ -29,7 +29,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import LOG from './utils/logging.js';
-import GAME from './utils/game/game.js';
+import GAME from './gameManagement/game.js';
 
 window.addEventListener('load', () => {
   const DESIGN_WIDTH = 800;

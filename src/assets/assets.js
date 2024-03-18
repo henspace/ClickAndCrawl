@@ -32,8 +32,15 @@ import textureMap from './images/dungeon.json';
  * Urls for dynamically loading resources @type {Object<string, URL>}
  */
 export const AssetUrls = {
-  ACTOR_ALMANAC: new URL('./almanacs/actors.txt', import.meta.url),
-  ARTEFACT_ALMANAC: new URL('./almanacs/artefacts.txt', import.meta.url),
+  ALMANAC_MAP: new Map([
+    ['ARMOUR', new URL('./almanacs/armour.txt', import.meta.url)],
+    ['ARTEFACTS', new URL('./almanacs/artefacts.txt', import.meta.url)],
+    ['ENEMIES', new URL('./almanacs/enemies.txt', import.meta.url)],
+    ['HEROES', new URL('./almanacs/heroes.txt', import.meta.url)],
+    ['MONEY', new URL('./almanacs/money.txt', import.meta.url)],
+    ['TRADERS', new URL('./almanacs/traders.txt', import.meta.url)],
+    ['WEAPONS', new URL('./almanacs/weapons.txt', import.meta.url)],
+  ]),
   DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
   MUSIC: new URL(
     './audio/do-alto-do-trono-da-desolacao-trimmed.mp3',
@@ -41,6 +48,10 @@ export const AssetUrls = {
   ),
   SOUND_EFFECTS_MAP: new Map([
     ['PUNCH', new URL('./audio/punch-trimmed.mp3', import.meta.url)],
+    [
+      'DOUBLE PUNCH',
+      new URL('./audio/punch-trimmed-double.mp3', import.meta.url),
+    ],
     ['MISS', new URL('./audio/long-medium-swish-trimmed.mp3', import.meta.url)],
     ['POISONED', new URL('./audio/bubbling-trimmed.mp3', import.meta.url)],
     ['DIE', new URL('./audio/male-hurt-sound-trimmed.mp3', import.meta.url)],

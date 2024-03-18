@@ -168,6 +168,11 @@ body {
 }
 
 .actor-id-card span {
+  margin-left: 1rem;
+  display: inline-block;
+}
+
+.actor-id-card span:nth-child(2) {
   margin-left: 4px;
 }
 

@@ -1,7 +1,7 @@
 /**
  * @file Navigation button set for the HUD
  *
- * @module utils/game/hudNavSet
+ * @module hud/hudNavSet
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
@@ -29,9 +29,9 @@
  */
 
 import HUD from './hud.js';
-import { AnimatedImage } from '../sprites/animation.js';
-import { LoopMethod } from '../arrays/indexer.js';
-import { CameraTracking } from './camera.js';
+import { AnimatedImage } from '../utils/sprites/animation.js';
+import { LoopMethod } from '../utils/arrays/indexer.js';
+import { CameraTracking } from '../utils/game/camera.js';
 
 /**
  * @type {number}

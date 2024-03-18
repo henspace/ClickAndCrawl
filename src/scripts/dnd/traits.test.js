@@ -1,11 +1,10 @@
 /**
- * @file Resolve events that depend on chance or dix roles.
+ * @file Test traits
  *
- * @module dnd/chance
+ * @module dnd/traits.test
  */
 /**
- * License {@link https://opensource.org/license/mit/|MIT}
- *
+ * license {@link https://opensource.org/license/mit/|MIT}
  * Copyright 2024 Steve Butler (henspace.com).
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -27,35 +26,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import { test, expect } from '@jest/globals';
+import { Traits } from './traits.js';
 
-import { rollDice } from '../utils/dice.js';
-
-/**
- * Can actor hit opponent
- * @param {} actor - the person attempting to perform the action.
- * @param {*} opponent - the opposing actor
- * @returns {boolean}
- */
-export function hits(actor, opponent) {
-  return rollDice(20) > 10; // @ToDo
-}
-
-/**
- * Can actor evade opponent.
- * @param {} actor - the person attempting to perform the action.
- * @param {*} opponent - the opposing actor
- * @returns {boolean}
- */
-export function evades(actor, opponent) {
-  return rollDice(20) > 10; // @ToDo
-}
-
-/**
- * Can actor evade opponent.
- * @param {} actor - the person attempting to perform the action.
- * @param {*} opponent - the opposing actor
- * @returns {number} - amount of damage inflicted.
- */
-export function damageInflicted(actor, opponent) {
-  return rollDice(6); // @ToDo
-}
+test('Set simple value', () => {
+  const traits = new Traits('HP:25, DMG:1d6, STR: 3D20');
+  expect(traits.get('HP')).toBe('25');
+  expect(traits.get('DMG')).toBe('1D6');
+  expect(traits.get('STR')).toBe('3D20');
+});

@@ -151,7 +151,7 @@ export class Routes {
  * Encapsulation of route finder for finding paths through routes.
  */
 export class RouteFinder {
-  /** Actor trying to find routes. @type {module:utils/game/actors~Actor} */
+  /** Actor trying to find routes. @type {module:players/actors~Actor} */
   actor;
   /** @type {Route[]} */
   #routes;
@@ -162,7 +162,7 @@ export class RouteFinder {
 
   /** Create the route finder.
    * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
-   * @param {module:utils/game/actors~Actor} actor
+   * @param {module:players/actors~Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;
@@ -348,7 +348,7 @@ export class RouteFinder {
  * Ray tracer from a starting point
  */
 export class RayTracer {
-  /** Actor tracing rays. @type {module:utils/game/actors~Actor} */
+  /** Actor tracing rays. @type {module:players/actors~Actor} */
   #actor;
   /** Start point of the ray. @type {Point} */
   #rayStartPoint;
@@ -365,7 +365,7 @@ export class RayTracer {
 
   /** Create the ray tracer.
    * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
-   * @param {module:utils/game/actors~Actor} actor
+   * @param {module:players/actors~Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;

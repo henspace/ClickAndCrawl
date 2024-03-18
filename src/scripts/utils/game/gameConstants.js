@@ -1,7 +1,7 @@
 /**
  * @file Game constants
  *
- * @module utils/game/gameConstants
+ * @module gameutils/gameConstants
  */
 /**
  * License {@link https://opensource.org/license/mit/|MIT}
