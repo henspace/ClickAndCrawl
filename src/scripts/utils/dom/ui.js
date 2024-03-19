@@ -47,7 +47,9 @@ export const DialogResponse = {
  * @param {string} message
  */
 function createMessageElement(message) {
-  const element = document.createElement('div');
+  const element = components.createElement('div', {
+    className: 'dialog-scroll-content',
+  });
   element.innerText = message;
   element.classList.add(['scrollable']);
   return element;
@@ -96,7 +98,7 @@ function showOkDialog(message, options) {
 /**
  * Create a choice dialog.
  * @param {string} title
- * @param {string} message
+ * @param {string | Element} message
  * @param {string[]} choices - labels for buttons.
  * @returns {number} index of selected button.
  */
@@ -135,10 +137,14 @@ function showElementOkDialog(
   className
 ) {
   const container = document.createElement('div');
+  const scrollContainer = components.createElement('div', {
+    className: 'dialog-scroll-content',
+  });
+  container.appendChild(scrollContainer);
   if (title) {
-    container.appendChild(components.createElement('p', { text: title }));
+    scrollContainer.appendChild(components.createElement('p', { text: title }));
   }
-  container.appendChild(element);
+  scrollContainer.appendChild(element);
   const buttonEl = document.createElement('button');
   buttonEl.appendChild(document.createTextNode(okButtonLabel));
   container.appendChild(buttonEl);
@@ -168,15 +174,19 @@ function showElementOkDialog(
  */
 function showControlsDialog(mainContent, options) {
   const container = document.createElement('div');
+  const scrollContainer = components.createElement('div', {
+    className: 'dialog-scroll-content',
+  });
+  container.appendChild(scrollContainer);
   if (options?.preamble) {
-    container.appendChild(
+    scrollContainer.appendChild(
       components.createElement('p', { text: options.preamble })
     );
   }
   if (mainContent instanceof Element) {
-    container.appendChild(mainContent);
+    scrollContainer.appendChild(mainContent);
   } else {
-    container.appendChild(createMessageElement(mainContent));
+    scrollContainer.appendChild(createMessageElement(mainContent));
   }
   const actionButtons = components.createElement('div', {
     className: options?.row ? 'action-buttons-row' : 'action-buttons-col',

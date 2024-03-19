@@ -142,6 +142,11 @@ body {
   justify-content: center;
 }
 
+.dialog-scroll-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
 .action-buttons-row button {
   flex: 1;
 }

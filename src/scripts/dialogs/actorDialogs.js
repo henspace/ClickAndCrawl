@@ -33,6 +33,8 @@ import { i18n } from '../utils/messageManager.js';
 import { ArtefactType, StoreType } from '../players/artefacts.js';
 import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import { gpAsString } from '../utils/game/coins.js';
+import * as dndAction from '../dnd/dndAction.js';
+import LOG from '../utils/logging.js';
 /**
  * @typedef {number} ArtefactActionTypeValue
  */
@@ -204,6 +206,103 @@ function showTraits(actor) {
 }
 
 /**
+ * Show a rest action dialog.
+ * @param {module:players/actors~Actor} actor
+ * @returns {Promise} fulfils to undefined.
+ */
+function showRestActionDialog(actor) {
+  const store = actor.storeManager.getStore(StoreType.BACKPACK);
+
+  const meals = [];
+  const drinks = [];
+  store.values().forEach((item) => {
+    if (item.artefactType === ArtefactType.FOOD) {
+      const type = item.traits.get('TYPE');
+      if (type === 'MEAL') {
+        meals.push(item);
+      } else if (type === 'DRINK') {
+        drinks.push(item);
+      }
+    }
+  });
+
+  const messageContainer = document.createElement('div');
+  messageContainer.appendChild(createIdCard(actor));
+
+  const longRestPossible = dndAction.canRest(
+    'LONG',
+    meals.length,
+    drinks.length
+  );
+  const shortRestPossible = dndAction.canRest(
+    'SHORT',
+    meals.length,
+    drinks.length
+  );
+  const choices = [];
+
+  messageContainer.appendChild(
+    components.createElement('p', { text: i18n`MESSAGE EXPLAIN REST` })
+  );
+  let message;
+  if (!longRestPossible && !shortRestPossible) {
+    message = i18n`MESSAGE CANNOT REST ${dndAction.MEALS_FOR_SHORT_REST} ${dndAction.DRINKS_FOR_SHORT_REST}${dndAction.MEALS_FOR_LONG_REST} ${dndAction.DRINKS_FOR_LONG_REST}`;
+  } else if (!longRestPossible) {
+    message = i18n`MESSAGE CANNOT REST LONG ${dndAction.MEALS_FOR_LONG_REST} ${dndAction.DRINKS_FOR_LONG_REST}`;
+  }
+  messageContainer.appendChild(
+    components.createElement('p', { text: message })
+  );
+  let shortIndex = -1;
+  let longIndex = -1;
+  if (shortRestPossible) {
+    shortIndex = choices.length;
+    choices.push(i18n`BUTTON REST SHORT`);
+  }
+  if (longRestPossible) {
+    longIndex = choices.length;
+    choices.push(i18n`BUTTON REST LONG`);
+  }
+  choices.push(i18n`BUTTON CANCEL`);
+
+  return UI.showChoiceDialog(
+    i18n`DIALOG TITLE CHOICES`,
+    messageContainer,
+    choices
+  ).then((choice) => {
+    if (choice === shortIndex) {
+      discardItemsFromStore(store, meals, dndAction.MEALS_FOR_SHORT_REST);
+      discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_SHORT_REST);
+      dndAction.takeRest(actor, 'SHORT');
+    } else if (choice === longIndex) {
+      discardItemsFromStore(store, meals, dndAction.MEALS_FOR_LONG_REST);
+      discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_LONG_REST);
+      dndAction.takeRest(actor, 'LONG');
+    }
+    return;
+  });
+}
+
+/**
+ * @param {module:players/artefacts~StoreInterface}
+ * @param {module:players/artefacts~Artefact[]} items
+ * @param {number} qty
+ */
+function discardItemsFromStore(store, items, qty) {
+  if (qty > items.length) {
+    LOG.error(
+      'Attempt being made to discard more items than provided in array.'
+    );
+  }
+  for (let index = 0; index < qty && index < items.length; index++) {
+    const taken = store.take(items[index]);
+    if (!taken) {
+      LOG.error(`Trying to take artefact ${item}, but none found.`);
+    }
+  }
+}
+
+/**
  * Show actor's inventory.
  * @param {Actor} actor
  */
@@ -294,10 +393,12 @@ function createSelfActionArtefactDialogButtons(container, options) {
   let button;
 
   if (options.storeType === StoreType.BACKPACK) {
-    button = new components.TextButtonControl({
-      label: i18n`BUTTON EQUIP`,
-      closes: ArtefactAction.EQUIP,
-    });
+    if (options.artefact.equipStoreType) {
+      button = new components.TextButtonControl({
+        label: i18n`BUTTON EQUIP`,
+        closes: ArtefactAction.EQUIP,
+      });
+    }
   } else if (
     !options.artefact.stashInWagon ||
     options.currentOwner.storeManager.hasWagon
@@ -480,15 +581,6 @@ function showEquipDialog(options) {
 }
 
 /**
- * Use food.
- * @param {ArtefactDialogOptions} options
- * @return {Promise} fulfils to undefined.
- */
-function showFoodDialog(optionsUnused) {
-  return UI.showOkDialog('Use food dialog ToDo');
-}
-
-/**
  * Use spell.
  * @param {ArtefactDialogOptions} options
  * @return {Promise} fulfils to undefined.
@@ -628,7 +720,7 @@ function createArtefactButtonControl(options) {
     const price = options.currentOwner.isTrader()
       ? options.artefact.costInGp
       : options.artefact.sellBackPriceInGp;
-    label = `${label} ${price} GP`;
+    label = `${label} ${price.toFixed(2)} GP`;
   }
   return new components.BitmapButtonControl({
     rightLabel: label,
@@ -720,15 +812,18 @@ export function showPillageDialog(pillager, victim) {
 /**
  * Display details about the actor.
  * @param {module:players/actors~Actor} actor
+ * @param {Object} [options = {}]
+ * @param {boolean} options.allowRest
  */
-export function showActorDetailsDialog(actor) {
+export function showActorDetailsDialog(actor, options = {}) {
   const container = document.createElement('div');
   container.appendChild(
     components.createElement('span', {
       text: i18n`Dungeon level: ${SCENE_MANAGER.getCurrentSceneLevel()}`,
     })
   );
-  container.appendChild(createActorElement(actor, { hideTraits: true }));
+  const actorElement = createActorElement(actor, { hideTraits: true });
+  container.appendChild(actorElement);
   let button = new components.TextButtonControl({
     label: i18n`BUTTON INVENTORY`,
     action: () => showInventory(actor),
@@ -739,6 +834,19 @@ export function showActorDetailsDialog(actor) {
     action: () => showTraits(actor),
   });
   container.appendChild(button.element);
+  if (options.allowRest) {
+    button = new components.TextButtonControl({
+      label: i18n`BUTTON REST`,
+      action: () => {
+        return showRestActionDialog(actor).then(() =>
+          actorElement.replaceWith(
+            createActorElement(actor, { hideTraits: true })
+          )
+        );
+      },
+    });
+    container.appendChild(button.element);
+  }
   return UI.showControlsDialog(container);
 }
 
@@ -763,10 +871,8 @@ export function showArtefactDialog(options) {
     case ArtefactType.ARMOUR:
     case ArtefactType.SHIELD:
     case ArtefactType.COINS:
-      dialogFn = showEquipDialog;
-      break;
     case ArtefactType.FOOD:
-      dialogFn = showFoodDialog;
+      dialogFn = showEquipDialog;
       break;
     case ArtefactType.SPELL:
       dialogFn = showSpellDialog;
@@ -818,4 +924,13 @@ export function showArtefactDialog(options) {
     }
     return;
   });
+}
+
+/**
+ * Show the rest dialog for the hero
+ * @param {module:players/actors~Actor} actor} heroActor
+ * @returns {Promise} fulfils to null;
+ */
+export function showRestDialog(heroActor) {
+  return showActorDetailsDialog(heroActor, { allowRest: true });
 }

@@ -250,6 +250,20 @@ export class Traits {
     const result = this.get(key, defValue);
     return maths.safeParseInt(result, defValue);
   }
+  /**
+   * Get the trait value as a modifier int. This will look first for the key and then the key
+   * preceded by an underscore.
+   * @param {string} key
+   * @param {*} defValue - default value;
+   * @returns {number}
+   */
+  getAsModifier(key, defValue) {
+    const value = this.getInt(key);
+    if (value === null || value === undefined) {
+      return defValue;
+    }
+    return characteristicToModifier(value);
+  }
 
   /**
    * Adjust case to uppercase unless an excluded characteristic. Most values are
@@ -453,7 +467,6 @@ export class CharacterTraits extends Traits {
       if (!this.get(key)) {
         const value = values[valueIndex++] ?? 8;
         this.set(key, value);
-        LOG.info(`Setting ${key} ability to ${value}`);
       }
     });
   }

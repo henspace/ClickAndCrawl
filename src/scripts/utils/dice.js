@@ -62,19 +62,18 @@ export function rollMultiDice(dice) {
   if (Number.isInteger(dice)) {
     return rollDice(dice);
   }
-  const match = dice.match(MULTIDICE_REGEX);
-  if (!match) {
+  const details = getDiceDetails(dice);
+  if (!details) {
     LOG.error(
       `String ${dice} not recognised as a dice roll. Defaulting to 1D1.`
     );
     return 1;
   }
   let result = 0;
-  for (let roll = 0; roll < match[1]; roll++) {
-    result += rollDice(parseInt(match[2]));
+  for (let roll = 0; roll < details.qty; roll++) {
+    result += rollDice(parseInt(details.sides)) + details.offset;
   }
-  const offset = match[3] ? parseInt(match[3]) : 0;
-  return result + offset;
+  return result;
 }
 
 /**
@@ -85,16 +84,11 @@ export function rollMultiDice(dice) {
  * @returns {number}
  */
 export function maxRoll(dice) {
-  if (!dice) {
+  const details = getDiceDetails(dice);
+  if (!details) {
     return 1;
   }
-  const match = dice.match(MULTIDICE_REGEX);
-  if (!match) {
-    LOG.error(`Invalid dice format: ${dice}`);
-    return 0;
-  }
-  const offset = match[3] ? parseInt(match[3]) : 0;
-  return parseInt(match[1]) * parseInt(match[2]) + offset;
+  return details.qty * (details.sides + details.offset);
 }
 
 /**
@@ -105,4 +99,61 @@ export function maxRoll(dice) {
  */
 export function biggestMultiDice(diceA, diceB) {
   return maxRoll(diceA) > maxRoll(diceB) ? diceA : diceB;
+}
+
+/**
+ * Take a multidice definition of the form nDS + offset and change
+ * the n part.
+ * @param {string} multidice - multidice definition
+ * @param {number} delta - can be negative
+ * @returns {string} multidice definition.
+ */
+export function changeQtyOfDice(dice, delta) {
+  const details = getDiceDetails(dice);
+  if (!details) {
+    return dice;
+  }
+  details.qty = Math.max(details.qty + delta, 0);
+  return getDiceDetailsAsString(details);
+}
+
+/**
+ * @typedef {Object} DiceDetails
+ * @property {number} qty
+ * @property {sides} sides
+ * @property {offset} offset
+ */
+/**
+ * Take a multidice definition of the form nDS + offset get the number of dice.
+ * @param {string} multidice - multidice definition
+ * @returns {DiceDetails} null if invalid
+ */
+export function getDiceDetails(dice) {
+  const match = dice.match(MULTIDICE_REGEX);
+  if (!match) {
+    LOG.error(`Invalid dice format: ${dice}`);
+    return null;
+  }
+  const qty = parseInt(match[1]);
+  const sides = parseInt(match[2]);
+  const offset = match[3] ? parseInt(match[3]) : 0;
+
+  return {
+    qty: qty,
+    sides: sides,
+    offset: offset,
+  };
+}
+
+/**
+ * Convert dice details to a string.
+ * @param {DiceDetails} details
+ * @returns {string}
+ */
+export function getDiceDetailsAsString(details) {
+  if (details.offset) {
+    return `${details.qty}D${details.sides}+${details.offset}`;
+  } else {
+    return `${details.qty}D${details.sides}`;
+  }
 }

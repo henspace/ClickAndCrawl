@@ -31,6 +31,11 @@ import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
 import { characteristicToModifier } from './traits.js';
 
+/** @type number */
+export const MEALS_FOR_LONG_REST = 3;
+export const MEALS_FOR_SHORT_REST = 1;
+export const DRINKS_FOR_LONG_REST = 1;
+export const DRINKS_FOR_SHORT_REST = 1;
 /**
  * Roll an attack and damage dice.
  * @param {module:dnd/traits~AttackDetail} attack
@@ -53,6 +58,8 @@ export function getMeleeDamage(attack, target) {
 
 /**
  * poison with saving throw.
+ * @param {module:dnd/traits~AttackDetail} attack
+ * @param {module:players/actors~Actor} target
  * @returns {number}
  */
 export function getPoisonDamage(attacker, target) {
@@ -75,5 +82,77 @@ export function getPoisonDamage(attacker, target) {
     return 0;
   } else {
     return damage;
+  }
+}
+
+/**
+ * Test if a rest can be taken.
+ * A long rest takes 8 hours and cannot occur more than once.
+ * So in this game we require three meals and a drink to mimic a full day.
+ * For a short rest, we require 1 meal and a drink is all that is required.
+ * @param {string} length - LONG or SHORT
+ * @param {number} nMeals - number of meals available
+ * @param {number} nDrinks - number of drinks available
+ *
+ * @returns {boolean}
+ */
+export function canRest(length, nMeals, nDrinks) {
+  switch (length) {
+    case 'SHORT':
+      return nMeals >= MEALS_FOR_SHORT_REST && nDrinks >= DRINKS_FOR_SHORT_REST;
+    case 'LONG':
+      return nMeals >= MEALS_FOR_LONG_REST && nDrinks >= DRINKS_FOR_LONG_REST;
+  }
+  LOG.error(`Attempt to rest for unknown length of ${length}`);
+  return false;
+}
+
+/**
+ * Take a rest.
+ * @param {module:players/actors~Actor} actor
+ * @param {string} length - LONG or SHORT
+ */
+export function takeRest(actor, length) {
+  switch (length) {
+    case 'SHORT':
+      {
+        const hitDice = actor.traits.get('HIT_DICE');
+        let hp = actor.traits.getInt('HP', 0);
+        const hpMax = actor.traits.getInt('HP_MAX', hp);
+        const constitutionModifier = actor.traits.getAsModifier('CON');
+        const diceDetails = dice.getDiceDetails(hitDice);
+        if (diceDetails.qty > 0) {
+          diceDetails.qty--;
+          hp += dice.rollDice(diceDetails.sides) + constitutionModifier; // just roll one.
+          actor.traits.set('HP', Math.min(hp, hpMax));
+          actor.traits.set(
+            'HIT_DICE',
+            dice.getDiceDetailsAsString(diceDetails)
+          );
+        }
+      }
+      break;
+    case 'LONG':
+      {
+        const maxNumberOfHitDice = actor.traits.getCharacterLevel();
+        const currentHitDice = actor.traits.get('HIT_DICE');
+        const currentDiceDetails = dice.getDiceDetails(currentHitDice);
+        const recoveredHitDice = Math.max(
+          1,
+          Math.ceil(0.5 * currentDiceDetails.qty)
+        );
+        currentDiceDetails.qty = Math.min(
+          maxNumberOfHitDice,
+          currentDiceDetails.qty + recoveredHitDice
+        );
+        actor.traits.set(
+          'HIT_DICE',
+          dice.getDiceDetailsAsString(currentDiceDetails)
+        );
+        actor.traits.set('HP', actor.traits.getInt('HP_MAX', 0));
+      }
+      break;
+    default:
+      LOG.error(`Attempt to rest for unknown length of ${length}`);
   }
 }

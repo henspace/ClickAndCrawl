@@ -682,6 +682,7 @@ export class TileMap {
       clickHandler(target, point, {
         filter: ClickEventFilter.MOVE_OR_INTERACT_TILE,
       });
+      return;
     } else if (movement) {
       clickHandler(target, point, { filter: ClickEventFilter.MOVEMENT_TILE });
       return;

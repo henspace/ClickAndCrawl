@@ -1,5 +1,9 @@
 # minlevel:number,ArtefactType:string,id:string * traits:string
-
+# Note that the ID can have text in brackets at the end. This will
+# form part of the id to create a unique almanac entry but will not be used
+# for the image or description.
+0,FOOD,iron_rations * COST: 3SP, TYPE: MEAL
+0,FOOD,waterskin * COST: 2SP , TYPE: DRINK
 
 
 

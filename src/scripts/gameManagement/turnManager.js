@@ -443,7 +443,7 @@ class HeroTurnIdle extends State {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          const filter = detail?.filter;
+          const filter = await disambiguateFilter(detail?.filter);
           if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
           } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
@@ -732,7 +732,9 @@ function startNextScene(currentState) {
   if (!SCENE_MANAGER.areThereMoreScenes()) {
     return currentState.transitionTo(new AtGameCompleted());
   }
-  return SCENE_MANAGER.switchToNextScene()
+  return actorDialogs
+    .showRestDialog(heroActor)
+    .then(() => SCENE_MANAGER.switchToNextScene())
     .then((scene) => {
       heroActor.sprite.position =
         WORLD.getTileMap().getWorldPositionOfTileByEntry();

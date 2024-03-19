@@ -39,6 +39,9 @@ const MESSAGE_MAP = new Map([
   ['BUTTON OK', 'OK'],
   ['BUTTON PILLAGE', 'Pillage'],
   ['BUTTON PLAY', 'Play'],
+  ['BUTTON REST', 'Rest'],
+  ['BUTTON REST LONG', 'Long rest'],
+  ['BUTTON REST SHORT', 'Short rest'],
   ['BUTTON SEARCH', 'Search'],
   ['BUTTON SELL', 'Sell'],
   ['BUTTON SETTINGS', 'Settings'],
@@ -103,6 +106,14 @@ const MESSAGE_MAP = new Map([
   ],
 
   ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
+  [
+    'DESCRIPTION IRON_RATIONS',
+    'Simple emergency rations. Crucial for resting between rooms.',
+  ],
+  [
+    'DESCRIPTION WATERSKIN',
+    'A leather drinking flask with fresh water. Crucial for resting between rooms.',
+  ],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
   [
     'DESCRIPTION GOBLIN',
@@ -134,8 +145,20 @@ const MESSAGE_MAP = new Map([
     "You're carrying too much stuff to pick up what you've found.",
   ],
   [
+    'MESSAGE CANNOT REST',
+    'You cannot rest. For a short rest you need ${0} meal, ${1} drink and at least one hit dice. For a long rest you need ${2} meals and ${3} drink',
+  ],
+  [
+    'MESSAGE CANNOT REST LONG',
+    'You cannot have a long rest. For a long rest you need ${0} meals and ${1} drink',
+  ],
+  [
     'MESSAGE ENTER LEVEL',
     "You enter level ${0}. The door slams shut behind you. There's no way back.",
+  ],
+  [
+    'MESSAGE EXPLAIN REST',
+    'If you have food and drink, you can take a short rest to recover some hit points. A long rest requires more food but can recover all your hit points.',
   ],
   [
     'MESSAGE DUNGEON INTRO',
