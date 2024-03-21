@@ -104,3 +104,16 @@ export function getLevelAndProfBonusFromExp(exp) {
 
   return { level: level, profBonus: ADVANCEMENT_TABLE[level - 1].profBonus };
 }
+
+/**
+ * Get min experience points for level.
+ * @param {number} level
+ */
+export function getMinExpPointsForLevel(level) {
+  level = Math.min(level, ADVANCEMENT_TABLE.length);
+  level--; // array is zero based.
+  if (level < 0) {
+    return ADVANCEMENT_TABLE[0].exp;
+  }
+  return ADVANCEMENT_TABLE[level].exp;
+}

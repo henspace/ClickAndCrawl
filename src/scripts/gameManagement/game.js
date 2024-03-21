@@ -150,7 +150,6 @@ function setupListeners() {
   canvas.addEventListener(
     pointerActions.CUSTOM_CONTEXT_MENU_EVENT_NAME,
     (event) => {
-      LOG.debug('Context menu');
       const x = event.detail.x;
       const y = event.detail.y;
       const mappedPositions = SCREEN.uiCoordsToMappedPositions(x, y);

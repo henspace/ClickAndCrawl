@@ -290,6 +290,8 @@ export class Actor extends UiClickHandler {
       return !otherActor.isOrganic() && !otherActor.isTrader(); // don't kill off traders.
     } else if (this.isHiddenArtefact()) {
       return otherActor.isHero();
+    } else if (!this.alive && otherActor.isHero()) {
+      return true;
     } else {
       return !this.obstacle;
     }

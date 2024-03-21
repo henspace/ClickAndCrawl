@@ -40,6 +40,7 @@ import { randomise } from '../arrays/arrayManip.js';
 import { getSurrounds } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
+import { Colours } from '../../constants/canvasStyles.js';
 
 /**
  * Detail for click events.
@@ -290,15 +291,15 @@ export class TileMap {
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: 'rgba(255, 255, 255, 0.2)',
-        strokeStyle: 'white',
+        fillStyle: Colours.MOVE_HIGHLIGHT_FILL,
+        strokeStyle: Colours.MOVE_HIGHLIGHT_STROKE,
       }),
     });
     this.#reachableDoorTileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: 'rgba(0, 255, 0, 0.2)',
+        fillStyle: Colours.DOOR_HIGHLIGHT_FILL,
         strokeStyle: 'green',
       }),
     });
@@ -306,8 +307,8 @@ export class TileMap {
       renderer: new RectSpriteCanvasRenderer(context, {
         width: gridSize,
         height: gridSize,
-        fillStyle: 'rgba(255, 0, 0, 0.2)',
-        strokeStyle: 'red',
+        fillStyle: Colours.INTERACT_HIGHLIGHT_FILL,
+        strokeStyle: Colours.INTERACT_HIGHLIGHT_STROKE,
       }),
     });
     this.#gridSize = gridSize;

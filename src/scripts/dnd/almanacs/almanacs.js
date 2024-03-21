@@ -39,6 +39,7 @@ import * as maths from '../../utils/maths.js';
  * @property {ArtefactType | ActorType} type
  * @property {string} equipmentIds - comma separated equipment list
  * @property {string} traitsString
+ * @property {number} challengeRating - just used for searching the almanac
  */
 /**
  * @typedef {AlmanacEntry[]} Almanac
@@ -124,6 +125,24 @@ class AlmanacLibrary {
     return;
   }
 
+  /** Create a pool of almanac entries.
+   * Only entries whose minLevel <= level are returned.
+   * @param {number} [level = 999]
+   * @returns {AlmanacEntry[]}
+   */
+  getPooledEntries(almanacKeys, level = 999) {
+    const pool = [];
+    almanacKeys.forEach((key) => {
+      const entries = this.getAlmanac(key);
+      entries.forEach((entry) => {
+        if (entry.minLevel <= level) {
+          pool.push(entry);
+        }
+      });
+    });
+    return pool;
+  }
+
   /**
    *
    * @param {string} key - almanac key
@@ -162,7 +181,17 @@ function parseAlmanacLine(line, almanacKey) {
   entry.name = almanacUtils.createNameFromId(entry.id);
   entry.equipmentIds = csvToArray(parts[4]);
   entry.traitsString = parts[5];
+  entry.challengeRating = extractCrValue(entry.traitsString);
   return entry;
+}
+
+/**
+ * Extract the CR rating as this is used as a filter.
+ * @param {string} traits
+ */
+function extractCrValue(traits) {
+  const match = traits?.match(/CR *[:=] *([\d.]+)/);
+  return match ? maths.safeParseFloat(match[1], 0) : 0;
 }
 
 /**

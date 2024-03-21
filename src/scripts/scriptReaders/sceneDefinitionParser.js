@@ -37,12 +37,13 @@ import { TILE_MAP_KEYS } from './symbolMapping.js';
 import { AbstractScene } from '../utils/game/scene.js';
 import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import GameConstants from '../utils/game/gameConstants.js';
-import { ActorType } from '../players/actors.js';
+import { Actor, ActorType } from '../players/actors.js';
 
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
 import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
+import { rollDice } from '../utils/dice.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -63,18 +64,16 @@ let lastHero;
  * @returns {Actor}
  */
 function createHero(sceneDefn) {
-  if (sceneDefn.heroes && sceneDefn.heroes[0]) {
-    const heroDefn = sceneDefn.heroes[0];
-    const actor = buildActor(heroDefn);
-    actor.type = ActorType.HERO;
+  if (sceneDefn.hero instanceof Actor) {
+    lastHero = sceneDefn.hero;
+  } else if (sceneDefn.hero) {
+    const actor = buildActor(sceneDefn.hero);
     lastHero = actor;
-    return actor;
-  } else {
-    if (!lastHero) {
-      throw new Error('No hero has been defined.');
-    }
-    return lastHero;
+  } else if (!lastHero) {
+    throw new Error('No hero has been defined.');
   }
+
+  return lastHero;
 }
 /**
  * Create the enemies.
@@ -113,24 +112,34 @@ function createArtefacts(sceneDefn) {
 /**
  * Add an artefact from the almanac.
  * @param {Actor[]} actors
- * @param {string[]} almanacKeys
+ * @param {AlmanacEntry} almanacEntry
+ * @param {Object} options
+ * @param {boolean} options.equip - if true, try to equip rather than stash.
+ */
+function addArtefactToActor(actor, almanacEntry, options) {
+  if (almanacEntry) {
+    const artefact = buildArtefact(almanacEntry);
+    if (options.equip && artefact.equipStoreType) {
+      actor.storeManager?.equip(artefact, { direct: true });
+    } else {
+      actor.storeManager?.stash(artefact, { direct: true });
+    }
+  }
+}
+
+/**
+ * Add an artefact from the almanac.
+ * @param {Actor[]} actors
+ * @param {AlmanacEntry[]} almanacEntries
  * @param {Object} options
  * @param {number} options.qty - number to add.
  * @param {boolean} options.equip - if true, try to equip rather than stash.
  */
-function addRandomArtefactsToActor(actor, almanacKeys, options) {
+function addRandomArtefactsToActor(actor, almanacEntries, options) {
   while (options.qty-- > 0) {
-    const index = maths.getRandomInt(0, almanacKeys.length);
-    const almanacKey = almanacKeys[index];
-    const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(almanacKey);
-    if (almanacEntry) {
-      const artefact = buildArtefact(almanacEntry);
-      if (options.equip && artefact.equipStoreType) {
-        actor.storeManager?.equip(artefact, { direct: true });
-      } else {
-        actor.storeManager?.stash(artefact, { direct: true });
-      }
-    }
+    const index = maths.getRandomInt(0, almanacEntries.length);
+    const almanacEntry = almanacEntries[index];
+    addArtefactToActor(actor, almanacEntry, options);
   }
 }
 
@@ -167,12 +176,31 @@ class ParsedScene extends AbstractScene {
     );
     WORLD.setTileMap(tileMap);
 
+    const pooledArtefacts = ALMANAC_LIBRARY.getPooledEntries([
+      'ARTEFACTS',
+      'ARMOUR',
+      'WEAPONS',
+    ]);
+    const water = pooledArtefacts.find((entry) => entry.id === 'waterskin');
+    const rations = pooledArtefacts.find(
+      (entry) => entry.id === 'iron_rations'
+    );
+
     createEnemies(this.#sceneDefn).forEach((enemy) => {
       enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addActor(enemy);
       if (enemy.isTrader()) {
-        addRandomArtefactsToActor(enemy, ['WEAPONS', 'ARMOUR', 'ARTEFACTS'], {
-          qty: 7,
+        let qtyOfItems = 7;
+        if (rollDice(6) > 3) {
+          addArtefactToActor(enemy, water, { equip: false });
+          qtyOfItems--;
+        }
+        if (rollDice(6) > 3) {
+          addArtefactToActor(enemy, rations, { equip: false });
+          qtyOfItems--;
+        }
+        addRandomArtefactsToActor(enemy, pooledArtefacts, {
+          qty: qtyOfItems,
           equip: false,
         });
       }
@@ -201,6 +229,7 @@ class ParsedScene extends AbstractScene {
     return Promise.resolve(null);
   }
 }
+
 /**
  * Parse the scene definition to create a Scene
  * @param {SceneDefinition} sceneDefn

@@ -32,7 +32,7 @@ import HUD from './hud.js';
 import { AnimatedImage } from '../utils/sprites/animation.js';
 import { LoopMethod } from '../utils/arrays/indexer.js';
 import { CameraTracking } from '../utils/game/camera.js';
-
+import { Point } from '../utils/geometry.js';
 /**
  * @type {number}
  */
@@ -60,17 +60,111 @@ export class NavigationButtons {
   /** @type {module:utils/sprites/imageManager~SpriteBitmap} */
   #trackingButtonImage;
 
+  /** @type {Actor} */
+  #fullscreenButton;
+  /** @type {AnimatedImage} */
+  #fullscreenButtonImage;
+
   /**
    *
    * @param {CameraDolly} cameraDolly
    * @param {number} gridSize
-   * @param {NavigationLocation} location
+   * @param {NavigationLocation} locationNav
+   * @param {NavigationLocation} locationFullscreen
    */
-  constructor(cameraDolly, gridSize, location) {
+  constructor(cameraDolly, gridSize, locationNav, locationFullscreen) {
     this.#cameraDolly = cameraDolly;
-    this.#createButtonSet(gridSize, location, false);
+    this.#createButtonSet(gridSize, locationNav, false);
+    this.#createFullscreenButton(gridSize, locationFullscreen);
   }
 
+  /**
+   * Create the button to handle fullscreen mode
+   */
+  #createFullscreenButton(gridSize, location) {
+    this.#fullscreenButtonImage = new AnimatedImage(
+      {
+        prefix: 'hud-fullscreen',
+        startIndex: 0,
+        padding: 2,
+        suffix: '.png',
+      },
+      { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
+    );
+
+    this.#setFullscreenButtonImage();
+    this.#fullscreenButton = HUD.addButton(
+      this.#fullscreenButtonImage,
+      () => {
+        this.#requestFullscreen(document.body, { navigationUI: 'hide' });
+      },
+      () => {
+        document.exitFullscreen();
+      }
+    );
+    const centre = this.#getLocationPoint(gridSize, location, 1);
+    this.#fullscreenButton.position.x = centre.x;
+    this.#fullscreenButton.position.y = centre.y;
+    addEventListener('fullscreenchange', () => {
+      this.#setFullscreenButtonImage();
+    });
+  }
+  /**
+   * Set the image for the full screen button. It is assumed that
+   * index 0 is shown when not in fullscreen and image 1 when it it.
+   * @param {AnimatedI} fullscreenButtonImage
+   */
+  #setFullscreenButtonImage() {
+    if (!document.fullscreenElement) {
+      this.#fullscreenButtonImage.setCurrentIndex(0);
+    } else {
+      this.#fullscreenButtonImage.setCurrentIndex(1);
+    }
+  }
+  /**
+   * Request full screen mode.
+   * @param {Element} element - what should go full screen.
+   * @param {Object} options - see {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen}
+   * @returns {Promise}
+   */
+  #requestFullscreen(element, options) {
+    if (element.requestFullscreen) {
+      return element.requestFullscreen(options);
+    }
+    return Promise.reject(
+      new Error('Fullscreen requests not supported by browser')
+    );
+  }
+
+  /** Get centre point information
+   * @param {number} gridSize - tile size
+   * @param {NavigationLocation} location
+   * @param {number} offset - offset applied to location.
+   * This grid units (i.e. tiles).
+   * @returns {Point}
+   */
+  #getLocationPoint(gridSize, location, offset) {
+    const point = new Point(0, 0);
+    switch (location) {
+      case NavigationLocation.TL:
+        point.x = offset * gridSize;
+        point.y = offset * gridSize;
+        break;
+      case NavigationLocation.TR:
+        point.x = -offset * gridSize;
+        point.y = offset * gridSize;
+        break;
+      case NavigationLocation.BR:
+        point.x = -offset * gridSize;
+        point.y = -offset * gridSize;
+        break;
+      case NavigationLocation.BL:
+        point.x = offset * gridSize;
+        point.y = -offset * gridSize;
+        break;
+    }
+    return point;
+  }
   /**
    * Create the buttons.
    * @param {number} gridSize
@@ -79,29 +173,11 @@ export class NavigationButtons {
    */
   #createButtonSet(gridSize, location, showArrows) {
     const offset = showArrows ? 2 : 1;
-    let centreX;
-    let centreY;
-    switch (location) {
-      case NavigationLocation.TL:
-        centreX = offset * gridSize;
-        centreY = offset * gridSize;
-        break;
-      case NavigationLocation.TR:
-        centreX = -offset * gridSize;
-        centreY = offset * gridSize;
-        break;
-      case NavigationLocation.BR:
-        centreX = -offset * gridSize;
-        centreY = -offset * gridSize;
-        break;
-      case NavigationLocation.BL:
-        centreX = offset * gridSize;
-        centreY = -offset * gridSize;
-        break;
-    }
-    this.#createCentreButton(centreX, centreY);
+    const centre = this.#getLocationPoint(gridSize, location, offset);
+
+    this.#createCentreButton(centre.x, centre.y);
     if (showArrows) {
-      this.#createArrowButtons(centreX, centreY, gridSize);
+      this.#createArrowButtons(centre.x, centre.y, gridSize);
     }
   }
 

@@ -262,10 +262,26 @@
             <key type="filename">tiles/orc-walk-w03.png</key>
             <key type="filename">tiles/platinum_coins.png</key>
             <key type="filename">tiles/poleaxe.png</key>
+            <key type="filename">tiles/rat-dead00.png</key>
+            <key type="filename">tiles/rat-idle00.png</key>
+            <key type="filename">tiles/rat-walk-e00.png</key>
+            <key type="filename">tiles/rat-walk-n00.png</key>
+            <key type="filename">tiles/rat-walk-s00.png</key>
+            <key type="filename">tiles/rat.png</key>
             <key type="filename">tiles/silver_coins.png</key>
             <key type="filename">tiles/skull.png</key>
             <key type="filename">tiles/slime-dead00.png</key>
             <key type="filename">tiles/slime.png</key>
+            <key type="filename">tiles/spider-dead00.png</key>
+            <key type="filename">tiles/spider-idle00.png</key>
+            <key type="filename">tiles/spider-idle01.png</key>
+            <key type="filename">tiles/spider-idle02.png</key>
+            <key type="filename">tiles/spider-idle03.png</key>
+            <key type="filename">tiles/spider-walk-e00.png</key>
+            <key type="filename">tiles/spider-walk-n00.png</key>
+            <key type="filename">tiles/spider-walk-s00.png</key>
+            <key type="filename">tiles/spider-walk-w00.png</key>
+            <key type="filename">tiles/spider.png</key>
             <key type="filename">tiles/trader-dead00.png</key>
             <key type="filename">tiles/trader-idle-s03.png</key>
             <key type="filename">tiles/trader-idle00.png</key>
@@ -377,6 +393,8 @@
                 <false/>
             </struct>
             <key type="filename">tiles/iron_rations.png</key>
+            <key type="filename">tiles/rat-idle02.png</key>
+            <key type="filename">tiles/rat-walk-w00.png</key>
             <key type="filename">tiles/waterskin.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -392,6 +410,7 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tiles/rat-idle01.png</key>
             <key type="filename">tiles/slime-idle00.png</key>
             <key type="filename">tiles/slime-idle01.png</key>
             <key type="filename">tiles/slime-idle02.png</key>

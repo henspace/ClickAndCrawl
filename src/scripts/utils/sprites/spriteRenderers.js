@@ -260,6 +260,7 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
   #halfHeight;
   #fillStyle;
   #strokeStyle;
+  #lineWidth;
   /**
    *
    * @param {CanvasRenderingContext2D} context
@@ -277,6 +278,7 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
     this.#halfHeight = this.#height / 2;
     this.#fillStyle = options.fillStyle;
     this.#strokeStyle = options.strokeStyle;
+    this.#lineWidth = options.lineWidth ?? 2;
   }
 
   /**
@@ -284,6 +286,7 @@ export class RectSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @param {module:utils/geometry~Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
+    this._context.lineWidth = this.#lineWidth;
     const x = position.x - this.#halfWidth;
     const y = position.y - this.#halfHeight;
     if (this.#fillStyle) {

@@ -52,7 +52,7 @@ function loadImage(srcUrl) {
   return new Promise((resolve) => {
     const image = new Image();
     image.addEventListener('load', () => {
-      LOG.debug('Image loaded.');
+      LOG.debug(`Image ${srcUrl} loaded.`);
       resolve(image);
     });
     image.src = srcUrl;

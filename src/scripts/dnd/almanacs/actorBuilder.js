@@ -33,7 +33,7 @@ import * as spriteRenderers from '../../utils/sprites/spriteRenderers.js';
 import * as animation from '../../utils/sprites/animation.js';
 import { Position } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
-import { Colours } from '../../constants/colours.js';
+import { Colours } from '../../constants/canvasStyles.js';
 import { Fight, Trade, FindArtefact, Poison } from '../interact.js';
 import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
 import * as maths from '../../utils/maths.js';
@@ -364,6 +364,7 @@ export function buildActor(almanacEntry) {
   switch (almanacEntry.type) {
     case ActorType.HERO:
       actor = createActor('hero', null, traits, almanacEntry);
+      actor.type = ActorType.HERO;
       break;
     case ActorType.TRADER:
       actor = createTrader('trader', null, traits, almanacEntry);

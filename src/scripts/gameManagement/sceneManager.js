@@ -30,7 +30,6 @@
 
 import { parseSceneDefinition } from '../scriptReaders/sceneDefinitionParser.js';
 import HUD from '../hud/hud.js';
-import { getFullscreenButtonDefn } from '../utils/game/fullscreen.js';
 import { NavigationButtons, NavigationLocation } from '../hud/hudNavSet.js';
 import WORLD from '../utils/game/world.js';
 import { CameraDolly, CameraTracking } from '../utils/game/camera.js';
@@ -81,8 +80,8 @@ let navigationButtons;
 export class SceneDefinition {
   /** @type {string} */
   intro;
-  /** @type {ActorDefn[]} */
-  heroes;
+  /** @type {Actor || ActorDefn} */
+  hero;
   /** @type {ActorDefn[]} */
   enemies;
   /** @type {ActorDefn[]} */
@@ -93,7 +92,7 @@ export class SceneDefinition {
    * Construct an empty scene
    */
   constructor() {
-    this.heroes = [];
+    this.hero = null;
     this.enemies = [];
     this.artefacts = [];
     this.mapDesign = [];
@@ -117,16 +116,9 @@ function createHud() {
   navigationButtons = new NavigationButtons(
     cameraDolly,
     48,
-    NavigationLocation.BR
+    NavigationLocation.BR,
+    NavigationLocation.BL
   );
-  const fullscreenButtonDefn = getFullscreenButtonDefn();
-  const fullscreenButton = HUD.addButton(
-    fullscreenButtonDefn.image,
-    fullscreenButtonDefn.callbackOn,
-    fullscreenButtonDefn.callbackOff
-  );
-  fullscreenButton.position.x = GameConstants.TILE_SIZE;
-  fullscreenButton.position.y = -GameConstants.TILE_SIZE;
   HUD.setVisible(true);
 }
 
@@ -171,7 +163,8 @@ function loadScene(scene) {
 }
 
 /**
- * Unload scene
+ * Unload scene. This can be safely called even if the
+ * current scene has already been unloaded.
  * @param {module:game/scene~Scene} scene
  * @returns {Promise} fulfills to null
  */

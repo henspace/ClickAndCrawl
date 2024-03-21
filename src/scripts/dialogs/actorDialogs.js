@@ -246,9 +246,9 @@ function showRestActionDialog(actor) {
   );
   let message;
   if (!longRestPossible && !shortRestPossible) {
-    message = i18n`MESSAGE CANNOT REST ${dndAction.MEALS_FOR_SHORT_REST} ${dndAction.DRINKS_FOR_SHORT_REST}${dndAction.MEALS_FOR_LONG_REST} ${dndAction.DRINKS_FOR_LONG_REST}`;
+    message = i18n`MESSAGE CANNOT REST`;
   } else if (!longRestPossible) {
-    message = i18n`MESSAGE CANNOT REST LONG ${dndAction.MEALS_FOR_LONG_REST} ${dndAction.DRINKS_FOR_LONG_REST}`;
+    message = i18n`MESSAGE CANNOT REST LONG`;
   }
   messageContainer.appendChild(
     components.createElement('p', { text: message })
@@ -636,6 +636,8 @@ function createIdCard(actor) {
  * @param {Object} options
  * @param {boolean} options.hideDescription
  * @param {boolean} options.hideTraits
+ * @param {string | Element} options.description - override the normal
+ * description of the actor.
  * @returns {Element}
  */
 function createActorElement(actor, options = {}) {
@@ -645,10 +647,21 @@ function createActorElement(actor, options = {}) {
   const idCard = createIdCard(actor);
   container.appendChild(idCard);
 
-  if (!options.hideDescription && actor.description) {
-    const desc = document.createElement('p');
-    desc.innerText = actor.description;
-    container.appendChild(desc);
+  let descriptionElement;
+  if (!options.hideDescription) {
+    if (options.description) {
+      descriptionElement =
+        options.description instanceof Element
+          ? options.description
+          : components.createElement('p', { text: options.description });
+    } else if (actor.description) {
+      descriptionElement = components.createElement('p', {
+        text: actor.description,
+      });
+    }
+  }
+  if (descriptionElement) {
+    container.appendChild(descriptionElement);
   }
   if (!options.hideTraits) {
     container.appendChild(createTraitsList(actor, ['NAME'], true));
@@ -814,6 +827,8 @@ export function showPillageDialog(pillager, victim) {
  * @param {module:players/actors~Actor} actor
  * @param {Object} [options = {}]
  * @param {boolean} options.allowRest
+ * @param {string} options.description - override the actor description
+ * @param {string} options.okButtonLabel
  */
 export function showActorDetailsDialog(actor, options = {}) {
   const container = document.createElement('div');
@@ -822,7 +837,10 @@ export function showActorDetailsDialog(actor, options = {}) {
       text: i18n`Dungeon level: ${SCENE_MANAGER.getCurrentSceneLevel()}`,
     })
   );
-  const actorElement = createActorElement(actor, { hideTraits: true });
+  const actorElement = createActorElement(actor, {
+    hideTraits: true,
+    description: options.description,
+  });
   container.appendChild(actorElement);
   let button = new components.TextButtonControl({
     label: i18n`BUTTON INVENTORY`,
@@ -847,7 +865,9 @@ export function showActorDetailsDialog(actor, options = {}) {
     });
     container.appendChild(button.element);
   }
-  return UI.showControlsDialog(container);
+  return UI.showControlsDialog(container, {
+    okButtonLabel: options.okButtonLabel,
+  });
 }
 
 /**
@@ -932,5 +952,27 @@ export function showArtefactDialog(options) {
  * @returns {Promise} fulfils to null;
  */
 export function showRestDialog(heroActor) {
-  return showActorDetailsDialog(heroActor, { allowRest: true });
+  const messageContainer = components.createElement('div');
+  messageContainer.appendChild(
+    components.createElement('p', {
+      text: i18n`MESSAGE REST DIALOG`,
+    })
+  );
+  const restReqs = components.createElement('ul');
+  messageContainer.appendChild(restReqs);
+  restReqs.appendChild(
+    components.createElement('li', {
+      text: i18n`SHORT REST REQ ${dndAction.DRINKS_FOR_SHORT_REST} ${dndAction.MEALS_FOR_SHORT_REST}`,
+    })
+  );
+  restReqs.appendChild(
+    components.createElement('li', {
+      text: i18n`LONG REST REQ ${dndAction.DRINKS_FOR_LONG_REST} ${dndAction.MEALS_FOR_LONG_REST}`,
+    })
+  );
+  return showActorDetailsDialog(heroActor, {
+    allowRest: true,
+    description: messageContainer,
+    okButtonLabel: i18n`BUTTON TO NEXT ROOM`,
+  });
 }

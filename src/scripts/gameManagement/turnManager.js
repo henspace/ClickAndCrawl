@@ -732,8 +732,8 @@ function startNextScene(currentState) {
   if (!SCENE_MANAGER.areThereMoreScenes()) {
     return currentState.transitionTo(new AtGameCompleted());
   }
-  return actorDialogs
-    .showRestDialog(heroActor)
+  return SCENE_MANAGER.unloadCurrentScene()
+    .then(() => actorDialogs.showRestDialog(heroActor))
     .then(() => SCENE_MANAGER.switchToNextScene())
     .then((scene) => {
       heroActor.sprite.position =

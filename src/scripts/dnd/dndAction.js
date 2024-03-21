@@ -43,14 +43,23 @@ export const DRINKS_FOR_SHORT_REST = 1;
  * @returns {number} amount of damage
  */
 export function getMeleeDamage(attack, target) {
-  const attackRoll = dice.rollDice(20);
+  const diceRoll = dice.rollDice(20);
   // handle fate and curses.
-  if (attackRoll === 1) {
+  if (diceRoll === 1) {
+    LOG.debug('Attack dice rolled 0: cursed.');
     return 0; // cursed.
-  } else if (attackRoll === 20) {
+  } else if (diceRoll === 20) {
+    LOG.debug('Attack dice rolled 20: critical hit.');
     return 2 * attack.rollForDamage(); // critical hit
   }
-  if (attackRoll >= target.traits.getEffectiveAc()) {
+
+  const attackRoll =
+    diceRoll + attack.abilityModifier + attack.proficiencyBonus;
+  const targetAc = target.traits.getEffectiveAc();
+  LOG.debug(
+    `Attack: dice: ${diceRoll}, ability modifier: ${attack.abilityModifier}, proficiency bonus: ${attack.proficiencyBonus}, target AC: ${targetAc}`
+  );
+  if (attackRoll >= targetAc) {
     return attack.rollForDamage();
   }
   return 0;

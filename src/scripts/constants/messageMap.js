@@ -50,6 +50,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
+  ['BUTTON TO NEXT ROOM', 'To the next room'],
   ['BUTTON STASH', 'Stash'],
 
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
@@ -146,11 +147,11 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE CANNOT REST',
-    'You cannot rest. For a short rest you need ${0} meal, ${1} drink and at least one hit dice. For a long rest you need ${2} meals and ${3} drink',
+    "You try to rest, but you don't have enough resources to restore your health.",
   ],
   [
     'MESSAGE CANNOT REST LONG',
-    'You cannot have a long rest. For a long rest you need ${0} meals and ${1} drink',
+    'You have enough resource for a short rest, but not a long one.',
   ],
   [
     'MESSAGE ENTER LEVEL',
@@ -158,8 +159,9 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE EXPLAIN REST',
-    'If you have food and drink, you can take a short rest to recover some hit points. A long rest requires more food but can recover all your hit points.',
+    'Trying to use the safety of the corridor to rest and eat?',
   ],
+
   [
     'MESSAGE DUNGEON INTRO',
     'You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
@@ -179,6 +181,10 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE MAKE SPACE IN EQUIP',
     "This is too big to store. Sell or discard what you're wearing so you can wear this.",
+  ],
+  [
+    'MESSAGE REST DIALOG',
+    "You are on a dark staircase leading deeper into the dungeon, but safe for now. If you have enough food or drink, you can rest to restore some health. If you don't need to recover, save your rations. These are the requirements:",
   ],
   [
     'MESSAGE SEARCH CORPSE OR MOVE',
@@ -242,11 +248,14 @@ const MESSAGE_MAP = new Map([
       'Dodging a blow, you manage to open the door and make your escape.',
     ],
   ],
-  ['MESSAGE WELCOME', 'Welcome to dungeon. How far will you get?'],
+  ['MESSAGE WELCOME', 'Welcome to dungeon. How far can you go?'],
   [
     'MESSAGE VICTORY',
     'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
   ],
+  ['LONG REST REQ', 'Long rest: drinks: ${0}; meals: ${1}'],
+  ['SHORT REST REQ', 'Short rest: drinks: ${0}; meals: ${1}; hit dice: 1'],
+
   // Miscellaneous words and phrases.
   ['AC (including armour)', 'AC (+armour): ${0}'],
   ['Backpack', 'Backpack'],

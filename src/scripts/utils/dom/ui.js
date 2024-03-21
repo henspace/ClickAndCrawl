@@ -169,10 +169,11 @@ function showElementOkDialog(
  * @param {boolean} options.row - if true, controls are in a row rather than the
  * default column.
  * @param {string} options.className
+ * @param {string} options.okButtonLabel
  * @returns {Promise} fulfils to closures response value or DialogResponse.OK if
  * no closers.
  */
-function showControlsDialog(mainContent, options) {
+function showControlsDialog(mainContent, options = {}) {
   const container = document.createElement('div');
   const scrollContainer = components.createElement('div', {
     className: 'dialog-scroll-content',
@@ -205,7 +206,7 @@ function showControlsDialog(mainContent, options) {
   if (closers.length === 0) {
     const okButton = new components.TextButtonControl({
       id: DialogResponse.OK,
-      label: i18n`BUTTON OK`,
+      label: options.okButtonLabel ?? i18n`BUTTON OK`,
     });
     actionButtons.appendChild(okButton.element);
     closers.push(okButton);

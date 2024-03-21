@@ -288,24 +288,7 @@ export class InteractWithCorpse extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    const choice = await this.#decideAction();
-    if (choice === 'MOVE') {
-      return moveActorToPosition(enactor, this.actor.position);
-    }
     return actorDialogs.showPillageDialog(enactor, this.actor);
-  }
-
-  /**
-   * Decide on course of action.
-   * @returns {Promise<string>} fulfils to SEARCH or MOVE
-   */
-  async #decideAction() {
-    const choice = await UI.showChoiceDialog(
-      i18n`DIALOG TITLE CHOICES`,
-      i18n`MESSAGE SEARCH CORPSE OR MOVE`,
-      [i18n`BUTTON SEARCH`, i18n`BUTTON MOVE`]
-    );
-    return choice === 0 ? 'SEARCH' : 'MOVE';
   }
 }
 
@@ -402,11 +385,7 @@ export class FindArtefact extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    const choice = await this.#decideAction();
     this.actor.alive = false;
-    if (choice === 'MOVE') {
-      return moveActorToPosition(enactor, this.actor.position);
-    }
     const storageDetails = this.actor.storeManager.getFirstStorageDetails();
     if (storageDetails) {
       return actorDialogs.showArtefactDialog({
@@ -420,23 +399,6 @@ export class FindArtefact extends AbstractInteraction {
     } else {
       return UI.showOkDialog(i18n`MESSAGE ARTEFACTS ALREADY TAKEN`);
     }
-  }
-
-  /**
-   * Decide on course of action. If the artefact is still alive, the choice is
-   * always to search
-   * @returns {Promise<string>} fulfils to SEARCH or MOVE
-   */
-  async #decideAction() {
-    if (this.actor.alive) {
-      return Promise.resolve('SEARCH');
-    }
-    const choice = await UI.showChoiceDialog(
-      i18n`DIALOG TITLE CHOICES`,
-      i18n`MESSAGE SEARCH HOLE OR MOVE`,
-      [i18n`BUTTON SEARCH`, i18n`BUTTON MOVE`]
-    );
-    return choice === 0 ? 'SEARCH' : 'MOVE';
   }
 }
 

@@ -2,6 +2,8 @@
 # starting artefacts is a comma separated list of artefacts to start with.
 # SPEED attribute is in tiles per turn and one tile. When using the SRD 5e
 # take one tile as 7.5 feet. So just divide the speed in feet by 7.5.
-0,ENEMY,orc [gold_coins] * MOVE:HUNT,HP:2D8+6,EXP:0,AC:13,_SPEED:3,STR:16,DEX:12,CON:12,INT:7,WIS:11,CHA:10,CR:0.5
-0,ENEMY,slime * MOVE:ORGANIC, EXP:0,AC:10,_SPEED:1,STR:10,DMG:1D6,SAVE:10CON
-0,ENEMY,goblin [silver_coins, copper_coins] * MOVE:HUNT,HP:2D6,EXP:0,AC:15,_SPEED:3,STR:15,DEX:14,CON:14,INT:12,WIS:10,CHA:9,CR:0.25
+0,ENEMY,spider * MOVE:HUNT,_SPEED:3,HP:1D4,EXP:0,AC:12,STR:2,DEX:14,CON:8,INT:1,WIS:10,CHA:2,CR:0
+0,ENEMY,rat * MOVE:HUNT,_SPEED:3,HP:1D6,EXP:0,AC:12,STR:2,DEX:14,CON:8,INT:1,WIS:10,CHA:2,CR:0
+0,ENEMY,slime * MOVE:ORGANIC,_SPEED:1,EXP:0,AC:10,STR:10,DMG:1D6,SAVE:10CON
+0,ENEMY,goblin [silver_coins, copper_coins] * MOVE:HUNT,_SPEED:3,HP:2D6,EXP:0,AC:15,STR:15,DEX:14,CON:14,INT:12,WIS:10,CHA:9,CR:0.25
+0,ENEMY,orc [gold_coins] * MOVE:HUNT,_SPEED:3,HP:2D8+6,EXP:0,AC:13,STR:16,DEX:12,CON:12,INT:7,WIS:11,CHA:10,CR:0.5

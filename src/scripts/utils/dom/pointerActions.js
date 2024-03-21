@@ -222,7 +222,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'mousedown',
     (event) => {
-      LOG.debug('mousedown');
       return processStartAction(
         EventSource.MOUSE,
         event.offsetX,
@@ -236,7 +235,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'mouseup',
     (event) => {
-      LOG.debug('mouseup');
       return processEndAction(
         EventSource.MOUSE,
         event.offsetX,
@@ -263,7 +261,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'touchstart',
     (event) => {
-      LOG.debug('touchstart');
       if (event.changedTouches.length === 1) {
         const offset = getOffsetFromTouch(event);
         dragData.lastTouchStartPoint = new Point(offset.x, offset.y);
@@ -275,7 +272,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'touchend',
     (event) => {
-      LOG.debug('touchend');
       if (event.changedTouches.length === 1) {
         processEndAction(
           EventSource.TOUCH,
@@ -292,7 +288,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'touchmove',
     (event) => {
-      LOG.debug('touchmove');
       if (event.changedTouches.length === 1) {
         const offset = getOffsetFromTouch(event);
         processMoveAction(EventSource.TOUCH, offset.x, offset.y, dragData);
@@ -304,7 +299,6 @@ export function addPointerListeners(element) {
   element.addEventListener(
     'touchcancel',
     (event) => {
-      LOG.debug('touchcancel');
       processCancelAction(
         EventSource.TOUCH,
         dragData.lastTouchStartPoint?.x,
@@ -327,7 +321,6 @@ export function addPointerListeners(element) {
     dragData.suppressClickEvent = false;
   });
   element.addEventListener('contextmenu', (event) => {
-    LOG.debug('contextmenu');
     event.preventDefault();
     dispatchEvent(element, CUSTOM_CONTEXT_MENU_EVENT_NAME, {
       x: event.offsetX,

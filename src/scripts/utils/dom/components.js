@@ -352,7 +352,7 @@ export function createControl(definition) {
  * @param {Element} options.child - appended after text or html.
  * @returns {Element}
  */
-export function createElement(tagName, options) {
+export function createElement(tagName, options = {}) {
   const element = document.createElement(tagName);
   if (options.className) {
     element.className = options.className;

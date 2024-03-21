@@ -171,6 +171,9 @@ body {
   flex-flow: row wrap;
   gap: 4px;
 }
+.store-contents button {
+  font-size: 0.85rem;
+}
 
 .actor-id-card span {
   margin-left: 1rem;
