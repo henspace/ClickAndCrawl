@@ -34,19 +34,24 @@ import { AbstractModifier } from './modifiers.js';
  * Sprite fader
  */
 export class TimeFader extends AbstractModifier {
+  /** @type {number} */
   #deltaOpacityPerSec;
+  /** @type {number} */
+  #delaySecs;
+  /** @type {number} */
+  #elapsedSecs;
 
   /**
-   * Construct aligner. Rotations are worked out counter clockwise from the positive
-   * x axis direction. However, sprites are normally drawn vertically as you look at them;
-   * i.e they are pointing downwards or at -90 degrees from the horizontal axis. You can
-   * set this using the baseDirection parameter.
+   * Create fader.
+   * @param {number} delaySecs - default alignment.
    * @param {number} lifetimeSecs - default alignment.
    * @param {AbstractModifier} decoratedModifier
    */
-  constructor(lifetimeSecs, decoratedModifier) {
+  constructor(delaySecs, lifetimeSecs, decoratedModifier) {
     super(decoratedModifier);
-    this.#deltaOpacityPerSec = 1 / Math.max(lifetimeSecs, 0.5);
+    this.#delaySecs = delaySecs;
+    this.#deltaOpacityPerSec = 1 / Math.max(lifetimeSecs - delaySecs, 0.5);
+    this.#elapsedSecs = 0;
   }
 
   /**
@@ -57,10 +62,15 @@ export class TimeFader extends AbstractModifier {
    * @returns {AbstractModifier}
    */
   doUpdate(sprite, deltaSeconds) {
-    sprite.opacity = Math.max(
-      0,
-      sprite.opacity - deltaSeconds * this.#deltaOpacityPerSec
-    );
+    this.#elapsedSecs += deltaSeconds;
+    if (this.#elapsedSecs > this.#delaySecs) {
+      sprite.opacity = Math.max(
+        0,
+        1 - (this.#elapsedSecs - this.#delaySecs) * this.#deltaOpacityPerSec
+      );
+    } else {
+      sprite.opacity = 1;
+    }
     return sprite.opacity > 0 ? this : null;
   }
 }

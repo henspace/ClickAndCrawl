@@ -55,18 +55,24 @@ export const ArtefactActionType = {
 const ArtefactAction = {
   CANCEL: 'cancel',
   LEAVE: 'leave',
+  LEARN_SPELL: 'learn',
   DISCARD: 'discard',
   EQUIP: 'equip',
+  PREPARE_SPELL: 'prepare',
   STASH: 'stash',
   TAKE: 'take',
   SELL: 'sell',
   PILLAGE: 'pillage',
+  USE: 'use',
 };
 
 /**
  * @typedef {Object} ArtefactDialogOptions
  * @property {Actor} currentOwner - who currently owns the artefact.
  * @property {Actor} prospectiveOwner - who currently owns the artefact.
+ * @property {boolean} allowMagicUse - allow an item to be used.
+ * @property {boolean} allowConsumption - allow an item to be consumed.
+ * @property {boolean} allowSpellPrep - allow a spell to be prepared.
  * @property {Artefact} artefact - the item .
  * @property {StoreType} storeType
  * @property {ArtefactActionTypeValue} actionType
@@ -74,14 +80,30 @@ const ArtefactAction = {
  * if noChain is set, linkedInventories are not called. This is used to prevent
  * circular loops.
  * @param {boolean} showPrice
+ * @param {boolean} showDamage - add damage detail to button labels.
+ * @param {function(actor: Actor, artefact: Artefact):Promise} customAction - custom action on artefact click.
  */
 
 /**
- * @typedef {Object} InventoryOptions
- * @property {boolean} justStash - only show stash items.
- * @property {InventoryOptions} linkedInventory - this will be refreshed at the same
- * time as the inventory.
+ * @typedef {string} InventoryLimitationValue
  */
+
+/**
+ * @enum {InventoryLimitationValue}
+ */
+const InventoryLimitation = {
+  STANDARD: 'standard', // stash and equipment
+  STASH_ONLY: 'stash', // just the stash
+  SPELLS: 'spells', // all spells.
+  MAGIC: 'magic', // all magic. Cantrips and spells, prepared or not.
+  READY_MAGIC: 'ready magic',
+  CANTRIPS: 'cantrips',
+};
+/**
+ * @typedef {Object} InventoryOptions
+ * @property {InventoryLimitationValue} limitation
+ * @property {InventoryOptions} linkedInventory - this will be refreshed at the same
+ * time as the inventory. */
 /**
  * Container for an inventory.
  */
@@ -94,6 +116,8 @@ class InventoryContainerElement {
   #content;
   /** This will be refresh when this is refreshed. @type {InventoryContainerElement} */
   linkedInventory;
+  /** Action buttons @type {BaseControl[]} */
+  #actionButtons;
 
   /**
    * Construct
@@ -110,9 +134,18 @@ class InventoryContainerElement {
 
   /**
    * Get the container element
+   * @returns {Element}
    */
   get element() {
     return this.#content;
+  }
+
+  /**
+   * Get the container action buttons.
+   * @returns {BaseControl[]}
+   */
+  get actionButtons() {
+    return this.#actionButtons;
   }
 
   /**
@@ -120,53 +153,105 @@ class InventoryContainerElement {
    * @param {boolean} noChain - prevent calls to linkedInventories.
    */
   refresh(noChain) {
+    this.#actionButtons = [];
     if (!noChain && this.linkedInventory) {
       this.linkedInventory.refresh(true); // suppress linking
     }
     this.#content.replaceChildren();
-    let storesToShow = [];
-    if (this.#inventoryOptions.justStash) {
-      storesToShow = [];
-    } else {
-      storesToShow = [
-        { label: i18n`Purse`, storeType: StoreType.PURSE },
-        { label: i18n`Head`, storeType: StoreType.HEAD },
-        { label: i18n`Body`, storeType: StoreType.BODY },
-        { label: i18n`Hands`, storeType: StoreType.HANDS },
-        { label: i18n`Feet`, storeType: StoreType.FEET },
-      ];
-    }
-    if (this.#options.currentOwner.isTrader()) {
-      storesToShow.push({ label: i18n`Wagon`, storeType: StoreType.WAGON });
-    } else {
-      storesToShow.push({
-        label: i18n`Backpack`,
-        storeType: StoreType.BACKPACK,
-      });
-    }
+    let storesToShow = this.#getStoresToShow();
+
     storesToShow.forEach((storeInfo) => {
       const contents = this.#options.currentOwner.storeManager.getStoreContents(
         storeInfo.storeType
       );
       if (contents) {
-        const storeElement = this.#createStoreContents(
+        const storeContents = this.#createStoreContents(
           storeInfo.label,
           storeInfo.storeType,
           contents
         );
-        this.#content.appendChild(storeElement);
+        this.#actionButtons = storeContents.actionButtons;
+        this.#content.appendChild(storeContents.element);
       }
     });
   }
 
   /**
+   * Get array of stores to show.
+   * @return {{label: string, storeType: StoreType}}
+   */
+  #getStoresToShow() {
+    let storesToShow;
+    switch (this.#inventoryOptions.limitation) {
+      case InventoryLimitation.SPELLS:
+        storesToShow = [
+          {
+            label: i18n`Prepared spells`,
+            storeType: StoreType.PREPARED_SPELLS,
+          },
+          { label: i18n`Known spells`, storeType: StoreType.SPELLS },
+        ];
+        break;
+      case InventoryLimitation.MAGIC:
+        storesToShow = [
+          { label: i18n`Cantrips`, storeType: StoreType.CANTRIPS },
+          {
+            label: i18n`Prepared spells`,
+            storeType: StoreType.PREPARED_SPELLS,
+          },
+          { label: i18n`Known spells`, storeType: StoreType.SPELLS },
+        ];
+        break;
+      case InventoryLimitation.READY_MAGIC:
+        storesToShow = [
+          { label: i18n`Ready magic`, storeType: StoreType.PREPARED_SPELLS },
+          { label: i18n`Cantrips`, storeType: StoreType.CANTRIPS },
+        ];
+        break;
+      case InventoryLimitation.CANTRIPS:
+        [{ label: i18n`Cantrips`, storeType: StoreType.CANTRIPS }];
+        break;
+      case InventoryLimitation.STASH_ONLY:
+        storesToShow = [this.#getStashStoreInfo()];
+        break;
+      case InventoryLimitation.STANDARD:
+      default:
+        storesToShow = [
+          { label: i18n`Purse`, storeType: StoreType.PURSE },
+          { label: i18n`Head`, storeType: StoreType.HEAD },
+          { label: i18n`Body`, storeType: StoreType.BODY },
+          { label: i18n`Hands`, storeType: StoreType.HANDS },
+          { label: i18n`Feet`, storeType: StoreType.FEET },
+          this.#getStashStoreInfo(),
+        ];
+        break;
+    }
+    return storesToShow;
+  }
+
+  /** Get the stash store for the actor.
+   * This gets the WAGON for a trader
+   * @returns {label: string, storeType: StoreType}
+   */
+  #getStashStoreInfo() {
+    if (this.#options.currentOwner.isTrader()) {
+      return { label: i18n`Wagon`, storeType: StoreType.WAGON };
+    } else {
+      return {
+        label: i18n`Backpack`,
+        storeType: StoreType.BACKPACK,
+      };
+    }
+  }
+  /**
    * Create element showing store contents.
    * @param {string} label
    * @param {StoreTypeValue} storeType
-   * @param {Artefact[]} contents
-   * @returns {Element}
+   * @param {Iterator<Artefact>} contents
+   * @returns {{element: Element, actionButtons: BaseControl[]}, }
    */
   #createStoreContents(label, storeType, contents) {
+    const actionButtons = [];
     const container = components.createElement('div', {
       className: 'store',
     });
@@ -182,15 +267,18 @@ class InventoryContainerElement {
     });
     container.appendChild(contentsElement);
 
-    contents.forEach((artefact) => {
-      const options = { ...this.#options };
-      options.refresh = this.refresh.bind(this);
-      options.storeType = storeType;
-      options.artefact = artefact;
-      const button = createArtefactButtonControl(options);
-      contentsElement.appendChild(button.element);
-    });
-    return container;
+    [...contents]
+      .sort((a, b) => a.id < b.id)
+      .forEach((artefact) => {
+        const options = { ...this.#options };
+        options.refresh = this.refresh.bind(this);
+        options.storeType = storeType;
+        options.artefact = artefact;
+        const button = createArtefactButtonControl(options);
+        actionButtons.push(button);
+        contentsElement.appendChild(button.element);
+      });
+    return { element: container, actionButtons: actionButtons };
   }
 }
 
@@ -278,8 +366,36 @@ function showRestActionDialog(actor) {
       discardItemsFromStore(store, meals, dndAction.MEALS_FOR_LONG_REST);
       discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_LONG_REST);
       dndAction.takeRest(actor, 'LONG');
+      return showPrepareSpellsDialog(actor);
     }
     return;
+  });
+}
+
+/**
+ * Show dialog allowing the player to prepare their spells.
+ * @param {module:players/actors~Actor} actor
+ */
+function showPrepareSpellsDialog(actor) {
+  const container = components.createElement('div', { className: 'inventory' });
+
+  container.appendChild(
+    createActorElement(actor, { hideDescription: true, hideTraits: true })
+  );
+  const inventoryContainer = new InventoryContainerElement(
+    {
+      currentOwner: actor,
+      prospectiveOwner: actor,
+      allowSpellPrep: true,
+    },
+    {
+      limitation: InventoryLimitation.SPELLS,
+    }
+  );
+  container.appendChild(inventoryContainer.element);
+  return UI.showControlsDialog(container, {
+    title: i18n`DIALOG TITLE PREPARE SPELLS`,
+    preamble: i18n`MESSAGE EXPLAIN SPELL PREP`,
   });
 }
 
@@ -297,7 +413,7 @@ function discardItemsFromStore(store, items, qty) {
   for (let index = 0; index < qty && index < items.length; index++) {
     const taken = store.take(items[index]);
     if (!taken) {
-      LOG.error(`Trying to take artefact ${item}, but none found.`);
+      LOG.error(`Trying to take artefact ${items[index]}, but none found.`);
     }
   }
 }
@@ -305,19 +421,64 @@ function discardItemsFromStore(store, items, qty) {
 /**
  * Show actor's inventory.
  * @param {Actor} actor
+ * @param {{allowConsumption: boolean, allowMagicUse: boolean, limitation:InventoryLimitation}} [options = {}]
  */
-function showInventory(actor) {
+function showInventory(actor, options = {}) {
   const container = components.createElement('div', { className: 'inventory' });
 
   container.appendChild(
     createActorElement(actor, { hideDescription: true, hideTraits: true })
   );
-  const inventoryContainer = new InventoryContainerElement({
-    currentOwner: actor,
-    prospectiveOwner: actor,
-  });
+  const inventoryContainer = new InventoryContainerElement(
+    {
+      currentOwner: actor,
+      prospectiveOwner: actor,
+      allowMagicUse: options.allowMagicUse,
+      allowConsumption: options.allowConsumption,
+    },
+    {
+      limitation: options.limitation,
+    }
+  );
   container.appendChild(inventoryContainer.element);
   return UI.showControlsDialog(container);
+}
+
+/**
+ * Show actor's inventory and allow casting of spells.
+ * @param {Actor} actor
+ * @param {{allowMagicUse: boolean, limitation:InventoryLimitation}} [options = {}]
+ * @returns {Promise}
+ */
+function showCastSpells(actor) {
+  const container = components.createElement('div', { className: 'inventory' });
+
+  const inventoryContainer = new InventoryContainerElement(
+    {
+      currentOwner: actor,
+      prospectiveOwner: actor,
+      allowMagicUse: true,
+      showDamage: true,
+      customAction: (enactor, artefact) => artefact.interaction.react(enactor),
+    },
+    {
+      limitation: InventoryLimitation.READY_MAGIC,
+    }
+  );
+  container.appendChild(inventoryContainer.element);
+  inventoryContainer.actionButtons?.forEach(
+    (control) => (control.closes = DialogResponse.OK)
+  );
+  let button = new components.TextButtonControl({
+    label: i18n`BUTTON CANCEL`,
+    closes: DialogResponse.CANCEL,
+  });
+  container.appendChild(button.element);
+
+  return UI.showControlsDialog(container, {
+    title: i18n`DIALOG TITLE PICK SPELL TO CAST`,
+    actionButtons: [...inventoryContainer.actionButtons, button],
+  });
 }
 
 /**
@@ -357,16 +518,28 @@ function createFindArtefactDialogButtons(container, options) {
     options.artefact
   );
   let button;
-
-  if (possibleStore) {
+  if (!possibleStore) {
+    container.appendChild(createFailedStorageGuidance(options));
+  } else {
+    let label;
+    let action;
+    if (
+      possibleStore.storeType === StoreType.CANTRIPS ||
+      possibleStore.storeType === StoreType.SPELLS ||
+      possibleStore.storeType === StoreType.READY_SPELLS
+    ) {
+      label = i18n`BUTTON LEARN SPELL`;
+      action = ArtefactAction.LEARN_SPELL;
+    } else {
+      label = i18n`BUTTON TAKE ARTEFACT`;
+      action = ArtefactAction.TAKE;
+    }
     button = new components.TextButtonControl({
-      label: i18n`BUTTON TAKE ARTEFACT`,
-      closes: ArtefactAction.TAKE,
+      label: label,
+      closes: action,
     });
     container.appendChild(button.element);
     actionButtons.push(button);
-  } else {
-    container.appendChild(createFailedStorageGuidance(options));
   }
 
   button = new components.TextButtonControl({
@@ -388,46 +561,171 @@ function createSelfActionArtefactDialogButtons(container, options) {
   if (options.artefact.artefactType === ArtefactType.COINS) {
     return;
   }
-  const actionButtons = [];
+  let actionButtons = [];
 
-  let button;
-
-  if (options.storeType === StoreType.BACKPACK) {
-    if (options.artefact.equipStoreType) {
-      button = new components.TextButtonControl({
-        label: i18n`BUTTON EQUIP`,
-        closes: ArtefactAction.EQUIP,
-      });
-    }
-  } else if (
-    !options.artefact.stashInWagon ||
-    options.currentOwner.storeManager.hasWagon
-  ) {
-    button = new components.TextButtonControl({
-      label: i18n`BUTTON STASH`,
-      closes: ArtefactAction.STASH,
-    });
-  }
-  if (button) {
-    container.appendChild(button.element);
-    actionButtons.push(button);
+  switch (options.artefact.artefactType) {
+    case ArtefactType.SPELL:
+      actionButtons = createSpellButtons(options);
+      break;
+    case ArtefactType.CANTRIP:
+      actionButtons = createCantripButtons(options);
+      break;
+    default:
+      actionButtons = createStandardArtefactButtons(options);
   }
 
-  button = new components.TextButtonControl({
-    label: i18n`BUTTON DISCARD`,
-    closes: ArtefactAction.DISCARD,
-  });
-  container.appendChild(button.element);
-  actionButtons.push(button);
-  button = new components.TextButtonControl({
-    label: i18n`BUTTON CANCEL`,
-    closes: ArtefactAction.CANCEL,
-  });
-  container.appendChild(button.element);
-  actionButtons.push(button);
+  actionButtons.push(
+    new components.TextButtonControl({
+      label: i18n`BUTTON CANCEL`,
+      closes: ArtefactAction.CANCEL,
+    })
+  );
+  actionButtons.forEach((button) => container.appendChild(button.element));
   return actionButtons;
 }
 
+/**
+ * Create cantrip artefact buttons.
+ * @param {ArtefactDialogOptions} options
+ * @returns {module:utils/dom/components~BaseControlElement[]}
+ */
+function createCantripButtons(options) {
+  const buttons = [];
+  if (options.allowMagicUse) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: getLabelForUse(options.artefact),
+        closes: ArtefactAction.USE,
+      })
+    );
+  }
+
+  buttons.push(
+    new components.TextButtonControl({
+      label: i18n`Forget`,
+      closes: ArtefactAction.DISCARD,
+    })
+  );
+  return buttons;
+}
+
+/**
+ * Create spell artefact buttons.
+ * @param {ArtefactDialogOptions} options
+ * @returns {module:utils/dom/components~BaseControlElement[]}
+ */
+function createSpellButtons(options) {
+  const buttons = [];
+  const artefact = options.artefact;
+  if (options.allowMagicUse) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: getLabelForUse(options.artefact),
+        closes: ArtefactAction.USE,
+      })
+    );
+  } else if (
+    options.storeType === artefact.stashStoreType &&
+    options.allowSpellPrep
+  ) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: i18n`BUTTON PREPARE SPELL`,
+        closes: ArtefactAction.PREPARE_SPELL,
+      })
+    );
+  }
+
+  if (options.allowSpellPrep) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: i18n`Forget`,
+        closes: ArtefactAction.DISCARD,
+      })
+    );
+  }
+
+  return buttons;
+}
+
+/**
+ * Check to see if the artefact is allowed to be used.
+ * @param {ArtefactDialogOptions} options
+ * @returns {boolean}
+ */
+function isArtefactUsable(options) {
+  const artefact = options.artefact;
+  if (!artefact.isUsable()) {
+    return false;
+  }
+  if (artefact.isMagic()) {
+    return options.allowMagicUse;
+  }
+  if (artefact.isConsumable()) {
+    return options.allowConsumption;
+  }
+}
+/**
+ * Create standard artefact buttons.
+ * @param {ArtefactDialogOptions} options
+ * @returns {module:utils/dom/components~BaseControlElement[]}
+ */
+function createStandardArtefactButtons(options) {
+  const buttons = [];
+
+  if (isArtefactUsable(options)) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: getLabelForUse(options.artefact),
+        closes: ArtefactAction.USE,
+      })
+    );
+  } else if (
+    options.storeType === options.artefact.stashStoreType &&
+    options.artefact.equipStoreType
+  ) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: i18n`BUTTON EQUIP`,
+        closes: ArtefactAction.EQUIP,
+      })
+    );
+  } else if (
+    options.storeType === options.artefact.equipStoreType &&
+    (!options.artefact.stashInWagon ||
+      options.currentOwner.storeManager.hasWagon)
+  ) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: i18n`BUTTON STASH`,
+        closes: ArtefactAction.STASH,
+      })
+    );
+  }
+
+  buttons.push(
+    new components.TextButtonControl({
+      label: options.artefact.isMagic() ? i18n`Forget` : i18n`BUTTON DISCARD`,
+      closes: ArtefactAction.DISCARD,
+    })
+  );
+  return buttons;
+}
+
+/**
+ * Get a suitable label for a button to use an artefact.
+ * @param {module:players/artefacts~Artefact} artefact
+ * @returns {string}
+ */
+function getLabelForUse(artefact) {
+  switch (artefact.artefactType) {
+    case ArtefactType.SPELL:
+    case ArtefactType.CANTRIP:
+      return i18n`BUTTON CAST SPELL`;
+    default:
+      return i18n`BUTTON USE`;
+  }
+}
 /**
  * Create buttons for dialog. The buttons are added to the container.
  * @param {Element} container - container for the action buttons.
@@ -581,15 +879,6 @@ function showEquipDialog(options) {
 }
 
 /**
- * Use spell.
- * @param {ArtefactDialogOptions} options
- * @return {Promise} fulfils to undefined.
- */
-function showSpellDialog(optionsUnused) {
-  return UI.showOkDialog('Use spell dialog ToDo');
-}
-
-/**
  * Create an id card element for an actor.
  * @param {module:players/actors~Actor|module:game/artefact~Artefacts} actor
  * @returns {Element}
@@ -721,11 +1010,25 @@ function createTraitsList(actor, excludedKeys, includeGold) {
 }
 
 /**
+ * Create a label for an artefact button.
  * @param {ArtefactDialogOptions} options
- * @returns {components.BitmapButtonControl}
+ * @return {string}
  */
-function createArtefactButtonControl(options) {
-  let label = options.artefact.traits.get('NAME');
+function createArtefactButtonLabel(options) {
+  const traits = options.artefact.traits;
+  let label = traits.get('NAME');
+  if (options.showDamage) {
+    const damage = traits.getDamageDiceWhenCastBy
+      ? traits.getDamageDiceWhenCastBy(options.currentOwner)
+      : traits.get('DMG');
+    const range = traits.get('RANGE');
+    if (damage) {
+      label = `${label} DMG: ${damage}`;
+    }
+    if (range) {
+      label = `${label} RANGE: ${damage}`;
+    }
+  }
   if (
     options.showPrice ||
     options.artefact.artefactType === ArtefactType.COINS
@@ -735,10 +1038,19 @@ function createArtefactButtonControl(options) {
       : options.artefact.sellBackPriceInGp;
     label = `${label} ${price.toFixed(2)} GP`;
   }
-  return new components.BitmapButtonControl({
-    rightLabel: label,
-    imageName: options.artefact.iconImageName,
-    action: async () => {
+  return label;
+}
+/**
+ * @param {ArtefactDialogOptions} options
+ * @returns {components.BitmapButtonControl}
+ */
+function createArtefactButtonControl(options) {
+  const label = createArtefactButtonLabel(options);
+  let action;
+  if (options.customAction) {
+    action = () => options.customAction(options.currentOwner, options.artefact);
+  } else {
+    action = async () => {
       await showArtefactDialog(options).then((response) => {
         if (response === DialogResponse.OK) {
           return;
@@ -747,7 +1059,12 @@ function createArtefactButtonControl(options) {
           return;
         }
       });
-    },
+    };
+  }
+  return new components.BitmapButtonControl({
+    rightLabel: label,
+    imageName: options.artefact.iconImageName,
+    action: action,
   });
 }
 
@@ -789,7 +1106,11 @@ export function showTradeOrPillageDialog(buyer, seller, pillage) {
       actionType: actionType,
       showPrice: true,
     },
-    { justStash: !pillage }
+    {
+      limitation: pillage
+        ? InventoryLimitation.STANDARD
+        : InventoryLimitation.STASH_ONLY,
+    }
   );
   buyerInventory.linkedInventory = sellerInventory;
   sellerInventory.linkedInventory = buyerInventory;
@@ -827,6 +1148,8 @@ export function showPillageDialog(pillager, victim) {
  * @param {module:players/actors~Actor} actor
  * @param {Object} [options = {}]
  * @param {boolean} options.allowRest
+ * @param {boolean} options.allowMagicUse - can magic artefacts be used.
+ * @param {boolean} options.allowConsumption - can artefacts be consumed.
  * @param {string} options.description - override the actor description
  * @param {string} options.okButtonLabel
  */
@@ -842,31 +1165,72 @@ export function showActorDetailsDialog(actor, options = {}) {
     description: options.description,
   });
   container.appendChild(actorElement);
-  let button = new components.TextButtonControl({
-    label: i18n`BUTTON INVENTORY`,
-    action: () => showInventory(actor),
-  });
-  container.appendChild(button.element);
-  button = new components.TextButtonControl({
-    label: i18n`BUTTON TRAITS`,
-    action: () => showTraits(actor),
-  });
-  container.appendChild(button.element);
-  if (options.allowRest) {
+  let button;
+  let actionButtons;
+  if (!actor.isProp()) {
     button = new components.TextButtonControl({
-      label: i18n`BUTTON REST`,
-      action: () => {
-        return showRestActionDialog(actor).then(() =>
-          actorElement.replaceWith(
-            createActorElement(actor, { hideTraits: true })
-          )
-        );
-      },
+      label: i18n`BUTTON INVENTORY`,
+      action: () =>
+        showInventory(actor, {
+          allowConsumption: options.allowConsumption,
+          allowMagicUse: options.allowMagicUse,
+        }),
     });
     container.appendChild(button.element);
+    button = new components.TextButtonControl({
+      label: i18n`BUTTON TRAITS`,
+      action: () => showTraits(actor),
+    });
+    container.appendChild(button.element);
+
+    button = new components.TextButtonControl({
+      label: i18n`BUTTON MAGIC`,
+      action: () =>
+        showInventory(actor, {
+          allowMagicUse: false,
+          limitation: InventoryLimitation.MAGIC,
+        }),
+    });
+    container.appendChild(button.element);
+
+    if (options.allowRest) {
+      button = new components.TextButtonControl({
+        label: i18n`BUTTON REST`,
+        action: () => {
+          return showRestActionDialog(actor).then(() =>
+            actorElement.replaceWith(
+              createActorElement(actor, { hideTraits: true })
+            )
+          );
+        },
+      });
+      container.appendChild(button.element);
+    }
+
+    if (options.allowMagicUse) {
+      actionButtons = [];
+      button = new components.TextButtonControl({
+        label: i18n`BUTTON CAST SPELL`,
+      });
+      button.closes = 'CAST SPELL';
+      actionButtons.push(button);
+      button = new components.TextButtonControl({
+        label: i18n`BUTTON CANCEL`,
+      });
+      button.closes = 'CANCEL';
+      actionButtons.push(button);
+      container.appendChild(button.element);
+    }
   }
+
   return UI.showControlsDialog(container, {
     okButtonLabel: options.okButtonLabel,
+    actionButtons: actionButtons,
+  }).then((closes) => {
+    if (closes === 'CAST SPELL') {
+      return showCastSpells(actor);
+    }
+    return Promise.resolve();
   });
 }
 
@@ -892,10 +1256,9 @@ export function showArtefactDialog(options) {
     case ArtefactType.SHIELD:
     case ArtefactType.COINS:
     case ArtefactType.FOOD:
-      dialogFn = showEquipDialog;
-      break;
     case ArtefactType.SPELL:
-      dialogFn = showSpellDialog;
+    case ArtefactType.CANTRIP:
+      dialogFn = showEquipDialog;
       break;
   }
   return dialogFn(options).then((response) => {
@@ -903,8 +1266,21 @@ export function showArtefactDialog(options) {
       case ArtefactAction.DISCARD:
         sourceStoreManager.discard(artefact);
         break;
+      case ArtefactAction.PREPARE_SPELL:
       case ArtefactAction.EQUIP:
         destStoreManager.equip(artefact);
+        break;
+      case ArtefactAction.LEARN_SPELL:
+        if (
+          artefact.isMagic() &&
+          destStoreManager.hasArtefactWithSameId(artefact)
+        ) {
+          return UI.showOkDialog(i18n`MESSAGE SPELL ALREADY KNOWN`);
+        } else {
+          sourceStoreManager.discard(artefact);
+          const store = destStoreManager.findSuitableStore(artefact);
+          store.add(artefact);
+        }
         break;
       case ArtefactAction.PILLAGE:
         {
@@ -940,9 +1316,13 @@ export function showArtefactDialog(options) {
         } else {
           destStoreManager.stash(artefact, { direct: true });
         }
+
+        break;
+      case ArtefactAction.USE:
+        artefact.interaction.react(options.currentOwner);
         break;
     }
-    return;
+    return Promise.resolve();
   });
 }
 
@@ -971,6 +1351,7 @@ export function showRestDialog(heroActor) {
     })
   );
   return showActorDetailsDialog(heroActor, {
+    allowConsumption: true,
     allowRest: true,
     description: messageContainer,
     okButtonLabel: i18n`BUTTON TO NEXT ROOM`,

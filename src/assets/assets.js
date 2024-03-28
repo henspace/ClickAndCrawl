@@ -35,7 +35,8 @@ export const AssetUrls = {
   ALMANAC_MAP: new Map([
     ['ARMOUR', new URL('./almanacs/armour.txt', import.meta.url)],
     ['ARTEFACTS', new URL('./almanacs/artefacts.txt', import.meta.url)],
-    ['ENEMIES', new URL('./almanacs/enemies.txt', import.meta.url)],
+    ['MAGIC', new URL('./almanacs/magic.txt', import.meta.url)],
+    ['ENEMIES', new URL('./almanacs/monsters.txt', import.meta.url)],
     ['HEROES', new URL('./almanacs/heroes.txt', import.meta.url)],
     ['MONEY', new URL('./almanacs/money.txt', import.meta.url)],
     ['TRADERS', new URL('./almanacs/traders.txt', import.meta.url)],

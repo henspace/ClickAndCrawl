@@ -190,16 +190,25 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
 
   /** @type {string} */
   text;
+  /** @type {string} */
+  color;
 
   /**
    * @param {CanvasRenderingContext2D} context
    * @param {string} text
-   * @param {string} [styleName = 'normal']
+   * @param {Object} options
+   * @param {string} [options.styleName = 'normal']
+   * @param {string} [options.color = 'white']
    */
-  constructor(context, text, styleName = 'normal') {
+  constructor(
+    context,
+    text,
+    options = { styleName: 'normal', color: 'white' }
+  ) {
     super(context);
     this.text = text;
-    this.#styleName = styleName;
+    this.color = options.color;
+    this.#styleName = options.styleName;
   }
 
   /**
@@ -240,7 +249,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
       this._context,
       this.#lastCalculatedText,
       renderPosition,
-      { styleName: this.#styleName }
+      { color: this.color, styleName: this.#styleName }
     );
 
     this._boundingBoxCanvas = renderGeometryToRect(

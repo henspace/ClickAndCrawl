@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import { Position, Rectangle, Velocity } from '../geometry.js';
+import { Position, Rectangle, Velocity, Acceleration } from '../geometry.js';
 import { SpriteCanvasRenderer } from './spriteRenderers.js'; //eslint-disable-line no-unused-vars
 
 /**
@@ -46,6 +46,8 @@ export class Sprite {
   #position = new Position(0, 0, 0);
   /** @type {Velocity} */
   #velocity = new Velocity(0, 0, 0);
+  /** @type {Acceleration} */
+  #acceleration = new Acceleration(0, 0, 0);
   /** @type {SpriteCanvasRenderer[]} */
   #renderer;
   /** @type {AbstractModifier} */
@@ -90,6 +92,24 @@ export class Sprite {
 
   get velocity() {
     return this.#velocity;
+  }
+
+  /**
+   * Get the current motion.
+   * @returns {Acceleration}
+   */
+
+  get acceleration() {
+    return this.#acceleration;
+  }
+
+  /**
+   * Set the current motion.
+   * @param {Acceleration} acceleration
+   */
+
+  set acceleration(acceleration) {
+    this.#acceleration = acceleration;
   }
 
   /**

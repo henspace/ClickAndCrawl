@@ -39,6 +39,7 @@ import LOG from '../utils/logging.js';
 /** Basic ability keys @type {string[]}*/
 const ABILITY_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
+const FEET_PER_TILE = 7.5;
 /**
  * Convert a value to a modifier.
  * @param {number} value
@@ -250,6 +251,32 @@ export class Traits {
     const result = this.get(key, defValue);
     return maths.safeParseInt(result, defValue);
   }
+
+  /**
+   * Take a value normally entered in feet and convert to tiles.
+   * @param {string} key
+   * @param {number} defValue - default if not found.
+   * @returns {number} results rounded to nearest int.
+   */
+  getValueInFeetInTiles(key, defValue) {
+    const valueInFeet = this.getInt(key);
+    if (valueInFeet === null || valueInFeet === undefined) {
+      return defValue;
+    }
+    return Math.round(valueInFeet / FEET_PER_TILE);
+  }
+
+  /**
+   * Get the trait value as an float. This will look first for the key and then the key
+   * preceded by an underscore.
+   * @param {string} key
+   * @param {*} defValue - default value;
+   * @returns {number}
+   */
+  getFloat(key, defValue) {
+    const result = this.get(key, defValue);
+    return maths.safeParseFloat(result, defValue);
+  }
   /**
    * Get the trait value as a modifier int. This will look first for the key and then the key
    * preceded by an underscore.
@@ -409,6 +436,36 @@ export class Traits {
 }
 
 /**
+ * DnD magic traits
+ */
+export class MagicTraits extends Traits {
+  /**
+   *
+   * @param {Map<string, *>} initialTraits
+   */
+  constructor(initialTraits) {
+    super(initialTraits ?? new Map());
+  }
+
+  /**
+   * Get the damage dice when cast by an actor.
+   * @param {module:players/actors~Actor} actor
+   * @returns {string}
+   */
+  getDamageDiceWhenCastBy(actor) {
+    let damageDice = this._traits.get('DMG');
+    let adjustedDice = dice.changeQtyOfDice(
+      damageDice,
+      actor.traits.getCharacterLevel() - 1
+    );
+    LOG.info(
+      `Spell cast: base damage dice = ${damageDice} raised to ${adjustedDice} for level.`
+    );
+    return adjustedDice;
+  }
+}
+
+/**
  * DnD character traits
  */
 export class CharacterTraits extends Traits {
@@ -510,6 +567,29 @@ export class CharacterTraits extends Traits {
    */
   getCharacterLevel() {
     return this._level;
+  }
+
+  /** Get the save ability modifier for an attack by the attacker.
+   * This is not applicable to melee attacks.
+   *
+   */
+  getNonMeleeSaveAbilityModifier(attacker) {
+    const saveAbility = attacker.traits.get('SAVE_ABILITY');
+    if (!saveAbility) {
+      LOG.error(`Non-melee ${attacker.id} has no SAVE_ABILITY set.`);
+      return 0;
+    }
+    const ability = this.getInt(saveAbility);
+    return characteristicToModifier(ability ?? 0);
+  }
+
+  /**
+   * Get the proficiency bonus;
+   * @param {module:players/Artefact} artefact
+   * @returns {number}
+   */
+  getCharacterPb(artefact) {
+    return this.isProficient(artefact) ? this._proficiencyBonus : 0;
   }
 
   /**
@@ -658,8 +738,14 @@ export class CharacterTraits extends Traits {
   }
 
   /**
+   * @typedef {Object} ValueChangeInfo
+   * @property {*} was
+   * @property {*} now
+   */
+  /**
    * Increase experience based on challenge rating.
    * @param {string|number} cr
+   * @returns {{exp: ValueChangeInfo, level: ValueChangeInfo}}
    */
   adjustForDefeatOfActor(defeated) {
     const challengeRating = defeated.traits.get('CR');
@@ -668,7 +754,13 @@ export class CharacterTraits extends Traits {
     const newExp = currentExp + gainedExp;
     LOG.info(`Experience increased from ${currentExp} to ${newExp}.`);
     this.set('EXP', newExp);
+    const currentLevel = this._level;
     this._setLevelAndProfBonusFromExp();
+    const newLevel = this._level;
+    return {
+      exp: { was: currentExp, now: newExp },
+      level: { was: currentLevel, now: newLevel },
+    };
   }
 
   /**
@@ -682,6 +774,9 @@ export class CharacterTraits extends Traits {
   isProficient(artefact) {
     const proficiencies = this._traits.get('PROF');
     const artefactSubtype = artefact.traits.get('TYPE');
+    if (!proficiencies || !artefactSubtype) {
+      return false;
+    }
     for (const prof of proficiencies) {
       const words = prof.split(' ');
       let allWordsIncluded = true;

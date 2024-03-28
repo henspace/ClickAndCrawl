@@ -82,9 +82,7 @@ export class AnimatedImage {
         .toString()
         .padStart(padding, '0')}${filenamePattern.suffix}`;
       if (firstFrame) {
-        textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName, {
-          fallback: 'undefined.png',
-        });
+        textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName);
         firstFrame = false;
       } else {
         textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName, { quiet: true });

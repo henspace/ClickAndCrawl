@@ -190,13 +190,16 @@ class AutoSceneList {
     const artefactsPool = ALMANAC_LIBRARY.getAlmanac('ARTEFACTS').filter(
       (entry) => entry.minLevel <= this.#index
     );
+    const magicPool = ALMANAC_LIBRARY.getAlmanac('MAGIC').filter(
+      (entry) => entry.minLevel <= this.#index
+    );
     const moneyPool = ALMANAC_LIBRARY.getAlmanac('MONEY').filter(
       (entry) => entry.minLevel <= this.#index
     );
     const weaponsPool = ALMANAC_LIBRARY.getAlmanac('WEAPONS').filter(
       (entry) => entry.minLevel <= this.#index
     );
-    const allPools = [artefactsPool, moneyPool, weaponsPool];
+    const allPools = [artefactsPool, magicPool, moneyPool, weaponsPool];
     const totalArtefacts = maths.getRandomIntInclusive(10, 10);
     for (
       let artefactIndex = 0;

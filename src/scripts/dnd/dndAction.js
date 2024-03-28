@@ -32,10 +32,11 @@ import LOG from '../utils/logging.js';
 import { characteristicToModifier } from './traits.js';
 
 /** @type number */
-export const MEALS_FOR_LONG_REST = 3;
-export const MEALS_FOR_SHORT_REST = 1;
-export const DRINKS_FOR_LONG_REST = 1;
-export const DRINKS_FOR_SHORT_REST = 1;
+export const MEALS_FOR_LONG_REST = 0;
+export const MEALS_FOR_SHORT_REST = 0;
+export const DRINKS_FOR_LONG_REST = 0;
+export const DRINKS_FOR_SHORT_REST = 0;
+
 /**
  * Roll an attack and damage dice.
  * @param {module:dnd/traits~AttackDetail} attack
@@ -73,22 +74,46 @@ export function getMeleeDamage(attack, target) {
  */
 export function getPoisonDamage(attacker, target) {
   const damage = dice.rollMultiDice(attacker.traits.get('DMG', '1D4'));
-  const save = attacker.traits.get('SAVE');
-  if (!save) {
-    LOG.info('No saving throw trait so damage applied.');
+  const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(attacker);
+  const difficulty = attacker.traits.getInt('DC');
+  if (!difficulty) {
+    LOG.error(`Poisoner ${attacker.id} has no DC set.`);
     return damage;
   }
-  const saveDetail = save.match(/(\d+) *([a-zA-Z])+/);
-  if (!saveDetail) {
-    LOG.error(`Unrecognised save trait: ${save}`);
-    return damage;
-  }
-  const saveCharacteristicValue = target.traits.get(saveDetail[2]);
-  let modifier = saveCharacteristicValue
-    ? characteristicToModifier(saveCharacteristicValue)
-    : 0;
-  if (dice.rollDice(20) + modifier >= saveDetail[1]) {
+  if (dice.rollDice(20) + saveModifier >= difficulty) {
     return 0;
+  } else {
+    return damage;
+  }
+}
+
+/**
+ * Magic with saving throw.
+ * @param {module:dnd/traits~AttackDetail} attack
+ * @param {module:players/actors~Actor} target
+ * @param {module:players/actors~Artefact} spell
+ * @returns {number}
+ */
+export function getSpellDamage(attacker, target, spell) {
+  const attackerIntelligence = attacker.traits.get('INT', 1);
+  const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(spell);
+  let difficulty = spell.traits.getInt('DC');
+  if (difficulty === null || difficulty === undefined) {
+    LOG.error(`Magic ${attacker.id} has no DC set.`);
+    difficulty = 0;
+  }
+
+  const spellModifier =
+    attacker.traits.getCharacterPb(spell) +
+    characteristicToModifier(attackerIntelligence);
+  const fullDifficulty = difficulty + spellModifier;
+  let savingThrow = dice.rollDice(20) + saveModifier;
+  const damage = dice.rollMultiDice(
+    spell.traits.getDamageDiceWhenCastBy(attacker)
+  );
+  if (savingThrow >= fullDifficulty) {
+    const factor = spell.traits.getFloat('DMG_SAVED', 0);
+    return Math.round(factor * damage);
   } else {
     return damage;
   }

@@ -44,6 +44,8 @@ import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
 import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
 import { rollDice } from '../utils/dice.js';
+import { ArtefactType } from '../players/artefacts.js';
+import * as almanacUtils from '../dnd/almanacs/almanacUtils.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -97,13 +99,30 @@ function createEnemies(sceneDefn) {
 function createArtefacts(sceneDefn) {
   const artefacts = [];
   sceneDefn.artefacts.forEach((almanacEntry) => {
+    let id;
+    let type;
+
+    if (
+      almanacEntry.type === ArtefactType.SPELL ||
+      almanacEntry.type === ArtefactType.CANTRIP
+    ) {
+      id = 'engraved_pillar';
+      type = ActorType.PROP;
+    } else {
+      id = 'hidden_artefact';
+      type = ActorType.HIDDEN_ARTEFACT;
+    }
+
     const actor = buildActor({
-      id: 'hidden_artefact',
-      type: ActorType.HIDDEN_ARTEFACT,
+      id: id,
+      name: almanacUtils.createNameFromId(id),
+      description: almanacUtils.createDescriptionFromId(id),
+      imageName: id,
+      type: type,
       traitsString: '',
     });
-    const hiddenArtefact = buildArtefact(almanacEntry);
-    actor.storeManager.addArtefact(hiddenArtefact);
+    const artefact = buildArtefact(almanacEntry);
+    actor.storeManager.addArtefact(artefact);
     artefacts.push(actor);
   });
   return artefacts;

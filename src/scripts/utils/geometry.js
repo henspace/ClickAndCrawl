@@ -188,6 +188,30 @@ export class Velocity {
 }
 
 /**
+ * Acceleration class
+ */
+export class Acceleration {
+  /** x velocity @type {number} */
+  x;
+  /** y velocity @type {number} */
+  y;
+  /** rotational velocity @type {number} */
+  rotation;
+
+  /**
+   *
+   * @param {number} velX
+   * @param {number} velY
+   * @param {number} velRot
+   */
+  constructor(velX, velY, velRot) {
+    this.x = velX;
+    this.y = velY;
+    this.rotation = velRot;
+  }
+}
+
+/**
  * Simple 2D position. Similar to point but including rotation.
  * @implements {Point}
  */

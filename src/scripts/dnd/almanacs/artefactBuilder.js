@@ -27,9 +27,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Artefact } from '../../players/artefacts.js';
-import { Traits } from '../traits.js';
-import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
+import { Artefact, ArtefactType } from '../../players/artefacts.js';
+import { CastSpell, ConsumeFood } from '../interact.js';
+import { Traits, MagicTraits } from '../traits.js';
 
 /**
  * Create an artefact.
@@ -50,14 +50,31 @@ function createArtefact(id, imageName, artefactType, traits) {
  * @returns {Artefact}
  */
 export function buildArtefact(almanacEntry) {
-  const traits = new Traits(almanacEntry.traitsString);
-  traits.set('NAME', createNameFromId(almanacEntry.id));
+  let traits;
+  let imageName;
+  if (almanacEntry.type === ArtefactType.SPELL) {
+    traits = new MagicTraits(almanacEntry.traitsString);
+    imageName = 'spell';
+  } else if (almanacEntry.type === ArtefactType.CANTRIP) {
+    traits = new MagicTraits(almanacEntry.traitsString);
+    imageName = 'cantrip';
+  } else {
+    traits = new Traits(almanacEntry.traitsString);
+    imageName = almanacEntry.imageName;
+  }
+
+  traits.set('NAME', almanacEntry.name);
   const artefact = createArtefact(
     almanacEntry.id,
-    almanacEntry.id.toLowerCase(),
+    imageName,
     almanacEntry.type,
     traits
   );
-  artefact.description = createDescriptionFromId(almanacEntry.id);
+  artefact.description = almanacEntry.description;
+  if (artefact.isMagic()) {
+    artefact.interaction = new CastSpell(artefact);
+  } else if (artefact.isConsumable()) {
+    artefact.interaction = new ConsumeFood(artefact);
+  }
   return artefact;
 }

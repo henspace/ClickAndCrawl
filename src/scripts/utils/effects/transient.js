@@ -31,30 +31,34 @@
 import { Sprite } from '../sprites/sprite.js';
 import {
   ImageSpriteCanvasRenderer,
-  SpriteCanvasRenderer,
   TextSpriteCanvasRenderer,
 } from '../sprites/spriteRenderers.js';
 import SCREEN from '../game/screen.js';
 import { TimeFader } from '../sprites/faders.js';
 import WORLD from '../game/world.js';
 import { VelocityMover } from '../sprites/movers.js';
+import { AnimatedImage } from '../sprites/animation.js';
+import { LoopMethod } from '../arrays/indexer.js';
+import { Acceleration, Velocity } from '../geometry.js';
 
 /**
  * Create a transient sprite
- * @param {SpriteCanvasRenderer} renderer
+ * @param {module:utils/sprites/spriteRenderers~SpriteCanvasRenderer} renderer
  * @param {Object} options
- * @param {Point} position
- * @param {Velocity} velocity
- * @param {number} lifetimeSecs
+ * @param {Point} options.position
+ * @param {Velocity} options.velocity
+ * @param {number} options.delaySecs
+ * @param {number} options.lifetimeSecs
  */
-export function createFadingSprite(renderer, options) {
+function createFadingSprite(renderer, options) {
   const sprite = new Sprite({
     renderer: renderer,
   });
   sprite.position = options.position;
-  sprite.velocity = options.velocity;
+  sprite.velocity = options.velocity ?? new Velocity(0, 0, 0);
+  sprite.acceleration = options.acceleration ?? new Acceleration(0, 0, 0);
   WORLD.addPassiveSprite(sprite);
-  new TimeFader(options.lifetimeSecs, new VelocityMover())
+  new TimeFader(options.delaySecs, options.lifetimeSecs, new VelocityMover())
     .applyAsTransientToSprite(sprite, 20)
     .then(() => WORLD.removePassiveSprite(sprite));
 }
@@ -63,11 +67,40 @@ export function createFadingSprite(renderer, options) {
  * Create a transient image
  * @param {module:utils/sprites/imageManager~SpriteBitmap} imageName
  * @param {Object} options
- * @param {Point} position
- * @param {Velocity} velocity
- * @param {number} lifetimeSecs
+ * @param {Point} options.position
+ * @param {Velocity} options.velocity
+ * @param {Acceleration} options.acceleration
+ * @param {number} options.delaySecs
+ * @param {number} options.lifetimeSecs
  */
 export function addFadingImage(image, options) {
+  createFadingSprite(
+    new ImageSpriteCanvasRenderer(SCREEN.getContext2D(), image),
+    options
+  );
+}
+
+/**
+ * Create a transient Animated image. Images are assumed to be of the form
+ * imageRootName00.png, imageRootName01.png etc.
+ * @param {module:utils/sprites/imageManager~SpriteBitmap} imageRootName - no extension. png will be used.
+ * @param {Object} options
+ * @param {Point} options.position
+ * @param {Velocity} options.velocity
+ * @param {Acceleration} options.acceleration
+ * @param {number} options.delaySecs
+ * @param {number} options.lifetimeSecs
+ */
+export function addFadingAnimatedImage(imageRootName, options) {
+  const image = new AnimatedImage(
+    {
+      prefix: imageRootName,
+      suffix: '.png',
+      startIndex: 0,
+      padding: 2,
+    },
+    { framePeriodMs: 300, loopMethod: LoopMethod.REVERSE }
+  );
   createFadingSprite(
     new ImageSpriteCanvasRenderer(SCREEN.getContext2D(), image),
     options
@@ -78,13 +111,18 @@ export function addFadingImage(image, options) {
  * Create transient text
  * @param {string} text
  * @param {Object} options
- * @param {Point} position
- * @param {Velocity} velocity
- * @param {number} lifetimeSecs
+ * @param {string} options.color
+ * @param {Point} options.position
+ * @param {Velocity} options.velocity
+ * @param {Acceleration} options.acceleration
+ * @param {number} options.delaySecs
+ * @param {number} options.lifetimeSecs
  */
 export function addFadingText(text, options) {
   createFadingSprite(
-    new TextSpriteCanvasRenderer(SCREEN.getContext2D(), text),
+    new TextSpriteCanvasRenderer(SCREEN.getContext2D(), text, {
+      color: options.color,
+    }),
     options
   );
 }

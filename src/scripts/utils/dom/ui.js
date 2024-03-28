@@ -83,16 +83,15 @@ function showOkDialog(message, options) {
     document.createTextNode(options?.okButtonLabel ?? i18n`BUTTON OK`)
   );
   container.appendChild(buttonEl);
-  return SCREEN.displayOnGlass(
-    container,
-    [
+  return SCREEN.displayOnGlass(container, {
+    className: options?.className,
+    closers: [
       {
         element: buttonEl,
         closes: DialogResponse.OK,
       },
     ],
-    options?.className
-  );
+  });
 }
 
 /**
@@ -105,7 +104,9 @@ function showOkDialog(message, options) {
 function showChoiceDialog(title, message, choices) {
   const container = document.createElement('div');
   if (title) {
-    container.appendChild(components.createElement('p', { text: title }));
+    container.appendChild(
+      components.createElement('p', { className: 'dialog-title', text: title })
+    );
   }
   container.appendChild(components.createElement('p', { text: message }));
   const actionButtons = [];
@@ -142,29 +143,31 @@ function showElementOkDialog(
   });
   container.appendChild(scrollContainer);
   if (title) {
-    scrollContainer.appendChild(components.createElement('p', { text: title }));
+    scrollContainer.appendChild(
+      components.createElement('p', { className: 'dialog-title', text: title })
+    );
   }
   scrollContainer.appendChild(element);
   const buttonEl = document.createElement('button');
   buttonEl.appendChild(document.createTextNode(okButtonLabel));
   container.appendChild(buttonEl);
 
-  return SCREEN.displayOnGlass(
-    container,
-    [
+  return SCREEN.displayOnGlass(container, {
+    closers: [
       {
         element: buttonEl,
         closes: DialogResponse.OK,
       },
     ],
-    className
-  );
+    className: className,
+  });
 }
 
 /** Create a controls dialog.
  * @param {string | Element} mainContent -message or element to show..
  * @param {Object} options
- * @param {string} preamble - text placed before content..
+ * @param {Object} options.title
+ * @param {string} options.preamble - text placed before content..
  * @param {BaseControl[]} options.actionButtons
  * @param {boolean} options.row - if true, controls are in a row rather than the
  * default column.
@@ -179,7 +182,15 @@ function showControlsDialog(mainContent, options = {}) {
     className: 'dialog-scroll-content',
   });
   container.appendChild(scrollContainer);
-  if (options?.preamble) {
+  if (options.title) {
+    scrollContainer.appendChild(
+      components.createElement('p', {
+        className: 'dialog-title',
+        text: options.title,
+      })
+    );
+  }
+  if (options.preamble) {
     scrollContainer.appendChild(
       components.createElement('p', { text: options.preamble })
     );
@@ -190,7 +201,7 @@ function showControlsDialog(mainContent, options = {}) {
     scrollContainer.appendChild(createMessageElement(mainContent));
   }
   const actionButtons = components.createElement('div', {
-    className: options?.row ? 'action-buttons-row' : 'action-buttons-col',
+    className: options.row ? 'action-buttons-row' : 'action-buttons-col',
   });
   container.appendChild(actionButtons);
   const closers = [];
@@ -211,7 +222,10 @@ function showControlsDialog(mainContent, options = {}) {
     actionButtons.appendChild(okButton.element);
     closers.push(okButton);
   }
-  return SCREEN.displayOnGlass(container, closers, options?.className);
+  return SCREEN.displayOnGlass(container, {
+    closers: closers,
+    className: options?.className,
+  });
 }
 
 /**

@@ -39,10 +39,10 @@ import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
 import * as maths from '../../utils/maths.js';
 import GameConstants from '../../utils/game/gameConstants.js';
 import { CharacterTraits } from '../traits.js';
-import { createNameFromId, createDescriptionFromId } from './almanacUtils.js';
 import { ALMANAC_LIBRARY } from './almanacs.js';
 import { buildArtefact } from './artefactBuilder.js';
 import LOG from '../../utils/logging.js';
+import IMAGE_MANAGER from '../../utils/sprites/imageManager.js';
 
 /**
  * Specialist traits renderer
@@ -122,7 +122,11 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
       this.#setAnimationForState();
     }
     const frame = super.getCurrentFrame();
-    return frame ?? this.#fallbackImage.getCurrentFrame();
+    return (
+      frame ??
+      this.#fallbackImage.getCurrentFrame() ??
+      IMAGE_MANAGER.getUndefinedBitmap()
+    );
   }
 
   #getCurrentDirection() {
@@ -253,7 +257,7 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
   );
   actor.almanacEntry = almanacEntry;
   actor.traits = traits;
-  actor.maxTilesPerMove = maths.safeParseInt(traits.get('SPEED', 1), 1);
+  actor.maxTilesPerMove = traits.getValueInFeetInTiles('SPEED', 1);
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.iconImageName = iconImageName
     ? `${iconImageName}.png`
@@ -262,12 +266,13 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
 }
 
 /**
- * Create the artefact.
+ * Create the artefact holder.
  * @param {string} imageName - no extension
  * @param {module:dnd/traits~Traits} traits
+ * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
  * @returns {Actor}
  */
-function createHiddenArtefact(imageName, traits) {
+function createArtefactHolder(imageName, traits, almanacEntry) {
   const keyedAnimation = createArtefactKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
@@ -278,7 +283,7 @@ function createHiddenArtefact(imageName, traits) {
     new Sprite({
       renderer: [imageRenderer],
     }),
-    ActorType.HIDDEN_ARTEFACT
+    almanacEntry.type === 'SPELL' ? ActorType.PROP : ActorType.HIDDEN_ARTEFACT
   );
   keyedAnimation.setActor(actor);
   actor.position = new Position(
@@ -309,6 +314,20 @@ function createEnemy(imageName, iconImageName, traits, almanacEntry) {
   } else {
     actor.interaction = new Fight(actor);
   }
+  return actor;
+}
+
+/**
+ * Create animated prop
+ * @param {string} imageName - without extension
+ * @param {string} iconImageName - without extension. Name of icon for dialogs.
+ * @param {module:dnd/traits~Traits} traits
+ * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
+ * @returns {Actor}
+ */
+function createProp(imageName, iconImageName, traits, almanacEntry) {
+  const actor = createActor(imageName, iconImageName, traits, almanacEntry);
+  actor.interaction = new FindArtefact(actor);
   return actor;
 }
 
@@ -359,7 +378,7 @@ function equipActor(actor, equipmentIds) {
  */
 export function buildActor(almanacEntry) {
   const traits = new CharacterTraits(almanacEntry.traitsString);
-  traits.set('NAME', createNameFromId(almanacEntry.id));
+  traits.set('NAME', almanacEntry.name);
   let actor;
   switch (almanacEntry.type) {
     case ActorType.HERO:
@@ -370,24 +389,22 @@ export function buildActor(almanacEntry) {
       actor = createTrader('trader', null, traits, almanacEntry);
       break;
     case ActorType.HIDDEN_ARTEFACT:
-      actor = createHiddenArtefact(
+      actor = createArtefactHolder(
         'hidden-artefact',
         null,
         traits,
         almanacEntry
       );
       break;
+    case ActorType.PROP:
+      actor = createProp(almanacEntry.imageName, null, traits, almanacEntry);
+      break;
     default:
-      actor = createEnemy(
-        almanacEntry.id.toLowerCase(),
-        null,
-        traits,
-        almanacEntry
-      );
+      actor = createEnemy(almanacEntry.imageName, null, traits, almanacEntry);
       break;
   }
 
-  actor.description = createDescriptionFromId(almanacEntry.id);
+  actor.description = almanacEntry.description;
   if (almanacEntry.equipmentIds) {
     equipActor(actor, almanacEntry.equipmentIds);
   }

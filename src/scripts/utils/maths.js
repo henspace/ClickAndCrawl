@@ -133,6 +133,17 @@ export function getRandomInt(min, max) {
   const maxFloored = Math.floor(max);
   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
 }
+
+/**
+ * Get a random array entry.
+ * @param {*[]} array
+ * @returns {*}
+ */
+export function getRandomMember(array) {
+  const index = getRandomInt(0, array.length);
+  return array[index];
+}
+
 /**
  * Get random number between min and max, inclusive
  * @param {number} min - inclusive minimum

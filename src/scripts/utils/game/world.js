@@ -135,7 +135,6 @@ function addPassiveSprite(sprite) {
  * @param {Sprite} sprite
  */
 function removePassiveSprite(sprite) {
-  LOG.debug('Remove passive sprite.');
   passiveSprites.delete(sprite);
 }
 

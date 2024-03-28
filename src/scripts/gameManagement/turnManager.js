@@ -55,7 +55,7 @@ import { buildActor } from '../dnd/almanacs/actorBuilder.js';
  */
 const TOO_MANY_TURNS_TO_REACH = 1.5;
 /**
- * Max number of tiles that the hero can move for it to be allowed as disengagment.
+ * Max number of tiles that the hero can move for it to be allowed as disengagement.
  */
 const MAX_TILES_FOR_DISENGAGEMENT = 2;
 /**
@@ -388,6 +388,7 @@ class AtGameOver extends State {
   async onEntry() {
     LOG.log('Enter AtGameOver');
     addFadingText('YOU DIED!', {
+      delaySecs: 1,
       lifetimeSecs: 2,
       position: heroActor.position,
       velocity: new Velocity(0, -100, 0),
@@ -437,19 +438,25 @@ class HeroTurnIdle extends State {
    * @override
    * @param {number} eventId
    * @param  {module:utils/sprites/sprite~Sprite} point - the point initiating the event
-   * @param {Object} detail - object will depend on the eventId
+   * @param {Object} [detail = {}] - object will depend on the eventId
    */
-  async onEvent(eventId, point, detail) {
+  async onEvent(eventId, point, detail = {}) {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          const filter = await disambiguateFilter(detail?.filter);
+          const filter = await disambiguateFilter(
+            detail.filter,
+            detail.occupant
+          );
           if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
           } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
             await showOccupantDetails(detail.occupant);
           } else {
-            await moveHeroToPoint(point);
+            await moveHeroToPoint(point, {
+              usePathFinder:
+                detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
+            });
           }
           this.transitionTo(new ComputerTurnIdle());
         }
@@ -460,7 +467,7 @@ class HeroTurnIdle extends State {
         break;
       case EventId.CLICKED_EXIT:
         LOG.log('Escaping');
-        await moveHeroToPoint(point, false)
+        await moveHeroToPoint(point, { usePathFinder: false })
           .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT`))
           .then(() => startNextScene(this));
         break;
@@ -489,19 +496,25 @@ class HeroTurnInteracting extends State {
    * @override
    * @param {number} eventId
    * @param  {module:utils/sprites/sprite~Sprite} point - the point initiating the event
-   * @param {Object} detail - object will depend on the eventId
+   * @param {Object} [detail = {}] - object will depend on the eventId
    */
-  async onEvent(eventId, point, detail) {
+  async onEvent(eventId, point, detail = {}) {
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
-          const filter = await disambiguateFilter(detail?.filter);
+          const filter = await disambiguateFilter(
+            detail.filter,
+            detail.occupant
+          );
           if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
           } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
             await showOccupantDetails(detail.occupant);
           } else {
-            await this.#tryToDisengage(point);
+            await this.#tryToDisengage(point, {
+              usePathFinder:
+                detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
+            });
           }
           if (WORLD.getTileMap().getParticipants(heroActor).length === 0) {
             this.transitionTo(new ComputerTurnIdle());
@@ -515,15 +528,17 @@ class HeroTurnInteracting extends State {
         UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
       case EventId.CLICKED_EXIT:
-        await this.#tryToDisengage(point, false).then((success) => {
-          if (success) {
-            return UI.showOkDialog(i18n`MESSAGE OPEN EXIT WHILE FIGHTING`).then(
-              () => startNextScene(this)
-            );
-          } else {
-            return Promise.resolve();
+        await this.#tryToDisengage(point, { usePathFinder: false }).then(
+          (success) => {
+            if (success) {
+              return UI.showOkDialog(
+                i18n`MESSAGE OPEN EXIT WHILE FIGHTING`
+              ).then(() => startNextScene(this));
+            } else {
+              return Promise.resolve();
+            }
           }
-        });
+        );
         break;
     }
     return Promise.resolve(null);
@@ -532,10 +547,11 @@ class HeroTurnInteracting extends State {
   /**
    * Try to run
    * @param {Point} point - position in world.
-   * @param {boolean} [usePathFinder = true] - should path finder be used.
+   * @param {Object} [options = {usePathFinder: true}]
+   * @param {boolean} options.usePathFinder - should path finder be used.
    * @returns {Promise} fulfils to true if successful else false.
    */
-  #tryToDisengage(point, usePathFinder = true) {
+  #tryToDisengage(point, options = { usePathFinder: true }) {
     const tileMap = WORLD.getTileMap();
     const opponents = tileMap.getParticipants(heroActor);
     let respectDisengage = false;
@@ -551,7 +567,7 @@ class HeroTurnInteracting extends State {
     if (respectDisengage && movement <= MAX_TILES_FOR_DISENGAGEMENT) {
       heroActor.disengaging = true;
     }
-    return moveHeroToPoint(point, usePathFinder).then(() => true);
+    return moveHeroToPoint(point, options).then(() => true);
   }
 }
 
@@ -662,13 +678,14 @@ function prepareHeroTurn() {
 /**
  * Move to point
  * @param {Point} point
- * @param {boolean} [usePathFinder = true]
+ * @param {Object} [options = {usePathFinder:true}]
+ * @param {boolean} options.usePathFinder
  * @returns {Promise}
  */
-function moveHeroToPoint(point, usePathFinder = true) {
+function moveHeroToPoint(point, options = { usePathFinder: true }) {
   const tileMap = WORLD.getTileMap();
   let waypoints;
-  if (usePathFinder) {
+  if (options.usePathFinder) {
     waypoints = tileMap.getWaypointsToWorldPoint(point);
   } else {
     waypoints = [heroActor.position, point];
@@ -763,7 +780,11 @@ function showOccupantDetails(occupant) {
   if (occupant.isHiddenArtefact()) {
     return UI.showOkDialog(i18n`MESSAGE GROUND DISTURBED`);
   }
-  return actorDialogs.showActorDetailsDialog(occupant);
+
+  return actorDialogs.showActorDetailsDialog(occupant, {
+    allowConsumption: occupant.isHero(),
+    allowMagicUse: occupant.isHero(),
+  });
 }
 
 /**
@@ -785,14 +806,23 @@ function triggerEvent(eventId, sprite, detail) {
 
 /**
  * @param {ClickEventFilter} filter
+ * @param {Actor} occupant
  * @returns {Promise<ClickEventFilter>}
  */
-function disambiguateFilter(filter) {
+function disambiguateFilter(filter, occupant) {
   if (filter === ClickEventFilter.MOVE_OR_INTERACT_TILE) {
+    if (occupant?.isHiddenArtefact()) {
+      const storageDetails = occupant.storeManager.getFirstStorageDetails();
+      const artefact = storageDetails?.artefact;
+      return artefact
+        ? ClickEventFilter.INTERACT_TILE
+        : ClickEventFilter.MOVEMENT_TILE;
+    }
+
     return UI.showChoiceDialog(
       i18n`DIALOG TITLE CHOICES`,
       i18n`MESSAGE SEARCH OR MOVE`,
-      [i18n`BUTTON MOVE`, i18n`BUTTON SEARCH`]
+      [i18n`BUTTON CLIMB OVER`, i18n`BUTTON SEARCH`]
     ).then((choice) => {
       if (choice === 0) {
         return ClickEventFilter.MOVEMENT_TILE;

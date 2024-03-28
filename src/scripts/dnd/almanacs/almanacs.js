@@ -36,6 +36,8 @@ import * as maths from '../../utils/maths.js';
  * @typedef {Object} AlmanacEntry
  * @property {number} minLevel
  * @property {string} id
+ * @property {string} imageName
+ * @property {string} description
  * @property {ArtefactType | ActorType} type
  * @property {string} equipmentIds - comma separated equipment list
  * @property {string} traitsString
@@ -168,7 +170,7 @@ class AlmanacLibrary {
  */
 function parseAlmanacLine(line, almanacKey) {
   const parts = line.match(
-    /^ *(\d+) *, *(\w*) *, *(\w*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
+    /^ *(\d+) *, *(\w*) *, *([\w+]*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
   );
   if (!parts) {
     LOG.error(`Invalid almanac entry ${line}`);
@@ -178,7 +180,10 @@ function parseAlmanacLine(line, almanacKey) {
   entry.minLevel = parseInt(parts[1]);
   entry.type = ALMANAC_LIBRARY.getItemType(almanacKey, parts[2]);
   entry.id = parts[3];
-  entry.name = almanacUtils.createNameFromId(entry.id);
+  const derivedParts = almanacUtils.derivePartsFromId(entry.id);
+  entry.name = derivedParts.name;
+  entry.imageName = derivedParts.imageName;
+  entry.description = derivedParts.description;
   entry.equipmentIds = csvToArray(parts[4]);
   entry.traitsString = parts[5];
   entry.challengeRating = extractCrValue(entry.traitsString);

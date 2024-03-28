@@ -138,10 +138,19 @@ function getSpriteBitmap(filename, options) {
 }
 
 /**
+ * Get image for an undefined bitmap
+ * @returns {SpriteBitmap} null if filename not found.
+ */
+function getUndefinedBitmap() {
+  return spriteMap.get('undefined.png');
+}
+
+/**
  * Singleton image manager.
  */
 const IMAGE_MANAGER = {
   getSpriteBitmap: getSpriteBitmap,
+  getUndefinedBitmap: getUndefinedBitmap,
   loadImage: loadImage,
   loadImages: loadImages,
   loadSpriteMap: loadSpriteMap,

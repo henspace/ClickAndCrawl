@@ -147,6 +147,10 @@ body {
   overflow-y: auto;
 }
 
+.dialog-title {
+  font-weight: bold;
+}
+
 .action-buttons-row button {
   flex: 1;
 }

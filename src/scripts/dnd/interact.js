@@ -28,8 +28,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import LOG from '../utils/logging.js';
-import { addFadingImage, addFadingText } from '../utils/effects/transient.js';
-import { Velocity } from '../utils/geometry.js';
+import {
+  addFadingAnimatedImage,
+  addFadingImage,
+  addFadingText,
+} from '../utils/effects/transient.js';
+import { Acceleration, Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
 import { PathFollower, moveActorToPosition } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
@@ -38,7 +42,27 @@ import SOUND_MANAGER from '../utils/soundManager.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
 import * as dndAction from './dndAction.js';
+import { ActorType } from '../players/actors.js';
+import { ArtefactType } from '../players/artefacts.js';
+import WORLD from '../utils/game/world.js';
+import { Colours } from '../constants/canvasStyles.js';
 
+/**
+ * Display rising text that fades.
+ * @param {string} text
+ * @param {module:utils/geometry~Position} position
+ * @param {string} [color = 'white']
+ */
+function displayRisingText(text, position, color = 'white') {
+  addFadingText(text, {
+    color: color,
+    delaySecs: 2,
+    lifetimeSecs: 3,
+    position: new Point(position.x, position.y),
+    velocity: new Velocity(0, -48, 0),
+    acceleration: new Acceleration(0, -96, 0),
+  });
+}
 /**
  * Apply damage to defender
  * @param {Actor} attacker
@@ -47,6 +71,14 @@ import * as dndAction from './dndAction.js';
  * @returns {number} resulting HP of defender
  */
 function applyDamage(attacker, defender, damage) {
+  if (
+    !damage ||
+    !defender.alive ||
+    defender.isProp() ||
+    defender.isHiddenArtefact()
+  ) {
+    return 0;
+  }
   let defenderHP = defender.traits.get('HP', 0);
   defenderHP = Math.max(0, defenderHP - damage);
   defender.traits.set('HP', defenderHP);
@@ -56,14 +88,26 @@ function applyDamage(attacker, defender, damage) {
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
     if (attacker.isHero()) {
-      attacker.traits.adjustForDefeatOfActor(defender);
+      const change = attacker.traits.adjustForDefeatOfActor(defender);
+      let text;
+      if (change.level.now > change.level.was) {
+        text = i18n`LEVEL UP ${change.level.now}`;
+      } else if (change.exp.now > change.exp.was) {
+        text = `+${change.exp.now - change.exp.was} EXP`;
+      }
+      if (text) {
+        displayRisingText(
+          text,
+          attacker.position,
+          Colours.HP_TRANSIENT_TEXT_HERO
+        );
+      }
     }
   } else {
-    addFadingText(`-${damage} HP`, {
-      lifetimeSecs: 2,
-      position: new Point(defender.position.x, defender.position.y),
-      velocity: new Velocity(0, 0, 0),
-    });
+    const textColor = defender.isHero()
+      ? Colours.HP_TRANSIENT_TEXT_HERO
+      : Colours.HP_TRANSIENT_TEXT_ENEMY;
+    displayRisingText(`-${damage} HP`, defender.position, textColor);
   }
   return defenderHP;
 }
@@ -71,14 +115,14 @@ function applyDamage(attacker, defender, damage) {
  */
 export class AbstractInteraction {
   /** Actor owning the interaction @type {Actor} */
-  actor;
+  owner;
 
   /**
    *
-   * @param {Actor} actor
+   * @param {Actor|Artefact} owner
    */
-  constructor(actor) {
-    this.actor = actor;
+  constructor(owner) {
+    this.owner = owner;
   }
   /**
    * @param {module:players/actors~Actor} reactor
@@ -135,10 +179,10 @@ export class AbstractInteraction {
 export class Fight extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} actor - parent actor.
+   * @param {Actor} owner - parent actor.
    */
-  constructor(actor) {
-    super(actor);
+  constructor(owner) {
+    super(owner);
   }
   /**
    * @override
@@ -159,7 +203,7 @@ export class Fight extends AbstractInteraction {
    * @returns {Promise}
    */
   enact(reactor) {
-    return this.#resolveAttackerDefender(this.actor, reactor);
+    return this.#resolveAttackerDefender(this.owner, reactor);
   }
 
   /**
@@ -167,7 +211,7 @@ export class Fight extends AbstractInteraction {
    * @returns {Promise}
    */
   react(enactor) {
-    return this.#resolveAttackerDefender(enactor, this.actor);
+    return this.#resolveAttackerDefender(enactor, this.owner);
   }
 
   /**
@@ -220,6 +264,7 @@ export class Fight extends AbstractInteraction {
       if (totalDamage <= 0) {
         SOUND_MANAGER.playEffect('MISS');
         addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
+          delaySecs: 0,
           lifetimeSecs: 1,
           position: defender.position,
           velocity: new Velocity(0, 0, 0),
@@ -233,6 +278,7 @@ export class Fight extends AbstractInteraction {
 
       SOUND_MANAGER.playEffect(hitSound);
       addFadingImage(IMAGE_MANAGER.getSpriteBitmap(hitImage), {
+        delaySecs: 0,
         lifetimeSecs: 1,
         position: defender.position,
         velocity: new Velocity(0, 0, 0),
@@ -262,10 +308,10 @@ export class Fight extends AbstractInteraction {
 export class InteractWithCorpse extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} actor - parent actor.
+   * @param {Actor} owner - parent actor.
    */
-  constructor(actor) {
-    super(actor);
+  constructor(owner) {
+    super(owner);
   }
 
   /**
@@ -288,7 +334,7 @@ export class InteractWithCorpse extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    return actorDialogs.showPillageDialog(enactor, this.actor);
+    return actorDialogs.showPillageDialog(enactor, this.owner);
   }
 }
 
@@ -298,10 +344,10 @@ export class InteractWithCorpse extends AbstractInteraction {
 export class Trade extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} actor - parent actor.
+   * @param {Actor} owner - parent actor.
    */
-  constructor(actor) {
-    super(actor);
+  constructor(owner) {
+    super(owner);
   }
   /**
    * @override
@@ -331,7 +377,7 @@ export class Trade extends AbstractInteraction {
       [i18n`BUTTON TRADE`, i18n`BUTTON BARGE`]
     ).then((choice) => {
       if (choice === 0) {
-        return actorDialogs.showTradeDialog(enactor, this.actor);
+        return actorDialogs.showTradeDialog(enactor, this.owner);
       } else {
         return this.#swapPositions(enactor);
       }
@@ -344,11 +390,11 @@ export class Trade extends AbstractInteraction {
    * @returns {Promise} fulfils to undefined when complete.
    */
   #swapPositions(them) {
-    const myPosition = Point.copy(this.actor.position);
+    const myPosition = Point.copy(this.owner.position);
     const theirPosition = Point.copy(them.position);
     return Promise.all([
       moveActorToPosition(them, myPosition),
-      moveActorToPosition(this.actor, theirPosition),
+      moveActorToPosition(this.owner, theirPosition),
     ]);
   }
 }
@@ -385,20 +431,37 @@ export class FindArtefact extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    this.actor.alive = false;
-    const storageDetails = this.actor.storeManager.getFirstStorageDetails();
+    this.owner.alive = false;
+    const storageDetails = this.owner.storeManager.getFirstStorageDetails();
     if (storageDetails) {
+      const artefact = storageDetails.artefact;
       return actorDialogs.showArtefactDialog({
-        preamble: i18n`MESSAGE FOUND ARTEFACT`,
-        currentOwner: this.actor,
+        preamble: this.#createDiscoveryMessage(artefact),
+        currentOwner: this.owner,
         prospectiveOwner: enactor,
         storeType: storageDetails.store.storeType,
-        artefact: storageDetails.artefact,
+        artefact: artefact,
         actionType: actorDialogs.ArtefactActionType.FIND,
       });
     } else {
-      return UI.showOkDialog(i18n`MESSAGE ARTEFACTS ALREADY TAKEN`);
+      return UI.showOkDialog(i18n`MESSAGE NOTHING MORE TO DISCOVER`);
     }
+  }
+
+  /**
+   * Create a message describing the action of discovery rather
+   * than the artefact itself.
+   * @param {*} foundArtefact
+   * @returns {string}
+   */
+  #createDiscoveryMessage(foundArtefact) {
+    if (this.owner.type === ActorType.HIDDEN_ARTEFACT) {
+      return i18n`MESSAGE FOUND HIDDEN ARTEFACT`;
+    } else if (foundArtefact.artefactType === ArtefactType.SPELL) {
+      // must be a prop and only engraved pillars currently supported.
+      return i18n`MESSAGE FOUND ENGRAVING`;
+    }
+    return i18n`MESSAGE FOUND GENERIC`;
   }
 }
 
@@ -408,10 +471,10 @@ export class FindArtefact extends AbstractInteraction {
 export class Poison extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} actor - parent actor.
+   * @param {Actor} owner - parent actor.
    */
-  constructor(actor) {
-    super(actor);
+  constructor(owner) {
+    super(owner);
   }
   /**
    * @override
@@ -432,16 +495,128 @@ export class Poison extends AbstractInteraction {
    * @returns {Promise}
    */
   enact(reactor) {
-    const damage = dndAction.getPoisonDamage(this.actor, reactor);
+    const damage = dndAction.getPoisonDamage(this.owner, reactor);
     SOUND_MANAGER.playEffect('POISONED');
     if (damage >= 0) {
       addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
+        delaySecs: 0,
         lifetimeSecs: 1,
         position: reactor.position,
         velocity: new Velocity(0, 0, 0),
       });
-      applyDamage(this.actor, reactor, damage);
+      applyDamage(this.owner, reactor, damage);
     }
     return Promise.resolve();
+  }
+}
+
+/**
+ * Class to handle casting a spell.
+ * @implements {ActorInteraction}
+ */
+export class CastSpell extends AbstractInteraction {
+  /**
+   * Construct the interaction.
+   * @param {Artefact} owner - parent spell.
+   */
+  constructor(owner) {
+    super(owner);
+  }
+
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
+  /**
+   * Respond to a spell cast
+   * @param {module:players/actors~Actor} enactor
+   * @returns {Promise}
+   */
+  async react(enactor) {
+    const tileMap = WORLD.getTileMap();
+    const gridPoint = tileMap.worldPointToGrid(enactor.position);
+    const range = this.owner.traits.getValueInFeetInTiles('RANGE', 1);
+    const maxTargets = this.owner.traits.getInt('MAX_TARGETS', 999);
+    let hitTargets = 0;
+    const affectedTiles = tileMap.getRadiatingUpAndDown(gridPoint, range);
+
+    for (const tile of affectedTiles) {
+      if (hitTargets > maxTargets) {
+        break;
+      }
+      this.#displaySpell(tile.worldPoint);
+      tile.getOccupants().forEach((occupant) => {
+        if (occupant.isEnemy() || occupant.isTrader()) {
+          hitTargets++;
+          const damage = dndAction.getSpellDamage(
+            enactor,
+            occupant,
+            this.owner
+          );
+          applyDamage(enactor, occupant, damage);
+        }
+      });
+    }
+    return Promise.resolve();
+  }
+
+  /**
+   * Display a spell attack at a point.
+   * @param {Point} worldPoint
+   */
+  #displaySpell(worldPoint) {
+    const spellType = this.owner.traits.get('EFFECT');
+    addFadingAnimatedImage(spellType.toLowerCase(), {
+      position: worldPoint,
+      delaySecs: 0,
+      lifetimeSecs: 1,
+    });
+  }
+}
+
+/**
+ * Class to handle consuming food, which in this context includes drinks.
+ * @implements {ActorInteraction}
+ */
+export class ConsumeFood extends AbstractInteraction {
+  /**
+   * Construct the interaction.
+   * @param {Artefact} owner - parent actor.
+   */
+  constructor(owner) {
+    super(owner);
+  }
+
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
+  /**
+   * Respond to a consume instruction
+   * @param {module:players/actors~Actor} enactor
+   * @returns {Promise}
+   */
+  async react(enactor) {
+    return UI.showOkDialog('@ToDo Handle food consumption');
   }
 }

@@ -177,6 +177,7 @@
             <key type="filename">tiles/axe.png</key>
             <key type="filename">tiles/blank.png</key>
             <key type="filename">tiles/block.png</key>
+            <key type="filename">tiles/cantrip.png</key>
             <key type="filename">tiles/coins.png</key>
             <key type="filename">tiles/copper_coins.png</key>
             <key type="filename">tiles/crystal_red.png</key>
@@ -184,6 +185,9 @@
             <key type="filename">tiles/door-L.png</key>
             <key type="filename">tiles/door-R.png</key>
             <key type="filename">tiles/door-T.png</key>
+            <key type="filename">tiles/fire00.png</key>
+            <key type="filename">tiles/flask_black.png</key>
+            <key type="filename">tiles/flask_blue.png</key>
             <key type="filename">tiles/floor-SBE.png</key>
             <key type="filename">tiles/floor-SBW.png</key>
             <key type="filename">tiles/floor.png</key>
@@ -355,6 +359,25 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tiles/acid00.png</key>
+            <key type="filename">tiles/rat-idle01.png</key>
+            <key type="filename">tiles/slime-idle00.png</key>
+            <key type="filename">tiles/slime-idle01.png</key>
+            <key type="filename">tiles/slime-idle02.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>12,12,25,24</rect>
+                <key>scale9Paddings</key>
+                <rect>12,12,25,24</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">tiles/blood-splat-twice.png</key>
             <key type="filename">tiles/blood-splat.png</key>
             <struct type="IndividualSpriteSettings">
@@ -372,12 +395,14 @@
                 <false/>
             </struct>
             <key type="filename">tiles/crystal_blue.png</key>
+            <key type="filename">tiles/fire01.png</key>
             <key type="filename">tiles/hero.png</key>
             <key type="filename">tiles/orc.png</key>
             <key type="filename">tiles/slime-walk-e00.png</key>
             <key type="filename">tiles/slime-walk-n00.png</key>
             <key type="filename">tiles/slime-walk-s00.png</key>
             <key type="filename">tiles/slime-walk-w00.png</key>
+            <key type="filename">tiles/spell.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -392,6 +417,7 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tiles/engraved_pillar.png</key>
             <key type="filename">tiles/iron_rations.png</key>
             <key type="filename">tiles/rat-idle02.png</key>
             <key type="filename">tiles/rat-walk-w00.png</key>
@@ -407,24 +433,6 @@
                 <rect>12,12,25,25</rect>
                 <key>scale9Paddings</key>
                 <rect>12,12,25,25</rect>
-                <key>scale9FromFile</key>
-                <false/>
-            </struct>
-            <key type="filename">tiles/rat-idle01.png</key>
-            <key type="filename">tiles/slime-idle00.png</key>
-            <key type="filename">tiles/slime-idle01.png</key>
-            <key type="filename">tiles/slime-idle02.png</key>
-            <struct type="IndividualSpriteSettings">
-                <key>pivotPoint</key>
-                <point_f>0.5,0.5</point_f>
-                <key>spriteScale</key>
-                <double>1</double>
-                <key>scale9Enabled</key>
-                <false/>
-                <key>scale9Borders</key>
-                <rect>12,12,25,24</rect>
-                <key>scale9Paddings</key>
-                <rect>12,12,25,24</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

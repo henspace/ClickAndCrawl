@@ -27,20 +27,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { MESSAGES, i18n } from '../../utils/messageManager.js';
+import { MESSAGES } from '../../utils/messageManager.js';
 import LOG from '../../utils/logging.js';
-import * as assetLoaders from '../../utils/assetLoaders.js';
 
 /**
- * Takes an ID and creates a name.
- * @param {string} [id = '?']
+ * Takes an ID and creates name.
+ * @param {string} [idMain = '?'] - id stripped of its suffix
  * @returns {string}
  */
-export function createNameFromId(id = '?') {
-  if (id.len < 2) {
-    return id;
+export function createNameFromId(idMain = '?') {
+  if (idMain.len < 2) {
+    return idMain;
   }
-  const name = id.replace(/_/g, ' ');
+  const name = idMain.replace(/_/g, ' ');
   const capitalisedName = name.charAt(0).toUpperCase() + name.substring(1);
   return MESSAGES.getText(capitalisedName);
 }
@@ -48,7 +47,7 @@ export function createNameFromId(id = '?') {
 /**
  * Takes an ID and creates a description.
  * If no description an empty string is returned.
- * @param {string} id
+ * @param {string} id  - id stripped of its suffix
  * @returns {string}
  */
 export function createDescriptionFromId(id) {
@@ -59,4 +58,21 @@ export function createDescriptionFromId(id) {
     return '';
   }
   return result;
+}
+
+/**
+ * Takes an ID including its extension and creates name, imageName and description.
+ * @param {string} [id = '?']
+ * @returns {{name:string, imageName:string, description:string}}
+ */
+export function derivePartsFromId(id = '?') {
+  const parts = id.split('+');
+  if (id.len < 2) {
+    return id;
+  }
+  return {
+    name: createNameFromId(parts[0]),
+    imageName: parts[0].toLowerCase(),
+    description: createDescriptionFromId(parts[0]),
+  };
 }

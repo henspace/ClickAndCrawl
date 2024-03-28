@@ -33,12 +33,15 @@
  * @enum {string}
  */
 export const Colours = {
-  HP_GAUGE: 'rgba(204, 51, 0, 0.4)',
-  MORALE_GAUGE: 'rgba(0, 0, 255, 0.4)',
   DOOR_HIGHLIGHT_FILL: 'rgba(0, 255, 0, 0.2)',
   DOOR_HIGHLIGHT_STROKE: 'green',
+  HP_GAUGE: 'rgba(204, 51, 0, 0.4)',
+  HP_TRANSIENT_TEXT_HERO: 'white',
+  HP_TRANSIENT_TEXT_ENEMY: 'black',
   INTERACT_HIGHLIGHT_FILL: 'transparent',
   INTERACT_HIGHLIGHT_STROKE: 'black',
+  MORALE_GAUGE: 'rgba(0, 0, 255, 0.4)',
+
   MOVE_HIGHLIGHT_FILL: 'rgba(255, 255, 255, 0.2)',
   MOVE_HIGHLIGHT_STROKE: 'white',
 };

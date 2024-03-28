@@ -79,20 +79,18 @@ export class VelocityMover extends AbstractModifier {
   }
 
   /**
-   * Move sprite using its velocity
+   * Move sprite using its velocity and acceleration
    * @param {module:utils/sprites/sprite~Sprite} sprite
    * @param {number} deltaSeconds - elapsed time
    * @returns {AbstractModifier}
    */
   doUpdate(sprite, deltaSeconds) {
-    const position = sprite.position;
-    const velocity = sprite.velocity;
-
-    position.x += velocity.x * deltaSeconds;
-    position.y += velocity.y * deltaSeconds;
-
-    sprite.position = position;
-    sprite.velocity = velocity;
+    sprite.position.x += sprite.velocity.x * deltaSeconds;
+    sprite.position.y += sprite.velocity.y * deltaSeconds;
+    if (sprite.acceleration) {
+      sprite.velocity.x += sprite.acceleration.x * deltaSeconds;
+      sprite.velocity.y += sprite.acceleration.y * deltaSeconds;
+    }
     return this;
   }
 }

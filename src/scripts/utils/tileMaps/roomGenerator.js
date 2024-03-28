@@ -40,11 +40,6 @@ export class RoomCreator {
   #maxRows;
   #maxRoomCols;
   #maxRoomRows;
-  #wallChr;
-  #floorChr;
-  #entranceChr;
-  #exitChr;
-  #landChr;
   #dungeon;
   /**
    *
@@ -67,13 +62,112 @@ export class RoomCreator {
     );
     this.#maxRoomCols = options.maxRoomCols;
     this.#maxRoomRows = options.maxRoomRows;
-    this.#wallChr = SpecialSymbols.WALL[0];
-    this.#floorChr = SpecialSymbols.GROUND[0];
-    this.#landChr = SpecialSymbols.VOID[0];
-    this.#entranceChr = SpecialSymbols.DOOR_IN[0];
-    this.#exitChr = SpecialSymbols.DOOR_OUT[0];
   }
 
+  /**
+   * Get a random wall char.
+   * @param {number} [qty = 1]
+   * @returns {string}
+   */
+  #getWallChr(qty = 1) {
+    let result = '';
+    while (qty-- > 0) {
+      result += maths.getRandomMember(SpecialSymbols.WALL);
+    }
+    return result;
+  }
+
+  /**
+   * Get a random ground char.
+   * @param {number} [qty = 1]
+   * @returns {string}
+   */
+  #getFloorChr(qty = 1) {
+    let result = '';
+    while (qty-- > 0) {
+      result += maths.getRandomMember(SpecialSymbols.GROUND);
+    }
+    return result;
+  }
+
+  /**
+   * Get a random void char.
+   * @param {number} [qty = 1]
+   * @returns {string}
+   */
+  #getLandChr(qty = 1) {
+    let result = '';
+    while (qty-- > 0) {
+      result += maths.getRandomMember(SpecialSymbols.VOID);
+    }
+    return result;
+  }
+
+  /**
+   * Get a random door in char.
+   * @param {number} [qty = 1]
+   * @returns {string}
+   */
+  #getDoorInChr(qty = 1) {
+    let result = '';
+    while (qty-- > 0) {
+      result += maths.getRandomMember(SpecialSymbols.DOOR_IN);
+    }
+    return result;
+  }
+
+  /**
+   * Get a random door out char.
+   * @param {number} [qty = 1]
+   * @returns {string}
+   */
+  #getDoorOutChr(qty = 1) {
+    let result = '';
+    while (qty-- > 0) {
+      result += maths.getRandomMember(SpecialSymbols.DOOR_OUT);
+    }
+    return result;
+  }
+
+  /** Test is a wall char.
+   * @param {string} char
+   * @returns {boolean}
+   */
+  #isWallChr(chr) {
+    return SpecialSymbols.WALL.includes(chr);
+  }
+
+  /** Test is a floor char.
+   * @param {string} char
+   * @returns {boolean}
+   */
+  #isFloorChr(chr) {
+    return SpecialSymbols.GROUND.includes(chr);
+  }
+
+  /** Test is a land char.
+   * @param {string} char
+   * @returns {boolean}
+   */
+  #isLandChr(chr) {
+    return SpecialSymbols.VOID.includes(chr);
+  }
+
+  /** Test is a door in char.
+   * @param {string} char
+   * @returns {boolean}
+   */
+  #isDoorInChr(chr) {
+    return SpecialSymbols.DOOR_IN.includes(chr);
+  }
+
+  /** Test is a door out char.
+   * @param {string} char
+   * @returns {boolean}
+   */
+  #isDoorOutChr(chr) {
+    return SpecialSymbols.DOOR_OUT.includes(chr);
+  }
   /**
    * Generate a room.
    * @returns {String[]}
@@ -136,23 +230,23 @@ export class RoomCreator {
       `Create room ${leftLandCols} ${roomCols} ${rightLandCols} ${numberOfRows}`
     );
     let columns = '';
-    columns += this.#landChr.repeat(leftLandCols);
-    columns += this.#wallChr.repeat(roomCols);
-    columns += this.#landChr.repeat(rightLandCols);
+    columns += this.#getLandChr(leftLandCols);
+    columns += this.#getWallChr(roomCols);
+    columns += this.#getLandChr(rightLandCols);
     this.#dungeon.push(columns.split(''));
     for (let internalRow = 0; internalRow < numberOfRows - 2; internalRow++) {
       columns = '';
-      columns += this.#landChr.repeat(leftLandCols);
-      columns += this.#wallChr;
-      columns += this.#floorChr.repeat(roomCols - 2);
-      columns += this.#wallChr;
-      columns += this.#landChr.repeat(rightLandCols);
+      columns += this.#getLandChr(leftLandCols);
+      columns += this.#getWallChr(1);
+      columns += this.#getFloorChr(roomCols - 2);
+      columns += this.#getWallChr(1);
+      columns += this.#getLandChr(rightLandCols);
       this.#dungeon.push(columns.split(''));
     }
     columns = '';
-    columns += this.#landChr.repeat(leftLandCols);
-    columns += this.#wallChr.repeat(roomCols);
-    columns += this.#landChr.repeat(rightLandCols);
+    columns += this.#getLandChr(leftLandCols);
+    columns += this.#getWallChr(roomCols);
+    columns += this.#getLandChr(rightLandCols);
     this.#dungeon.push(columns.split(''));
   }
 
@@ -161,13 +255,13 @@ export class RoomCreator {
     for (let row = 1; row < this.#dungeon.length - 1; row++) {
       for (let col = 1; col < this.#dungeon[0].length - 2; col++) {
         if (
-          this.#dungeon[row][col] === this.#wallChr &&
-          this.#dungeon[row + 1][col] === this.#wallChr &&
-          this.#dungeon[row - 1][col] === this.#floorChr &&
-          this.#dungeon[row + 2][col] === this.#floorChr
+          this.#isWallChr(this.#dungeon[row][col]) &&
+          this.#isWallChr(this.#dungeon[row + 1][col]) &&
+          this.#isFloorChr(this.#dungeon[row - 1][col]) &&
+          this.#isFloorChr(this.#dungeon[row + 2][col])
         ) {
-          this.#dungeon[row][col] = this.#floorChr;
-          this.#dungeon[row + 1][col] = this.#floorChr;
+          this.#dungeon[row][col] = this.#getFloorChr(1);
+          this.#dungeon[row + 1][col] = this.#getFloorChr(1);
         }
       }
     }
@@ -180,9 +274,9 @@ export class RoomCreator {
    */
   #isVerticalWall(surrounds) {
     return (
-      surrounds.above === this.#wallChr &&
-      surrounds.centre === this.#wallChr &&
-      surrounds.below === this.#wallChr
+      this.#isWallChr(surrounds.above) &&
+      this.#isWallChr(surrounds.centre) &&
+      this.#isWallChr(surrounds.below)
     );
   }
   /**
@@ -192,9 +286,9 @@ export class RoomCreator {
    */
   #isHorizontalWall(surrounds) {
     return (
-      surrounds.left === this.#wallChr &&
-      surrounds.centre === this.#wallChr &&
-      surrounds.right === this.#wallChr
+      this.#isWallChr(surrounds.left) &&
+      this.#isWallChr(surrounds.centre) &&
+      this.#isWallChr(surrounds.right)
     );
   }
 
@@ -220,8 +314,8 @@ export class RoomCreator {
     );
     const randomLocations = arrayManip.randomise(possibleLocations);
     let location = randomLocations[0];
-    this.#dungeon[location.row][location.col] = this.#entranceChr;
+    this.#dungeon[location.row][location.col] = this.#getDoorInChr();
     location = randomLocations[1];
-    this.#dungeon[location.row][location.col] = this.#exitChr;
+    this.#dungeon[location.row][location.col] = this.#getDoorOutChr();
   }
 }

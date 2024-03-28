@@ -37,7 +37,7 @@ import {
 import { Point, Rectangle } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
-import { getSurrounds } from '../arrays/arrayManip.js';
+import { getSurrounds, radiateUpAndDown } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
 import { Colours } from '../../constants/canvasStyles.js';
@@ -669,6 +669,12 @@ export class TileMap {
    */
   #filterClick(target, point, clickHandler) {
     const gridPoint = this.worldPointToGrid(point);
+    let occupant;
+    const occupants = target.getOccupants();
+    if (occupants.size > 0) {
+      occupant = occupants.values().next().value;
+    }
+
     const movement = this.#movementRoutes?.containsGridPoint(gridPoint);
     let interaction = false;
     if (this.#interactTileGridPoints) {
@@ -679,16 +685,24 @@ export class TileMap {
         }
       }
     }
-    if (movement && interaction) {
+    const isDeadProp = !occupant?.alive && occupant?.isProp();
+    if ((movement && interaction) || isDeadProp) {
       clickHandler(target, point, {
         filter: ClickEventFilter.MOVE_OR_INTERACT_TILE,
+        occupant: occupant,
       });
       return;
     } else if (movement) {
-      clickHandler(target, point, { filter: ClickEventFilter.MOVEMENT_TILE });
+      clickHandler(target, point, {
+        filter: ClickEventFilter.MOVEMENT_TILE,
+        occupant: occupant,
+      });
       return;
     } else if (interaction) {
-      clickHandler(target, point, { filter: ClickEventFilter.INTERACT_TILE });
+      clickHandler(target, point, {
+        filter: ClickEventFilter.INTERACT_TILE,
+        occupant: occupant,
+      });
       return;
     }
 
@@ -711,10 +725,10 @@ export class TileMap {
       });
       return;
     }
-    const occupants = target.getOccupants();
-    if (occupants.size > 0) {
+
+    if (occupant) {
       clickHandler(target, point, {
-        occupant: occupants.values().next().value,
+        occupant: occupant,
         filter: ClickEventFilter.OCCUPIED_TILE,
       });
     }
@@ -801,9 +815,25 @@ export class TileMap {
   /**
    * Get the tiles surrounding a reference.
    * @param {Point} gridPoint
+   * @returns {module:utils/arrays/arrayManip~Surrounds}
    */
   getSurroundingTiles(gridPoint) {
     return getSurrounds(this.#tiles, gridPoint.y, gridPoint.x);
+  }
+
+  /**
+   * Get tiles radiating up and down.
+   * @param {Point} gridPoint
+   * @param {number} [distance = 1] - in tiles.
+   * @returns {Tiles[]}
+   */
+  getRadiatingUpAndDown(gridPoint, distance = 1) {
+    return radiateUpAndDown(this.#tiles, {
+      rowIndex: gridPoint.y,
+      columnIndex: gridPoint.x,
+      distance: distance,
+      filter: (tile) => tile.role === TileRole.GROUND,
+    });
   }
 
   /**

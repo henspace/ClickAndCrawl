@@ -63,6 +63,67 @@ export function getSurrounds(matrix, rowIndex, columnIndex) {
 }
 
 /**
+ * Get radiating cross from centre. Takes a 2D matrix and finds all cells
+ * that radiate horizontally and vertically from a point.
+ * @param {Array.<Array.<*>>} matrix
+ * @param {Object} options
+ * @param {number} options.rowIndex
+ * @param {number} options.columnIndex
+ * @param {number} [options.distance = 1] - distance from centre
+ * @param {function(member:*):boolean} options.filter - if provided, must be true otherwise
+ * radiation stops.
+ * @returns {Surrounds}
+ */
+export function radiateUpAndDown(matrix, options) {
+  const centreX = options.columnIndex;
+  const centreY = options.rowIndex;
+  const result = [];
+  let lookNorth = true;
+  let lookEast = true;
+  let lookSouth = true;
+  let lookWest = true;
+  let offset = 1;
+  let member;
+  let distance = options.distance ?? 1;
+  while (distance-- > 0) {
+    if (lookWest) {
+      member = matrix[centreY][centreX - offset];
+      if (options.filter && !options.filter(member)) {
+        lookWest = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookEast) {
+      member = matrix[centreY][centreX + offset];
+      if (options.filter && !options.filter(member)) {
+        lookEast = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookNorth) {
+      member = matrix[centreY - offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookNorth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookSouth) {
+      member = matrix[centreY + offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookSouth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    offset++;
+  }
+  return result;
+}
+
+/**
  * Randomise an array.
  * @param {Object[]} source - array to randomise. The original will be modified.
  * @returns {Object[]} The source array which will have been randomised.

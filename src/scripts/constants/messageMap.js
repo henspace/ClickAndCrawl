@@ -28,34 +28,45 @@
  */
 const MESSAGE_MAP = new Map([
   ['BUTTON CANCEL', 'Cancel'],
+  ['BUTTON CAST SPELL', 'Cast spell'],
+  ['BUTTON CLIMB OVER', 'Climb over'],
   ['BUTTON BARGE', 'Barge past'],
   ['BUTTON BUY', 'Buy'],
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
   ['BUTTON EQUIP', 'Equip'],
+  ['BUTTON FORGET', 'Forget'],
   ['BUTTON INVENTORY', 'Inventory'],
+  ['BUTTON LEARN SPELL', 'Learn spell'],
   ['BUTTON LEAVE ARTEFACT', 'Leave'],
+  ['BUTTON MAGIC', 'Magic'],
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
   ['BUTTON PILLAGE', 'Pillage'],
   ['BUTTON PLAY', 'Play'],
+  ['BUTTON PREPARE SPELL', 'Prepare'],
   ['BUTTON REST', 'Rest'],
   ['BUTTON REST LONG', 'Long rest'],
+  ['BUTTON READY MAGIC', 'Ready Magic'],
   ['BUTTON REST SHORT', 'Short rest'],
   ['BUTTON SEARCH', 'Search'],
   ['BUTTON SELL', 'Sell'],
   ['BUTTON SETTINGS', 'Settings'],
   ['BUTTON START', "Let's get started."],
+  ['BUTTON STASH', 'Stash'],
   ['BUTTON TAKE ARTEFACT', 'Take'],
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
   ['BUTTON TO NEXT ROOM', 'To the next room'],
-  ['BUTTON STASH', 'Stash'],
+  ['BUTTON USE', 'Use'],
 
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
-
+  [
+    'DESCRIPTION ACID_SPLASH',
+    'Casting this spell hurls acid over your enemies.',
+  ],
   [
     'DESCRIPTION ARMOUR_CHAIN_MAIL',
     'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
@@ -85,52 +96,73 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION ARMOUR_STUDDED_LEATHER',
     'Tough and flexible leather armour with the addition of steel spikes and rivets.',
   ],
+  [
+    'DESCRIPTION BURNING_HANDS',
+    'Casting this spell with your thumbs touching and fingers spread creates a thin sheet of flames enveloping your enemies.',
+  ],
   ['DESCRIPTION CLUB', "A simple wooden club that's seen a lot of action."],
-  ['DESCRIPTION COPPER_COINS', 'Old copper coins of low value.'],
-  [
-    'DESCRIPTION SILVER_COINS',
-    'Silver coins, worn and tarnished but still of value.',
-  ],
-  [
-    'DESCRIPTION GOLD_COINS',
-    'Gold coins stamped with the image of latter day kings and queens.',
-  ],
-  ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
   [
     'DESCRIPTION COINS',
     'Various coins stamped with the image of latter day kings and queens.',
   ],
+
+  ['DESCRIPTION COPPER_COINS', 'Old copper coins of low value.'],
   ['DESCRIPTION DAGGER', 'A short and very sharp piercing weapon.'],
+
+  [
+    'DESCRIPTION ENGRAVED_PILLAR',
+    'A large stone pillar covered with mystical engravings.',
+  ],
+  [
+    'DESCRIPTION FLASK_BLACK',
+    'A black flask containing a clear, pungent liquid.',
+  ],
+  [
+    'DESCRIPTION GOBLIN',
+    "Small humanoid creature.Treat with caution. They're small but vicious.",
+  ],
+
+  [
+    'DESCRIPTION GOLD_COINS',
+    'Gold coins stamped with the image of latter day kings and queens.',
+  ],
   [
     'DESCRIPTION HERO',
     "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
   ],
-
   ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
   [
     'DESCRIPTION IRON_RATIONS',
     'Simple emergency rations. Crucial for resting between rooms.',
   ],
-  [
-    'DESCRIPTION WATERSKIN',
-    'A leather drinking flask with fresh water. Crucial for resting between rooms.',
-  ],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
-  [
-    'DESCRIPTION GOBLIN',
-    "Small humanoid creature.Treat with caution. They're small but vicious.",
-  ],
+
+  ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
+  ['DESCRIPTION RAT', 'A giant rat, diseased and vicious.'],
   [
     'DESCRIPTION SHIELD',
     'A wooden shield, carried in one hand and offering some protection.',
   ],
   ['DESCRIPTION SHORTSWORD', 'A light and highly versatile sword.'],
+  [
+    'DESCRIPTION SILVER_COINS',
+    'Silver coins, worn and tarnished but still of value.',
+  ],
   ['DESCRIPTION SLIME', 'A green sticky substance that seems to be growing.'],
+
+  ['DESCRIPTION SPIDER', 'A giant spider with fangs dripping green venom.'],
   [
     'DESCRIPTION TRADER',
     'A wandering trader selling all manner of things gathered during many months in the dungeon.',
   ],
+  [
+    'DESCRIPTION WATERSKIN',
+    'A leather drinking flask with fresh water. Crucial for resting between rooms.',
+  ],
+
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
+  ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
+  ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
@@ -138,8 +170,8 @@ const MESSAGE_MAP = new Map([
   ['MENU TITLE MAIN', 'The Scripted Dungeon'],
 
   [
-    'MESSAGE ARTEFACTS ALREADY TAKEN',
-    "You search but there's nothing left here.",
+    'MESSAGE NOTHING MORE TO DISCOVER',
+    "There's nothing more for you to learn or discover here.",
   ],
   [
     'MESSAGE CANNOT STORE',
@@ -204,6 +236,10 @@ const MESSAGE_MAP = new Map([
     'MESSAGE SEARCH OR MOVE',
     'You have a choice. Do you want to search this tile or move onto it?',
   ],
+  [
+    'MESSAGE SPELL ALREADY KNOWN',
+    "You've found a spell, but you already know this incantation.",
+  ],
   ['MESSAGE TRADE OR BARGE', 'Do you want to trade or barge past this guy?'],
   [
     'MESSAGE ENTRANCE STUCK',
@@ -220,13 +256,22 @@ const MESSAGE_MAP = new Map([
     ],
   ],
   [
-    'MESSAGE FOUND ARTEFACT',
+    'MESSAGE EXPLAIN SPELL PREP',
+    'After a long rest, you can prepare spells ready for use.',
+  ],
+  [
+    'MESSAGE FOUND HIDDEN ARTEFACT',
     [
       'Good fortune smiles upon you. You found something.',
       'You find something hidden in the ground.',
       'Buried beneath the surface, you find something.',
     ],
   ],
+  [
+    'MESSAGE FOUND ENGRAVING',
+    'You find strange word engraved on the cold stone surface.',
+  ],
+  ['MESSAGE FOUND GENERIC', "It 's your lucky day. You' found something."],
   [
     'MESSAGE GROUND DISTURBED',
     [
@@ -260,6 +305,8 @@ const MESSAGE_MAP = new Map([
   ['AC (including armour)', 'AC (+armour): ${0}'],
   ['Backpack', 'Backpack'],
   ['Body', 'Body'],
+  ['Cantrips', 'Cantrips'],
+  ['CHARACTER LEVEL:', 'level: ${0}'],
   ['Dungeon level:', 'Dungeon level: ${0}'],
   ['Feet', 'Feet'],
   ['GOLD PIECES', ' gold pieces'],
@@ -267,7 +314,10 @@ const MESSAGE_MAP = new Map([
   ['Head', 'Head'],
   ['(HP OUT OF VALUE)', '(HP:\u{00A0}${0}/${1})'],
   ['(HP VALUE)', '(HP:\u{00A0}${0})'],
-  ['CHARACTER LEVEL:', 'level: ${0}'],
+  ['Known spells', 'Known spells'],
+  ['LEVEL UP', 'Level up to ${0}'],
+  ['Prepared spells', 'Prepared spells'],
+  ['Ready magic', 'Ready magic'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
 ]);

@@ -280,21 +280,30 @@ function getContext2D() {
  * Set the content of the glass layer. OnClick events are added automatically to the
  * closers.
  * @param {HTMLElement} element
- * @param {Closers[]} closers - array of Closers. If not provided then the entire display
+ * @param {Object} options
+ * @param {Closers[]} options.closers - array of Closers. If not provided then the entire display
  * is used.
- * @param {string} className
- * @returns {Promise} fulfils to closers.response value
+ * @param {string} options.className
+ * @param {boolean} options.replace - replace current glass
+ * @returns {Promise} fulfils to closers.closes value
  */
-function displayOnGlass(element, closers, className) {
-  const glass = document.createElement('div');
-  document.body.appendChild(glass);
-  glass.className = 'glass';
+function displayOnGlass(element, options) {
+  let glass;
+  if (options.replace) {
+    glass = document.getElementsByClassName('glass')[0];
+    glass?.replaceChildren();
+  }
+  if (!glass) {
+    glass = document.createElement('div');
+    document.body.appendChild(glass);
+    glass.className = 'glass';
+  }
   const glassContent = document.createElement('div');
   glass.appendChild(glassContent);
   glassContent.className = 'glass-content';
   glassContent.appendChild(element);
-  if (className) {
-    glass.classList.add(className);
+  if (options.className) {
+    glass.classList.add(options.className);
   }
   glass.style.display = 'block';
   glass.style.opacity = 1;
@@ -305,8 +314,8 @@ function displayOnGlass(element, closers, className) {
     glassContent.classList.add('overflow');
   }
   const promises = [];
-  if (closers && closers.length > 0) {
-    closers.forEach((closer) => {
+  if (options.closers && options.closers.length > 0) {
+    options.closers.forEach((closer) => {
       const promise = new Promise((resolve) => {
         closer.element.addEventListener('click', async () => {
           resolve(closer.closes);
@@ -336,12 +345,10 @@ function displayOnGlass(element, closers, className) {
  */
 function wipeGlass(glass) {
   glass.style.opacity = 0;
-  return new Promise((resolve) => {
-    window.setTimeout(() => {
-      glass.remove();
-      resolve();
-    }, 500);
-  });
+  window.setTimeout(() => {
+    glass.remove();
+  }, 500);
+  return Promise.resolve();
 }
 
 /**

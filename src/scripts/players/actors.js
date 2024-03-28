@@ -45,6 +45,7 @@ export const ActorType = {
   ARTEFACT: 2,
   HIDDEN_ARTEFACT: 3,
   TRADER: 4,
+  PROP: 5,
 };
 
 /**
@@ -98,6 +99,8 @@ export class Actor extends UiClickHandler {
   iconImageName;
   /** @type {ArtefactStoreManager} */
   storeManager;
+  /** @type {ActorType} */
+  type;
 
   /**
    * Create the actor.
@@ -246,6 +249,14 @@ export class Actor extends UiClickHandler {
   }
 
   /**
+   * Is this a prop.
+   * @returns {boolean}
+   */
+  isProp() {
+    return this?.type === ActorType.PROP;
+  }
+
+  /**
    * Get the move type
    * @returns {MoveTypeValue}
    */
@@ -276,7 +287,7 @@ export class Actor extends UiClickHandler {
     if (otherActor.isHero() && this.isHiddenArtefact()) {
       return true;
     } else {
-      return !this.alive || !this.obstacle;
+      return (!this.alive && !this.isProp()) || !this.obstacle;
     }
   }
 

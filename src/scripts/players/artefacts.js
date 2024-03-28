@@ -53,6 +53,19 @@ export const StoreType = {
   FEET: { id: 'FEET', space: 2, money: false, spacesExpand: false },
   BACKPACK: { id: 'BACKPACK', space: 8, money: false, spacesExpand: true },
   WAGON: { id: 'WAGON', space: 8, money: false, spacesExpand: true },
+  CANTRIPS: { id: 'CANTRIPS', space: 999, money: false, spacesExpand: true },
+  SPELLS: {
+    id: 'SPELLS',
+    space: 9,
+    money: false,
+    spacesExpand: true,
+  },
+  PREPARED_SPELLS: {
+    id: 'PREPARED SPELLS',
+    space: 9,
+    money: false,
+    spacesExpand: true,
+  },
   PURSE: {
     id: 'PURSE',
     space: Number.MAX_SAFE_INTEGER,
@@ -79,9 +92,13 @@ export const ArtefactType = {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
+  CANTRIP: {
+    storageSpace: 1,
+    storeType: { stash: null, equip: StoreType.CANTRIPS },
+  },
   SPELL: {
     storageSpace: 1,
-    storeType: { stash: StoreType.BACKPACK },
+    storeType: { stash: StoreType.SPELLS, equip: StoreType.PREPARED_SPELLS },
   },
   WEAPON: {
     storageSpace: 1,
@@ -412,9 +429,10 @@ export class Artefact {
   description;
   /** @type {ArtefactTypeValue} */
   artefactType;
-
   /** @type {@module:dnd/traits/~ArtefactTraits} */
   traits;
+  /** @type {AbstractInteraction} */
+  interaction;
 
   /**
    * Create artefact.
@@ -536,6 +554,32 @@ export class Artefact {
     clone.traits = this.traits.clone();
     clone.value = this.value;
     return clone;
+  }
+
+  /**
+   * Test if this is a magical item.
+   * @returns {boolean}
+   */
+  isMagic() {
+    return (
+      this.artefactType === ArtefactType.SPELL ||
+      this.artefactType === ArtefactType.CANTRIP
+    );
+  }
+
+  /**
+   * Test if this is a useable item.
+   * @returns {boolean}
+   */
+  isUsable() {
+    return !!this.interaction?.canReact();
+  }
+
+  /** Test if this is consumable.
+   * @returns {boolean}
+   */
+  isConsumable() {
+    return this.artefactType === ArtefactType.FOOD;
   }
 }
 
@@ -670,8 +714,23 @@ export class ArtefactStoreManager {
     return null;
   }
 
+  /** Test whether a similar artefact is stored. This is done by
+   * testing the id.
+   * @param {Artefact} artefact
+   * @returns {boolean}
+   */
+  hasArtefactWithSameId(artefact) {
+    const storageDetails = this.getAllStorageDetails();
+    for (const details of storageDetails) {
+      if (details.artefact.id === artefact.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
-   * Get all equipped artefacts.
+   * Get all equipped artefacts. This excludes magic
    * @returns {Artefact[]}
    */
   getAllEquippedArtefacts() {
@@ -681,6 +740,8 @@ export class ArtefactStoreManager {
       this.#stores.get(StoreType.BODY),
       this.#stores.get(StoreType.HANDS),
       this.#stores.get(StoreType.FEET),
+      this.#stores.get(StoreType.CANTRIPS),
+      this.#stores.get(StoreType.PREPARED_SPELLS),
     ];
     for (const store of stores) {
       store.values().forEach((item) => result.push(item));
