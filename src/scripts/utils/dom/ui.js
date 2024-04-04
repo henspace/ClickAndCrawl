@@ -206,7 +206,9 @@ function showControlsDialog(mainContent, options = {}) {
   container.appendChild(actionButtons);
   const closers = [];
   options?.actionButtons?.forEach((button) => {
-    actionButtons.appendChild(button.element);
+    if (!button.element.parentElement) {
+      actionButtons.appendChild(button.element);
+    }
     if (button.closes !== null && button.closes !== undefined) {
       closers.push({
         element: button.element,

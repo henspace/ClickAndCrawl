@@ -64,8 +64,27 @@ function displayRisingText(text, position, color = 'white') {
   });
 }
 /**
+ * Apply poison damage to defender
+ * @param {Artefact} poison
+ * @param {Actor} victim
+ * @param {number} damage
+ * @returns {number} resulting HP of defender
+ */
+function applyPoisonDamage(poison, victim, damage) {
+  SOUND_MANAGER.playEffect('POISONED');
+  if (damage >= 0) {
+    addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
+      delaySecs: 0,
+      lifetimeSecs: 1,
+      position: victim.position,
+      velocity: new Velocity(0, 0, 0),
+    });
+    return applyDamage(poison, victim, damage);
+  }
+}
+/**
  * Apply damage to defender
- * @param {Actor} attacker
+ * @param {Artefact | Actor} attacker
  * @param {Actor} defender
  * @param {number} damage
  * @returns {number} resulting HP of defender
@@ -87,7 +106,7 @@ function applyDamage(attacker, defender, damage) {
     LOG.info('Killed actor.');
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
-    if (attacker.isHero()) {
+    if (attacker.isHero?.()) {
       const change = attacker.traits.adjustForDefeatOfActor(defender);
       let text;
       if (change.level.now > change.level.was) {
@@ -496,16 +515,8 @@ export class Poison extends AbstractInteraction {
    */
   enact(reactor) {
     const damage = dndAction.getPoisonDamage(this.owner, reactor);
-    SOUND_MANAGER.playEffect('POISONED');
-    if (damage >= 0) {
-      addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
-        delaySecs: 0,
-        lifetimeSecs: 1,
-        position: reactor.position,
-        velocity: new Velocity(0, 0, 0),
-      });
-      applyDamage(this.owner, reactor, damage);
-    }
+    applyPoisonDamage(this.owner, reactor, damage);
+
     return Promise.resolve();
   }
 }
@@ -567,6 +578,9 @@ export class CastSpell extends AbstractInteraction {
         }
       });
     }
+    if (this.owner.artefactType === ArtefactType.SPELL) {
+      enactor.storeManager.stash(this.owner); // spells have to be prepared again once used.
+    }
     return Promise.resolve();
   }
 
@@ -617,6 +631,47 @@ export class ConsumeFood extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    return UI.showOkDialog('@ToDo Handle food consumption');
+    const traits = this.owner.traits;
+    const foodType = traits.get('TYPE');
+    if (foodType === 'POISON') {
+      const damage = dndAction.getPoisonDamage(this.owner, enactor);
+      if (damage === 0) {
+        return UI.showOkDialog(i18n`MESSAGE RESISTED POISON`);
+      } else if (applyPoisonDamage(this.owner, enactor, damage) <= 0) {
+        return UI.showOkDialog(i18n`MESSAGE KILLED BY POISON`);
+      } else {
+        return UI.showOkDialog(i18n`MESSAGE IT'S POISON ${damage}`);
+      }
+    } else {
+      let gainHp = this.owner.traits.getInt('HP', 0);
+      if (gainHp === 0) {
+        return UI.showOkDialog(i18n`MESSAGE CONSUME BUT NO HP GAIN`);
+      }
+      const enactorHp = enactor.traits.getInt('HP');
+      const enactorHpMax = enactor.traits.getInt('HP_MAX');
+      if (!enactorHpMax) {
+        LOG.error(`Actor ${enactor.traits.get('NAME')} has no HP_MAX set`);
+        return Promise.resolve();
+      }
+      const shortfall = enactorHpMax - enactorHp;
+      if (shortfall < 0) {
+        LOG.error(
+          `Actor ${enactor.traits.get('NAME')} has HP higher than HP_MAX`
+        );
+        return Promise.resolve();
+      }
+      gainHp = Math.min(shortfall, gainHp);
+      if (gainHp === 0) {
+        return UI.showOkDialog(i18n`MESSAGE CONSUME BUT ALREADY FULL HP`);
+      }
+      const finalHp = enactorHp + gainHp;
+      const message =
+        foodType === 'POTION'
+          ? i18n`MESSAGE IT'S A HEALTHY DRINK ${gainHp}`
+          : i18n`MESSAGE IT'S HEALTHY ${gainHp}`;
+      return UI.showOkDialog(message).then(() =>
+        enactor.traits.set('HP', finalHp)
+      );
+    }
   }
 }

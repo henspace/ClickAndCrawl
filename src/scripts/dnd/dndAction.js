@@ -68,7 +68,7 @@ export function getMeleeDamage(attack, target) {
 
 /**
  * poison with saving throw.
- * @param {module:dnd/traits~AttackDetail} attack
+ * @param {module:players/actors~TraitsHolder} attack
  * @param {module:players/actors~Actor} target
  * @returns {number}
  */
@@ -77,7 +77,7 @@ export function getPoisonDamage(attacker, target) {
   const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(attacker);
   const difficulty = attacker.traits.getInt('DC');
   if (!difficulty) {
-    LOG.error(`Poisoner ${attacker.id} has no DC set.`);
+    LOG.error(`Poisoner ${attacker.traits.get('NAME')} has no DC set.`);
     return damage;
   }
   if (dice.rollDice(20) + saveModifier >= difficulty) {
@@ -85,6 +85,20 @@ export function getPoisonDamage(attacker, target) {
   } else {
     return damage;
   }
+}
+
+/**
+ * Get consumption benefit in HP, clipped to HP max.
+ * @param {module:players/actors~TraitsHolder} attack
+ * @param {module:players/actors~Actor} target
+ * @returns {number}
+ */
+export function getConsumptionBenefit(consumable, consumer) {
+  const gain = dice.rollMultiDice(consumable.traits.get('HP', '1D4'));
+  const currentHp = consumer.traits.get('HP', 0);
+  const maxHp = consumer.traits.get('HP_MAX', currentHp);
+  const shortFall = maxHp - currentHp;
+  return Math.min(shortFall, gain);
 }
 
 /**

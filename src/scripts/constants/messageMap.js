@@ -27,11 +27,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
+  ['BUTTON BUY', 'Buy'],
   ['BUTTON CANCEL', 'Cancel'],
   ['BUTTON CAST SPELL', 'Cast spell'],
+  ['BUTTON CONSUME', 'Consume'],
+  ['BUTTON CONTINUE', 'Continue'],
   ['BUTTON CLIMB OVER', 'Climb over'],
   ['BUTTON BARGE', 'Barge past'],
-  ['BUTTON BUY', 'Buy'],
+
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
   ['BUTTON EQUIP', 'Equip'],
@@ -170,10 +173,6 @@ const MESSAGE_MAP = new Map([
   ['MENU TITLE MAIN', 'The Scripted Dungeon'],
 
   [
-    'MESSAGE NOTHING MORE TO DISCOVER',
-    "There's nothing more for you to learn or discover here.",
-  ],
-  [
     'MESSAGE CANNOT STORE',
     "You're carrying too much stuff to pick up what you've found.",
   ],
@@ -184,6 +183,14 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE CANNOT REST LONG',
     'You have enough resource for a short rest, but not a long one.',
+  ],
+  [
+    'MESSAGE CONSUME BUT ALREADY FULL HP',
+    "Tastes good, but you're already in prime health. Perhaps you should've waited.",
+  ],
+  [
+    'MESSAGE CONSUME BUT NO HP GAIN',
+    'Tastes nice, but your health hasn`t improved.',
   ],
   [
     'MESSAGE ENTER LEVEL',
@@ -206,6 +213,13 @@ const MESSAGE_MAP = new Map([
     'MESSAGE INSUFFICIENT FUNDS',
     "You don't have enough funds to purchase this item. The item costs ${0}\u{00A0}GP but you only have ${1}\u{00A0}GP.",
   ],
+  ["MESSAGE IT'S A HEALTHY DRINK", 'That tastes good. +${0}HP'],
+  ["MESSAGE IT'S HEALTHY", 'A bit chewy, but tastes good. +${0}HP'],
+  [
+    'MESSAGE KILLED BY POISON',
+    'Yuk! Poison! You start to burn up, cough and vomit, before falling to the floor and dying.',
+  ],
+  ["MESSAGE IT'S POISON", "Yuk! It's poison. -${0}HP"],
   [
     'MESSAGE MAKE SPACE IN BACKPACK',
     'You need to make space in your backpack by discarding or using something.',
@@ -213,6 +227,15 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE MAKE SPACE IN EQUIP',
     "This is too big to store. Sell or discard what you're wearing so you can wear this.",
+  ],
+  [
+    'MESSAGE NOTHING MORE TO DISCOVER',
+    "There's nothing more for you to learn or discover here.",
+  ],
+
+  [
+    'MESSAGE RESISTED POISON',
+    "Yuk! It's poisonous, but you resist its toxic effects.",
   ],
   [
     'MESSAGE REST DIALOG',
@@ -306,7 +329,9 @@ const MESSAGE_MAP = new Map([
   ['Backpack', 'Backpack'],
   ['Body', 'Body'],
   ['Cantrips', 'Cantrips'],
+  ['Consumables', 'Consumables'],
   ['CHARACTER LEVEL:', 'level: ${0}'],
+  ['(DEAD)', '(DEAD!)'],
   ['Dungeon level:', 'Dungeon level: ${0}'],
   ['Feet', 'Feet'],
   ['GOLD PIECES', ' gold pieces'],

@@ -458,7 +458,11 @@ class HeroTurnIdle extends State {
                 detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
             });
           }
-          this.transitionTo(new ComputerTurnIdle());
+          if (heroActor.traits.get('HP', 0) === 0) {
+            this.transitionTo(new AtGameOver());
+          } else {
+            this.transitionTo(new ComputerTurnIdle());
+          }
         }
 
         break;
@@ -516,7 +520,11 @@ class HeroTurnInteracting extends State {
                 detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
             });
           }
-          if (WORLD.getTileMap().getParticipants(heroActor).length === 0) {
+          if (heroActor.traits.get('HP', 0) === 0) {
+            this.transitionTo(new AtGameOver());
+          } else if (
+            WORLD.getTileMap().getParticipants(heroActor).length === 0
+          ) {
             this.transitionTo(new ComputerTurnIdle());
           } else {
             this.transitionTo(new ComputerTurnInteracting());

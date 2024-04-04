@@ -4,7 +4,8 @@
 # for the image or description.
 0,FOOD,iron_rations * COST: 3SP, TYPE: MEAL
 0,FOOD,waterskin * COST: 2SP , TYPE: DRINK
-0,FOOD,flask_black+poison * COST: 2SP, _TYPE: POTION, _DMG: 3D6, _DC:16, _SAVE_ABILITY: CON  
+0,FOOD,flask_black+poison * COST: 2SP, _TYPE: POISON, _DMG: 3D6, _DC:16, _SAVE_ABILITY: CON  
+0,FOOD,flask_black+healing * COST: 2SP, _TYPE: POTION, _HP: 2D4+2
 
 
 

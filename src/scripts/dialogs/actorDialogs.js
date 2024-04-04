@@ -53,7 +53,8 @@ export const ArtefactActionType = {
  * @enum {string}
  */
 const ArtefactAction = {
-  CANCEL: 'cancel',
+  CONTINUE: 'continue',
+  CONSUME: 'consume',
   LEAVE: 'leave',
   LEARN_SPELL: 'learn',
   DISCARD: 'discard',
@@ -103,7 +104,10 @@ const InventoryLimitation = {
  * @typedef {Object} InventoryOptions
  * @property {InventoryLimitationValue} limitation
  * @property {InventoryOptions} linkedInventory - this will be refreshed at the same
- * time as the inventory. */
+ * time as the inventory.
+ * @property {function()} onRefresh - function to call on an inventory refresh.
+ **/
+
 /**
  * Container for an inventory.
  */
@@ -158,22 +162,31 @@ class InventoryContainerElement {
       this.linkedInventory.refresh(true); // suppress linking
     }
     this.#content.replaceChildren();
-    let storesToShow = this.#getStoresToShow();
+    if (
+      !this.#options.currentOwner.isHero() ||
+      this.#options.currentOwner.alive
+    ) {
+      let storesToShow = this.#getStoresToShow();
 
-    storesToShow.forEach((storeInfo) => {
-      const contents = this.#options.currentOwner.storeManager.getStoreContents(
-        storeInfo.storeType
-      );
-      if (contents) {
-        const storeContents = this.#createStoreContents(
-          storeInfo.label,
-          storeInfo.storeType,
-          contents
-        );
-        this.#actionButtons = storeContents.actionButtons;
-        this.#content.appendChild(storeContents.element);
-      }
-    });
+      storesToShow.forEach((storeInfo) => {
+        const contents =
+          this.#options.currentOwner.storeManager.getStoreContents(
+            storeInfo.storeType
+          );
+        if (contents) {
+          const storeContentsElement = this.#createStoreContents(
+            storeInfo.label,
+            storeInfo.storeType,
+            contents
+          );
+          this.#content.appendChild(storeContentsElement);
+        }
+      });
+    }
+
+    if (this.#inventoryOptions.onRefresh) {
+      this.#inventoryOptions.onRefresh();
+    }
   }
 
   /**
@@ -244,14 +257,14 @@ class InventoryContainerElement {
     }
   }
   /**
-   * Create element showing store contents.
+   * Create element showing store contents. Buttons created are pushed to
+   * this.#actionButtons.
    * @param {string} label
    * @param {StoreTypeValue} storeType
    * @param {Iterator<Artefact>} contents
-   * @returns {{element: Element, actionButtons: BaseControl[]}, }
+   * @returns {Element}
    */
   #createStoreContents(label, storeType, contents) {
-    const actionButtons = [];
     const container = components.createElement('div', {
       className: 'store',
     });
@@ -262,6 +275,7 @@ class InventoryContainerElement {
         text: label,
       })
     );
+
     const contentsElement = components.createElement('div', {
       className: 'store-contents',
     });
@@ -274,11 +288,39 @@ class InventoryContainerElement {
         options.refresh = this.refresh.bind(this);
         options.storeType = storeType;
         options.artefact = artefact;
-        const button = createArtefactButtonControl(options);
-        actionButtons.push(button);
+        const button = this.#createArtefactButtonControl(options);
+        if (button.closes !== null && button.closes !== undefined) {
+          this.#actionButtons.push(button);
+        }
         contentsElement.appendChild(button.element);
       });
-    return { element: container, actionButtons: actionButtons };
+    return container;
+  }
+  /**
+   * Create an artefact button. If a custom action is set, the button is a closer.
+   * Otherwise it just pops up a dialog giving details about the artefact.
+   * @param {ArtefactDialogOptions} options
+   * @returns {components.BitmapButtonControl}
+   */
+  #createArtefactButtonControl(options) {
+    const label = createArtefactButtonLabel(options);
+    let action;
+    let closes;
+    if (options.customAction) {
+      action = () =>
+        options.customAction(options.currentOwner, options.artefact);
+      closes = DialogResponse.OK;
+    } else {
+      action = async () => {
+        await showArtefactDialog(options).then(() => options.refresh?.());
+      };
+    }
+    return new components.BitmapButtonControl({
+      rightLabel: label,
+      imageName: options.artefact.iconImageName,
+      action: action,
+      closes: closes,
+    });
   }
 }
 
@@ -351,7 +393,7 @@ function showRestActionDialog(actor) {
     longIndex = choices.length;
     choices.push(i18n`BUTTON REST LONG`);
   }
-  choices.push(i18n`BUTTON CANCEL`);
+  choices.push(i18n`BUTTON CONTINUE`);
 
   return UI.showChoiceDialog(
     i18n`DIALOG TITLE CHOICES`,
@@ -425,8 +467,11 @@ function discardItemsFromStore(store, items, qty) {
  */
 function showInventory(actor, options = {}) {
   const container = components.createElement('div', { className: 'inventory' });
-
-  container.appendChild(
+  const actorContainer = components.createElement('div', {
+    className: 'actor-container',
+  });
+  container.appendChild(actorContainer);
+  actorContainer.appendChild(
     createActorElement(actor, { hideDescription: true, hideTraits: true })
   );
   const inventoryContainer = new InventoryContainerElement(
@@ -438,6 +483,10 @@ function showInventory(actor, options = {}) {
     },
     {
       limitation: options.limitation,
+      onRefresh: () =>
+        actorContainer.replaceChildren(
+          createActorElement(actor, { hideDescription: true, hideTraits: true })
+        ),
     }
   );
   container.appendChild(inventoryContainer.element);
@@ -466,18 +515,14 @@ function showCastSpells(actor) {
     }
   );
   container.appendChild(inventoryContainer.element);
-  inventoryContainer.actionButtons?.forEach(
-    (control) => (control.closes = DialogResponse.OK)
-  );
-  let button = new components.TextButtonControl({
-    label: i18n`BUTTON CANCEL`,
+  const cancelButton = new components.TextButtonControl({
+    label: i18n`BUTTON CONTINUE`,
     closes: DialogResponse.CANCEL,
   });
-  container.appendChild(button.element);
 
   return UI.showControlsDialog(container, {
     title: i18n`DIALOG TITLE PICK SPELL TO CAST`,
-    actionButtons: [...inventoryContainer.actionButtons, button],
+    actionButtons: [...inventoryContainer.actionButtons, cancelButton],
   });
 }
 
@@ -510,7 +555,7 @@ function createArtefactDialogButtons(container, options) {
  * Create buttons for dialog. The buttons are added to the container.
  * @param {Element} container - container for the action buttons.
  * @param {ArtefactDialogOptions} options
- * @returns {module:utils/dom/components~BaseControlElement}
+ * @returns {module:utils/dom/components~BaseControlElement[]}
  */
 function createFindArtefactDialogButtons(container, options) {
   const actionButtons = [];
@@ -538,7 +583,6 @@ function createFindArtefactDialogButtons(container, options) {
       label: label,
       closes: action,
     });
-    container.appendChild(button.element);
     actionButtons.push(button);
   }
 
@@ -546,7 +590,6 @@ function createFindArtefactDialogButtons(container, options) {
     label: i18n`BUTTON LEAVE ARTEFACT`,
     closes: ArtefactAction.LEAVE,
   });
-  container.appendChild(button.element);
   actionButtons.push(button);
 
   return actionButtons;
@@ -570,17 +613,20 @@ function createSelfActionArtefactDialogButtons(container, options) {
     case ArtefactType.CANTRIP:
       actionButtons = createCantripButtons(options);
       break;
+    case ArtefactType.FOOD:
+      actionButtons = createConsumeButtons(options);
+      break;
     default:
       actionButtons = createStandardArtefactButtons(options);
   }
 
+  //actionButtons.forEach((button) => container.appendChild(button.element));
   actionButtons.push(
     new components.TextButtonControl({
-      label: i18n`BUTTON CANCEL`,
-      closes: ArtefactAction.CANCEL,
+      label: i18n`BUTTON CONTINUE`,
+      closes: ArtefactAction.CONTINUE,
     })
   );
-  actionButtons.forEach((button) => container.appendChild(button.element));
   return actionButtons;
 }
 
@@ -639,7 +685,7 @@ function createSpellButtons(options) {
   if (options.allowSpellPrep) {
     buttons.push(
       new components.TextButtonControl({
-        label: i18n`Forget`,
+        label: i18n`BUTTON FORGET`,
         closes: ArtefactAction.DISCARD,
       })
     );
@@ -648,6 +694,30 @@ function createSpellButtons(options) {
   return buttons;
 }
 
+/**
+ * Create consume artefact buttons.
+ * @param {ArtefactDialogOptions} options
+ * @returns {module:utils/dom/components~BaseControlElement[]}
+ */
+function createConsumeButtons(options) {
+  const buttons = [];
+
+  if (isArtefactUsable(options)) {
+    buttons.push(
+      new components.TextButtonControl({
+        label: getLabelForUse(options.artefact),
+        closes: ArtefactAction.CONSUME,
+      })
+    );
+  }
+  buttons.push(
+    new components.TextButtonControl({
+      label: i18n`BUTTON DISCARD`,
+      closes: ArtefactAction.DISCARD,
+    })
+  );
+  return buttons;
+}
 /**
  * Check to see if the artefact is allowed to be used.
  * @param {ArtefactDialogOptions} options
@@ -719,6 +789,8 @@ function createStandardArtefactButtons(options) {
  */
 function getLabelForUse(artefact) {
   switch (artefact.artefactType) {
+    case ArtefactType.FOOD:
+      return i18n`BUTTON CONSUME`;
     case ArtefactType.SPELL:
     case ArtefactType.CANTRIP:
       return i18n`BUTTON CAST SPELL`;
@@ -774,17 +846,12 @@ function createSellArtefactDialogButtons(container, options) {
       : i18n`BUTTON SELL`,
     closes: ArtefactAction.SELL,
   });
-
-  container.appendChild(button.element);
   actionButtons.push(button);
 
-  container.appendChild(button.element);
-  actionButtons.push(button);
   button = new components.TextButtonControl({
-    label: i18n`BUTTON CANCEL`,
-    closes: ArtefactAction.CANCEL,
+    label: i18n`BUTTON CONTINUE`,
+    closes: ArtefactAction.CONTINUE,
   });
-  container.appendChild(button.element);
   actionButtons.push(button);
   return actionButtons;
 }
@@ -815,18 +882,14 @@ function createPillageArtefactDialogButtons(container, options) {
     label: i18n`BUTTON PILLAGE`,
     closes: ArtefactAction.PILLAGE,
   });
-
-  container.appendChild(button.element);
   actionButtons.push(button);
 
-  container.appendChild(button.element);
-  actionButtons.push(button);
   button = new components.TextButtonControl({
     label: i18n`BUTTON LEAVE ARTEFACT`,
-    closes: ArtefactAction.CANCEL,
+    closes: ArtefactAction.CONTINUE,
   });
-  container.appendChild(button.element);
   actionButtons.push(button);
+
   return actionButtons;
 }
 
@@ -898,7 +961,9 @@ function createIdCard(actor) {
   if (hp) {
     const hpMax = actor.traits.getInt('HP_MAX');
     let hpText;
-    if (hpMax) {
+    if (hp === 0) {
+      hpText = i18n`(DEAD)`;
+    } else if (hpMax) {
       hpText = i18n`(HP OUT OF VALUE) ${hp} ${hpMax}`;
     } else {
       hpText = i18n`(HP VALUE) ${hp}`;
@@ -1026,7 +1091,7 @@ function createArtefactButtonLabel(options) {
       label = `${label} DMG: ${damage}`;
     }
     if (range) {
-      label = `${label} RANGE: ${damage}`;
+      label = `${label} RANGE: ${range}`;
     }
   }
   if (
@@ -1039,33 +1104,6 @@ function createArtefactButtonLabel(options) {
     label = `${label} ${price.toFixed(2)} GP`;
   }
   return label;
-}
-/**
- * @param {ArtefactDialogOptions} options
- * @returns {components.BitmapButtonControl}
- */
-function createArtefactButtonControl(options) {
-  const label = createArtefactButtonLabel(options);
-  let action;
-  if (options.customAction) {
-    action = () => options.customAction(options.currentOwner, options.artefact);
-  } else {
-    action = async () => {
-      await showArtefactDialog(options).then((response) => {
-        if (response === DialogResponse.OK) {
-          return;
-        } else {
-          options.refresh?.();
-          return;
-        }
-      });
-    };
-  }
-  return new components.BitmapButtonControl({
-    rightLabel: label,
-    imageName: options.artefact.iconImageName,
-    action: action,
-  });
 }
 
 /**
@@ -1117,8 +1155,15 @@ export function showTradeOrPillageDialog(buyer, seller, pillage) {
 
   buyerSide.appendChild(buyerInventory.element);
   sellerSide.appendChild(sellerInventory.element);
+  const button = new components.TextButtonControl({
+    label: i18n`BUTTON CONTINUE`,
+  });
+  button.closes = DialogResponse.CANCEL;
+  const actionButtons = [];
+  actionButtons.push(button);
   return UI.showControlsDialog(container, {
     preamble: pillage ? i18n`DIALOG TITLE PILLAGE` : i18n`DIALOG TITLE TRADE`,
+    actionButtons: actionButtons,
   });
 }
 
@@ -1160,11 +1205,15 @@ export function showActorDetailsDialog(actor, options = {}) {
       text: i18n`Dungeon level: ${SCENE_MANAGER.getCurrentSceneLevel()}`,
     })
   );
+  const actorContainer = components.createElement('div', {
+    className: 'actor-container',
+  });
+  container.appendChild(actorContainer);
   const actorElement = createActorElement(actor, {
     hideTraits: true,
     description: options.description,
   });
-  container.appendChild(actorElement);
+  actorContainer.appendChild(actorElement);
   let button;
   let actionButtons;
   if (!actor.isProp()) {
@@ -1174,7 +1223,14 @@ export function showActorDetailsDialog(actor, options = {}) {
         showInventory(actor, {
           allowConsumption: options.allowConsumption,
           allowMagicUse: options.allowMagicUse,
-        }),
+        }).then(() =>
+          actorContainer.replaceChildren(
+            createActorElement(actor, {
+              hideTraits: true,
+              description: options.description,
+            })
+          )
+        ),
     });
     container.appendChild(button.element);
     button = new components.TextButtonControl({
@@ -1208,29 +1264,32 @@ export function showActorDetailsDialog(actor, options = {}) {
     }
 
     if (options.allowMagicUse) {
-      actionButtons = [];
+      actionButtons = actionButtons ?? [];
       button = new components.TextButtonControl({
         label: i18n`BUTTON CAST SPELL`,
       });
       button.closes = 'CAST SPELL';
       actionButtons.push(button);
-      button = new components.TextButtonControl({
-        label: i18n`BUTTON CANCEL`,
-      });
-      button.closes = 'CANCEL';
-      actionButtons.push(button);
-      container.appendChild(button.element);
     }
+  }
+  if (actionButtons) {
+    button = new components.TextButtonControl({
+      label: i18n`BUTTON CONTINUE`,
+    });
+    button.closes = DialogResponse.CANCEL;
+    actionButtons.push(button);
   }
 
   return UI.showControlsDialog(container, {
     okButtonLabel: options.okButtonLabel,
     actionButtons: actionButtons,
   }).then((closes) => {
-    if (closes === 'CAST SPELL') {
-      return showCastSpells(actor);
+    switch (closes) {
+      case 'CAST SPELL':
+        return showCastSpells(actor);
+      default:
+        return Promise.resolve();
     }
-    return Promise.resolve();
   });
 }
 
@@ -1263,6 +1322,9 @@ export function showArtefactDialog(options) {
   }
   return dialogFn(options).then((response) => {
     switch (response) {
+      case ArtefactAction.CONSUME:
+        sourceStoreManager.discard(artefact);
+        return artefact.interaction.react(options.currentOwner);
       case ArtefactAction.DISCARD:
         sourceStoreManager.discard(artefact);
         break;
@@ -1319,8 +1381,7 @@ export function showArtefactDialog(options) {
 
         break;
       case ArtefactAction.USE:
-        artefact.interaction.react(options.currentOwner);
-        break;
+        return artefact.interaction.react(options.currentOwner);
     }
     return Promise.resolve();
   });

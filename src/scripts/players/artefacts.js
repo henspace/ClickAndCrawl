@@ -419,6 +419,7 @@ class MoneyStore {
 
 /**
  * Basic artefact.
+ * @implements {module:players/actors~TraitsHolder}
  */
 export class Artefact {
   /** @type {string} */

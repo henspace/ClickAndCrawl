@@ -39,6 +39,11 @@ import LOG from '../utils/logging.js';
  * @typedef {Map<string, *>} Traits
  */
 
+/**
+ * @typedef {Object} TraitsHolder
+ * @property {Traits} traits
+ */
+
 export const ActorType = {
   HERO: 0,
   ENEMY: 1,
@@ -77,6 +82,7 @@ export function strToActorType(str) {
 /**
  * Actor class. An actor is a sprite that exists in the world and can interact
  * with other actors.
+ * @implements {TraitsHolder}
  */
 export class Actor extends UiClickHandler {
   /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry */
