@@ -1,7 +1,7 @@
 {
-  "name": "ScriptedRPG",
+  "name": "ClickAndCrawl",
   "version": "1.0.0",
-  "description": "Create an RPG Dungeon crawler using a simple text based script.",
+  "description": "An old school casual dungeon crawler.",
   "source": "src/index.html",
   "scripts": {
     "prebuild": "node ./tools/cleanDir.js ./build",

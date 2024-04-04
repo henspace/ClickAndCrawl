@@ -1,3 +1,3 @@
-# Scripted Dungeon
+# ClickAndCrawl
 
-Create an RPG by just writing the script for your story.
+A simple dungeon crawler designed for simple casual dungeon crawling.

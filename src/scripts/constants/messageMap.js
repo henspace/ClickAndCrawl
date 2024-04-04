@@ -170,7 +170,7 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
 
-  ['MENU TITLE MAIN', 'The Scripted Dungeon'],
+  ['MENU TITLE MAIN', 'Click and Crawl: the old-school casual dungeon-crawler'],
 
   [
     'MESSAGE CANNOT STORE',
