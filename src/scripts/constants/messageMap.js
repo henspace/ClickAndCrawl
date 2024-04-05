@@ -46,7 +46,8 @@ const MESSAGE_MAP = new Map([
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
   ['BUTTON PILLAGE', 'Pillage'],
-  ['BUTTON PLAY', 'Play'],
+  ['BUTTON PLAY ADVENTURE', 'Play adventure'],
+  ['BUTTON PLAY CASUAL', 'Play casual'],
   ['BUTTON PREPARE SPELL', 'Prepare'],
   ['BUTTON REST', 'Rest'],
   ['BUTTON REST LONG', 'Long rest'],
@@ -71,32 +72,32 @@ const MESSAGE_MAP = new Map([
     'Casting this spell hurls acid over your enemies.',
   ],
   [
-    'DESCRIPTION ARMOUR_CHAIN_MAIL',
+    'DESCRIPTION CHAIN_MAIL_ARMOUR',
     'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
   ],
   [
-    'DESCRIPTION ARMOUR_HALF_PLATE',
+    'DESCRIPTION HALF_PLATE_ARMOUR',
     'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
   ],
   [
-    'DESCRIPTION ARMOUR_LEATHER',
+    'DESCRIPTION LEATHER_ARMOUR',
     'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
   ],
-  ['DESCRIPTION ARMOUR_PADDED', 'Simple quilted layers of cloth and batting.'],
+  ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
   [
-    'DESCRIPTION ARMOUR_PLATE',
+    'DESCRIPTION PLATE_ARMOUR',
     'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
   ],
   [
-    'DESCRIPTION ARMOUR_RING_MAIL',
+    'DESCRIPTION RING_MAIL_ARMOUR',
     'Leather armour reinforced with heavy steel rings sown into the material.',
   ],
   [
-    'DESCRIPTION ARMOUR_SCALE_MAIL',
+    'DESCRIPTION SCALE_MAIL_ARMOUR',
     'Leather coat and legging covered with overlapping steel scales.',
   ],
   [
-    'DESCRIPTION ARMOUR_STUDDED_LEATHER',
+    'DESCRIPTION STUDDED_LEATHER_ARMOUR',
     'Tough and flexible leather armour with the addition of steel spikes and rivets.',
   ],
   [
@@ -117,7 +118,7 @@ const MESSAGE_MAP = new Map([
     'A large stone pillar covered with mystical engravings.',
   ],
   [
-    'DESCRIPTION FLASK_BLACK',
+    'DESCRIPTION BLACK_FLASK',
     'A black flask containing a clear, pungent liquid.',
   ],
   [
@@ -204,6 +205,10 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE DUNGEON INTRO',
     'You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
+  ],
+  [
+    'MESSAGE DUNGEON INTRO CASUAL',
+    'You enter a dark and dingy dungeon. Explore as far as you can but remember your progress will not be saved.',
   ],
   [
     'MESSAGE DEFEAT',

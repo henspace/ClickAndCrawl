@@ -34,7 +34,6 @@ import { NavigationButtons, NavigationLocation } from '../hud/hudNavSet.js';
 import WORLD from '../utils/game/world.js';
 import { CameraDolly, CameraTracking } from '../utils/game/camera.js';
 import LOG from '../utils/logging.js';
-import GameConstants from '../utils/game/gameConstants.js';
 
 /**
  * @interface SceneList
@@ -62,6 +61,13 @@ import GameConstants from '../utils/game/gameConstants.js';
  * a call to getNext.
  * @function SceneList.getIndex
  * @returns {number}
+ */
+
+/**
+ * Restore a saved game
+ * @function SceneList.restore
+ * @param {number} index
+ * @param {Actor} hero
  */
 
 /** @type {module:utils/sprites/sprite~Sprite}  */
@@ -206,6 +212,17 @@ function areThereMoreScenes() {
 }
 
 /**
+ * Continue from a saved scene.
+ * @param {number} savedSceneLevel
+ * @param {Actor} savedHero
+ * @returns {Promise} fulfils to the loaded scene.
+ * Rejects if no scenes.
+ */
+function continueFromSavedScene(savedSceneLevel, savedHero) {
+  sceneDefnList.restore(savedSceneLevel, savedHero);
+  return setScene(getNextSceneFromList());
+}
+/**
  * Switch to the first scene.
  * @returns {Promise} fulfils to the loaded scene.
  * Rejects if no scenes.
@@ -265,6 +282,7 @@ function getCurrentSceneLevel() {
  */
 const SCENE_MANAGER = {
   areThereMoreScenes: areThereMoreScenes,
+  continueFromSavedScene: continueFromSavedScene,
   getCurrentSceneLevel: getCurrentSceneLevel,
   panCameraBy: panCameraBy,
   setCameraToTrack: setCameraToTrack,

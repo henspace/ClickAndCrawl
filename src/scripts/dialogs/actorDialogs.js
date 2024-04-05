@@ -346,7 +346,7 @@ function showRestActionDialog(actor) {
   const meals = [];
   const drinks = [];
   store.values().forEach((item) => {
-    if (item.artefactType === ArtefactType.FOOD) {
+    if (item.artefactType === ArtefactType.CONSUMABLE) {
       const type = item.traits.get('TYPE');
       if (type === 'MEAL') {
         meals.push(item);
@@ -613,7 +613,7 @@ function createSelfActionArtefactDialogButtons(container, options) {
     case ArtefactType.CANTRIP:
       actionButtons = createCantripButtons(options);
       break;
-    case ArtefactType.FOOD:
+    case ArtefactType.CONSUMABLE:
       actionButtons = createConsumeButtons(options);
       break;
     default:
@@ -789,7 +789,7 @@ function createStandardArtefactButtons(options) {
  */
 function getLabelForUse(artefact) {
   switch (artefact.artefactType) {
-    case ArtefactType.FOOD:
+    case ArtefactType.CONSUMABLE:
       return i18n`BUTTON CONSUME`;
     case ArtefactType.SPELL:
     case ArtefactType.CANTRIP:
@@ -1053,7 +1053,7 @@ function createTraitsList(actor, excludedKeys, includeGold) {
     }
   }
 
-  actor.traits?.getAllTraits().forEach((value, key) => {
+  actor.traits?.getAllTraitsSorted().forEach((value, key) => {
     if (value && value !== '0') {
       const displayedValue = Array.isArray(value) ? value.join(', ') : value;
       if (!excludedKeys.includes(key) && !key.startsWith('_')) {
@@ -1314,7 +1314,7 @@ export function showArtefactDialog(options) {
     case ArtefactType.ARMOUR:
     case ArtefactType.SHIELD:
     case ArtefactType.COINS:
-    case ArtefactType.FOOD:
+    case ArtefactType.CONSUMABLE:
     case ArtefactType.SPELL:
     case ArtefactType.CANTRIP:
       dialogFn = showEquipDialog;

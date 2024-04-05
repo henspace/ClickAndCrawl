@@ -34,6 +34,8 @@ import { ActorType } from './actors.js';
 import * as coins from '../utils/game/coins.js';
 import { i18n } from '../utils/messageManager.js';
 import { Traits } from '../dnd/traits.js';
+import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
+import { parseAlmanacLine } from '../dnd/almanacs/almanacs.js';
 
 /**
  * @typedef {Object} StoreTypeValue
@@ -88,7 +90,7 @@ export const ArtefactType = {
     storageSpace: 1,
     storeType: { stash: StoreType.WAGON, equip: StoreType.BODY },
   },
-  FOOD: {
+  CONSUMABLE: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
@@ -159,6 +161,9 @@ export function strToArtefactType(str) {
 /**
  * @property {StoreType} StoreInterface.storeType
  */
+/**
+ * @property {string} StoreInterface.storeTypeId
+ */
 
 /**
  * Store for artefacts
@@ -189,6 +194,13 @@ class ArtefactStore {
     this.#storeType = storeType;
   }
 
+  /**
+   * Get store type ID
+   * @returns {string}
+   */
+  get storeTypeId() {
+    return this.#storeType.id;
+  }
   /**
    * Get the store type
    * @returns {StoreType}
@@ -300,7 +312,7 @@ class ArtefactStore {
 }
 
 /**
- * Gold storage. This effectively merges artifacts into one combining the COST trait.
+ * Gold storage. This effectively merges artifacts into one combining the VALUE trait.
  * Note that if only one artefact is added, it is returned. Once more than one has been
  * added a composite money artefact is returne.
  * @implements {StoreInterface}
@@ -324,6 +336,14 @@ class MoneyStore {
    */
   get storeType() {
     return StoreType.PURSE;
+  }
+
+  /**
+   * Get store type Id
+   * @returns {StoreType}
+   */
+  get storeTypeId() {
+    return StoreType.PURSE.id;
   }
   /**
    * Test if empty
@@ -405,13 +425,10 @@ class MoneyStore {
    * @returns {Artefact}
    */
   static createGoldCoinArtefact(gp) {
-    const artefact = new Artefact(
-      'coins',
-      i18n`DESCRIPTION COINS`,
-      'coins.png',
-      ArtefactType.COINS
+    const almanacEntry = parseAlmanacLine(
+      `0,COMMON,COINS,copper_coins * VALUE:${gp}GP`
     );
-    artefact.traits = new Traits([['NAME', 'Coins']]);
+    const artefact = buildArtefact(almanacEntry);
     artefact.costInGp = gp;
     return artefact;
   }
@@ -430,30 +447,32 @@ export class Artefact {
   description;
   /** @type {ArtefactTypeValue} */
   artefactType;
-  /** @type {@module:dnd/traits/~ArtefactTraits} */
+  /** @type {module:dnd/traits/~ArtefactTraits} */
   traits;
   /** @type {AbstractInteraction} */
   interaction;
-
+  /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} */
+  almanacEntry;
   /**
    * Create artefact.
-   * @param {string} id
+   * @param {AlmanacEntry} almanacEntry
    * @param {string} description
    * @param {string} iconImageName
    * @param {number} artefactType - artefact enumeration
    */
-  constructor(id, description, iconImageName, artefactType) {
-    this.id = id;
+  constructor(almanacEntry, description, iconImageName) {
+    this.id = almanacEntry.id;
     this.description = description;
     this.iconImageName = iconImageName;
-    this.artefactType = artefactType;
+    this.artefactType = almanacEntry.type;
+    this.almanacEntry = almanacEntry;
   }
 
   /** Get the cost details.
    * @returns {module:game/coins~CoinDetails}
    */
   get costDetails() {
-    const coinDefn = this.traits?.get('COST');
+    const coinDefn = this.traits?.get('VALUE');
     return coins.getCoinDetails(coinDefn);
   }
   /**
@@ -461,7 +480,7 @@ export class Artefact {
    * @returns {number}
    */
   get costInGp() {
-    const coinDefn = this.traits?.get('COST');
+    const coinDefn = this.traits?.get('VALUE');
     return coins.getValueInGp(coinDefn);
   }
 
@@ -485,7 +504,7 @@ export class Artefact {
     if (!this.traits) {
       throw new Error('Artefact has no traits so cannot set cost.');
     }
-    this.traits.set('COST', coins.getCoinDefinition(gp));
+    this.traits.set('VALUE', coins.getCoinDefinition(gp));
   }
 
   /** Get the storage space used by this artefact.
@@ -547,10 +566,9 @@ export class Artefact {
    */
   clone() {
     const clone = new Artefact(
-      this.id,
+      this.almanacEntry,
       this.description,
-      this.iconImageName,
-      this.artefactType
+      this.iconImageName
     );
     clone.traits = this.traits.clone();
     clone.value = this.value;
@@ -580,7 +598,7 @@ export class Artefact {
    * @returns {boolean}
    */
   isConsumable() {
-    return this.artefactType === ArtefactType.FOOD;
+    return this.artefactType === ArtefactType.CONSUMABLE;
   }
 }
 
@@ -662,6 +680,20 @@ export class ArtefactStoreManager {
       storeType = StoreType.WAGON;
     }
     return this.#stores.get(storeType);
+  }
+
+  /** Get a store from the store type. Note that a trader's wagon serves
+   * both as a backpack and a wagon.
+   * @param {string} storeId
+   * @returns {ArtefactStore} null if not found
+   */
+  getStoreByTypeId(storeTypeId) {
+    for (const store of this.#stores.values()) {
+      if (store.storeTypeId === storeTypeId) {
+        return store;
+      }
+    }
+    return null;
   }
   /**
    * Get the store where an item should be stored. This is normally

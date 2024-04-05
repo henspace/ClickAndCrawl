@@ -60,9 +60,9 @@ export const DungeonChallenge = {
 /**
  * Create a pool of enemies based on the dungeon rating.
  * @param {DungeonChallengeValue} dungeonRating
- * @returns {module:almanacs/almanacs~AlmanacEntry[]}
+ * @returns {module:almanacs/almanacs~Almanac}
  */
-function createEnemyPool(dungeonRating) {
+function createEnemyPoolAlmanac(dungeonRating) {
   const level = heroActor?.traits.getCharacterLevel() ?? 1;
   const maxMonsterChallenge = dungeonRating * level + 0.001; // prevent float issues.
   return ALMANAC_LIBRARY.getAlmanac('ENEMIES').filter(
@@ -118,6 +118,17 @@ class AutoSceneList {
     this.#index = -1;
   }
 
+  /**
+   * Restore a saved game. Game are saved when a dungeon is exited so the call should
+   * be to the next scene.
+   * @param {number} index
+   * @param {Actor} hero
+   */
+  restore(index, hero) {
+    heroActor = hero;
+    this.#index = index;
+  }
+
   /** Build a scene */
   #buildScene() {
     this.#sceneDefn = new SceneDefinition();
@@ -157,12 +168,11 @@ class AutoSceneList {
    */
   #addEnemies(challenge = DungeonChallenge.MEDIUM) {
     const maxEnemies = 8;
-    const enemyPool = createEnemyPool(challenge);
+    const enemyPoolAlmanac = createEnemyPoolAlmanac(challenge);
     let totalCr = 0;
     let totalEnemies = 0;
     while (totalCr < challenge && totalEnemies < maxEnemies) {
-      const index = maths.getRandomInt(0, enemyPool.length);
-      const enemy = enemyPool[index];
+      const enemy = enemyPoolAlmanac.getRandomEntry();
       totalCr += enemy.challengeRating;
       totalEnemies++;
       this.#sceneDefn.enemies.push(enemy);
@@ -177,7 +187,7 @@ class AutoSceneList {
     for (let traderIndex = 0; traderIndex < totalTraders; traderIndex++) {
       const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(
         'TRADERS',
-        this.#index
+        (entry) => entry.minLevel <= this.#index
       );
       this.#sceneDefn.enemies.push(almanacEntry);
     }
@@ -187,28 +197,13 @@ class AutoSceneList {
    * Add artefacts to scene.
    */
   #addArtefacts() {
-    const artefactsPool = ALMANAC_LIBRARY.getAlmanac('ARTEFACTS').filter(
+    const pooledAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
+      ['ARTEFACTS', 'MAGIC', 'MONEY', 'WEAPONS'],
       (entry) => entry.minLevel <= this.#index
     );
-    const magicPool = ALMANAC_LIBRARY.getAlmanac('MAGIC').filter(
-      (entry) => entry.minLevel <= this.#index
-    );
-    const moneyPool = ALMANAC_LIBRARY.getAlmanac('MONEY').filter(
-      (entry) => entry.minLevel <= this.#index
-    );
-    const weaponsPool = ALMANAC_LIBRARY.getAlmanac('WEAPONS').filter(
-      (entry) => entry.minLevel <= this.#index
-    );
-    const allPools = [artefactsPool, magicPool, moneyPool, weaponsPool];
-    const totalArtefacts = maths.getRandomIntInclusive(10, 10);
-    for (
-      let artefactIndex = 0;
-      artefactIndex < totalArtefacts;
-      artefactIndex++
-    ) {
-      const poolIndex = maths.getRandomInt(0, allPools.length);
-      const index = maths.getRandomInt(0, allPools[poolIndex].length);
-      const almanacEntry = allPools[poolIndex][index];
+    let totalArtefacts = maths.getRandomIntInclusive(10, 10);
+    while (totalArtefacts-- > 0) {
+      const almanacEntry = pooledAlmanac.getRandomEntry();
       if (almanacEntry) {
         this.#sceneDefn.artefacts.push(almanacEntry);
       }

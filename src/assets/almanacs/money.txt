@@ -1,4 +1,4 @@
-0,COINS,copper_coins * COST:1D20 + 10 CP
-0,COINS,silver_coins * COST:1D20 + 10 SP
-0,COINS,gold_coins * COST:1D20 + 5 GP
-0,COINS,platinum_coins * COST:1D4 PP
+0,COMMON,COINS,copper_coins * VALUE:1D20 + 10 CP
+0,UNCOMMON,COINS,silver_coins * VALUE:1D20 + 10 SP
+0,RARE,COINS,gold_coins * VALUE:1D20 + 5 GP
+0,VERY RARE,COINS,platinum_coins * VALUE:1D4 PP

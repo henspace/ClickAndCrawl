@@ -33,13 +33,12 @@ import { Traits, MagicTraits } from '../traits.js';
 
 /**
  * Create an artefact.
- * @param {string} id
+ * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
  * @param {string} imageName
- * @param {module:players/artefacts~ArtefactTypeValue} artefactType
  * @param {module:dnd/traits~Traits} traits
  */
-function createArtefact(id, imageName, artefactType, traits) {
-  const artefact = new Artefact(id, '', `${imageName}.png`, artefactType);
+function createArtefact(almanacEntry, imageName, traits) {
+  const artefact = new Artefact(almanacEntry, '', `${imageName}.png`);
   artefact.traits = traits;
   return artefact;
 }
@@ -47,29 +46,27 @@ function createArtefact(id, imageName, artefactType, traits) {
 /**
  * Create an artefact from an almanac entry.
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
+ * @param {string} [traitsString] - map of values to override the default
+ * almanac entry. Normally only required if restoring an artefact from saved values.
  * @returns {Artefact}
  */
-export function buildArtefact(almanacEntry) {
+export function buildArtefact(almanacEntry, traitsString) {
+  const traitsInitialValues = traitsString ?? almanacEntry.traitsString;
   let traits;
   let imageName;
   if (almanacEntry.type === ArtefactType.SPELL) {
-    traits = new MagicTraits(almanacEntry.traitsString);
+    traits = new MagicTraits(traitsInitialValues);
     imageName = 'spell';
   } else if (almanacEntry.type === ArtefactType.CANTRIP) {
-    traits = new MagicTraits(almanacEntry.traitsString);
+    traits = new MagicTraits(traitsInitialValues);
     imageName = 'cantrip';
   } else {
-    traits = new Traits(almanacEntry.traitsString);
+    traits = new Traits(traitsInitialValues);
     imageName = almanacEntry.imageName;
   }
 
   traits.set('NAME', almanacEntry.name);
-  const artefact = createArtefact(
-    almanacEntry.id,
-    imageName,
-    almanacEntry.type,
-    traits
-  );
+  const artefact = createArtefact(almanacEntry, imageName, traits);
   artefact.description = almanacEntry.description;
   if (artefact.isMagic()) {
     artefact.interaction = new CastSpell(artefact);

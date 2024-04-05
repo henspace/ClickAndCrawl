@@ -1,3 +1,3 @@
 # ClickAndCrawl
 
-A simple dungeon crawler designed for simple casual dungeon crawling.
+A simple dungeon crawler designed for casual dungeon crawling.

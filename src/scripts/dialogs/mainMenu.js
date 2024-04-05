@@ -39,11 +39,17 @@ import { i18n } from '../utils/messageManager.js';
  * @returns {Promise} fulfils to undefined if play selected.
  */
 export function showMainMenu() {
-  const play = new BitmapButtonControl({
-    leftLabel: i18n`BUTTON PLAY`,
+  const playAdventure = new BitmapButtonControl({
+    leftLabel: i18n`BUTTON PLAY ADVENTURE`,
     imageName: 'ui-play00.png',
     internalLabel: true,
-    closes: 'PLAY',
+    closes: 'PLAY ADVENTURE',
+  });
+  const playCasual = new BitmapButtonControl({
+    leftLabel: i18n`BUTTON PLAY CASUAL`,
+    imageName: 'ui-play00.png',
+    internalLabel: true,
+    closes: 'PLAY CASUAL',
   });
   const settings = new BitmapButtonControl({
     leftLabel: i18n`BUTTON SETTINGS`,
@@ -52,7 +58,7 @@ export function showMainMenu() {
     action: () => showSettingsDialog(),
   });
   return UI.showControlsDialog(i18n`MENU TITLE MAIN`, {
-    actionButtons: [settings, play],
+    actionButtons: [settings, playAdventure, playCasual],
     className: 'door',
   });
 }

@@ -48,6 +48,7 @@ import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
 import * as dice from '../utils/dice.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
+import { restoreGameState, saveGameState } from './gameSaver.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -68,6 +69,9 @@ const EventId = {
   CLICKED_ENTRANCE: 2,
   CLICKED_EXIT: 3,
 };
+
+/** Should the game be saved and restored @type {boolean} */
+let persistentGame = true;
 
 /**
  * Class that allows a simulated movement of an actor. The movement using
@@ -351,7 +355,10 @@ class WaitingToStart extends State {
  */
 class AtMainMenu extends State {
   onEntry() {
-    return showMainMenu().then(() => this.transitionTo(new AtStart()));
+    return showMainMenu().then((response) => {
+      persistentGame = response !== 'PLAY CASUAL';
+      return this.transitionTo(new AtStart());
+    });
   }
 }
 /**
@@ -360,11 +367,24 @@ class AtMainMenu extends State {
 class AtStart extends State {
   onEntry() {
     LOG.log('Enter AtStart');
-    return UI.showOkDialog(i18n`MESSAGE DUNGEON INTRO`, {
+    const message = persistentGame
+      ? i18n`MESSAGE DUNGEON INTRO`
+      : i18n`MESSAGE DUNGEON INTRO CASUAL`;
+    return UI.showOkDialog(message, {
       okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
       className: 'wall',
     })
-      .then(() => SCENE_MANAGER.switchToFirstScene())
+      .then(() => {
+        const savedGame = persistentGame ? restoreGameState() : null;
+        if (savedGame) {
+          return SCENE_MANAGER.continueFromSavedScene(
+            savedGame.sceneLevel,
+            savedGame.hero
+          );
+        } else {
+          return SCENE_MANAGER.switchToFirstScene();
+        }
+      })
       .then((scene) => {
         heroActor.sprite.position =
           WORLD.getTileMap().getWorldPositionOfTileByEntry();
@@ -410,6 +430,9 @@ class AtGameOver extends State {
 class AtGameCompleted extends State {
   async onEntry() {
     LOG.log('Enter AtGameCompleted');
+    if (persistentGame) {
+      saveGameState(heroActor);
+    }
     await UI.showOkDialog(i18n`MESSAGE VICTORY`, {
       okButtonLabel: i18n`BUTTON TRY AGAIN`,
     })
@@ -754,6 +777,9 @@ function interact(point) {
  * @returns {Promise} fulfils to undefined.
  */
 function startNextScene(currentState) {
+  if (persistentGame) {
+    saveGameState(heroActor);
+  }
   if (!SCENE_MANAGER.areThereMoreScenes()) {
     return currentState.transitionTo(new AtGameCompleted());
   }

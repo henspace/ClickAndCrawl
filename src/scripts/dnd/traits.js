@@ -322,7 +322,7 @@ export class Traits {
     switch (key) {
       case 'PROF':
         return this.#setProficienciesFromString(key, value);
-      case 'COST':
+      case 'VALUE':
         return this.#setCostValueFromString(key, value);
       case 'DMG':
         return this.#setIntOrDiceValueFromString(key, value);
@@ -347,7 +347,7 @@ export class Traits {
   #setCostValueFromString(key, value) {
     const match = value.match(/^(.*)([a-zA-Z]{2})$/);
     if (!match) {
-      LOG.error(`Invalid value for COST trait: ${value}`);
+      LOG.error(`Invalid value for VALUE trait: ${value}`);
       value = '0 GP';
     } else {
       const diceDefn = match[1].trim();
@@ -427,11 +427,33 @@ export class Traits {
     return new Traits(this._traits);
   }
   /**
-   * Get all traits. This is a copy of the underlying traits sorted by key name.
+   * Get all traits. This is a copy of the underlying traits.
    * @returns {Map<string, *>}
    */
   getAllTraits() {
+    return new Map([...this._traits.entries()]);
+  }
+
+  /**
+   * Get all traits. This is a copy of the underlying traits sorted by key name.
+   * @returns {Map<string, *>}
+   */
+  getAllTraitsSorted() {
     return new Map([...this._traits.entries()].sort());
+  }
+
+  /**
+   * Get all trait values as a string
+   */
+  valuesToString() {
+    let result = '';
+    this._traits.forEach((value, key) => {
+      if (result !== '') {
+        result += ',';
+      }
+      result += `${key}:${value}`;
+    });
+    return result;
   }
 }
 

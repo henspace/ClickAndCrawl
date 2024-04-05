@@ -149,15 +149,14 @@ function addArtefactToActor(actor, almanacEntry, options) {
 /**
  * Add an artefact from the almanac.
  * @param {Actor[]} actors
- * @param {AlmanacEntry[]} almanacEntries
+ * @param {Almanac} almanac
  * @param {Object} options
  * @param {number} options.qty - number to add.
  * @param {boolean} options.equip - if true, try to equip rather than stash.
  */
-function addRandomArtefactsToActor(actor, almanacEntries, options) {
+function addRandomArtefactsToActor(actor, almanac, options) {
   while (options.qty-- > 0) {
-    const index = maths.getRandomInt(0, almanacEntries.length);
-    const almanacEntry = almanacEntries[index];
+    const almanacEntry = almanac.getRandomEntry();
     addArtefactToActor(actor, almanacEntry, options);
   }
 }
@@ -195,13 +194,15 @@ class ParsedScene extends AbstractScene {
     );
     WORLD.setTileMap(tileMap);
 
-    const pooledArtefacts = ALMANAC_LIBRARY.getPooledEntries([
-      'ARTEFACTS',
-      'ARMOUR',
-      'WEAPONS',
-    ]);
-    const water = pooledArtefacts.find((entry) => entry.id === 'waterskin');
-    const rations = pooledArtefacts.find(
+    const pooledArtefactAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
+      ['ARTEFACTS', 'ARMOUR', 'WEAPONS'],
+      (entry) => entry.minLevel <= SCENE_MANAGER.getCurrentSceneLevel()
+    );
+
+    const water = pooledArtefactAlmanac.find(
+      (entry) => entry.id === 'waterskin'
+    );
+    const rations = pooledArtefactAlmanac.find(
       (entry) => entry.id === 'iron_rations'
     );
 
@@ -218,7 +219,7 @@ class ParsedScene extends AbstractScene {
           addArtefactToActor(enemy, rations, { equip: false });
           qtyOfItems--;
         }
-        addRandomArtefactsToActor(enemy, pooledArtefacts, {
+        addRandomArtefactsToActor(enemy, pooledArtefactAlmanac, {
           qty: qtyOfItems,
           equip: false,
         });

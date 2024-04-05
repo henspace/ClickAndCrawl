@@ -43,6 +43,7 @@ import { ALMANAC_LIBRARY } from './almanacs.js';
 import { buildArtefact } from './artefactBuilder.js';
 import LOG from '../../utils/logging.js';
 import IMAGE_MANAGER from '../../utils/sprites/imageManager.js';
+import { getRandomFullName } from '../../utils/nameGenerator.js';
 
 /**
  * Specialist traits renderer
@@ -375,15 +376,18 @@ function equipActor(actor, equipmentIds) {
 /**
  * Create an actor from an almanac entry.
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
+ * @param {Map<string, *>} [traitsString] - map of values to override the default
+ * almanacEntry. This is normally only used if rebuilding from saved values.
  */
-export function buildActor(almanacEntry) {
-  const traits = new CharacterTraits(almanacEntry.traitsString);
+export function buildActor(almanacEntry, traitsString) {
+  const traits = new CharacterTraits(traitsString ?? almanacEntry.traitsString);
   traits.set('NAME', almanacEntry.name);
   let actor;
   switch (almanacEntry.type) {
     case ActorType.HERO:
       actor = createActor('hero', null, traits, almanacEntry);
       actor.type = ActorType.HERO;
+      traits.set('NAME', getRandomFullName());
       break;
     case ActorType.TRADER:
       actor = createTrader('trader', null, traits, almanacEntry);
