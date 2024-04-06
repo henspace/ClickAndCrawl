@@ -426,7 +426,7 @@ class MoneyStore {
    */
   static createGoldCoinArtefact(gp) {
     const almanacEntry = parseAlmanacLine(
-      `0,COMMON,COINS,copper_coins * VALUE:${gp}GP`
+      `0,COMMON,COINS,gold_coins * VALUE:${gp}GP`
     );
     const artefact = buildArtefact(almanacEntry);
     artefact.costInGp = gp;

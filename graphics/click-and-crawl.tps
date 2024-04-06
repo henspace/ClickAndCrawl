@@ -308,6 +308,8 @@
             <key type="filename">tiles/trader-walk-w02.png</key>
             <key type="filename">tiles/trader-walk-w03.png</key>
             <key type="filename">tiles/trader.png</key>
+            <key type="filename">tiles/ui-best-adventure00.png</key>
+            <key type="filename">tiles/ui-best-adventure01.png</key>
             <key type="filename">tiles/ui-checkbox00.png</key>
             <key type="filename">tiles/ui-checkbox01.png</key>
             <key type="filename">tiles/ui-play00.png</key>

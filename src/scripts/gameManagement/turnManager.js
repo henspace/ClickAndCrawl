@@ -367,23 +367,22 @@ class AtMainMenu extends State {
 class AtStart extends State {
   onEntry() {
     LOG.log('Enter AtStart');
-    const message = persistentGame
-      ? i18n`MESSAGE DUNGEON INTRO`
-      : i18n`MESSAGE DUNGEON INTRO CASUAL`;
-    return UI.showOkDialog(message, {
-      okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
-      className: 'wall',
-    })
-      .then(() => {
-        const savedGame = persistentGame ? restoreGameState() : null;
-        if (savedGame) {
-          return SCENE_MANAGER.continueFromSavedScene(
-            savedGame.sceneLevel,
-            savedGame.hero
-          );
+
+    return this.#loadFirstOrContinuationScene()
+      .then((continuation) => {
+        const name = heroActor.traits.get('NAME');
+        let message;
+        if (!persistentGame) {
+          message = i18n`MESSAGE DUNGEON INTRO CASUAL ${name}')}`;
+        } else if (continuation) {
+          message = i18n`MESSAGE DUNGEON INTRO CONTINUE ${name}`;
         } else {
-          return SCENE_MANAGER.switchToFirstScene();
+          message = i18n`MESSAGE DUNGEON INTRO ${name}`;
         }
+        return UI.showOkDialog(message, {
+          okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
+          className: 'wall',
+        });
       })
       .then((scene) => {
         heroActor.sprite.position =
@@ -399,6 +398,23 @@ class AtStart extends State {
       })
       .then(() => currentState.transitionTo(new HeroTurnIdle()));
   }
+
+  /**
+   * Load the first scene or if using saved games and there
+   * is one in progress, load that.
+   * @returns {Promise<boolean>} fulfils to true if continuation
+   */
+  #loadFirstOrContinuationScene() {
+    const savedGame = persistentGame ? restoreGameState() : null;
+    if (savedGame) {
+      return SCENE_MANAGER.continueFromSavedScene(
+        savedGame.sceneLevel,
+        savedGame.hero
+      ).then(() => true);
+    } else {
+      return SCENE_MANAGER.switchToFirstScene().then(() => false);
+    }
+  }
 }
 
 /**
@@ -407,6 +423,9 @@ class AtStart extends State {
 class AtGameOver extends State {
   async onEntry() {
     LOG.log('Enter AtGameOver');
+    if (persistentGame) {
+      saveGameState(heroActor);
+    }
     addFadingText('YOU DIED!', {
       delaySecs: 1,
       lifetimeSecs: 2,

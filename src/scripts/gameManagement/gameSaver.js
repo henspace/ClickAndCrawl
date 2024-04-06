@@ -35,11 +35,72 @@ import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import { strToActorType } from '../players/actors.js';
 import { strToArtefactType } from '../players/artefacts.js';
 
+/** @typedef {Object} AdventureResult
+ * @property {string} name
+ * @property {number} gold
+ * @property {number} exp
+ * @property {number} characterLevel
+ * @property {number} dungeonLevel
+ */
+
 /**
- * Save the current game
- * @param {Actor} hero
+ * Create an adventure result
+ * @param {module:players/actors~Actor} hero
+ * @returns {AdventureResult}
+ */
+function createAdventureResult(hero) {
+  const result = {
+    name: 'unknown',
+    gold: 0,
+    exp: 0,
+    characterLevel: 0,
+    dungeonLevel: 0,
+  };
+  if (hero) {
+    result.name = hero.traits.get('NAME');
+    result.gold = hero.storeManager.getPurseValue();
+    result.exp = hero.traits.getInt('EXP', 0);
+    result.characterLevel = hero.traits.getCharacterLevel();
+    result.dungeonLevel = SCENE_MANAGER.getCurrentSceneLevel();
+  }
+  return result;
+}
+
+/**
+ * Get the best stored adventure result.
+ * @returns {AdventureResult}
+ */
+export function getBestAdventure() {
+  return PERSISTENT_DATA.get('BEST_ADVENTURE');
+}
+
+/**
+ * Get the best stored adventure result.
+ * @param {AdventureResult} adventureResult
+ */
+function saveBestAdventure(adventureResult) {
+  return PERSISTENT_DATA.set('BEST_ADVENTURE', adventureResult);
+}
+
+/**
+ * Save the hero's adventure if better than the last.
+ * @param {module:players/actors~Actor} hero
+ */
+function saveAdventureIfBest(hero) {
+  const adventureResult = createAdventureResult(hero);
+  const currentBest = getBestAdventure();
+  const lastGold = currentBest ? currentBest.gold : 0;
+  if (adventureResult.gold > lastGold) {
+    saveBestAdventure(adventureResult);
+  }
+}
+/**
+ * Save the current game. The adventure is also saved if better than previous
+ * attempts.
+ * @param {module:players/actors~Actor} hero
  */
 export function saveGameState(hero) {
+  saveAdventureIfBest(hero);
   const storageDetails = hero.storeManager.getAllStorageDetails();
   const artefactDetails = [];
   storageDetails.forEach((detail) =>

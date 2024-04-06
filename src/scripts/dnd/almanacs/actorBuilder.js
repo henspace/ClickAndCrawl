@@ -381,13 +381,17 @@ function equipActor(actor, equipmentIds) {
  */
 export function buildActor(almanacEntry, traitsString) {
   const traits = new CharacterTraits(traitsString ?? almanacEntry.traitsString);
-  traits.set('NAME', almanacEntry.name);
+  if (!traits.get('NAME')) {
+    traits.set('NAME', almanacEntry.name);
+  }
   let actor;
   switch (almanacEntry.type) {
     case ActorType.HERO:
       actor = createActor('hero', null, traits, almanacEntry);
       actor.type = ActorType.HERO;
-      traits.set('NAME', getRandomFullName());
+      if (!traitsString) {
+        traits.set('NAME', getRandomFullName());
+      }
       break;
     case ActorType.TRADER:
       actor = createTrader('trader', null, traits, almanacEntry);

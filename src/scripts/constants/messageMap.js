@@ -27,13 +27,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
-  ['BUTTON BUY', 'Buy'],
+  ['BUTTON BUY FOR GP', 'Buy for ${0}\u{00A0}GP'],
   ['BUTTON CANCEL', 'Cancel'],
   ['BUTTON CAST SPELL', 'Cast spell'],
   ['BUTTON CONSUME', 'Consume'],
   ['BUTTON CONTINUE', 'Continue'],
   ['BUTTON CLIMB OVER', 'Climb over'],
   ['BUTTON BARGE', 'Barge past'],
+  ['BUTTON BEST ADVENTURE', 'Best adventure'],
 
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
@@ -54,7 +55,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON READY MAGIC', 'Ready Magic'],
   ['BUTTON REST SHORT', 'Short rest'],
   ['BUTTON SEARCH', 'Search'],
-  ['BUTTON SELL', 'Sell'],
+  ['BUTTON SELL FOR GP', 'Sell for ${0}\u{00A0}GP'],
   ['BUTTON SETTINGS', 'Settings'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON STASH', 'Stash'],
@@ -164,6 +165,7 @@ const MESSAGE_MAP = new Map([
     'A leather drinking flask with fresh water. Crucial for resting between rooms.',
   ],
 
+  ['DIALOG TITLE BEST ADVENTURE', 'The most lucrative adventure so far'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
@@ -171,7 +173,7 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
 
-  ['MENU TITLE MAIN', 'Click and Crawl: the old-school casual dungeon-crawler'],
+  ['MENU TITLE MAIN', 'Click and Crawl'],
 
   [
     'MESSAGE CANNOT STORE',
@@ -204,11 +206,15 @@ const MESSAGE_MAP = new Map([
 
   [
     'MESSAGE DUNGEON INTRO',
-    'You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
+    'Welcome, ${0}. You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
+  ],
+  [
+    'MESSAGE DUNGEON INTRO CONTINUE',
+    'Welcome back, ${0}. The adventure continues, and you enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air.',
   ],
   [
     'MESSAGE DUNGEON INTRO CASUAL',
-    'You enter a dark and dingy dungeon. Explore as far as you can but remember your progress will not be saved.',
+    'Welcome, ${0}. You enter a dark and dingy dungeon. Explore as far as you can but remember your progress will not be saved.',
   ],
   [
     'MESSAGE DEFEAT',
@@ -307,6 +313,7 @@ const MESSAGE_MAP = new Map([
       "There's been some recent digging here.",
     ],
   ],
+  ['MESSAGE NO SAVED ADVENTURE', 'No adventure has been saved yet.'],
   [
     'MESSAGE OPEN EXIT',
     [
@@ -321,7 +328,10 @@ const MESSAGE_MAP = new Map([
       'Dodging a blow, you manage to open the door and make your escape.',
     ],
   ],
-  ['MESSAGE WELCOME', 'Welcome to dungeon. How far can you go?'],
+  [
+    'MESSAGE WELCOME',
+    'Welcome to the Click and Crawl old-school dungeon crawler. How far will you get?',
+  ],
   [
     'MESSAGE VICTORY',
     'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
@@ -335,10 +345,13 @@ const MESSAGE_MAP = new Map([
   ['Body', 'Body'],
   ['Cantrips', 'Cantrips'],
   ['Consumables', 'Consumables'],
+  ['Character level:', 'Character level: ${0}'],
   ['CHARACTER LEVEL:', 'level: ${0}'],
   ['(DEAD)', '(DEAD!)'],
   ['Dungeon level:', 'Dungeon level: ${0}'],
+  ['Experience:', 'Experience: ${0}'],
   ['Feet', 'Feet'],
+  ['Gold:', 'Gold: ${0}\u{00A0}GP'],
   ['GOLD PIECES', ' gold pieces'],
   ['Hands', 'Hands'],
   ['Head', 'Head'],
@@ -346,6 +359,7 @@ const MESSAGE_MAP = new Map([
   ['(HP VALUE)', '(HP:\u{00A0}${0})'],
   ['Known spells', 'Known spells'],
   ['LEVEL UP', 'Level up to ${0}'],
+  ['Name:', 'Name: ${0}'],
   ['Prepared spells', 'Prepared spells'],
   ['Ready magic', 'Ready magic'],
   ['Unknown', 'Unknown'],

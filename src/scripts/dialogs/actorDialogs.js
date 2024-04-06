@@ -842,8 +842,10 @@ function createSellArtefactDialogButtons(container, options) {
   }
   button = new components.TextButtonControl({
     label: options.currentOwner.isTrader()
-      ? i18n`BUTTON BUY`
-      : i18n`BUTTON SELL`,
+      ? i18n`BUTTON BUY FOR GP ${options.artefact.costInGp.toFixed(2)}`
+      : i18n`BUTTON SELL FOR GP ${options.artefact.sellBackPriceInGp.toFixed(
+          2
+        )}`,
     closes: ArtefactAction.SELL,
   });
   actionButtons.push(button);

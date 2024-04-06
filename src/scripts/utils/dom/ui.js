@@ -134,7 +134,7 @@ function showChoiceDialog(title, message, choices) {
 function showElementOkDialog(
   title,
   element,
-  okButtonLabel = 'BUTTON OK',
+  okButtonLabel = i18n`BUTTON OK`,
   className
 ) {
   const container = document.createElement('div');

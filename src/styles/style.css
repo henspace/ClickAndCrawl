@@ -233,6 +233,7 @@ button:hover {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  text-align: left;
 }
 
 .close-button {

@@ -28,43 +28,110 @@
  */
 import * as maths from './maths.js';
 
-const CONSONANTS = 'bcdfghjklmnprstvwxyz';
-const VOWELS = 'aeiou';
+const VOWEL_SOUNDS = ['a', 'e', 'i', 'o', 'u', 'ee', 'oo'];
+const START_SOUNDS = [
+  'b',
+  'br',
+  'c',
+  'ch',
+  'chr',
+  'cr',
+  'd',
+  'dr',
+  'f',
+  'fl',
+  'fr',
+  'g',
+  'gl',
+  'gr',
+  'h',
+  'j',
+  'k',
+  'kr',
+  'kl',
+  'l',
+  'm',
+  'n',
+  'p',
+  'pl',
+  'pr',
+  'qu',
+  'r',
+  's',
+  'sch',
+  'sh',
+  'st',
+  't',
+  'th',
+  'tr',
+  'v',
+  'w',
+  'y',
+  'z',
+];
 
-/**
- * Get random letter from string.
- * @param {string} choices
- * @returns {string}
- */
-function getRandomLetter(choices) {
-  const index = maths.getRandomInt(0, choices.length);
-  return choices.charAt(index);
-}
-
-/**
- * Get a syllable
- * @param {boolean} capitaliseFirstLetter
- * @returns {string}
- */
-function getRandomSyllable(capitaliseFirstLetter) {
-  let first = getRandomLetter(CONSONANTS);
-  if (capitaliseFirstLetter) {
-    first = first.toUpperCase();
-  }
-  return first + getRandomLetter(VOWELS) + getRandomLetter(CONSONANTS);
-}
+const END_SOUNDS = [
+  'b',
+  'bbey',
+  'bble',
+  'bboy',
+  'bby',
+  'c',
+  'ch',
+  'ck',
+  'cky',
+  'ct',
+  'd',
+  'f',
+  'ff',
+  'ffle',
+  'ffy',
+  'ffey',
+  'g',
+  'ge',
+  'gey',
+  'gle',
+  'k',
+  'l',
+  'll',
+  'lly',
+  'lley',
+  'm',
+  'n',
+  'ngle',
+  'nny',
+  'p',
+  'r',
+  's',
+  'sk',
+  'ss',
+  'ssy',
+  'st',
+  'sty',
+  't',
+  'th',
+  'thy',
+  'v',
+  'w',
+  'y',
+  'z',
+  'zzle',
+  'zzy',
+];
 
 /**
  * Get a random single word name.
  * @returns {string}
  */
 export function getRandomName() {
-  let syllables = maths.getRandomIntInclusive(2, 3);
-  let name = '';
-  while (syllables-- > 0) {
-    name += getRandomSyllable(name === '');
-  }
-  return name;
+  let name =
+    maths.getRandomMember(START_SOUNDS) +
+    maths.getRandomMember(VOWEL_SOUNDS) +
+    maths.getRandomMember(START_SOUNDS) +
+    maths.getRandomMember(VOWEL_SOUNDS) +
+    maths.getRandomMember(END_SOUNDS);
+
+  return name.charAt(0).toUpperCase() + name.substring(1);
 }
 
 /**

@@ -32,10 +32,10 @@ import LOG from '../utils/logging.js';
 import { characteristicToModifier } from './traits.js';
 
 /** @type number */
-export const MEALS_FOR_LONG_REST = 0;
-export const MEALS_FOR_SHORT_REST = 0;
-export const DRINKS_FOR_LONG_REST = 0;
-export const DRINKS_FOR_SHORT_REST = 0;
+export const MEALS_FOR_LONG_REST = 3;
+export const MEALS_FOR_SHORT_REST = 1;
+export const DRINKS_FOR_LONG_REST = 1;
+export const DRINKS_FOR_SHORT_REST = 1;
 
 /**
  * Roll an attack and damage dice.
