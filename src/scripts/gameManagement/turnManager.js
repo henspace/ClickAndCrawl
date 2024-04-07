@@ -49,6 +49,7 @@ import { i18n } from '../utils/messageManager.js';
 import * as dice from '../utils/dice.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { restoreGameState, saveGameState } from './gameSaver.js';
+import GAME from './game.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine

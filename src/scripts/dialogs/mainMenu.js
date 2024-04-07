@@ -33,6 +33,7 @@ import { BitmapButtonControl } from '../utils/dom/components.js';
 import { showSettingsDialog } from './settingsDialog.js';
 import { i18n } from '../utils/messageManager.js';
 import { showBestAdventureDialog } from './bestAdventureDialog.js';
+import { showGuideDialog } from './guideDialogs.js';
 
 /**
  * Display the main menu. All actions are controlled by the main menu except play
@@ -64,8 +65,14 @@ export function showMainMenu() {
     internalLabel: true,
     action: () => showBestAdventureDialog(),
   });
+  const guides = new BitmapButtonControl({
+    leftLabel: i18n`BUTTON GUIDES`,
+    imageName: 'ui-guides00.png',
+    internalLabel: true,
+    action: () => showGuideDialog(),
+  });
   return UI.showControlsDialog(i18n`MENU TITLE MAIN`, {
-    actionButtons: [settings, bestAdventure, playAdventure, playCasual],
+    actionButtons: [guides, settings, bestAdventure, playAdventure, playCasual],
     className: 'door',
   });
 }

@@ -60,6 +60,25 @@ const TILE_SIZE = 48;
 /** @type {DOMHighResTimeStamp} */
 let lastTimeStamp;
 
+/** @type {boolean} */
+let animationState = true;
+
+/** Used by blur and focus events to restore state @type {boolean} */
+let savedAnimationState = true;
+
+/**
+ * Set the animation state.
+ */
+function setAnimationState(state) {
+  if (state !== animationState) {
+    animationState = state;
+    LOG.info(`Set animation state to ${animationState}`);
+    if (animationState) {
+      startAnimation();
+    }
+  }
+}
+
 /**
  * Initialise the game engine.
  * @param {Object} screenOptions - @see {@link module:game/screen~setScreen} for
@@ -70,7 +89,8 @@ async function initialise(screenOptions) {
   MESSAGES.setMap(MESSAGE_MAP);
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
-
+  UI.setPreDialogFunction(() => setAnimationState(false));
+  UI.setPostDialogFunction(() => setAnimationState(true));
   initialiseSettings();
   UI.showOkDialog(i18n`MESSAGE WELCOME`, {
     okButtonLabel: i18n`BUTTON START`,
@@ -86,7 +106,16 @@ async function initialise(screenOptions) {
     .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
     .then(() => loadAlmanacs(AssetUrls.ALMANAC_MAP))
     .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
-    .then(() => startGame())
+    .then(() => startAnimation())
+    .then(() => {
+      window.addEventListener('blur', () => {
+        savedAnimationState = animationState;
+        setAnimationState(false);
+      });
+      window.addEventListener('focus', () => {
+        setAnimationState(savedAnimationState ?? true);
+      });
+    })
     .catch((error) => {
       LOG.error(error);
       alert(`Fatal error in main game. ${error.message}`);
@@ -164,7 +193,8 @@ function setupListeners() {
 /**
  * Start the game.
  */
-function startGame() {
+function startAnimation() {
+  LOG.info('Start animations');
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -184,8 +214,11 @@ function gameLoop(timeStamp) {
   }
 
   lastTimeStamp = timeStamp;
-
-  window.requestAnimationFrame(gameLoop);
+  if (animationState) {
+    window.requestAnimationFrame(gameLoop);
+  } else {
+    LOG.info('Animation paused');
+  }
 }
 
 /**
@@ -210,6 +243,7 @@ function showFps(fps) {
 const GAME = {
   TILE_SIZE: TILE_SIZE,
   initialise: initialise,
+  setAnimationState: setAnimationState,
 };
 
 export default GAME;

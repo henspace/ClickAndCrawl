@@ -32,6 +32,11 @@ import SCREEN from '../game/screen.js';
 import * as components from './components.js';
 import { i18n } from '../messageManager.js';
 
+/** @type {function} */
+let preDialogFunction;
+/** @type {function} */
+let postDialogFunction;
+
 /**
  * Dialog response codes.
  */
@@ -42,6 +47,56 @@ export const DialogResponse = {
   NO: 3,
 };
 
+/**
+ * Called when a dialog is opened.
+ */
+function prepareDialog() {
+  if (preDialogFunction) {
+    preDialogFunction();
+  }
+}
+
+/**
+ * Called when a dialog is closed.
+ */
+function tearDownDialog() {
+  if (postDialogFunction) {
+    postDialogFunction();
+  }
+}
+
+/**
+ * Set up function to be called whenever dialog is opened.
+ * @param {function} fn
+ */
+function setPreDialogFunction(fn) {
+  preDialogFunction = fn;
+}
+
+/**
+ * Set up function to be called whenever dialog is opened.
+ * @param {function} fn
+ */
+function setPostDialogFunction(fn) {
+  postDialogFunction = fn;
+}
+
+/**
+ * Wrapper for SCREEN.displayOnGlass but calling tearDownDialog at end.
+ * @param {HTMLElement} element
+ * @param {Object} options
+ * @param {Closers[]} options.closers - array of Closers. If not provided then the entire display
+ * is used.
+ * @param {string} options.className
+ * @param {boolean} options.replace - replace current glass
+ * @returns {Promise} fulfils to closers.closes value
+ */
+function displayOnGlass(element, options) {
+  return SCREEN.displayOnGlass(element, options).then((response) => {
+    tearDownDialog();
+    return response;
+  });
+}
 /**
  * Get a message element. This returns a div which contains the message text.
  * @param {string} message
@@ -76,6 +131,7 @@ function showMessage(message) {
  * @returns {Promise} fulfils to DialogResponse.OK
  */
 function showOkDialog(message, options) {
+  prepareDialog();
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message));
   const buttonEl = document.createElement('button');
@@ -83,7 +139,7 @@ function showOkDialog(message, options) {
     document.createTextNode(options?.okButtonLabel ?? i18n`BUTTON OK`)
   );
   container.appendChild(buttonEl);
-  return SCREEN.displayOnGlass(container, {
+  return displayOnGlass(container, {
     className: options?.className,
     closers: [
       {
@@ -137,6 +193,7 @@ function showElementOkDialog(
   okButtonLabel = i18n`BUTTON OK`,
   className
 ) {
+  prepareDialog();
   const container = document.createElement('div');
   const scrollContainer = components.createElement('div', {
     className: 'dialog-scroll-content',
@@ -152,7 +209,7 @@ function showElementOkDialog(
   buttonEl.appendChild(document.createTextNode(okButtonLabel));
   container.appendChild(buttonEl);
 
-  return SCREEN.displayOnGlass(container, {
+  return displayOnGlass(container, {
     closers: [
       {
         element: buttonEl,
@@ -177,6 +234,7 @@ function showElementOkDialog(
  * no closers.
  */
 function showControlsDialog(mainContent, options = {}) {
+  prepareDialog();
   const container = document.createElement('div');
   const scrollContainer = components.createElement('div', {
     className: 'dialog-scroll-content',
@@ -224,7 +282,7 @@ function showControlsDialog(mainContent, options = {}) {
     actionButtons.appendChild(okButton.element);
     closers.push(okButton);
   }
-  return SCREEN.displayOnGlass(container, {
+  return displayOnGlass(container, {
     closers: closers,
     className: options?.className,
   });
@@ -234,6 +292,8 @@ function showControlsDialog(mainContent, options = {}) {
  * The UI singleton.
  */
 const UI = {
+  setPreDialogFunction: setPreDialogFunction,
+  setPostDialogFunction: setPostDialogFunction,
   showChoiceDialog: showChoiceDialog,
   showMessage: showMessage,
   showOkDialog: showOkDialog,

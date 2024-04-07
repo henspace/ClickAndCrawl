@@ -358,7 +358,7 @@ export function createElement(tagName, options = {}) {
     element.className = options.className;
   }
   if (options.html) {
-    element.innerHtml = options.html;
+    element.innerHTML = options.html;
   } else if (options.text) {
     element.innerText = options.text;
   }

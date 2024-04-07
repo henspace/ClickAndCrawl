@@ -33,6 +33,7 @@ import UI from '../utils/dom/ui.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import { i18n, MESSAGES } from '../utils/messageManager.js';
+import TURN_MANAGER from '../gameManagement/turnManager.js';
 
 /** Settings */
 const SETTINGS = [

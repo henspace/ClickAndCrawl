@@ -27,6 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
+  ['BUTTON ABOUT', 'About'],
   ['BUTTON BUY FOR GP', 'Buy for ${0}\u{00A0}GP'],
   ['BUTTON CANCEL', 'Cancel'],
   ['BUTTON CAST SPELL', 'Cast spell'],
@@ -40,6 +41,8 @@ const MESSAGE_MAP = new Map([
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
   ['BUTTON EQUIP', 'Equip'],
   ['BUTTON FORGET', 'Forget'],
+  ['BUTTON GUIDES', 'About and Help'],
+  ['BUTTON HELP', 'Help'],
   ['BUTTON INVENTORY', 'Inventory'],
   ['BUTTON LEARN SPELL', 'Learn spell'],
   ['BUTTON LEAVE ARTEFACT', 'Leave'],
@@ -49,6 +52,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON PILLAGE', 'Pillage'],
   ['BUTTON PLAY ADVENTURE', 'Play adventure'],
   ['BUTTON PLAY CASUAL', 'Play casual'],
+  ['BUTTON PRIVACY', 'Privacy'],
   ['BUTTON PREPARE SPELL', 'Prepare'],
   ['BUTTON REST', 'Rest'],
   ['BUTTON REST LONG', 'Long rest'],
@@ -174,7 +178,8 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
 
   ['MENU TITLE MAIN', 'Click and Crawl'],
-
+  ['MENU TITLE GUIDES', 'Guides and information'],
+  ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
   [
     'MESSAGE CANNOT STORE',
     "You're carrying too much stuff to pick up what you've found.",

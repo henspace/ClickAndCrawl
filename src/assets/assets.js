@@ -32,6 +32,7 @@ import textureMap from './images/dungeon.json';
  * Urls for dynamically loading resources @type {Object<string, URL>}
  */
 export const AssetUrls = {
+  ABOUT_MD: new URL('./guides/about.md', import.meta.url),
   ALMANAC_MAP: new Map([
     ['ARMOUR', new URL('./almanacs/armour.txt', import.meta.url)],
     ['ARTEFACTS', new URL('./almanacs/artefacts.txt', import.meta.url)],
@@ -43,10 +44,13 @@ export const AssetUrls = {
     ['WEAPONS', new URL('./almanacs/weapons.txt', import.meta.url)],
   ]),
   DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
+  HELP_MD: new URL('./guides/help.md', import.meta.url),
   MUSIC: new URL(
     './audio/do-alto-do-trono-da-desolacao-trimmed.mp3',
     import.meta.url
   ),
+  PRIVACY_MD: new URL('./guides/privacy.md', import.meta.url),
+  QUICK_START_MD: new URL('./guides/quickStart.md', import.meta.url),
   SOUND_EFFECTS_MAP: new Map([
     ['PUNCH', new URL('./audio/punch-trimmed.mp3', import.meta.url)],
     [

@@ -17,6 +17,12 @@
   }
 }
 
+@media screen {
+  .for-print-only {
+    display: none;
+  }
+}
+
 :root {
   --primary-base: #4f381b;
   --primary-contrast: rgb(255, 255, 255);
@@ -68,6 +74,11 @@ body {
   overflow: hidden;
   width: 100%;
   height: 100%;
+}
+a:link,
+a:visited,
+a:active {
+  color: var(--primary-contrast);
 }
 
 #game-canvas {
@@ -188,20 +199,14 @@ body {
   margin-left: 4px;
 }
 
-h1,
-h2,
-h3 {
-  font-family: 'UnifrakturCook', cursive; /* cspell disable-line */
-}
-
 h1 {
-  font-size: 2rem;
-}
-h2 {
   font-size: 1.5rem;
 }
-h3 {
+h2 {
   font-size: 1.2rem;
+}
+h3 {
+  font-size: 1.1rem;
 }
 
 label {

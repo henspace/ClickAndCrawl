@@ -1,14 +1,12 @@
 /**
- * @file Main entry point
+ * @file Safe version of encode functions.
  *
- * @module index
+ * @module utils\text\safeEncoder
  */
 /**
- * @license See {@link https://opensource.org/license/mit/|MIT}
+ * license {@link https://opensource.org/license/mit/|MIT}
+ * Copyright 2024 Steve Butler (henspace.com).
  *
- * Copyright 2024 Steve Butler
- */
-/**
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
  * the Software without restriction, including without limitation the rights to use,
@@ -28,23 +26,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import './utils/polyfills/string.js';
-import LOG from './utils/logging.js';
-import GAME from './gameManagement/game.js';
 
-window.addEventListener('load', () => {
-  const DESIGN_WIDTH = 800;
-  const DESIGN_HEIGHT = 600;
+/**
+ * Encode the uri. This just calls encodeURIComponent. If it fails, the string
+ * will be converted using `toWellFormed()` to remove any lone surrogates.
+ * The function `toWellFormed` is not called by default as it is expensive and
+ * lone surrogates are unlikely to be encountered.
+ * @param {string} uri
+ * @returns {string}
+ * @throws {URIError}
+ */
+export function safeEncodeURIComponent(uri) {
   try {
-    GAME.initialise({
-      width: DESIGN_WIDTH,
-      height: DESIGN_HEIGHT,
-      maxScale: 2.4,
-      minScale: 1,
-      sizingMethod: 'COVER',
-      alpha: false,
-    });
+    return encodeURIComponent(uri);
   } catch (error) {
-    LOG.fatal(error);
+    console.error(error);
+    return encodeURIComponent(uri.toWellFormed());
   }
-});
+}
