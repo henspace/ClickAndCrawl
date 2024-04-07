@@ -30,10 +30,7 @@
  */
 
 import LOG from '../utils/logging.js';
-import { ActorType } from './actors.js';
 import * as coins from '../utils/game/coins.js';
-import { i18n } from '../utils/messageManager.js';
-import { Traits } from '../dnd/traits.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import { parseAlmanacLine } from '../dnd/almanacs/almanacs.js';
 
@@ -314,7 +311,7 @@ class ArtefactStore {
 /**
  * Gold storage. This effectively merges artifacts into one combining the VALUE trait.
  * Note that if only one artefact is added, it is returned. Once more than one has been
- * added a composite money artefact is returne.
+ * added a composite money artefact is returned.
  * @implements {StoreInterface}
  */
 class MoneyStore {
@@ -447,7 +444,7 @@ export class Artefact {
   description;
   /** @type {ArtefactTypeValue} */
   artefactType;
-  /** @type {module:dnd/traits/~ArtefactTraits} */
+  /** @type {module:dnd/traits~ArtefactTraits} */
   traits;
   /** @type {AbstractInteraction} */
   interaction;
@@ -606,7 +603,7 @@ export class Artefact {
  * Storage for artefacts.
  */
 export class ArtefactStoreManager {
-  /** @type {Map<StoreLocation, Artefact[]} */
+  /** @type {Map<StoreLocation, Artefact[]>} */
   #stores;
 
   /** @type {boolean} */

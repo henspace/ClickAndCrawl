@@ -1,7 +1,7 @@
 /**
  * @file Simple protection from future parsing.
  *
- * @module utils\text\markdown\parsingWarden
+ * @module utils/text/markdown/parsingWarden
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}

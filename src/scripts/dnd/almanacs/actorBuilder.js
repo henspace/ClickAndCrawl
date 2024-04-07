@@ -107,7 +107,7 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
 
   /**
    * Set the actor who's velocity will be monitored.
-   * @param {Actor} actor
+   * @param {module:players/actors.Actor} actor
    */
   setActor(actor) {
     this.#actor = actor;
@@ -335,7 +335,7 @@ function createProp(imageName, iconImageName, traits, almanacEntry) {
 /**
  * Create animated trader
  * @param {string} imageName - without extension
- * @param {string} iconImageName - alternative image used for dialogs. Fallsback to imageName. png extension automatically added.
+ * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
  * @returns {Actor}
@@ -347,7 +347,7 @@ function createTrader(imageName, iconImageName, traits, actorType) {
 }
 
 /**
- * @param {Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {string[]} equipmentIds - ids of artefacts in the artefacts almanac.
  */
 function equipActor(actor, equipmentIds) {

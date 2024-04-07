@@ -66,7 +66,7 @@ const Clarifiers = {
   TOP_TEE: '-TTEE',
   RIGHT_TEE: '-RTEE',
   BOTTOM_TEE: '-BTEE',
-  LEFT_TEE: '-LTEE',
+  LEFT_TEE: '-LTEE', // cspell:disable-line
   INTERNAL_CROSS: '-XI',
   INTERNAL_VERTICAL: '-VI',
   INTERNAL_HORIZONTAL: '-HI',

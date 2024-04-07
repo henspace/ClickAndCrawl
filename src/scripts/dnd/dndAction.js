@@ -40,7 +40,7 @@ export const DRINKS_FOR_SHORT_REST = 1;
 /**
  * Roll an attack and damage dice.
  * @param {module:dnd/traits~AttackDetail} attack
- * @param {module:players/actors~Actor} target
+ * @param {module:players/actors.Actor} target
  * @returns {number} amount of damage
  */
 export function getMeleeDamage(attack, target) {
@@ -69,7 +69,7 @@ export function getMeleeDamage(attack, target) {
 /**
  * poison with saving throw.
  * @param {module:players/actors~TraitsHolder} attack
- * @param {module:players/actors~Actor} target
+ * @param {module:players/actors.Actor} target
  * @returns {number}
  */
 export function getPoisonDamage(attacker, target) {
@@ -90,7 +90,7 @@ export function getPoisonDamage(attacker, target) {
 /**
  * Get consumption benefit in HP, clipped to HP max.
  * @param {module:players/actors~TraitsHolder} attack
- * @param {module:players/actors~Actor} target
+ * @param {module:players/actors.Actor} target
  * @returns {number}
  */
 export function getConsumptionBenefit(consumable, consumer) {
@@ -104,7 +104,7 @@ export function getConsumptionBenefit(consumable, consumer) {
 /**
  * Magic with saving throw.
  * @param {module:dnd/traits~AttackDetail} attack
- * @param {module:players/actors~Actor} target
+ * @param {module:players/actors.Actor} target
  * @param {module:players/actors~Artefact} spell
  * @returns {number}
  */
@@ -157,7 +157,7 @@ export function canRest(length, nMeals, nDrinks) {
 
 /**
  * Take a rest.
- * @param {module:players/actors~Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {string} length - LONG or SHORT
  */
 export function takeRest(actor, length) {

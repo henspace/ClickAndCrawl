@@ -162,7 +162,7 @@ export class RouteFinder {
 
   /** Create the route finder.
    * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
-   * @param {module:players/actors~Actor} actor
+   * @param {module:players/actors.Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;
@@ -365,7 +365,7 @@ export class RayTracer {
 
   /** Create the ray tracer.
    * @param {module:utils/tileMaps/tileMap~TileMap} tileMap
-   * @param {module:players/actors~Actor} actor
+   * @param {module:players/actors.Actor} actor
    */
   constructor(tileMap, actor) {
     this.#tileMap = tileMap;

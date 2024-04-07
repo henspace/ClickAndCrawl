@@ -1,7 +1,7 @@
 /**
  * @file Dialog to show the best adventure
  *
- * @module dialogs\bestAdventureDialog
+ * @module dialogs/bestAdventureDialog
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}

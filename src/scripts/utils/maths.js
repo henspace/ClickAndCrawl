@@ -136,7 +136,7 @@ export function getRandomInt(min, max) {
 
 /**
  * Get a random array entry.
- * @param {*[]} array
+ * @param {Array<*>} array
  * @returns {*}
  */
 export function getRandomMember(array) {

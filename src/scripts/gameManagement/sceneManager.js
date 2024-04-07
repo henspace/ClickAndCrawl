@@ -67,7 +67,7 @@ import LOG from '../utils/logging.js';
  * Restore a saved game
  * @function SceneList.restore
  * @param {number} index
- * @param {Actor} hero
+ * @param {module:players/actors.Actor} hero
  */
 
 /** @type {module:utils/sprites/sprite~Sprite}  */
@@ -86,7 +86,7 @@ let navigationButtons;
 export class SceneDefinition {
   /** @type {string} */
   intro;
-  /** @type {Actor || ActorDefn} */
+  /** @type {Actor | ActorDefn} */
   hero;
   /** @type {ActorDefn[]} */
   enemies;
@@ -214,7 +214,7 @@ function areThereMoreScenes() {
 /**
  * Continue from a saved scene.
  * @param {number} savedSceneLevel
- * @param {Actor} savedHero
+ * @param {module:players/actors.Actor} savedHero
  * @returns {Promise} fulfils to the loaded scene.
  * Rejects if no scenes.
  */

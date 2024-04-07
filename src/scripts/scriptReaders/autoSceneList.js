@@ -122,7 +122,7 @@ class AutoSceneList {
    * Restore a saved game. Game are saved when a dungeon is exited so the call should
    * be to the next scene.
    * @param {number} index
-   * @param {Actor} hero
+   * @param {module:players/actors.Actor} hero
    */
   restore(index, hero) {
     heroActor = hero;

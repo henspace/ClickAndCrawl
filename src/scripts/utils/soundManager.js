@@ -26,7 +26,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import LOG from './logging.js';
 
 /**
  * Sound manager
@@ -60,7 +59,7 @@ class SoundManager {
     }
     this.#music = this.#createAudioIfNotNull(path);
     if (this.#music) {
-      this.#music.addEventListener('canplay', (event) => {
+      this.#music.addEventListener('canplay', (eventUnused) => {
         this.#music.volume = this.#musicVolume;
         this.#music.loop = true;
         this.#music.play();
@@ -84,7 +83,7 @@ class SoundManager {
       const promise = new Promise((resolve) => {
         const audio = this.#createAudioIfNotNull(path);
         if (audio) {
-          audio.addEventListener('canplay', (event) => {
+          audio.addEventListener('canplay', (eventUnused) => {
             this.#effects.set(key, audio);
             resolve();
           });

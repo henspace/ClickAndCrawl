@@ -82,7 +82,7 @@ const ArtefactAction = {
  * circular loops.
  * @param {boolean} showPrice
  * @param {boolean} showDamage - add damage detail to button labels.
- * @param {function(actor: Actor, artefact: Artefact):Promise} customAction - custom action on artefact click.
+ * @param {function(actor:Actor,artefact:Artefact):Promise} customAction - custom action on artefact click.
  */
 
 /**
@@ -244,7 +244,7 @@ class InventoryContainerElement {
 
   /** Get the stash store for the actor.
    * This gets the WAGON for a trader
-   * @returns {label: string, storeType: StoreType}
+   * @returns {{label:string,storeType:StoreType}}
    */
   #getStashStoreInfo() {
     if (this.#options.currentOwner.isTrader()) {
@@ -326,7 +326,7 @@ class InventoryContainerElement {
 
 /**
  * Show the actor's traits.
- * @param {Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @returns {Promise}
  */
 function showTraits(actor) {
@@ -337,7 +337,7 @@ function showTraits(actor) {
 
 /**
  * Show a rest action dialog.
- * @param {module:players/actors~Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @returns {Promise} fulfils to undefined.
  */
 function showRestActionDialog(actor) {
@@ -416,7 +416,7 @@ function showRestActionDialog(actor) {
 
 /**
  * Show dialog allowing the player to prepare their spells.
- * @param {module:players/actors~Actor} actor
+ * @param {module:players/actors.Actor} actor
  */
 function showPrepareSpellsDialog(actor) {
   const container = components.createElement('div', { className: 'inventory' });
@@ -462,7 +462,7 @@ function discardItemsFromStore(store, items, qty) {
 
 /**
  * Show actor's inventory.
- * @param {Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {{allowConsumption: boolean, allowMagicUse: boolean, limitation:InventoryLimitation}} [options = {}]
  */
 function showInventory(actor, options = {}) {
@@ -495,7 +495,7 @@ function showInventory(actor, options = {}) {
 
 /**
  * Show actor's inventory and allow casting of spells.
- * @param {Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {{allowMagicUse: boolean, limitation:InventoryLimitation}} [options = {}]
  * @returns {Promise}
  */
@@ -784,7 +784,7 @@ function createStandardArtefactButtons(options) {
 
 /**
  * Get a suitable label for a button to use an artefact.
- * @param {module:players/artefacts~Artefact} artefact
+ * @param {module:players/artefacts.Artefact} artefact
  * @returns {string}
  */
 function getLabelForUse(artefact) {
@@ -988,7 +988,7 @@ function createIdCard(actor) {
 }
 /**
  * Create an element describing an actor.
- * @param {module:players/actors~Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {Object} options
  * @param {boolean} options.hideDescription
  * @param {boolean} options.hideTraits
@@ -1110,8 +1110,8 @@ function createArtefactButtonLabel(options) {
 
 /**
  * Show a dialog where one actor can take artefacts from another.
- * @param {Actor} buyer
- * @param {Actor} seller
+ * @param {module:players/actors.Actor} buyer
+ * @param {module:players/actors.Actor} seller
  * @param {boolean} pillage
  * @returns {Promise} fulfils to undefined on completion.
  */
@@ -1171,8 +1171,8 @@ export function showTradeOrPillageDialog(buyer, seller, pillage) {
 
 /**
  * Show a dialog where one actor can take artefacts from another.
- * @param {Actor} buyer
- * @param {Actor} seller
+ * @param {module:players/actors.Actor} buyer
+ * @param {module:players/actors.Actor} seller
  * @returns {Promise} fulfils to undefined on completion.
  */
 export function showTradeDialog(buyer, seller) {
@@ -1181,8 +1181,8 @@ export function showTradeDialog(buyer, seller) {
 
 /**
  * Show a dialog where one actor can take artefacts from another.
- * @param {Actor} pillager
- * @param {Actor} victim
+ * @param {module:players/actors.Actor} pillager
+ * @param {module:players/actors.Actor} victim
  * @returns {Promise} fulfils to undefined on completion.
  */
 export function showPillageDialog(pillager, victim) {
@@ -1192,7 +1192,7 @@ export function showPillageDialog(pillager, victim) {
 // Export dialogs
 /**
  * Display details about the actor.
- * @param {module:players/actors~Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {Object} [options = {}]
  * @param {boolean} options.allowRest
  * @param {boolean} options.allowMagicUse - can magic artefacts be used.
@@ -1391,7 +1391,7 @@ export function showArtefactDialog(options) {
 
 /**
  * Show the rest dialog for the hero
- * @param {module:players/actors~Actor} actor} heroActor
+ * @param {module:players/actors.Actor} actor} heroActor
  * @returns {Promise} fulfils to null;
  */
 export function showRestDialog(heroActor) {

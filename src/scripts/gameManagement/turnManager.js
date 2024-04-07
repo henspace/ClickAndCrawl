@@ -49,7 +49,6 @@ import { i18n } from '../utils/messageManager.js';
 import * as dice from '../utils/dice.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { restoreGameState, saveGameState } from './gameSaver.js';
-import GAME from './game.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -97,7 +96,7 @@ class ReplayableActorMover {
 
   /**
    *
-   * @param {Actor} actor
+   * @param {module:players/actors.Actor} actor
    * @param {TileMap} tileMap
    * @param {RouteFinder} routeFinder
    * @param {boolean} heroDisengaging
@@ -261,7 +260,7 @@ class MovementReplayer {
   /**
    * Add the actor and move immediately to hero. Note if the actor's movement
    * is zero, the function does nothing.
-   * @param {Actor} actor
+   * @param {module:players/actors.Actor} actor
    */
   addAndMoveActor(actor) {
     if (actor.maxTilesPerMove === 0) {
@@ -823,7 +822,7 @@ function startNextScene(currentState) {
 
 /**
  * Show occupant details.
- * @param {Actor} occupant
+ * @param {module:players/actors.Actor} occupant
  * @returns {Promise} fulfils to undefined.
  */
 function showOccupantDetails(occupant) {
@@ -860,7 +859,7 @@ function triggerEvent(eventId, sprite, detail) {
 
 /**
  * @param {ClickEventFilter} filter
- * @param {Actor} occupant
+ * @param {module:players/actors.Actor} occupant
  * @returns {Promise<ClickEventFilter>}
  */
 function disambiguateFilter(filter, occupant) {
@@ -897,7 +896,7 @@ function getHeroActor() {
 
 /**
  * Start
- * @param {module:players/actors~Actor} actor - the hero actor
+ * @param {module:players/actors.Actor} actor - the hero actor
  */
 function setHero(actor) {
   heroActor = actor;

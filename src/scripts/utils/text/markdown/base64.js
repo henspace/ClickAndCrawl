@@ -1,7 +1,7 @@
 /**
  * @file Base64 routines
  *
- * @module utils\text\markdown\base64
+ * @module utils/text/markdown/base64
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}

@@ -1,7 +1,7 @@
 /**
  * @file Safe version of encode functions.
  *
- * @module utils\text\safeEncoder
+ * @module utils/text/safeEncoder
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}

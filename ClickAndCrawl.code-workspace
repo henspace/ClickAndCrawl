@@ -5,6 +5,8 @@
     }
   ],
   "settings": {
-    "cSpell.words": ["Defns", "LTEE", "replayable", "subkey"]
+    "cSpell.words": ["Defns", "LTEE", "replayable", "reqd", "Reqs", "subkey"],
+    "cSpell.language": "en-GB,en",
+    "cSpell.dictionaryDefinitions": []
   }
 }

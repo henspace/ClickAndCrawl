@@ -46,7 +46,7 @@ export const AssetUrls = {
   DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
   HELP_MD: new URL('./guides/help.md', import.meta.url),
   MUSIC: new URL(
-    './audio/do-alto-do-trono-da-desolacao-trimmed.mp3',
+    './audio/do-alto-do-trono-da-desolacao-trimmed.mp3', // cspell:disable-line
     import.meta.url
   ),
   PRIVACY_MD: new URL('./guides/privacy.md', import.meta.url),

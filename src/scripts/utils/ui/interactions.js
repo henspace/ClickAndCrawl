@@ -31,7 +31,7 @@
 /**
  * @typedef {function} UiClickCallback
  * @param {Object} target - initial object that triggered the handler
- * @param {module:utils/geometry~Point} point - the position that was clicked in world coordinates
+ * @param {module:utils/geometry.Point} point - the position that was clicked in world coordinates
  */
 
 /**
@@ -76,7 +76,7 @@ export class UiClickHandler {
   }
   /**
    * Handle click
-   * @param {module:utils/geometry~Point} point
+   * @param {module:utils/geometry.Point} point
    */
   actionClick(point) {
     this.#onClick?.(this, point);
@@ -84,7 +84,7 @@ export class UiClickHandler {
 
   /**
    * Handle context click
-   * @param {module:utils/geometry~Point} point
+   * @param {module:utils/geometry.Point} point
    */
   actionContextClick(point) {
     this.#onContextClick?.(this, point);
@@ -92,7 +92,7 @@ export class UiClickHandler {
 
   /**
    * Handle pointer down
-   * @param {module:utils/geometry~Point} point
+   * @param {module:utils/geometry.Point} point
    */
   actionPointerDown(point) {
     this.#onPointerDown?.(this, point);
@@ -100,7 +100,7 @@ export class UiClickHandler {
 
   /**
    * Handle pointer up
-   * @param {module:utils/geometry~Point} point
+   * @param {module:utils/geometry.Point} point
    */
   actionPointerUp(point) {
     this.#onPointerUp?.(this, point);

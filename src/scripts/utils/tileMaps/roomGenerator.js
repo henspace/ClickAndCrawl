@@ -49,7 +49,7 @@ export class RoomCreator {
    * @param {number} options.maxCols
    * @param {number} options.maxRows
    * @param {number} options.maxRoomWidth
-   * @param {number} options.maxRoomheight
+   * @param {number} options.maxRoomHeight
    */
   constructor(options) {
     this.#maxCols = maths.getRandomIntInclusive(
@@ -137,7 +137,7 @@ export class RoomCreator {
     return SpecialSymbols.WALL.includes(chr);
   }
 
-  /** Test is a floor char.
+  /** Test is a floor character.
    * @param {string} char
    * @returns {boolean}
    */
@@ -145,7 +145,7 @@ export class RoomCreator {
     return SpecialSymbols.GROUND.includes(chr);
   }
 
-  /** Test is a land char.
+  /** Test is a land character.
    * @param {string} char
    * @returns {boolean}
    */
@@ -153,7 +153,7 @@ export class RoomCreator {
     return SpecialSymbols.VOID.includes(chr);
   }
 
-  /** Test is a door in char.
+  /** Test is a entrance character.
    * @param {string} char
    * @returns {boolean}
    */
@@ -161,7 +161,7 @@ export class RoomCreator {
     return SpecialSymbols.DOOR_IN.includes(chr);
   }
 
-  /** Test is a door out char.
+  /** Test is a exit character.
    * @param {string} char
    * @returns {boolean}
    */

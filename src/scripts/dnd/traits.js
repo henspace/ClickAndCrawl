@@ -82,7 +82,7 @@ export class AttackDetail {
 
   /**
    *
-   * @param {Artefact} weapon
+   * @param {module:players/artefacts.Artefact} weapon
    * @param {Object} options
    * @param {string} options.damageDice
    * @param {string} options.weaponType - UNARMED makes this an unarmed strike.
@@ -297,7 +297,7 @@ export class Traits {
    * converted to uppercase with a few exceptions.
    * @param {string} key
    * @param {string} value
-   * @returns {string[]]} first element has the adjusted key and the second the value.
+   * @returns {string[]} first element has the adjusted key and the second the value.
    */
   #imposeCase(key, value) {
     key = key.toUpperCase();
@@ -471,7 +471,7 @@ export class MagicTraits extends Traits {
 
   /**
    * Get the damage dice when cast by an actor.
-   * @param {module:players/actors~Actor} actor
+   * @param {module:players/actors.Actor} actor
    * @returns {string}
    */
   getDamageDiceWhenCastBy(actor) {
@@ -637,8 +637,8 @@ export class CharacterTraits extends Traits {
   }
 
   /**
-   * @override
    * Refresh all derived values.
+   * @override
    * @param {string} updatedKey
    */
   _refreshDerivedValues(updatedKey) {
@@ -790,7 +790,7 @@ export class CharacterTraits extends Traits {
    * The test looks at the artefact's TYPE trait. If it includes one of this trait's
    * PROF entries, the result is true. This means that a PROF entry of 'melee' would
    * match 'simple melee' and 'martial melee'.
-   * @param {Artefact} item
+   * @param {module:players/artefacts.Artefact} item
    * @returns {boolean}
    */
   isProficient(artefact) {

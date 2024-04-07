@@ -223,7 +223,7 @@ class CheckboxControl extends BaseControl {
     super(options);
     this._element = this.buildElement(options.label);
     this.#checkbox.checked = this.value;
-    this._element.addEventListener('change', (event) => {
+    this._element.addEventListener('change', (eventUnused) => {
       this.value = this.#checkbox.checked;
       if (options.onChange) {
         options.onChange(this.value);
@@ -271,7 +271,7 @@ export class RangeControl extends BaseControl {
     super(options);
     this._element = this.buildElement(options.label);
     this.#rangeInput.value = this.value;
-    this._element.addEventListener('change', (event) => {
+    this._element.addEventListener('change', (eventUnused) => {
       this.value = this.#rangeInput.value;
       if (options.onChange) {
         options.onChange(this.value);
@@ -366,16 +366,4 @@ export function createElement(tagName, options = {}) {
     element.appendChild(options.child);
   }
   return element;
-}
-
-/**
- * Create a button bar.
- * @param {string[]} labels
- */
-export function createButtonBar(labels) {
-  const bar = createElement('div', { className: 'button-bar' });
-  labels.forEach((label) => {
-    const button = createElement('button', { text: label });
-  });
-  return bar;
 }

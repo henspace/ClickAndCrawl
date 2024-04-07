@@ -31,7 +31,7 @@
 
 import { AbstractInteraction } from '../dnd/interact.js';
 import { UiClickHandler } from '../utils/ui/interactions.js';
-import { ArtefactStoreManager, ArtefactType } from './artefacts.js';
+import { ArtefactStoreManager } from './artefacts.js';
 import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
 
@@ -85,7 +85,7 @@ export function strToActorType(str) {
  * @implements {TraitsHolder}
  */
 export class Actor extends UiClickHandler {
-  /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry */
+  /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} */
   almanacEntry;
   /** @type {number} */
   maxTilesPerMove;

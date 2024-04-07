@@ -1,7 +1,7 @@
 /**
  * @file Light markdown parser
  *
- * @module utils\text\markdown\markdown
+ * @module utils/text/markdown/markdown
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}

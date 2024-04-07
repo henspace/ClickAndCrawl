@@ -1,7 +1,7 @@
 /**
  * @file Name generator
  *
- * @module utils\nameGenerator
+ * @module utils/nameGenerator
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -28,6 +28,7 @@
  */
 import * as maths from './maths.js';
 
+// cspell:disable
 const VOWEL_SOUNDS = ['a', 'e', 'i', 'o', 'u', 'ee', 'oo'];
 const START_SOUNDS = [
   'b',
@@ -118,6 +119,7 @@ const END_SOUNDS = [
   'zzle',
   'zzy',
 ];
+// cspell:enable
 
 /**
  * Get a random single word name.

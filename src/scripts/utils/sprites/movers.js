@@ -331,7 +331,7 @@ export class PathFollower extends AbstractModifier {
 /**
  * Move the actor to the position. This ignores any restriction and moves in
  * a straight line.
- * @param {Actor} actor
+ * @param {module:players/actors.Actor} actor
  * @param {module:utils/geometry~Position} position
  * @returns {Promise} fulfils to undefined on completion of move.
  */

@@ -66,13 +66,13 @@ function getText(key) {
  * Then placeholders of ${n} are replaced by the
  * replacement values at the appropriate index.
  * Spaces around the key are replaced.
- * @param {string[]} strs
+ * @param {string[]} strings
  * @param  {...string} values - replacement values
  */
-export function i18n(strs, ...values) {
+export function i18n(strings, ...values) {
   let result = '';
   let key;
-  for (const str of strs) {
+  for (const str of strings) {
     const trimmed = str.trim();
     if (trimmed !== '') {
       key = trimmed;

@@ -1,7 +1,7 @@
 /**
  * @file Saver for games
  *
- * @module gameManagement\gameSaver
+ * @module gameManagement/gameSaver
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -45,7 +45,7 @@ import { strToArtefactType } from '../players/artefacts.js';
 
 /**
  * Create an adventure result
- * @param {module:players/actors~Actor} hero
+ * @param {module:players/actors.Actor} hero
  * @returns {AdventureResult}
  */
 function createAdventureResult(hero) {
@@ -84,7 +84,7 @@ function saveBestAdventure(adventureResult) {
 
 /**
  * Save the hero's adventure if better than the last.
- * @param {module:players/actors~Actor} hero
+ * @param {module:players/actors.Actor} hero
  */
 function saveAdventureIfBest(hero) {
   const adventureResult = createAdventureResult(hero);
@@ -97,7 +97,7 @@ function saveAdventureIfBest(hero) {
 /**
  * Save the current game. The adventure is also saved if better than previous
  * attempts.
- * @param {module:players/actors~Actor} hero
+ * @param {module:players/actors.Actor} hero
  */
 export function saveGameState(hero) {
   saveAdventureIfBest(hero);

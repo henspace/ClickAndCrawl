@@ -139,7 +139,7 @@ export class Tile extends UiClickHandler {
   }
 
   /** Remove occupant.
-   * @param {module:players/actors~Actor}
+   * @param {module:players/actors.Actor}
    */
   deleteOccupant(occupant) {
     this.#occupants.delete(occupant);
@@ -358,7 +358,7 @@ export class TileMap {
   }
 
   /**
-   * Get tilemap dimensions in terms of number of tiles.
+   * Get tile map dimensions in terms of number of tiles.
    * @returns {module:utils/geometry~Dims2D}
    */
   getDimsInTiles() {
@@ -442,7 +442,7 @@ export class TileMap {
   }
 
   /**
-   * Get the tilemap bounds as a rectangle in gridpoints.
+   * Get the tile map bounds as a rectangle in grid points.
    * @returns {Rectangle}
    */
   getMapGridPointRect() {
@@ -450,7 +450,7 @@ export class TileMap {
   }
 
   /**
-   * Get the visible bounds as a rectangle in gridpoints.
+   * Get the visible bounds as a rectangle in grid points.
    * @returns {Rectangle}
    */
   getVisibleGridPointRect() {
@@ -472,7 +472,7 @@ export class TileMap {
   }
 
   /**
-   * Get the gridsize
+   * Get the grid size
    * @returns {number}
    */
   getGridSize() {
@@ -762,7 +762,7 @@ export class TileMap {
   /**
    * Test if point is passable.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {module:players/actors~Actor} actor - actor trying to pass
+   * @param {module:players/actors.Actor} actor - actor trying to pass
    * @returns {boolean}
    */
   isGridPointPassableByActor(gridPoint, actor) {
@@ -777,7 +777,7 @@ export class TileMap {
   /**
    * Test if tile can be occupied by the actor
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {module:players/actors~Actor} actor - actor trying to occupy location
+   * @param {module:players/actors.Actor} actor - actor trying to occupy location
    * @returns {boolean}
    */
   canGridPointBeOccupiedByActor(gridPoint, actor) {
@@ -800,7 +800,7 @@ export class TileMap {
   /**
    * Test if point can be seen through.
    * @param {Point} gridPoint - row and col coordinates.
-   * @param {module:players/actors~Actor} actor - actor trying to see
+   * @param {module:players/actors.Actor} actor - actor trying to see
    * @returns {boolean}
    */
   isSeeThrough(gridPoint, actor) {
@@ -862,7 +862,7 @@ export class TileMap {
 
   /**
    * Get coincident actors.
-   * @param {Actor} actor
+   * @param {module:players/actors.Actor} actor
    * @returns {Actor[]}
    */
   getCoincidentActors(actor) {
@@ -872,7 +872,7 @@ export class TileMap {
   /**
    * Get all the participants around an actor. Diagonals are not included in
    * potential participants.
-   * @param {Actor} actor
+   * @param {module:players/actors.Actor} actor
    * @returns {Actor[]}
    */
   getParticipants(actor) {

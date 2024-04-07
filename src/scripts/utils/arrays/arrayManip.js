@@ -70,7 +70,7 @@ export function getSurrounds(matrix, rowIndex, columnIndex) {
  * @param {number} options.rowIndex
  * @param {number} options.columnIndex
  * @param {number} [options.distance = 1] - distance from centre
- * @param {function(member:*):boolean} options.filter - if provided, must be true otherwise
+ * @param {function(member):boolean} options.filter - if provided, must be true otherwise
  * radiation stops.
  * @returns {Surrounds}
  */

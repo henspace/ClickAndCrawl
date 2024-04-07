@@ -29,10 +29,7 @@
  */
 
 import { LoopMethod } from '../utils/arrays/indexer.js';
-import {
-  KeyedAnimatedImages,
-  AnimatedImage,
-} from '../utils/sprites/animation.js';
+import { AnimatedImage } from '../utils/sprites/animation.js';
 
 /**
  * @typedef {Object} AnimationDefinition

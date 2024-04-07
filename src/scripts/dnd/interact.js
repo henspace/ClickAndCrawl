@@ -65,8 +65,8 @@ function displayRisingText(text, position, color = 'white') {
 }
 /**
  * Apply poison damage to defender
- * @param {Artefact} poison
- * @param {Actor} victim
+ * @param {module:players/artefacts.Artefact} poison
+ * @param {module:players/actors.Actor} victim
  * @param {number} damage
  * @returns {number} resulting HP of defender
  */
@@ -85,7 +85,7 @@ function applyPoisonDamage(poison, victim, damage) {
 /**
  * Apply damage to defender
  * @param {Artefact | Actor} attacker
- * @param {Actor} defender
+ * @param {module:players/actors.Actor} defender
  * @param {number} damage
  * @returns {number} resulting HP of defender
  */
@@ -144,7 +144,7 @@ export class AbstractInteraction {
     this.owner = owner;
   }
   /**
-   * @param {module:players/actors~Actor} reactor
+   * @param {module:players/actors.Actor} reactor
    * @returns {Promise}
    */
   enact(reactorUnused) {
@@ -152,7 +152,7 @@ export class AbstractInteraction {
   }
 
   /**
-   * @param {module:players/actors~Actor} enactor
+   * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
   react(enactorUnused) {
@@ -183,7 +183,7 @@ export class AbstractInteraction {
    * following actions can be affected. The interaction will not do anything
    * about the disengaging. This flag merely indicates whether callers should
    * respect an attempt to disengage.
-   * @param {Actor} escaper
+   * @param {module:players/actors.Actor} escaper
    * @returns {boolean} true if can run
    */
   respectDisengage(escaperUnused) {
@@ -198,7 +198,7 @@ export class AbstractInteraction {
 export class Fight extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} owner - parent actor.
+   * @param {module:players/actors.Actor} owner - parent actor.
    */
   constructor(owner) {
     super(owner);
@@ -218,7 +218,7 @@ export class Fight extends AbstractInteraction {
     return true;
   }
   /**
-   * @param {module:players/actors~Actor} reactor
+   * @param {module:players/actors.Actor} reactor
    * @returns {Promise}
    */
   enact(reactor) {
@@ -226,7 +226,7 @@ export class Fight extends AbstractInteraction {
   }
 
   /**
-   * @param {module:players/actors~Actor} enactor
+   * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
   react(enactor) {
@@ -236,7 +236,7 @@ export class Fight extends AbstractInteraction {
   /**
    * Test to see if actor can run away from an interaction. If the actor cannot,
    * a failed message appears. The actual move is not undertaken
-   * @param {Actor} escaper
+   * @param {module:players/actors.Actor} escaper
    * @returns {boolean} true if can run
    */
   respectDisengage(escaperUnused) {
@@ -245,8 +245,8 @@ export class Fight extends AbstractInteraction {
 
   /**
    * Display an attack
-   * @param {Actor} attacker
-   * @param {Actor} defender
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:players/actors.Actor} defender
    * @returns {Promise}
    */
   #displayAttack(attacker, defender) {
@@ -265,8 +265,8 @@ export class Fight extends AbstractInteraction {
   /**
    * Undertake attack. Note that the defender is not removed if its hit points
    * hit zero.
-   * @param {Actor} attacker
-   * @param {Actor} defender
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:players/actors.Actor} defender
    * @returns {Promise} fulfils to the defender's HP.
    */
   #undertakeAllAttacks(attacker, defender) {
@@ -309,8 +309,8 @@ export class Fight extends AbstractInteraction {
 
   /**
    * Resolve a fight.
-   * @param {Actor} attacker
-   * @param {Actor} defender
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:players/actors.Actor} defender
    * @returns {Promise}
    */
   #resolveAttackerDefender(attacker, defender) {
@@ -327,7 +327,7 @@ export class Fight extends AbstractInteraction {
 export class InteractWithCorpse extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} owner - parent actor.
+   * @param {module:players/actors.Actor} owner - parent actor.
    */
   constructor(owner) {
     super(owner);
@@ -349,7 +349,7 @@ export class InteractWithCorpse extends AbstractInteraction {
   }
   /**
    * Respond to a search
-   * @param {module:players/actors~Actor} reactor
+   * @param {module:players/actors.Actor} reactor
    * @returns {Promise}
    */
   async react(enactor) {
@@ -363,7 +363,7 @@ export class InteractWithCorpse extends AbstractInteraction {
 export class Trade extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} owner - parent actor.
+   * @param {module:players/actors.Actor} owner - parent actor.
    */
   constructor(owner) {
     super(owner);
@@ -386,7 +386,7 @@ export class Trade extends AbstractInteraction {
    * Trades are passive. Only the hero can initiate a trade.
    * Note there is possibility for traders to block the exit, so
    * the option to barge past is provided.
-   * @param {module:players/actors~Actor} enactor
+   * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
   react(enactor) {
@@ -405,7 +405,7 @@ export class Trade extends AbstractInteraction {
 
   /**
    * Swap position with another actor
-   * @param {Actor} them
+   * @param {module:players/actors.Actor} them
    * @returns {Promise} fulfils to undefined when complete.
    */
   #swapPositions(them) {
@@ -424,7 +424,7 @@ export class Trade extends AbstractInteraction {
 export class FindArtefact extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} actor - parent actor.
+   * @param {module:players/actors.Actor} actor - parent actor.
    */
   constructor(actor) {
     super(actor);
@@ -446,7 +446,7 @@ export class FindArtefact extends AbstractInteraction {
   /**
    * Finding an artefact is a passive action and can only be initiated by another
    * actor.
-   * @param {module:players/actors~Actor} enactor
+   * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
   async react(enactor) {
@@ -490,7 +490,7 @@ export class FindArtefact extends AbstractInteraction {
 export class Poison extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Actor} owner - parent actor.
+   * @param {module:players/actors.Actor} owner - parent actor.
    */
   constructor(owner) {
     super(owner);
@@ -510,7 +510,7 @@ export class Poison extends AbstractInteraction {
     return false;
   }
   /**
-   * @param {module:players/actors~Actor} reactor
+   * @param {module:players/actors.Actor} reactor
    * @returns {Promise}
    */
   enact(reactor) {
@@ -528,7 +528,7 @@ export class Poison extends AbstractInteraction {
 export class CastSpell extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Artefact} owner - parent spell.
+   * @param {module:players/artefacts.Artefact} owner - parent spell.
    */
   constructor(owner) {
     super(owner);
@@ -550,7 +550,7 @@ export class CastSpell extends AbstractInteraction {
   }
   /**
    * Respond to a spell cast
-   * @param {module:players/actors~Actor} enactor
+   * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
   async react(enactor) {
@@ -605,7 +605,7 @@ export class CastSpell extends AbstractInteraction {
 export class ConsumeFood extends AbstractInteraction {
   /**
    * Construct the interaction.
-   * @param {Artefact} owner - parent actor.
+   * @param {module:players/artefacts.Artefact} owner - parent actor.
    */
   constructor(owner) {
     super(owner);
@@ -627,7 +627,7 @@ export class ConsumeFood extends AbstractInteraction {
   }
   /**
    * Respond to a consume instruction
-   * @param {module:players/actors~Actor} enactor
+   * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
   async react(enactor) {

@@ -41,7 +41,6 @@ import { Actor, ActorType } from '../players/actors.js';
 
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
-import * as maths from '../utils/maths.js';
 import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
 import { rollDice } from '../utils/dice.js';
 import { ArtefactType } from '../players/artefacts.js';

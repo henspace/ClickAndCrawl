@@ -35,7 +35,6 @@ import SCREEN from '../utils/game/screen.js';
 import { Sprite } from '../utils/sprites/sprite.js';
 import { Position } from '../utils/geometry.js';
 import { Rectangle } from '../utils/geometry.js';
-import { NavigationButtons } from './hudNavSet.js';
 
 /**
  * @type {Map<string, Sprite>}
@@ -134,24 +133,10 @@ function update(deltaSeconds) {
   });
 }
 
-/** Debug function. */
-function borderHUD() {
-  const rect = SCREEN.getVisibleCanvasRect();
-  const context = SCREEN.getContext2D();
-  context.strokeStyle = 'green';
-  context.lineWidth = 4;
-  SCREEN.getContext2D().strokeRect(
-    rect.x + 5,
-    rect.y + 5,
-    rect.width - 10,
-    rect.height - 10
-  );
-}
-
 /**
  * Check if the click is in a actor.
  * @param {module:ui/interactions~MappedPositions} positions - canvas and world positions
- * @param {Actor} actor
+ * @param {module:players/actors.Actor} actor
  */
 function isHittingActor(positions, actor) {
   const actorCanvasPos = SCREEN.glassPositionToWorld(actor.position);
