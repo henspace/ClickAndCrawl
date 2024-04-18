@@ -53,6 +53,11 @@ export function showBestAdventureDialog() {
     );
     list.appendChild(
       components.createElement('li', {
+        text: i18n`Score:${bestAdventure.score}`,
+      })
+    );
+    list.appendChild(
+      components.createElement('li', {
         text: i18n`Gold:${bestAdventure.gold.toFixed(2)}`,
       })
     );

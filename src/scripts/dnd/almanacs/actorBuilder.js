@@ -347,6 +347,8 @@ function createTrader(imageName, iconImageName, traits, actorType) {
 }
 
 /**
+ * Equip the actor. Note only MONEY, WEAPONS and ARMOUR are equipped. Anything else
+ * is ignored.
  * @param {module:players/actors.Actor} actor
  * @param {string[]} equipmentIds - ids of artefacts in the artefacts almanac.
  */
@@ -387,14 +389,14 @@ export function buildActor(almanacEntry, traitsString) {
   let actor;
   switch (almanacEntry.type) {
     case ActorType.HERO:
-      actor = createActor('hero', null, traits, almanacEntry);
+      actor = createActor(almanacEntry.imageName, null, traits, almanacEntry);
       actor.type = ActorType.HERO;
       if (!traitsString) {
         traits.set('NAME', getRandomFullName());
       }
       break;
     case ActorType.TRADER:
-      actor = createTrader('trader', null, traits, almanacEntry);
+      actor = createTrader(almanacEntry.imageName, null, traits, almanacEntry);
       break;
     case ActorType.HIDDEN_ARTEFACT:
       actor = createArtefactHolder(

@@ -126,6 +126,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION BLACK_FLASK',
     'A black flask containing a clear, pungent liquid.',
   ],
+  ['DESCRIPTION BLUE_FLASK', 'A blue flask containing a clear, aromatic oil.'],
   [
     'DESCRIPTION GOBLIN',
     "Small humanoid creature.Treat with caution. They're small but vicious.",
@@ -134,6 +135,10 @@ const MESSAGE_MAP = new Map([
   [
     'DESCRIPTION GOLD_COINS',
     'Gold coins stamped with the image of latter day kings and queens.',
+  ],
+  [
+    'DESCRIPTION HANDAXE',
+    'A small, light axe. The blade is sharp and has been looked after with care.',
   ],
   [
     'DESCRIPTION HERO',
@@ -148,6 +153,10 @@ const MESSAGE_MAP = new Map([
 
   ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
   ['DESCRIPTION RAT', 'A giant rat, diseased and vicious.'],
+  [
+    'DESCRIPTION RUSTY_KEY',
+    "A large iron key, covered in rust. It's been lost a long time.",
+  ],
   [
     'DESCRIPTION SHIELD',
     'A wooden shield, carried in one hand and offering some protection.',
@@ -181,13 +190,18 @@ const MESSAGE_MAP = new Map([
   ['MENU TITLE GUIDES', 'Guides and information'],
   ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
   [
-    'MESSAGE CANNOT STORE',
-    "You're carrying too much stuff to pick up what you've found.",
-  ],
-  [
     'MESSAGE CANNOT REST',
     "You try to rest, but you don't have enough resources to restore your health.",
   ],
+  [
+    'MESSAGE CANNOT STASH',
+    'You need to make space in your backpack to stash this.',
+  ],
+  [
+    'MESSAGE CANNOT STORE',
+    "You're carrying too much stuff to pick up what you've found.",
+  ],
+
   [
     'MESSAGE CANNOT REST LONG',
     'You have enough resource for a short rest, but not a long one.',
@@ -204,6 +218,7 @@ const MESSAGE_MAP = new Map([
     'MESSAGE ENTER LEVEL',
     "You enter level ${0}. The door slams shut behind you. There's no way back.",
   ],
+  ['MESSAGE EXIT LOCKED', 'The exit is locked. There must be a key somewhere.'],
   [
     'MESSAGE EXPLAIN REST',
     'Trying to use the safety of the corridor to rest and eat?',
@@ -215,16 +230,25 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE DUNGEON INTRO CONTINUE',
-    'Welcome back, ${0}. The adventure continues, and you enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air.',
+    'Welcome back, ${0}. The adventure continues. Water runs down the wall and the smell of rotting corpses fills the air.',
   ],
   [
     'MESSAGE DUNGEON INTRO CASUAL',
     'Welcome, ${0}. You enter a dark and dingy dungeon. Explore as far as you can but remember your progress will not be saved.',
   ],
   [
+    'MESSAGE DEAD HERO HAS NO INVENTORY',
+    'Dead heroes have no use for material belongings. Your inventory is lost in the dungeon, perhaps to be rediscovered by the next intrepid explorer.',
+  ],
+  [
     'MESSAGE DEFEAT',
     'Despite your valiant efforts, you died. Your legend will live on.',
   ],
+  [
+    'MESSAGE GENERIC EPITAPH',
+    'Here lies the corpse of one more defeated enemy.',
+  ],
+  ['MESSAGE HERO EPITAPH FOR', 'Here lies the body of ${0}. Rest in peace.'],
   [
     'MESSAGE INSUFFICIENT FUNDS',
     "You don't have enough funds to purchase this item. The item costs ${0}\u{00A0}GP but you only have ${1}\u{00A0}GP.",
@@ -288,13 +312,6 @@ const MESSAGE_MAP = new Map([
     ],
   ],
   [
-    'MESSAGE EXIT STUCK',
-    [
-      'The exit is locked. You will need to find the key if you are ever to leave this dungeon.',
-      'The door will not move. It appears to be locked. There must be a key here somewhere.',
-    ],
-  ],
-  [
     'MESSAGE EXPLAIN SPELL PREP',
     'After a long rest, you can prepare spells ready for use.',
   ],
@@ -318,12 +335,17 @@ const MESSAGE_MAP = new Map([
       "There's been some recent digging here.",
     ],
   ],
+  [
+    'MESSAGE KEY UNLOCKS EXIT',
+    'You use the key you found earlier to unlock the door.',
+  ],
   ['MESSAGE NO SAVED ADVENTURE', 'No adventure has been saved yet.'],
+  ['MESSAGE NOTHING HERE', "There's nothing here."],
   [
     'MESSAGE OPEN EXIT',
     [
       'The door opens and you slip away.',
-      "You decide that's enough exploring this dungeon and slip away into the darkness.",
+      "You decide that's enough exploring this room and slip away into the darkness.",
     ],
   ],
   [
@@ -356,6 +378,7 @@ const MESSAGE_MAP = new Map([
   ['Dungeon level:', 'Dungeon level: ${0}'],
   ['Experience:', 'Experience: ${0}'],
   ['Feet', 'Feet'],
+  ['Score:', 'Score: ${0}'],
   ['Gold:', 'Gold: ${0}\u{00A0}GP'],
   ['GOLD PIECES', ' gold pieces'],
   ['Hands', 'Hands'],

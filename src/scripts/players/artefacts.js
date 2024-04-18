@@ -95,6 +95,14 @@ export const ArtefactType = {
     storageSpace: 1,
     storeType: { stash: null, equip: StoreType.CANTRIPS },
   },
+  GENERIC: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK },
+  },
+  KEY: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK },
+  },
   SPELL: {
     storageSpace: 1,
     storeType: { stash: StoreType.SPELLS, equip: StoreType.PREPARED_SPELLS },
@@ -702,10 +710,11 @@ export class ArtefactStoreManager {
    */
   findSuitableStore(artefact) {
     let storeType = artefact.stashStoreType;
-    if (!this.#stores.has(storeType)) {
+    let store = this.getStore(storeType);
+    if (!store) {
       storeType = artefact.equipStoreType;
+      store = this.getStore(storeType);
     }
-    const store = this.getStore(storeType);
     if (store?.canAdd(artefact)) {
       return store;
     }

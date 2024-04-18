@@ -278,12 +278,21 @@ function getCurrentSceneLevel() {
 }
 
 /**
+ * Get the current scene intro.
+ * @returns {string} undefined if not set
+ */
+function getCurrentSceneIntro() {
+  return sceneDefnList.intro;
+}
+
+/**
  * SCENE_MANAGER Singleton.
  */
 const SCENE_MANAGER = {
   areThereMoreScenes: areThereMoreScenes,
   continueFromSavedScene: continueFromSavedScene,
   getCurrentSceneLevel: getCurrentSceneLevel,
+  getCurrentSceneIntro: getCurrentSceneIntro,
   panCameraBy: panCameraBy,
   setCameraToTrack: setCameraToTrack,
   setSceneList: setSceneList,

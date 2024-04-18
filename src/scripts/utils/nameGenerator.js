@@ -126,13 +126,20 @@ const END_SOUNDS = [
  * @returns {string}
  */
 export function getRandomName() {
-  let name =
-    maths.getRandomMember(START_SOUNDS) +
-    maths.getRandomMember(VOWEL_SOUNDS) +
-    maths.getRandomMember(START_SOUNDS) +
-    maths.getRandomMember(VOWEL_SOUNDS) +
-    maths.getRandomMember(END_SOUNDS);
-
+  let name;
+  if (Math.random() < 0.5) {
+    name =
+      maths.getRandomMember(START_SOUNDS) +
+      maths.getRandomMember(VOWEL_SOUNDS) +
+      maths.getRandomMember(END_SOUNDS);
+  } else {
+    name =
+      maths.getRandomMember(START_SOUNDS) +
+      maths.getRandomMember(VOWEL_SOUNDS) +
+      maths.getRandomMember(START_SOUNDS) +
+      maths.getRandomMember(VOWEL_SOUNDS) +
+      maths.getRandomMember(END_SOUNDS);
+  }
   return name.charAt(0).toUpperCase() + name.substring(1);
 }
 

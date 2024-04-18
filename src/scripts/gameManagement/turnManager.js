@@ -372,10 +372,14 @@ class AtStart extends State {
       .then((continuation) => {
         const name = heroActor.traits.get('NAME');
         let message;
+        if (continuation) {
+          return UI.showOkDialog(i18n`MESSAGE DUNGEON INTRO CONTINUE ${name}`, {
+            okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
+            className: 'wall',
+          }).then(() => actorDialogs.showRestDialog(heroActor));
+        }
         if (!persistentGame) {
           message = i18n`MESSAGE DUNGEON INTRO CASUAL ${name}')}`;
-        } else if (continuation) {
-          message = i18n`MESSAGE DUNGEON INTRO CONTINUE ${name}`;
         } else {
           message = i18n`MESSAGE DUNGEON INTRO ${name}`;
         }
@@ -384,14 +388,15 @@ class AtStart extends State {
           className: 'wall',
         });
       })
-      .then((scene) => {
+      .then(() => {
         heroActor.sprite.position =
           WORLD.getTileMap().getWorldPositionOfTileByEntry();
-        return scene;
+        return;
       })
-      .then((scene) => {
-        if (scene.intro) {
-          return UI.showOkDialog(scene.intro, { className: 'mask' });
+      .then(() => {
+        const intro = SCENE_MANAGER.getCurrentSceneIntro();
+        if (intro) {
+          return UI.showOkDialog(intro, { className: 'mask' });
         } else {
           return;
         }
@@ -511,12 +516,16 @@ class HeroTurnIdle extends State {
       case EventId.CLICKED_ENTRANCE:
         await UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
-      case EventId.CLICKED_EXIT:
+      case EventId.CLICKED_EXIT: {
         LOG.log('Escaping');
-        await moveHeroToPoint(point, { usePathFinder: false })
-          .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT`))
-          .then(() => startNextScene(this));
+        const unlocked = await tryToUnlockExit();
+        if (unlocked) {
+          await moveHeroToPoint(point, { usePathFinder: false })
+            .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT`))
+            .then(() => startNextScene(this));
+        }
         break;
+      }
     }
     return Promise.resolve(null);
   }
@@ -577,29 +586,26 @@ class HeroTurnInteracting extends State {
       case EventId.CLICKED_ENTRANCE:
         UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
-      case EventId.CLICKED_EXIT:
-        await this.#tryToDisengage(point, { usePathFinder: false }).then(
-          (success) => {
-            if (success) {
-              return UI.showOkDialog(
-                i18n`MESSAGE OPEN EXIT WHILE FIGHTING`
-              ).then(() => startNextScene(this));
-            } else {
-              return Promise.resolve();
-            }
-          }
-        );
+      case EventId.CLICKED_EXIT: {
+        const unlocked = await tryToUnlockExit();
+        if (unlocked) {
+          await this.#tryToDisengage(point, { usePathFinder: false })
+            .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT WHILE FIGHTING`))
+            .then(() => startNextScene(this));
+        }
         break;
+      }
     }
     return Promise.resolve(null);
   }
 
   /**
-   * Try to run
+   * Try to run. Note the hero always moves. Disengaging means the enemies won't
+   * follow.
    * @param {Point} point - position in world.
    * @param {Object} [options = {usePathFinder: true}]
    * @param {boolean} options.usePathFinder - should path finder be used.
-   * @returns {Promise} fulfils to true if successful else false.
+   * @returns {Promise} fulfils to undefined
    */
   #tryToDisengage(point, options = { usePathFinder: true }) {
     const tileMap = WORLD.getTileMap();
@@ -894,12 +900,34 @@ function getHeroActor() {
   return heroActor;
 }
 
+/** Unlock the exit if necessary.
+ * @returns {Promise} fufills to true if exit can be unlocked.
+ */
+function tryToUnlockExit() {
+  if (exitKeyArtefact) {
+    if (heroActor.storeManager.discard(exitKeyArtefact)) {
+      return UI.showOkDialog(i18n`MESSAGE KEY UNLOCKS EXIT`).then(() => true);
+    } else {
+      return UI.showOkDialog(i18n`MESSAGE EXIT LOCKED`).then(() => false);
+    }
+  } else {
+    return Promise.resolve(true);
+  }
+}
+
 /**
  * Start
  * @param {module:players/actors.Actor} actor - the hero actor
  */
 function setHero(actor) {
   heroActor = actor;
+}
+
+/** Lock the exit. The actor will need to possess the artefact unlock it.
+ * @param {module:players/ArtefactStoreManager.Artefact}
+ */
+function setExitKeyArtefact(artefact) {
+  exitKeyArtefact = artefact;
 }
 
 /**
@@ -917,6 +945,9 @@ let currentState = new WaitingToStart();
  */
 let ignoreEvents = false;
 
+/** Key required to unlock the exit. @type {module:players/artefacts.Artefact} */
+let exitKeyArtefact;
+
 /**
  * Single instance of the turn manager.
  */
@@ -925,6 +956,7 @@ const TURN_MANAGER = {
   getHeroActor: getHeroActor,
   setHero: setHero,
   triggerEvent: triggerEvent,
+  setExitKeyArtefact: setExitKeyArtefact,
 };
 
 export default TURN_MANAGER;

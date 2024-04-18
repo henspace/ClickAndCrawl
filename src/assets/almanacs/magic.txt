@@ -7,5 +7,5 @@
 # of known spells. These spells, can be 'equipped' into the spells
 # for the dungeon. and only equipped during a rest.
 0,RARE,SPELL,burning_hands * VALUE: 1000PP, EFFECT: FIRE, DMG: 3D6, DMG_SAVED:0.5, SAVE_ABILITY:DEX, DC:8, RANGE: 15 FEET
-0,RARE,CANTRIP,acid_splash * VALUE: 1000PP, EFFECT: ACID, DMG: 1D6, SAVE_ABILITY:DEX, DC:8, RANGE:10 FEET, MAX_TARGETS: 2
+0,COMMON,CANTRIP,acid_splash * VALUE: 1000PP, EFFECT: ACID, DMG: 1D6, SAVE_ABILITY:DEX, DC:8, RANGE:10 FEET, MAX_TARGETS: 2
 

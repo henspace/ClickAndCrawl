@@ -27,31 +27,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ActorType } from '../..utils/game/actors.js';
 /**
  * @typedef {Object} AlmanacEntry
  * @property {number} minLevel - minimum dungeon level at which this appears.
  * @property {string} id - ID used to locate it in the actor or artefact map.
  * @property {string} traits - string representation of traits.
  */
-
-/** Almanac
- * @type {Object<string, AlmanacEntry>}
- */
-const ALMANAC_OF_ACTORS = [
-  { id: 'hero', type: ActorType.HERO, minLevel: 0, traits: 'HP:20|EXP:0|AC:1' },
-  {
-    id: 'orc',
-    type: ActorType.ENEMY,
-    minLevel: 0,
-    traits: 'MOVE:HUNT|HP:2|EXP:0|AC:5',
-  },
-  {
-    id: 'trader',
-    type: ActorType.TRADER,
-    minLevel: 0,
-    traits: 'MOVE:WANDER|EXP:0|AC:1',
-  },
-];
-
-export default ALMANAC_OF_ACTORS;

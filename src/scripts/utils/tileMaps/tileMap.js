@@ -355,6 +355,9 @@ export class TileMap {
       LOG.error('No entrance has been set. Setting to the first ground tile');
       this.#entranceTile = this.#randomGround[0];
     }
+    if (!this.#exitTile) {
+      throw new Error('No exit tile.');
+    }
   }
 
   /**

@@ -153,9 +153,9 @@ class AutoSceneList {
    */
   #setHero() {
     if (!heroActor) {
-      const almanacEntry = ALMANAC_LIBRARY.findById('hero', ['HEROES']);
+      const almanacEntry = ALMANAC_LIBRARY.getRandomEntry('HEROES');
       if (!almanacEntry) {
-        throw new Error(`Could not find hero in almanacs.`);
+        LOG.fatal(new Error(`Could not find hero in almanacs.`));
       }
       heroActor = buildActor(almanacEntry);
     }

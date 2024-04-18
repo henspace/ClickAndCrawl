@@ -400,7 +400,11 @@ export class Traits {
    * @param {string} value
    */
   #setGenericValueFromString(key, value) {
-    if (dice.isMultiDice(value) && key !== 'DMG') {
+    if (value === 'YES' || value === 'TRUE') {
+      value = true;
+    } else if (value === 'NO' || value === 'FALSE') {
+      value = false;
+    } else if (dice.isMultiDice(value) && key !== 'DMG') {
       value = dice.rollMultiDice(value); // Note DMG is stored as dice definition as it is rolled on demand.
     }
     this.set(key, value);
@@ -637,16 +641,45 @@ export class CharacterTraits extends Traits {
   }
 
   /**
-   * Refresh all derived values.
+   * Refresh all derived values. Note that if the traits has a damage property
+   * set, the values are taken directly from the traits, rather than looking
+   * at equipped weapons and armour. This is because monsters have their properties
+   * set including the weapons they carry. This also means it is possible to
+   * equip a monster without it affecting its fighting characteristics.
    * @override
    * @param {string} updatedKey
    */
   _refreshDerivedValues(updatedKey) {
     if (!updatedKey || ABILITY_KEYS.includes(updatedKey)) {
       this._setLevelAndProfBonusFromExp();
-      this._utiliseWeapons(this._equippedWeapons);
-      this._utiliseArmour(this._equippedArmour);
+      if (this._traits.has('DMG')) {
+        this._deriveValuesFromTraits();
+      } else {
+        this._utiliseWeapons(this._equippedWeapons);
+        this._utiliseArmour(this._equippedArmour);
+      }
     }
+  }
+
+  /**
+   * Calculate derived values directly from the traits. I.e. ignore any equipped
+   * armour or weapons.
+   */
+  _deriveValuesFromTraits() {
+    // monsters have their AC defined already taking into account modifiers.
+    this._compositeAc = this.getInt('AC', 0); // character's base AC
+    this._attacks = [];
+    const strength = this.getInt('STR', 1);
+    const abilityModifier = characteristicToModifier(strength);
+    const attack = new AttackDetail({
+      damageDice: this._traits.get('DMG'),
+      weaponType: 'ALMANAC',
+      proficiencyBonus: this._traits.get('PB', 0),
+      abilityModifier: abilityModifier,
+      secondAttack: false,
+    });
+
+    this._attacks.push(attack);
   }
   /**
    * Armour weapons. The armour classes are combined.

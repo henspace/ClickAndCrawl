@@ -41,8 +41,8 @@ const VOID_SYMBOL = ' ';
  */
 export const SpecialSymbols = {
   WALL: ['#', '*', '|'],
-  DOOR_IN: ['-'],
-  DOOR_OUT: ['='],
+  DOOR_IN: ['-', '~'],
+  DOOR_OUT: ['=', '>'],
   GROUND: ['.', ':', ',', ';'],
   VOID: [' '],
 };
@@ -301,7 +301,7 @@ function isEntryTile(value, surrounds) {
 
 /**
  * Check if this floor tile is the exit tile. This is the tile the hero will
- * appear on when entering the map. The tests are made in the order of where
+ * be on when trying to exit the map. The tests are made in the order of where
  * the doors is most likely to be placed assuming a left to right, top to bottom
  * design.
  * @param {string} value

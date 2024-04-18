@@ -42,6 +42,7 @@ export const AssetUrls = {
     ['MONEY', new URL('./almanacs/money.txt', import.meta.url)],
     ['TRADERS', new URL('./almanacs/traders.txt', import.meta.url)],
     ['WEAPONS', new URL('./almanacs/weapons.txt', import.meta.url)],
+    ['KEYS', new URL('./almanacs/keys.txt', import.meta.url)],
   ]),
   DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
   HELP_MD: new URL('./guides/help.md', import.meta.url),

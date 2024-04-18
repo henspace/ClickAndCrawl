@@ -35,6 +35,7 @@ import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import { gpAsString } from '../utils/game/coins.js';
 import * as dndAction from '../dnd/dndAction.js';
 import LOG from '../utils/logging.js';
+import ANIMATION_STATE_MANAGER from '../gameManagement/animationState.js';
 /**
  * @typedef {number} ArtefactActionTypeValue
  */
@@ -157,11 +158,13 @@ class InventoryContainerElement {
    * @param {boolean} noChain - prevent calls to linkedInventories.
    */
   refresh(noChain) {
+    let empty = true;
     this.#actionButtons = [];
     if (!noChain && this.linkedInventory) {
       this.linkedInventory.refresh(true); // suppress linking
     }
     this.#content.replaceChildren();
+
     if (
       !this.#options.currentOwner.isHero() ||
       this.#options.currentOwner.alive
@@ -174,6 +177,7 @@ class InventoryContainerElement {
             storeInfo.storeType
           );
         if (contents) {
+          empty = false;
           const storeContentsElement = this.#createStoreContents(
             storeInfo.label,
             storeInfo.storeType,
@@ -183,7 +187,22 @@ class InventoryContainerElement {
         }
       });
     }
-
+    if (empty) {
+      let emptyMessage;
+      if (
+        this.#options.currentOwner.isHero() &&
+        !this.#options.currentOwner.alive
+      ) {
+        emptyMessage = i18n`MESSAGE DEAD HERO HAS NO INVENTORY`;
+      } else {
+        emptyMessage = i18n`MESSAGE NOTHING HERE`;
+      }
+      this.#content.appendChild(
+        components.createElement('p', {
+          text: emptyMessage,
+        })
+      );
+    }
     if (this.#inventoryOptions.onRefresh) {
       this.#inventoryOptions.onRefresh();
     }
@@ -508,7 +527,14 @@ function showCastSpells(actor) {
       prospectiveOwner: actor,
       allowMagicUse: true,
       showDamage: true,
-      customAction: (enactor, artefact) => artefact.interaction.react(enactor),
+      customAction: (enactor, artefact) => {
+        ANIMATION_STATE_MANAGER.setAnimationState(true);
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            artefact.interaction.react(enactor).then(() => resolve());
+          });
+        });
+      },
     },
     {
       limitation: InventoryLimitation.READY_MAGIC,
@@ -638,11 +664,8 @@ function createSelfActionArtefactDialogButtons(container, options) {
 function createCantripButtons(options) {
   const buttons = [];
   if (options.allowMagicUse) {
-    buttons.push(
-      new components.TextButtonControl({
-        label: getLabelForUse(options.artefact),
-        closes: ArtefactAction.USE,
-      })
+    LOG.error(
+      'Unexpected creation of Cantrip buttons with magic allowed. Use of Cantrips is handled by custom actions.'
     );
   }
 
@@ -664,11 +687,8 @@ function createSpellButtons(options) {
   const buttons = [];
   const artefact = options.artefact;
   if (options.allowMagicUse) {
-    buttons.push(
-      new components.TextButtonControl({
-        label: getLabelForUse(options.artefact),
-        closes: ArtefactAction.USE,
-      })
+    LOG.error(
+      'Unexpected creation of Spell buttons with magic allowed. Use of Spells is handled by custom actions.'
     );
   } else if (
     options.storeType === artefact.stashStoreType &&
@@ -960,7 +980,7 @@ function createIdCard(actor) {
   );
 
   const hp = actor.traits.getInt('HP');
-  if (hp) {
+  if (hp && !actor.traits.get('_HP')) {
     const hpMax = actor.traits.getInt('HP_MAX');
     let hpText;
     if (hp === 0) {
@@ -1005,7 +1025,9 @@ function createActorElement(actor, options = {}) {
 
   let descriptionElement;
   if (!options.hideDescription) {
-    if (options.description) {
+    if (!actor.artefactType && !actor.alive) {
+      descriptionElement = createCorpseDescriptionElement(actor);
+    } else if (options.description) {
       descriptionElement =
         options.description instanceof Element
           ? options.description
@@ -1023,6 +1045,24 @@ function createActorElement(actor, options = {}) {
     container.appendChild(createTraitsList(actor, ['NAME'], true));
   }
   return container;
+}
+
+/**
+ * Create an element describing a corpse.
+ * @param {module:players/actors~Actor}
+ * @returns {Element}
+ */
+function createCorpseDescriptionElement(actor) {
+  let text;
+  if (actor.isHero()) {
+    const name = actor.traits.get('NAME');
+    text = i18n`MESSAGE HERO EPITAPH FOR ${name}`;
+  } else {
+    text = i18n`MESSAGE GENERIC EPITAPH`;
+  }
+  return components.createElement('p', {
+    text: text,
+  });
 }
 
 /**
@@ -1308,21 +1348,7 @@ export function showArtefactDialog(options) {
   const destStoreManager = options.prospectiveOwner.storeManager;
   const artefact = options.artefact;
 
-  let dialogFn;
-  switch (options.artefact.artefactType) {
-    case ArtefactType.WEAPON:
-    case ArtefactType.TWO_HANDED_WEAPON:
-    case ArtefactType.HEAD_GEAR:
-    case ArtefactType.ARMOUR:
-    case ArtefactType.SHIELD:
-    case ArtefactType.COINS:
-    case ArtefactType.CONSUMABLE:
-    case ArtefactType.SPELL:
-    case ArtefactType.CANTRIP:
-      dialogFn = showEquipDialog;
-      break;
-  }
-  return dialogFn(options).then((response) => {
+  return showEquipDialog(options).then((response) => {
     switch (response) {
       case ArtefactAction.CONSUME:
         sourceStoreManager.discard(artefact);
@@ -1371,7 +1397,9 @@ export function showArtefactDialog(options) {
         }
         break;
       case ArtefactAction.STASH:
-        destStoreManager.stash(artefact);
+        if (!destStoreManager.stash(artefact)) {
+          UI.showOkDialog(i18n`MESSAGE CANNOT STASH`);
+        }
         break;
       case ArtefactAction.TAKE:
         sourceStoreManager.discard(artefact);

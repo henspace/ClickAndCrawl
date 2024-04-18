@@ -55,6 +55,7 @@ function createAdventureResult(hero) {
     exp: 0,
     characterLevel: 0,
     dungeonLevel: 0,
+    score: 0,
   };
   if (hero) {
     result.name = hero.traits.get('NAME');
@@ -62,6 +63,7 @@ function createAdventureResult(hero) {
     result.exp = hero.traits.getInt('EXP', 0);
     result.characterLevel = hero.traits.getCharacterLevel();
     result.dungeonLevel = SCENE_MANAGER.getCurrentSceneLevel();
+    result.score = Math.floor(100 * result.gold * result.characterLevel);
   }
   return result;
 }
@@ -89,8 +91,9 @@ function saveBestAdventure(adventureResult) {
 function saveAdventureIfBest(hero) {
   const adventureResult = createAdventureResult(hero);
   const currentBest = getBestAdventure();
-  const lastGold = currentBest ? currentBest.gold : 0;
-  if (adventureResult.gold > lastGold) {
+  const lastScore = currentBest?.score ?? 0;
+
+  if (adventureResult.score > lastScore) {
     saveBestAdventure(adventureResult);
   }
 }

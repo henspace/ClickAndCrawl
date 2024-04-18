@@ -39,7 +39,7 @@ import WORLD from '../game/world.js';
 import { VelocityMover } from '../sprites/movers.js';
 import { AnimatedImage } from '../sprites/animation.js';
 import { LoopMethod } from '../arrays/indexer.js';
-import { Acceleration, Velocity } from '../geometry.js';
+import { Acceleration, Velocity, Point } from '../geometry.js';
 
 /**
  * Create a transient sprite
@@ -125,4 +125,21 @@ export function addFadingText(text, options) {
     }),
     options
   );
+}
+
+/**
+ * Display rising text that fades.
+ * @param {string} text
+ * @param {module:utils/geometry~Position} position
+ * @param {string} [color = 'white']
+ */
+export function displayRisingText(text, position, color = 'white') {
+  addFadingText(text, {
+    color: color,
+    delaySecs: 2,
+    lifetimeSecs: 3,
+    position: new Point(position.x, position.y),
+    velocity: new Velocity(0, -48, 0),
+    acceleration: new Acceleration(0, -96, 0),
+  });
 }

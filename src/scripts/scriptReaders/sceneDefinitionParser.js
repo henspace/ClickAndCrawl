@@ -45,6 +45,7 @@ import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
 import { rollDice } from '../utils/dice.js';
 import { ArtefactType } from '../players/artefacts.js';
 import * as almanacUtils from '../dnd/almanacs/almanacUtils.js';
+import LOG from '../utils/logging.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -90,6 +91,42 @@ function createEnemies(sceneDefn) {
   return enemies;
 }
 
+/** Create an artefact that is located in the dungeon.
+ * The artefact is placed in a suitable actor such as a
+ * pillar or as a hidden artefact.
+ * @param {AlmanacEntry} almanacEntry
+ * @param {Artefact} [preBuiltArtefact] if not provided, the artefact is built from the
+ * almanac entry.
+ * @returns {Actor} actor containing the artefact
+ */
+function createFindableArtefact(almanacEntry, preBuiltArtefact) {
+  let id;
+  let type;
+
+  if (
+    almanacEntry.type === ArtefactType.SPELL ||
+    almanacEntry.type === ArtefactType.CANTRIP
+  ) {
+    id = 'engraved_pillar';
+    type = ActorType.PROP;
+  } else {
+    id = 'hidden_artefact';
+    type = ActorType.HIDDEN_ARTEFACT;
+  }
+
+  const actor = buildActor({
+    id: id,
+    name: almanacUtils.createNameFromId(id),
+    description: almanacUtils.createDescriptionFromId(id),
+    imageName: id,
+    type: type,
+    traitsString: '',
+  });
+  const artefact = preBuiltArtefact ?? buildArtefact(almanacEntry);
+  actor.storeManager.addArtefact(artefact);
+  return actor;
+}
+
 /**
  * Create the artefacts.
  * @param {SceneDefinition} sceneDefn
@@ -98,31 +135,8 @@ function createEnemies(sceneDefn) {
 function createArtefacts(sceneDefn) {
   const artefacts = [];
   sceneDefn.artefacts.forEach((almanacEntry) => {
-    let id;
-    let type;
-
-    if (
-      almanacEntry.type === ArtefactType.SPELL ||
-      almanacEntry.type === ArtefactType.CANTRIP
-    ) {
-      id = 'engraved_pillar';
-      type = ActorType.PROP;
-    } else {
-      id = 'hidden_artefact';
-      type = ActorType.HIDDEN_ARTEFACT;
-    }
-
-    const actor = buildActor({
-      id: id,
-      name: almanacUtils.createNameFromId(id),
-      description: almanacUtils.createDescriptionFromId(id),
-      imageName: id,
-      type: type,
-      traitsString: '',
-    });
-    const artefact = buildArtefact(almanacEntry);
-    actor.storeManager.addArtefact(artefact);
-    artefacts.push(actor);
+    const holdingActor = createFindableArtefact(almanacEntry);
+    artefacts.push(holdingActor);
   });
   return artefacts;
 }
@@ -193,6 +207,10 @@ class ParsedScene extends AbstractScene {
     );
     WORLD.setTileMap(tileMap);
 
+    const exitKeyAlmanacEntry = ALMANAC_LIBRARY.getRandomEntry('KEYS');
+    const exitKeyArtefact = buildArtefact(exitKeyAlmanacEntry);
+    let keysToAdd = exitKeyArtefact ? 1 : 0;
+
     const pooledArtefactAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
       ['ARTEFACTS', 'ARMOUR', 'WEAPONS'],
       (entry) => entry.minLevel <= SCENE_MANAGER.getCurrentSceneLevel()
@@ -222,8 +240,28 @@ class ParsedScene extends AbstractScene {
           qty: qtyOfItems,
           equip: false,
         });
+      } else if (
+        keysToAdd &&
+        !enemy.isOrganic() &&
+        enemy.traits.get('HAS_KEYS')
+      ) {
+        enemy.storeManager.stash(exitKeyArtefact, {
+          direct: true,
+        });
+        keysToAdd = 0;
+        LOG.debug('Added key to actor.');
       }
     });
+    if (keysToAdd) {
+      const holdingActor = createFindableArtefact(
+        exitKeyAlmanacEntry,
+        exitKeyArtefact
+      );
+      holdingActor.position = tileMap.getRandomFreeGroundTile().worldPoint;
+      WORLD.addArtefact(holdingActor);
+      keysToAdd = 0;
+      LOG.debug('Added key as hidden object.');
+    }
     createArtefacts(this.#sceneDefn).forEach((artefact) => {
       artefact.position = tileMap.getRandomFreeGroundTile().worldPoint;
       WORLD.addArtefact(artefact);
@@ -231,6 +269,7 @@ class ParsedScene extends AbstractScene {
     SCENE_MANAGER.setCameraToTrack(this.heroActor.sprite, 200, 0);
     WORLD.addActor(this.heroActor);
     TURN_MANAGER.setHero(this.heroActor);
+    TURN_MANAGER.setExitKeyArtefact(exitKeyArtefact);
     return Promise.resolve();
   }
 

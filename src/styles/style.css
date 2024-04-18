@@ -190,6 +190,10 @@ a:active {
   font-size: 0.85rem;
 }
 
+.stores p {
+  text-align: center;
+}
+
 .actor-id-card span {
   margin-left: 1rem;
   display: inline-block;

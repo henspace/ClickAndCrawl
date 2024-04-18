@@ -31,11 +31,7 @@
 import SCREEN from '../game/screen.js';
 import * as components from './components.js';
 import { i18n } from '../messageManager.js';
-
-/** @type {function} */
-let preDialogFunction;
-/** @type {function} */
-let postDialogFunction;
+import ANIMATION_STATE_MANAGER from '../../gameManagement/animationState.js';
 
 /**
  * Dialog response codes.
@@ -51,34 +47,14 @@ export const DialogResponse = {
  * Called when a dialog is opened.
  */
 function prepareDialog() {
-  if (preDialogFunction) {
-    preDialogFunction();
-  }
+  ANIMATION_STATE_MANAGER.setAnimationState(false);
 }
 
 /**
  * Called when a dialog is closed.
  */
 function tearDownDialog() {
-  if (postDialogFunction) {
-    postDialogFunction();
-  }
-}
-
-/**
- * Set up function to be called whenever dialog is opened.
- * @param {function} fn
- */
-function setPreDialogFunction(fn) {
-  preDialogFunction = fn;
-}
-
-/**
- * Set up function to be called whenever dialog is opened.
- * @param {function} fn
- */
-function setPostDialogFunction(fn) {
-  postDialogFunction = fn;
+  ANIMATION_STATE_MANAGER.setAnimationState(true);
 }
 
 /**
@@ -292,8 +268,6 @@ function showControlsDialog(mainContent, options = {}) {
  * The UI singleton.
  */
 const UI = {
-  setPreDialogFunction: setPreDialogFunction,
-  setPostDialogFunction: setPostDialogFunction,
   showChoiceDialog: showChoiceDialog,
   showMessage: showMessage,
   showOkDialog: showOkDialog,

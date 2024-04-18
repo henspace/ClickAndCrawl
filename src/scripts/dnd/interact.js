@@ -31,9 +31,9 @@ import LOG from '../utils/logging.js';
 import {
   addFadingAnimatedImage,
   addFadingImage,
-  addFadingText,
+  displayRisingText,
 } from '../utils/effects/transient.js';
-import { Acceleration, Velocity } from '../utils/geometry.js';
+import { Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
 import { PathFollower, moveActorToPosition } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
@@ -47,22 +47,6 @@ import { ArtefactType } from '../players/artefacts.js';
 import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/canvasStyles.js';
 
-/**
- * Display rising text that fades.
- * @param {string} text
- * @param {module:utils/geometry~Position} position
- * @param {string} [color = 'white']
- */
-function displayRisingText(text, position, color = 'white') {
-  addFadingText(text, {
-    color: color,
-    delaySecs: 2,
-    lifetimeSecs: 3,
-    position: new Point(position.x, position.y),
-    velocity: new Velocity(0, -48, 0),
-    acceleration: new Acceleration(0, -96, 0),
-  });
-}
 /**
  * Apply poison damage to defender
  * @param {module:players/artefacts.Artefact} poison

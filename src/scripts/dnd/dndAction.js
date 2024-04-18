@@ -44,6 +44,7 @@ export const DRINKS_FOR_SHORT_REST = 1;
  * @returns {number} amount of damage
  */
 export function getMeleeDamage(attack, target) {
+  LOG.debug(`Attack on ${target.traits.get('NAME')}`);
   const diceRoll = dice.rollDice(20);
   // handle fate and curses.
   if (diceRoll === 1) {
