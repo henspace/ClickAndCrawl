@@ -2,8 +2,9 @@
 
 **Click and Crawl** is a casual old-school dungeon crawler. Your starting
 character is created automatically, so just click **Play&nbsp;adventure** and
-see how much gold you can make. Make more gold than a previous adventure and your
-adventure will be saved as the best.
+see how much gold you can make. The success of your exploration is calculated as
+your character level multiplied by your wealth. Your most successful adventure will
+be saved in the dungeon records.
 
 To interact with people and objects, you must be next to them. You can only interact
 with things to your north, south, east or west -- not diagonally.

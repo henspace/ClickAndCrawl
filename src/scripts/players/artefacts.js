@@ -87,43 +87,43 @@ export const ArtefactType = {
     storageSpace: 1,
     storeType: { stash: StoreType.WAGON, equip: StoreType.BODY },
   },
-  CONSUMABLE: {
-    storageSpace: 1,
-    storeType: { stash: StoreType.BACKPACK },
-  },
   CANTRIP: {
     storageSpace: 1,
     storeType: { stash: null, equip: StoreType.CANTRIPS },
+  },
+  COINS: { storageSpace: 0, storeType: { stash: StoreType.PURSE } },
+  CONSUMABLE: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK },
   },
   GENERIC: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
+  HEAD_GEAR: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HEAD },
+  },
   KEY: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
-  },
-  SPELL: {
-    storageSpace: 1,
-    storeType: { stash: StoreType.SPELLS, equip: StoreType.PREPARED_SPELLS },
-  },
-  WEAPON: {
-    storageSpace: 1,
-    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
   SHIELD: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
+  SPELL: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.SPELLS, equip: StoreType.PREPARED_SPELLS },
+  },
   TWO_HANDED_WEAPON: {
     storageSpace: 2,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
-  HEAD_GEAR: {
+  WEAPON: {
     storageSpace: 1,
-    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HEAD },
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
-  COINS: { storageSpace: 0, storeType: { stash: StoreType.PURSE } },
 };
 
 /**
@@ -283,6 +283,17 @@ class ArtefactStore {
       this.#artefacts.delete(storedArtefact);
     }
     return storedArtefact;
+  }
+
+  /**
+   * Get the first element. It isn't removed from storage
+   * @returns {Artefact} null if empty.
+   */
+  getFirst() {
+    if (this.isEmpty()) {
+      return null;
+    }
+    return this.#artefacts.values().next().value;
   }
 
   /**

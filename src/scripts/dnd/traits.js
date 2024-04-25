@@ -29,15 +29,14 @@
  */
 
 import * as maths from '../utils/maths.js';
-import { ArtefactType } from '../players/artefacts.js';
 import * as dice from '../utils/dice.js';
 import * as tables from './tables.js';
 import * as arrayManip from '../utils/arrays/arrayManip.js';
 
 import LOG from '../utils/logging.js';
 
-/** Basic ability keys @type {string[]}*/
-const ABILITY_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+/**  Main character stats. Note that armour class is included. */
+const CHAR_STATS_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA', 'AC'];
 
 const FEET_PER_TILE = 7.5;
 /**
@@ -47,20 +46,6 @@ const FEET_PER_TILE = 7.5;
  */
 export function characteristicToModifier(value) {
   return Math.floor((value - 10) / 2);
-}
-
-/** Apply dexterity modifier to an item to get its AC value */
-function getAcUsingDexterity(item, dexterity) {
-  const modifier = characteristicToModifier(dexterity);
-  const armourType = item.traits.get('TYPE', '').toLowerCase();
-  const armourClass = item.traits.getInt('AC', 0);
-  if (armourType.includes('HEAVY')) {
-    return armourClass;
-  } else if (armourType.includes('MEDIUM')) {
-    return armourClass + Math.min(2, modifier);
-  } else {
-    return armourClass + modifier;
-  }
 }
 
 /**
@@ -147,7 +132,9 @@ export class AttackDetail {
     } else {
       modifier = this.abilityModifier;
     }
-    return dice.rollMultiDice(this.damageDice) + modifier;
+    const damage = dice.rollMultiDice(this.damageDice) + modifier;
+    LOG.debug(`Damage: ${this.damageDice} + ${modifier} = ${damage}`);
+    return damage;
   }
 
   /**
@@ -208,14 +195,21 @@ export class Traits {
         throw new Error(`Invalid property definition'${item}'`);
       }
     });
-    this._compositeAc = this.getInt('AC', 0);
     return this;
+  }
+
+  /**
+   * Does traits have key.
+   * @param {string} key
+   * @returns {boolean}
+   */
+  has(key) {
+    return this._traits.has(key);
   }
 
   /**
    * @param {string} key
    * @param {*} value
-   * @throws {Error} thrown if key invalid.
    */
   set(key, value) {
     this._traits.set(key, value);
@@ -253,6 +247,17 @@ export class Traits {
   }
 
   /**
+   * Add an integer value. Derived values are not recalculated.
+   * @param {string} key
+   * @param {number} value
+   */
+  addInt(key, value) {
+    const currentValue = this.getInt(key);
+    const newValue = maths.safeParseInt(value) + currentValue;
+    this._traits.set(key, newValue);
+  }
+
+  /**
    * Take a value normally entered in feet and convert to tiles.
    * @param {string} key
    * @param {number} defValue - default if not found.
@@ -263,6 +268,15 @@ export class Traits {
     if (valueInFeet === null || valueInFeet === undefined) {
       return defValue;
     }
+    return Traits.feetToTiles(valueInFeet);
+  }
+
+  /**
+   * Convert a value in feet to whole number of tiles.
+   * @param {*} valueInFeet
+   * @returns {number}
+   */
+  static feetToTiles(valueInFeet) {
     return Math.round(valueInFeet / FEET_PER_TILE);
   }
 
@@ -492,12 +506,16 @@ export class MagicTraits extends Traits {
 }
 
 /**
+ * @typedef {Object} ArtefactTraitsCollection
+ * @property {Traits[]} weapons
+ * @property {Traits[]} armour
+ * @property {Traits[]} shields
+ * @property {Traits[]} magic
+ */
+/**
  * DnD character traits
  */
 export class CharacterTraits extends Traits {
-  // Derived traits.
-  /** @type {number} */
-  _compositeAc;
   /** @type {number} */
   _proficiencyBonus;
   /** @type {number} */
@@ -506,11 +524,17 @@ export class CharacterTraits extends Traits {
   /** @type {AttackDetail[]} */
   _attacks;
 
-  /** @type {Artefact[]} */
-  _equippedWeapons;
+  /** @type {ArtefactTraitsCollection} */
+  _availableArtefactTraits;
 
-  /** @type {Artefact[]} */
-  _equippedArmour;
+  /** @type {Traits[]} */
+  _transientFxTraits;
+
+  /** @type {Traits} */
+  _effectiveTraits;
+
+  /** Amount movement is reduced in tiles */
+  _maxTileMovePerTurn;
 
   /**
    *
@@ -519,41 +543,82 @@ export class CharacterTraits extends Traits {
   constructor(initialTraits) {
     super(initialTraits ?? new Map([['NAME', 'mystery']]));
     this._proficiencyBonus = 0;
-    this.#setInitialAbilityScores(ABILITY_KEYS);
+    this.#setInitialAbilityScores();
+    this._transientFxTraits = [];
     this.#initialiseHitPoints();
     this._refreshDerivedValues();
   }
 
   /**
+   * Get the movement per turn.
+   * This takes into account any impediments to motion.
+   */
+  getMaxTilesPerMove() {
+    return this._maxTileMovePerTurn;
+  }
+  /**
    * Clone traits.
    * @return {Traits}
    */
   clone() {
-    const actorTraits = super.clone();
-    actorTraits._compositeAc = this._compositeAc;
+    /** @type {CharacterTraits} */
+    const actorTraits = new CharacterTraits(this._traits);
     actorTraits._proficiencyBonus = this._proficiencyBonus;
     actorTraits._level = this._level;
     actorTraits._attacks = this._attacks.map((attack) => attack.clone());
-    actorTraits._equippedWeapons = this._equippedWeapons; // reference okay
-    actorTraits._equippedArmour = this._equippedArmour; // reference okay
+    actorTraits._availableArtefactTraits = this._availableArtefactTraits; //refererence okay
+    actorTraits._effectiveTraits = this._effectiveTraits.clone();
+    actorTraits._transientFxTraits = [];
+    this._transientFxTraits.forEach((traits) =>
+      actorTraits._transientFxTraits.push(traits.clone())
+    );
+    actorTraits._maxTileMovePerTurn = this._maxTileMovePerTurn;
     return actorTraits;
   }
 
-  /**
-   * Calculate the ability scores unless already set.
-   * @param {string[]} keys
+  /** Add transient traits. Note only values which affect CHAR_STATS_KEYS are
+   * used. To be used, the trait should begin with FX_. This is to distinguish
+   * traits which affect a victim from traits which are characteristics of the
+   * owner.
+   * @param {Traits}
    */
-  #setInitialAbilityScores(keys) {
+  addTransientFxTraits(traits) {
+    const traitsSubset = new Traits();
+    let hasEffect = false;
+    CHAR_STATS_KEYS.forEach((key) => {
+      const fxKey = CharacterTraits.toFxKey(key);
+      const value = traits.getInt(fxKey);
+      if (value) {
+        hasEffect = true;
+        traitsSubset.set(fxKey, value);
+      }
+    });
+    if (hasEffect) {
+      this._transientFxTraits.push(traitsSubset);
+      this._refreshDerivedValues();
+    }
+  }
+
+  /**
+   * Clear transient traits.
+   */
+  clearTransientFxTraits() {
+    this._transientFxTraits = [];
+    this._refreshDerivedValues();
+  }
+
+  /**
+   * Set initial ability scores unless already set.
+   */
+  #setInitialAbilityScores() {
     const values = arrayManip.randomise([15, 14, 13, 12, 10, 8]);
     let valueIndex = 0;
-    keys.forEach((key) => {
+    CHAR_STATS_KEYS.forEach((key) => {
       if (!this.get(key)) {
-        const value = values[valueIndex++] ?? 8;
-        this.set(key, value);
+        this.set(key, values[valueIndex++] ?? 8);
       }
     });
   }
-
   /**
    * Initialise the hit points unless already set.
    * This is calculated as the maximum hit dice roll + the constitution modifier.
@@ -579,12 +644,49 @@ export class CharacterTraits extends Traits {
     }
   }
 
+  /** Traits that affect victims rather than the owner are preceeded by 'FX'.
+   * This function converts a key to an FX key; i.e. 'FX_key'.
+   * @param {string} key
+   * @returns {string}
+   */
+  static toFxKey(key) {
+    return `FX_${key}`;
+  }
+
   /**
-   * Get the effective armour class;
+   * Test if there is an effective trait overriding the base trait.
+   * @param {key}
+   * @returns {boolean}
+   */
+  hasEffective(key) {
+    return this._effectiveTraits ? this._effectiveTraits.has(key) : false;
+  }
+  /**
+   * Get the effective traits value. This differs from the underlying traits
+   * value as it can include armour, weapons, transient effects, and magical
+   * items. If the value is not in the _effectiveTraits, the underlying value is
+   * returned.
+   * @param {key}
+   * @param {*} defaultValue
+   * @returns {*}
+   */
+  getEffective(key, defaultValue) {
+    return (
+      this._effectiveTraits.get(key) ?? this._traits.get(key, defaultValue)
+    );
+  }
+
+  /**
+   * Get the effective traits value. This differs from the underlying traits
+   * value as it can include armour, weapons, transient effects, and magical
+   * items. If the value is not in the _effectiveTraits, the underlying value is
+   * returned.
+   * @param {key}
+   * @param {number} defaultValue
    * @returns {number}
    */
-  getEffectiveAc() {
-    return this._compositeAc;
+  getEffectiveInt(key, defaultValue) {
+    return maths.safeParseInt(this.getEffective(key), defaultValue);
   }
 
   /**
@@ -611,11 +713,11 @@ export class CharacterTraits extends Traits {
 
   /**
    * Get the proficiency bonus;
-   * @param {module:players/Artefact} artefact
+   * @param {Traits} artefactTraits
    * @returns {number}
    */
-  getCharacterPb(artefact) {
-    return this.isProficient(artefact) ? this._proficiencyBonus : 0;
+  getCharacterPb(artefactTraits) {
+    return this.isProficient(artefactTraits) ? this._proficiencyBonus : 0;
   }
 
   /**
@@ -628,15 +730,10 @@ export class CharacterTraits extends Traits {
 
   /**
    * Update derived values for new artefacts.
-   * @param {Artefact[]} artefacts
+   * @param {ArtefactTraitsCollection} availableTraits
    */
-  utiliseArtefacts(artefacts) {
-    this._equippedWeapons = artefacts.filter(
-      (artefact) => artefact.artefactType === ArtefactType.WEAPON
-    );
-    this._equippedArmour = artefacts.filter(
-      (artefact) => artefact.artefactType === ArtefactType.ARMOUR
-    );
+  utiliseAdditionalTraits(availableTraits) {
+    this._availableArtefactTraits = availableTraits;
     this._refreshDerivedValues();
   }
 
@@ -650,13 +747,17 @@ export class CharacterTraits extends Traits {
    * @param {string} updatedKey
    */
   _refreshDerivedValues(updatedKey) {
-    if (!updatedKey || ABILITY_KEYS.includes(updatedKey)) {
+    if (!updatedKey || CHAR_STATS_KEYS.includes(updatedKey)) {
       this._setLevelAndProfBonusFromExp();
+      this._initialiseEffectiveTraits();
       if (this._traits.has('DMG')) {
         this._deriveValuesFromTraits();
       } else {
-        this._utiliseWeapons(this._equippedWeapons);
-        this._utiliseArmour(this._equippedArmour);
+        this._utiliseTransientTraits();
+        this._utiliseMagicTraits();
+        this._utiliseWeaponsTraits();
+        this._utiliseArmourAndShieldTraits();
+        this._adjustMovementForArmour();
       }
     }
   }
@@ -666,8 +767,7 @@ export class CharacterTraits extends Traits {
    * armour or weapons.
    */
   _deriveValuesFromTraits() {
-    // monsters have their AC defined already taking into account modifiers.
-    this._compositeAc = this.getInt('AC', 0); // character's base AC
+    this._maxTileMovePerTurn = this.getValueInFeetInTiles('SPEED', 1);
     this._attacks = [];
     const strength = this.getInt('STR', 1);
     const abilityModifier = characteristicToModifier(strength);
@@ -681,72 +781,141 @@ export class CharacterTraits extends Traits {
 
     this._attacks.push(attack);
   }
+
   /**
-   * Armour weapons. The armour classes are combined.
-   * @param {Artefact[]} armour
+   * Initialise the effective traits to the base values.
    */
-  _utiliseArmour(armour) {
-    let armourClass = this.getInt('AC', 0); // character's base AC
-    if (!armour || armour.length === 0) {
-      this._compositeAc = armourClass;
-      return;
-    }
-    let dexterity = this.getInt('DEX', 1);
-    let additionalArmourClass = 0;
-    let shieldArmourClass = 0;
-    for (const item of armour) {
-      switch (item.artefactType) {
-        case ArtefactType.ARMOUR:
-          {
-            const acTrait = item.traits.get('AC', 0);
-            const acValue = getAcUsingDexterity(item, dexterity);
-            if (acTrait.startsWith('+')) {
-              additionalArmourClass += acValue;
-            } else if (acValue > armourClass) {
-              armourClass = acValue;
-            }
-          }
-          break;
-        case ArtefactType.SHIELD:
-          // only one shield ever used.
-          shieldArmourClass = Math.max(
-            shieldArmourClass,
-            item.traits.getInt('AC', 0)
-          );
-          break;
-      }
-    }
-    this._compositeAc = armourClass + additionalArmourClass + shieldArmourClass;
+  _initialiseEffectiveTraits() {
+    this._effectiveTraits = new Traits();
+    CHAR_STATS_KEYS.forEach((key) => {
+      this._effectiveTraits.set(key, this.getInt(key, 0));
+    });
+  }
+  /**
+   * Utilise transient traits. Only character stat keys are used.
+   * These are added to the effect traits and should be called before
+   * utilising magic, armour or weapons.
+
+   */
+  _utiliseTransientTraits() {
+    this._transientFxTraits?.forEach((traits) => {
+      LOG.debug(`Transient traits: ${traits.valuesToString()}`);
+      this._addFxTraitsToEffectiveTraits(traits);
+    });
   }
 
-  /**  */
   /**
-   * Utilise weapons. The best option for equipped weapons is automatically selected
-   * to give the maximum chance of damage. Up to two weapons are supported.
-   * @param {Artefact[]} [weapons = []]
+   * Add FX traits to effective traits.
+   * Any traits for a CHAR_STATS_KEY preceded by 'FX_' is added to the effective
+   * traits. Note the value is **added** to the existing value;
+   * @param {Traits} traits
    */
-  _utiliseWeapons(weapons = []) {
-    this._attacks = [];
+  _addFxTraitsToEffectiveTraits(traits) {
+    CHAR_STATS_KEYS.forEach((key) => {
+      const value = traits.getInt(CharacterTraits.toFxKey(key));
+      if (value) {
+        this._effectiveTraits.addInt(key, value);
+      }
+    });
+  }
+  /**
+   * Utilise magic traits. Only character stat keys are used.
+   * Note that magic items should only affect the 6 key abilities and not the
+   * armour class. An item that directly affects the AC value should be treated
+   * as an ARMOUR or SHIELD item rather than a magical item.
+   */
+  _utiliseMagicTraits() {
+    if (!this?._availableArtefactTraits?.magic) {
+      return;
+    }
+    for (const traits of this._availableArtefactTraits.magic) {
+      LOG.debug(`Magic traits: ${traits.valuesToString()}`);
+      this._addFxTraitsToEffectiveTraits(traits);
+    }
+  }
 
-    const strength = this.getInt('STR', 1);
+  /**
+   * Utilise armour and shields. The armour classes are combined.
+   * Note that magical items must be utilised first as these might affect
+   * the actor's dexterity.
+   */
+  _utiliseArmourAndShieldTraits() {
+    let armourClass = this.getEffectiveInt('AC', 0); // character's base AC
+    const armourTraits = this?._availableArtefactTraits?.armour;
+    const shieldTraits = this?._availableArtefactTraits?.shields;
+    let additionalArmourClass = 0;
+    let shieldArmourClass = 0;
+    armourTraits?.forEach((traits) => {
+      const acInfo = this._getAcFromTraits(traits);
+      if (acInfo.additional) {
+        additionalArmourClass += acInfo.value;
+      } else if (acInfo.value > armourClass) {
+        armourClass = acInfo.value;
+      }
+    });
+
+    shieldTraits?.forEach((traits) => {
+      shieldArmourClass = Math.max(shieldArmourClass, traits.getInt('AC', 0));
+    });
+
+    const compositeAc = armourClass + additionalArmourClass + shieldArmourClass;
+    this._effectiveTraits.set('AC', compositeAc);
+  }
+
+  /**
+   * Armour can impede an actor's movement. This sets any movement inhibition
+   * based on the armour.
+   */
+  _adjustMovementForArmour() {
+    const baseSpeedInFeet = this.getFloat('SPEED', 1);
+    this._maxTileMovePerTurn = Math.max(1, Traits.feetToTiles(baseSpeedInFeet)); // default base movement
+
+    if (!this._availableArtefactTraits?.armour) {
+      return;
+    }
+
+    for (const traits of this._availableArtefactTraits.armour) {
+      if (
+        traits.get('TYPE', '').toUpperCase().includes('HEAVY') &&
+        traits.getInt('STR', 0) > this.getEffectiveInt('STR')
+      ) {
+        this._maxTileMovePerTurn = Math.max(
+          1,
+          Traits.feetToTiles(baseSpeedInFeet - 10)
+        );
+        return;
+      }
+    }
+  }
+  /**
+   * Utilise weapons traits. The best option for equipped weapons is automatically selected
+   * to give the maximum chance of damage. Up to two weapons are supported.
+   * Note that magical items must be utilised first as these might affect the
+   * character's strength.
+   */
+  _utiliseWeaponsTraits() {
+    this._attacks = [];
+    const weaponsTraits = this?._availableArtefactTraits?.weapons ?? [];
+
+    const strength = this.getEffectiveInt('STR', 1);
     const abilityModifier = characteristicToModifier(strength);
-    if (weapons.length > 2) {
+    if (weaponsTraits.length > 2) {
       LOG.error(
-        `Unexpected number of equipped weapons. Expected 2; received ${weapons.length}`
+        `Unexpected number of equipped weapons. Expected 2; received ${weaponsTraits.length}`
       );
     }
     let firstAttack;
     let weaponType;
     let damageDice;
     let proficient;
-    if (weapons.length === 0) {
+    if (weaponsTraits.length === 0) {
       damageDice = '';
       weaponType = 'UNARMED';
       proficient = true;
     } else {
-      damageDice = weapons[0].traits.get('DMG', '1D1') ?? '1D1';
-      weaponType = weapons[0].traits.get('TYPE') ?? '';
-      proficient = this.isProficient(weapons[0]);
+      damageDice = weaponsTraits[0].get('DMG', '1D1') ?? '1D1';
+      weaponType = weaponsTraits[0].get('TYPE') ?? '';
+      proficient = this.isProficient(weaponsTraits[0]);
     }
 
     firstAttack = new AttackDetail({
@@ -758,14 +927,14 @@ export class CharacterTraits extends Traits {
     });
 
     let secondAttack;
-    if (weapons.length > 1) {
+    if (weaponsTraits.length > 1) {
       secondAttack = new AttackDetail({
-        damageDice: weapons[1].traits.get('DMG', '1D1') ?? '1D1',
-        weaponType: weapons[1].traits.get('TYPE') ?? '',
-        proficiencyBonus: this.isProficient(weapons[1])
+        damageDice: weaponsTraits[1].get('DMG', '1D1') ?? '1D1',
+        weaponType: weaponsTraits[1].get('TYPE') ?? '',
+        proficiencyBonus: this.isProficient(weaponsTraits[1])
           ? this._proficiencyBonus
           : 0,
-        abilityModifier: strength,
+        abilityModifier: abilityModifier < 0 ? abilityModifier : 0, // only used for second weapon if negative
         secondAttack: true,
       });
     }
@@ -784,6 +953,29 @@ export class CharacterTraits extends Traits {
   }
 
   /**
+   * Apply dexterity modifier to an item to get its AC value.
+   * @param {Traits} traits
+   * @returns {{additional:boolean, value:number}} additional is true if this should
+   * be added to current value rather than as a replacement.
+   */
+  _getAcFromTraits(traits) {
+    const dexterity = this.getEffectiveInt('DEX', 1);
+    const modifier = characteristicToModifier(dexterity);
+    const armourType = traits.get('TYPE', '').toUpperCase();
+    const acTrait = traits.get('AC', 0);
+    let armourClass = maths.safeParseInt(acTrait);
+    if (armourType.includes('MEDIUM')) {
+      armourClass += Math.min(2, modifier);
+    } else {
+      armourClass += modifier;
+    }
+    return {
+      additional: acTrait.startsWith('+'),
+      value: armourClass,
+    };
+  }
+
+  /**
    * Set the level and prof bonus. These are calculated from the experience.
    */
   _setLevelAndProfBonusFromExp() {
@@ -798,12 +990,13 @@ export class CharacterTraits extends Traits {
    * @property {*} now
    */
   /**
-   * Increase experience based on challenge rating.
-   * @param {string|number} cr
+   * Increase experience, level and proficiency bonus
+   *  based on challenge rating.
+   * @param {Traits} defeatedTraits
    * @returns {{exp: ValueChangeInfo, level: ValueChangeInfo}}
    */
-  adjustForDefeatOfActor(defeated) {
-    const challengeRating = defeated.traits.get('CR');
+  adjustForDefeatOfActor(defeatedTraits) {
+    const challengeRating = defeatedTraits.get('CR');
     const gainedExp = tables.getXpFromCr(challengeRating);
     const currentExp = this.getInt('EXP', 0);
     const newExp = currentExp + gainedExp;
@@ -823,12 +1016,12 @@ export class CharacterTraits extends Traits {
    * The test looks at the artefact's TYPE trait. If it includes one of this trait's
    * PROF entries, the result is true. This means that a PROF entry of 'melee' would
    * match 'simple melee' and 'martial melee'.
-   * @param {module:players/artefacts.Artefact} item
+   * @param {Traits} artefactTraits
    * @returns {boolean}
    */
-  isProficient(artefact) {
-    const proficiencies = this._traits.get('PROF');
-    const artefactSubtype = artefact.traits.get('TYPE');
+  isProficient(artefactTraits) {
+    const proficiencies = this.get('PROF');
+    const artefactSubtype = artefactTraits.get('TYPE');
     if (!proficiencies || !artefactSubtype) {
       return false;
     }

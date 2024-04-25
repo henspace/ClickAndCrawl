@@ -1,7 +1,3 @@
-# minlevel:number,ArtefactType:string,id:string * traits:string
-# Note that the ID can have text following a + character. This will
-# form part of the id to create a unique almanac entry but will not be used
-# for the image or description.
 0,COMMON,CONSUMABLE,iron_rations * VALUE: 3SP, TYPE: MEAL
 0,COMMON,CONSUMABLE,waterskin * VALUE: 2SP , TYPE: DRINK
 0,UNCOMMON,CONSUMABLE,black_flask+poison * VALUE: 2SP, _TYPE: POISON, _DMG: 3D6, _DC:16, _SAVE_ABILITY: CON

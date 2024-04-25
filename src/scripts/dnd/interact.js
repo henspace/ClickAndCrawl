@@ -42,19 +42,20 @@ import SOUND_MANAGER from '../utils/soundManager.js';
 import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
 import * as dndAction from './dndAction.js';
-import { ActorType } from '../players/actors.js';
-import { ArtefactType } from '../players/artefacts.js';
+import { ActorType, AttackMode } from '../players/actors.js';
+import { ArtefactType, StoreType } from '../players/artefacts.js';
 import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/canvasStyles.js';
 
 /**
- * Apply poison damage to defender
+ * Apply poison damage and transient effects to defender
  * @param {module:players/artefacts.Artefact} poison
  * @param {module:players/actors.Actor} victim
  * @param {number} damage
  * @returns {number} resulting HP of defender
  */
 function applyPoisonDamage(poison, victim, damage) {
+  victim.traits.addTransientFxTraits(poison.traits);
   SOUND_MANAGER.playEffect('POISONED');
   if (damage >= 0) {
     addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
@@ -91,7 +92,7 @@ function applyDamage(attacker, defender, damage) {
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
     if (attacker.isHero?.()) {
-      const change = attacker.traits.adjustForDefeatOfActor(defender);
+      const change = attacker.traits.adjustForDefeatOfActor(defender.traits);
       let text;
       if (change.level.now > change.level.was) {
         text = i18n`LEVEL UP ${change.level.now}`;
@@ -245,7 +246,6 @@ export class Fight extends AbstractInteraction {
     });
     return pathModifier.applyAsTransientToSprite(attacker.sprite);
   }
-
   /**
    * Undertake attack. Note that the defender is not removed if its hit points
    * hit zero.
@@ -254,6 +254,31 @@ export class Fight extends AbstractInteraction {
    * @returns {Promise} fulfils to the defender's HP.
    */
   #undertakeAllAttacks(attacker, defender) {
+    if (!attacker.isHero()) {
+      // Monsters can use poison attacks or magic if available.
+      if (attacker.attackMode === AttackMode.POISON) {
+        return new Poison(attacker).enact(defender);
+      }
+      // Monsters use a spell or cantrip if available.
+      const storeManager = attacker.storeManager;
+      let spell = storeManager.getStore(StoreType.PREPARED_SPELLS).getFirst();
+      if (!spell) {
+        spell = storeManager.getStore(StoreType.CANTRIPS).getFirst();
+      }
+      if (spell) {
+        return spell.interaction.react(attacker);
+      }
+    }
+    return this.#undertakeAllMeleeAttacks(attacker, defender);
+  }
+  /**
+   * Undertake attack. Note that the defender is not removed if its hit points
+   * hit zero.
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:players/actors.Actor} defender
+   * @returns {Promise} fulfils to the defender's HP.
+   */
+  #undertakeAllMeleeAttacks(attacker, defender) {
     let totalDamage = 0;
     let successfulAttacks = 0;
     attacker.traits.getAttacks().forEach((attack) => {
@@ -500,7 +525,7 @@ export class Poison extends AbstractInteraction {
   enact(reactor) {
     const damage = dndAction.getPoisonDamage(this.owner, reactor);
     applyPoisonDamage(this.owner, reactor, damage);
-
+    reactor.traits.addTransientFxTraits(this.owner.traits);
     return Promise.resolve();
   }
 }
@@ -532,6 +557,7 @@ export class CastSpell extends AbstractInteraction {
   canReact() {
     return true;
   }
+
   /**
    * Respond to a spell cast
    * @param {module:players/actors.Actor} enactor
@@ -551,14 +577,11 @@ export class CastSpell extends AbstractInteraction {
       }
       this.#displaySpell(tile.worldPoint);
       tile.getOccupants().forEach((occupant) => {
-        if (occupant.isEnemy() || occupant.isTrader()) {
-          hitTargets++;
-          const damage = dndAction.getSpellDamage(
-            enactor,
-            occupant,
-            this.owner
-          );
+        hitTargets++;
+        const damage = dndAction.getSpellDamage(enactor, occupant, this.owner);
+        if (damage > 0) {
           applyDamage(enactor, occupant, damage);
+          occupant.traits.addTransientFxTraits(this.owner.traits);
         }
       });
     }

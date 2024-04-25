@@ -51,15 +51,15 @@ export function getMeleeDamage(attack, target) {
     LOG.debug('Attack dice rolled 0: cursed.');
     return 0; // cursed.
   } else if (diceRoll === 20) {
-    LOG.debug('Attack dice rolled 20: critical hit.');
+    LOG.debug('Attack dice rolled 20: critical hit. Damage will be doubled.');
     return 2 * attack.rollForDamage(); // critical hit
   }
 
   const attackRoll =
     diceRoll + attack.abilityModifier + attack.proficiencyBonus;
-  const targetAc = target.traits.getEffectiveAc();
+  const targetAc = target.traits.getEffectiveInt('AC');
   LOG.debug(
-    `Attack: dice: ${diceRoll}, ability modifier: ${attack.abilityModifier}, proficiency bonus: ${attack.proficiencyBonus}, target AC: ${targetAc}`
+    `Attack: dice + ability + prof_bonus: ${diceRoll}+${attack.abilityModifier}+${attack.proficiencyBonus} vs target AC: ${targetAc}`
   );
   if (attackRoll >= targetAc) {
     return attack.rollForDamage();
@@ -119,7 +119,7 @@ export function getSpellDamage(attacker, target, spell) {
   }
 
   const spellModifier =
-    attacker.traits.getCharacterPb(spell) +
+    attacker.traits.getCharacterPb(spell.traits) +
     characteristicToModifier(attackerIntelligence);
   const fullDifficulty = difficulty + spellModifier;
   let savingThrow = dice.rollDice(20) + saveModifier;

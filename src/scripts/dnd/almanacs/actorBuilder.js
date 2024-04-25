@@ -258,7 +258,6 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
   );
   actor.almanacEntry = almanacEntry;
   actor.traits = traits;
-  actor.maxTilesPerMove = traits.getValueInFeetInTiles('SPEED', 1);
   actor.velocity = { x: 0, y: 0, rotation: 0 };
   actor.iconImageName = iconImageName
     ? `${iconImageName}.png`
@@ -362,6 +361,7 @@ function equipActor(actor, equipmentIds) {
       'MONEY',
       'WEAPONS',
       'ARMOUR',
+      'MAGIC',
     ]);
     if (artefactEntry) {
       const artefact = buildArtefact(artefactEntry);

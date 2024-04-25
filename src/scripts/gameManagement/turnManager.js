@@ -122,7 +122,7 @@ class ReplayableActorMover {
         const orthoSeparation =
           actorGridPos.getOrthoSeparation(heroGridPos) - 1;
         const maxHuntSeparation =
-          this.#actor.maxTilesPerMove * TOO_MANY_TURNS_TO_REACH;
+          this.#actor.getMaxTilesPerMove() * TOO_MANY_TURNS_TO_REACH;
         if (orthoSeparation <= maxHuntSeparation) {
           return this.#tileMap.worldPointToGrid(heroActor.position);
         }
@@ -131,7 +131,7 @@ class ReplayableActorMover {
     // everything else falls back to random walk.
     return this.#getRandomGridPosition(
       actorGridPos,
-      this.#actor.maxTilesPerMove
+      this.#actor.getMaxTilesPerMove()
     );
   }
   /**
@@ -144,14 +144,13 @@ class ReplayableActorMover {
     const targetGridPos = this.#getTargetGridPoint(actorGridPos);
 
     if (
-      !targetGridPos.coincident(actorGridPos) &&
-      this.#tileMap.canHeroSeeGridPoint(actorGridPos)
+      !targetGridPos.coincident(actorGridPos) // && this.#tileMap.canHeroSeeGridPoint(actorGridPos)
     ) {
       this.#routeFinder.actor = this.#actor;
       let waypoints = this.#routeFinder.getDumbRouteNextTo(
         actorGridPos,
         targetGridPos,
-        this.#actor.maxTilesPerMove
+        this.#actor.getMaxTilesPerMove()
       );
       if (waypoints.length > 0) {
         this.#modifier = new PathFollower(
@@ -212,8 +211,8 @@ class ReplayableActorMover {
    */
   replay() {
     this.#restorePosition();
-    this.#cloneIfOrganic();
     if (this.#modifier) {
+      this.#cloneIfOrganic();
       return this.#modifier.applyAsTransientToSprite(this.#actor.sprite);
     }
     return Promise.resolve();
@@ -226,7 +225,7 @@ class ReplayableActorMover {
     if (this.#actor.isOrganic()) {
       const clonedActor = buildActor(this.#actor.almanacEntry);
       clonedActor.position = this.#originalPosition;
-      clonedActor.maxTilesPerMove = 0;
+      clonedActor.freezeMovement();
       WORLD.addActor(clonedActor);
     }
   }
@@ -263,7 +262,7 @@ class MovementReplayer {
    * @param {module:players/actors.Actor} actor
    */
   addAndMoveActor(actor) {
-    if (actor.maxTilesPerMove === 0) {
+    if (actor.getMaxTilesPerMove() === 0) {
       return;
     }
     const replayableMover = new ReplayableActorMover(
@@ -345,7 +344,9 @@ class WaitingToStart extends State {
    */
   async onEvent(eventId, pointUnused, detailUnused) {
     if (eventId === EventId.MAIN_MENU) {
-      this.transitionTo(new AtMainMenu());
+      await this.transitionTo(new AtMainMenu());
+    } else {
+      return Promise.resolve();
     }
   }
 }
@@ -355,9 +356,10 @@ class WaitingToStart extends State {
  */
 class AtMainMenu extends State {
   onEntry() {
-    return showMainMenu().then((response) => {
+    return showMainMenu().then(async (response) => {
       persistentGame = response !== 'PLAY CASUAL';
-      return this.transitionTo(new AtStart());
+      await this.transitionTo(new AtStart());
+      return;
     });
   }
 }
@@ -506,9 +508,9 @@ class HeroTurnIdle extends State {
             });
           }
           if (heroActor.traits.get('HP', 0) === 0) {
-            this.transitionTo(new AtGameOver());
+            await this.transitionTo(new AtGameOver());
           } else {
-            this.transitionTo(new ComputerTurnIdle());
+            await this.transitionTo(new ComputerTurnIdle());
           }
         }
 
@@ -572,13 +574,13 @@ class HeroTurnInteracting extends State {
             });
           }
           if (heroActor.traits.get('HP', 0) === 0) {
-            this.transitionTo(new AtGameOver());
+            await this.transitionTo(new AtGameOver());
           } else if (
             WORLD.getTileMap().getParticipants(heroActor).length === 0
           ) {
-            this.transitionTo(new ComputerTurnIdle());
+            await this.transitionTo(new ComputerTurnIdle());
           } else {
-            this.transitionTo(new ComputerTurnInteracting());
+            await this.transitionTo(new ComputerTurnInteracting());
           }
         }
 
@@ -660,12 +662,12 @@ class ComputerTurnIdle extends State {
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of participants) {
       if (actor.isEnemy()) {
-        this.transitionTo(new HeroTurnInteracting());
+        await this.transitionTo(new HeroTurnInteracting());
         return Promise.resolve(null);
       }
     }
 
-    this.transitionTo(new HeroTurnIdle());
+    await this.transitionTo(new HeroTurnIdle());
   }
 }
 
@@ -703,11 +705,11 @@ class ComputerTurnInteracting extends State {
     await replayer.replay();
 
     if (heroActor.traits.get('HP', 0) === 0) {
-      this.transitionTo(new AtGameOver());
+      await this.transitionTo(new AtGameOver());
     } else if (participants.length === 0) {
-      this.transitionTo(new HeroTurnIdle());
+      await this.transitionTo(new HeroTurnIdle());
     } else {
-      this.transitionTo(new HeroTurnInteracting());
+      await this.transitionTo(new HeroTurnInteracting());
     }
 
     return Promise.resolve(null);
@@ -723,7 +725,7 @@ function prepareHeroTurn() {
   const tileMap = WORLD.getTileMap();
   const routes = new RouteFinder(tileMap, heroActor).getAllRoutesFrom(
     tileMap.worldPointToGrid(heroActor.sprite.position),
-    heroActor.maxTilesPerMove
+    heroActor.getMaxTilesPerMove()
   );
   tileMap.setMovementRoutes(routes);
   tileMap.setInteractActors(tileMap.getParticipants(heroActor));
@@ -802,6 +804,7 @@ function interact(point) {
  * @returns {Promise} fulfils to undefined.
  */
 function startNextScene(currentState) {
+  heroActor.traits.clearTransientFxTraits();
   if (persistentGame) {
     saveGameState(heroActor);
   }

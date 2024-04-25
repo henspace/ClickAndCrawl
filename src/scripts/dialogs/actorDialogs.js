@@ -28,7 +28,7 @@
  */
 import UI, { DialogResponse } from '../utils/dom/ui.js';
 import * as components from '../utils/dom/components.js';
-
+import * as maths from '../utils/maths.js';
 import { i18n } from '../utils/messageManager.js';
 import { ArtefactType, StoreType } from '../players/artefacts.js';
 import SCENE_MANAGER from '../gameManagement/sceneManager.js';
@@ -1076,13 +1076,6 @@ function createCorpseDescriptionElement(actor) {
  */
 function createTraitsList(actor, excludedKeys, includeGold) {
   const traitsList = document.createElement('ul');
-  if (actor.traits.getEffectiveAc) {
-    traitsList.appendChild(
-      components.createElement('li', {
-        text: i18n`AC (including armour)${actor.traits.getEffectiveAc()}`,
-      })
-    );
-  }
 
   if (includeGold) {
     const goldPieces = actor.storeManager?.getPurseValue();
@@ -1096,6 +1089,16 @@ function createTraitsList(actor, excludedKeys, includeGold) {
   }
 
   actor.traits?.getAllTraitsSorted().forEach((value, key) => {
+    if (actor.traits.hasEffective?.(key)) {
+      const effectiveValue = actor.traits.getEffectiveInt(key);
+      const baseValue = maths.safeParseInt(value);
+      if (effectiveValue !== baseValue) {
+        const diff = effectiveValue - baseValue;
+        value = `${effectiveValue} [${baseValue}${
+          diff < 0 ? '-' : '+'
+        }${diff}]`;
+      }
+    }
     if (value && value !== '0') {
       const displayedValue = Array.isArray(value) ? value.join(', ') : value;
       if (!excludedKeys.includes(key) && !key.startsWith('_')) {

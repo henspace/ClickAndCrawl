@@ -31,7 +31,7 @@
 
 import { AbstractInteraction } from '../dnd/interact.js';
 import { UiClickHandler } from '../utils/ui/interactions.js';
-import { ArtefactStoreManager } from './artefacts.js';
+import { ArtefactStoreManager, ArtefactType } from './artefacts.js';
 import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
 
@@ -44,6 +44,10 @@ import LOG from '../utils/logging.js';
  * @property {Traits} traits
  */
 
+/**
+ * @typedef {number} ActorTypeValue
+ */
+/** @enum{ActorTypeValue} */
 export const ActorType = {
   HERO: 0,
   ENEMY: 1,
@@ -51,6 +55,15 @@ export const ActorType = {
   HIDDEN_ARTEFACT: 3,
   TRADER: 4,
   PROP: 5,
+};
+
+/**
+ * @typedef {string} AttackModeValue
+ */
+/** @enum{AttackModeValue} */
+export const AttackMode = {
+  COMBAT: 'COMBAT',
+  POISON: 'POISON',
 };
 
 /**
@@ -87,8 +100,8 @@ export function strToActorType(str) {
 export class Actor extends UiClickHandler {
   /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} */
   almanacEntry;
-  /** @type {number} */
-  maxTilesPerMove;
+  /** @type {boolean} */
+  #frozen;
   /** @type {module:utils/sprites/sprite~Sprite} */
   sprite;
   /** @type {Traits} */
@@ -118,7 +131,7 @@ export class Actor extends UiClickHandler {
     this.interaction = new AbstractInteraction();
     this.sprite = sprite;
     this.sprite.obstacle = true;
-    this.maxTilesPerMove = 1;
+    this.#frozen = false;
     this.alive = true;
     this.disengaging = false;
     this.type = type;
@@ -133,9 +146,38 @@ export class Actor extends UiClickHandler {
    */
   #updateTraitsFromStore() {
     const items = this.storeManager.getAllEquippedArtefacts();
-    this.traits.utiliseArtefacts(items);
+    const weapons = items.filter(
+      (artefact) =>
+        artefact.artefactType === ArtefactType.WEAPON ||
+        artefact.artefactType === ArtefactType.TWO_HANDED_WEAPON
+    );
+    const armour = items.filter(
+      (artefact) => artefact.artefactType === ArtefactType.ARMOUR
+    );
+    const shields = items.filter(
+      (artefact) => artefact.artefactType === ArtefactType.SHIELD
+    );
+    const magic = items.filter((artefact) => artefact.isMagic());
+    this.traits.utiliseAdditionalTraits({
+      weapons: weapons.map((artefact) => artefact.traits),
+      armour: armour.map((artefact) => artefact.traits),
+      shields: shields.map((artefact) => artefact.traits),
+      magic: magic.map((artefact) => artefact.traits),
+    });
   }
 
+  /**
+   * Freeze any movement.
+   */
+  freezeMovement() {
+    this.#frozen = true;
+  }
+  /**
+   * Get max tiles per move
+   */
+  getMaxTilesPerMove() {
+    return this.#frozen ? 0 : this.traits.getMaxTilesPerMove();
+  }
   /**
    * Test if this actor is the hero.
    * @returns {boolean}
@@ -243,7 +285,7 @@ export class Actor extends UiClickHandler {
    * @returns {boolean}
    */
   isWandering() {
-    return this?.traits.get('MOVE') === MoveType.WANDER;
+    return this.traits?.get('MOVE') === MoveType.WANDER;
   }
 
   /**
@@ -251,7 +293,7 @@ export class Actor extends UiClickHandler {
    * @returns {boolean}
    */
   isOrganic() {
-    return this?.traits.get('MOVE') === MoveType.ORGANIC;
+    return this.traits?.get('MOVE') === MoveType.ORGANIC;
   }
 
   /**
@@ -268,6 +310,14 @@ export class Actor extends UiClickHandler {
    */
   get moveType() {
     return this?.traits.get('MOVE');
+  }
+
+  /**
+   * Get the attack mode
+   * @returns {AttackModeValue} defaults to combat
+   */
+  get attackMode() {
+    return this?.traits.get('ATTACK', AttackMode.COMBAT);
   }
 
   /**

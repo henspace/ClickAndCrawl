@@ -32,7 +32,7 @@ import { test, expect } from '@jest/globals';
 import { TilePlan } from './tilePlan.js';
 
 const map = new Map([
-  [' ', undefined],
+  [' ', null],
   ['#-TL', 'top left corner'],
   ['#-TR', 'top right corner'],
   ['#-BR', 'bottom right corner'],
@@ -66,10 +66,10 @@ test('Test plan from design', () => {
   ];
 
   const plan = TilePlan.generateTileMapPlan(design, map);
-  expect(plan).toHaveLength(expectations.length);
+  expect(plan.matrix).toHaveLength(expectations.length);
   expectations.forEach((rowValue, rowIndex) => {
     rowValue.forEach((colValue, colIndex) => {
-      expect(plan[rowIndex][colIndex]).toBe(colValue);
+      expect(plan.matrix[rowIndex][colIndex]).toBe(colValue);
     });
   });
 });
@@ -84,10 +84,10 @@ test('Test plan doors from design', () => {
   ];
 
   const plan = TilePlan.generateTileMapPlan(design, map);
-  expect(plan).toHaveLength(expectations.length);
+  expect(plan.matrix).toHaveLength(expectations.length);
   expectations.forEach((rowValue, rowIndex) => {
     rowValue.forEach((colValue, colIndex) => {
-      expect(plan[rowIndex][colIndex]).toBe(colValue);
+      expect(plan.matrix[rowIndex][colIndex]).toBe(colValue);
     });
   });
 });
@@ -139,10 +139,10 @@ test('Test plan from design with internal corners', () => {
   ];
 
   const plan = TilePlan.generateTileMapPlan(design, map);
-  expect(plan).toHaveLength(expectations.length);
+  expect(plan.matrix).toHaveLength(expectations.length);
   expectations.forEach((rowValue, rowIndex) => {
     rowValue.forEach((colValue, colIndex) => {
-      expect(plan[rowIndex][colIndex]).toBe(colValue);
+      expect(plan.matrix[rowIndex][colIndex]).toBe(colValue);
     });
   });
 });

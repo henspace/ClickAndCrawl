@@ -80,7 +80,7 @@ export function showSettingsDialog() {
 export function initialiseSettings() {
   SETTINGS.forEach((setting) => {
     setting.label = MESSAGES.getText(setting.labelKey);
-    if (setting.persistent & setting.onChange) {
+    if (setting.persistent && setting.onChange) {
       const value = PERSISTENT_DATA.get(setting.id, setting.defValue);
       setting.onChange(value);
     }

@@ -48,7 +48,7 @@ function setMap(messageMap) {
  * @param {string} key
  */
 function getText(key) {
-  const value = messages.get(key);
+  const value = messages?.get(key);
   if (value === undefined || value === null) {
     return key;
   }

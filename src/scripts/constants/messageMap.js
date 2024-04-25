@@ -77,37 +77,21 @@ const MESSAGE_MAP = new Map([
     'Casting this spell hurls acid over your enemies.',
   ],
   [
-    'DESCRIPTION CHAIN_MAIL_ARMOUR',
-    'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
+    'DESCRIPTION BARBARIAN1',
+    'You are a barbarian ready to battle to the end of this dungeon in search of wealth and glory.',
   ],
   [
-    'DESCRIPTION HALF_PLATE_ARMOUR',
-    'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
+    'DESCRIPTION BLACK_FLASK',
+    'A black flask containing a clear, pungent liquid.',
   ],
-  [
-    'DESCRIPTION LEATHER_ARMOUR',
-    'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
-  ],
-  ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
-  [
-    'DESCRIPTION PLATE_ARMOUR',
-    'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
-  ],
-  [
-    'DESCRIPTION RING_MAIL_ARMOUR',
-    'Leather armour reinforced with heavy steel rings sown into the material.',
-  ],
-  [
-    'DESCRIPTION SCALE_MAIL_ARMOUR',
-    'Leather coat and legging covered with overlapping steel scales.',
-  ],
-  [
-    'DESCRIPTION STUDDED_LEATHER_ARMOUR',
-    'Tough and flexible leather armour with the addition of steel spikes and rivets.',
-  ],
+  ['DESCRIPTION BLUE_FLASK', 'A blue flask containing a clear, aromatic oil.'],
   [
     'DESCRIPTION BURNING_HANDS',
     'Casting this spell with your thumbs touching and fingers spread creates a thin sheet of flames enveloping your enemies.',
+  ],
+  [
+    'DESCRIPTION CHAIN_MAIL_ARMOUR',
+    'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
   ],
   ['DESCRIPTION CLUB', "A simple wooden club that's seen a lot of action."],
   [
@@ -123,10 +107,9 @@ const MESSAGE_MAP = new Map([
     'A large stone pillar covered with mystical engravings.',
   ],
   [
-    'DESCRIPTION BLACK_FLASK',
-    'A black flask containing a clear, pungent liquid.',
+    'DESCRIPTION FIGHTER1',
+    "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
   ],
-  ['DESCRIPTION BLUE_FLASK', 'A blue flask containing a clear, aromatic oil.'],
   [
     'DESCRIPTION GOBLIN',
     "Small humanoid creature.Treat with caution. They're small but vicious.",
@@ -137,25 +120,42 @@ const MESSAGE_MAP = new Map([
     'Gold coins stamped with the image of latter day kings and queens.',
   ],
   [
-    'DESCRIPTION HANDAXE',
-    'A small, light axe. The blade is sharp and has been looked after with care.',
+    'DESCRIPTION HALF_PLATE_ARMOUR',
+    'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
   ],
   [
-    'DESCRIPTION HERO',
-    "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
+    'DESCRIPTION HANDAXE',
+    'A small, light axe. The blade is sharp and has been looked after with care.',
   ],
   ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
   [
     'DESCRIPTION IRON_RATIONS',
     'Simple emergency rations. Crucial for resting between rooms.',
   ],
+  [
+    'DESCRIPTION LEATHER_ARMOUR',
+    'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
+  ],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
 
+  ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
+  [
+    'DESCRIPTION PLATE_ARMOUR',
+    'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
+  ],
   ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
   ['DESCRIPTION RAT', 'A giant rat, diseased and vicious.'],
   [
+    'DESCRIPTION RING_MAIL_ARMOUR',
+    'Leather armour reinforced with heavy steel rings sown into the material.',
+  ],
+  [
     'DESCRIPTION RUSTY_KEY',
     "A large iron key, covered in rust. It's been lost a long time.",
+  ],
+  [
+    'DESCRIPTION SCALE_MAIL_ARMOUR',
+    'Leather coat and legging covered with overlapping steel scales.',
   ],
   [
     'DESCRIPTION SHIELD',
@@ -170,8 +170,16 @@ const MESSAGE_MAP = new Map([
 
   ['DESCRIPTION SPIDER', 'A giant spider with fangs dripping green venom.'],
   [
-    'DESCRIPTION TRADER',
+    'DESCRIPTION STUDDED_LEATHER_ARMOUR',
+    'Tough and flexible leather armour with the addition of steel spikes and rivets.',
+  ],
+  [
+    'DESCRIPTION TRADER1',
     'A wandering trader selling all manner of things gathered during many months in the dungeon.',
+  ],
+  [
+    'DESCRIPTION TRADER2',
+    'A wandering trader with a wagon stacked high with a variety of artefacts found in the dungeon.',
   ],
   [
     'DESCRIPTION WATERSKIN',
@@ -181,10 +189,10 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE BEST ADVENTURE', 'The most lucrative adventure so far'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
+  ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
-  ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
 
   ['MENU TITLE MAIN', 'Click and Crawl'],
   ['MENU TITLE GUIDES', 'Guides and information'],

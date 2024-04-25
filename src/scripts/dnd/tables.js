@@ -34,7 +34,9 @@ const CHALLENGE_XP_TABLE = [
   62000, 75000, 90000, 105000, 120000, 135000, 155000,
 ];
 
-/** advancement table. NB. this is zero based whereas level is 1 based. */
+/** advancement table. NB. this is zero based whereas level is 1 based.
+ * Refer to Beyond 1st Level, p56 in https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf
+ */
 const ADVANCEMENT_TABLE = [
   { exp: 0, profBonus: 2 }, // level 1
   { exp: 300, profBonus: 2 }, // level 2

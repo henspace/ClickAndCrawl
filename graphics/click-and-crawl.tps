@@ -181,8 +181,11 @@
             <key type="filename">tiles/blue_crystal.png</key>
             <key type="filename">tiles/blue_flask.png</key>
             <key type="filename">tiles/cantrip.png</key>
+            <key type="filename">tiles/chain_mail_armour.png</key>
+            <key type="filename">tiles/club.png</key>
             <key type="filename">tiles/coins.png</key>
             <key type="filename">tiles/copper_coins.png</key>
+            <key type="filename">tiles/dagger.png</key>
             <key type="filename">tiles/door-B.png</key>
             <key type="filename">tiles/door-L.png</key>
             <key type="filename">tiles/door-R.png</key>
@@ -225,6 +228,7 @@
             <key type="filename">tiles/goblin-walk-w00.png</key>
             <key type="filename">tiles/goblin.png</key>
             <key type="filename">tiles/gold_coins.png</key>
+            <key type="filename">tiles/half_plate_armour.png</key>
             <key type="filename">tiles/helmet.png</key>
             <key type="filename">tiles/hidden-artefact-dead00.png</key>
             <key type="filename">tiles/hidden-artefact-idle00.png</key>
@@ -241,7 +245,18 @@
             <key type="filename">tiles/hud-auto-centre01.png</key>
             <key type="filename">tiles/hud-fullscreen00.png</key>
             <key type="filename">tiles/hud-fullscreen01.png</key>
+            <key type="filename">tiles/leather_armour.png</key>
             <key type="filename">tiles/miss.png</key>
+            <key type="filename">tiles/noxious_gas-dead00.png</key>
+            <key type="filename">tiles/noxious_gas-idle00.png</key>
+            <key type="filename">tiles/noxious_gas-idle01.png</key>
+            <key type="filename">tiles/noxious_gas-idle02.png</key>
+            <key type="filename">tiles/noxious_gas-idle03.png</key>
+            <key type="filename">tiles/noxious_gas-walk-e00.png</key>
+            <key type="filename">tiles/noxious_gas-walk-n00.png</key>
+            <key type="filename">tiles/noxious_gas-walk-s00.png</key>
+            <key type="filename">tiles/noxious_gas-walk-w00.png</key>
+            <key type="filename">tiles/noxious_gas.png</key>
             <key type="filename">tiles/orc-dead00.png</key>
             <key type="filename">tiles/orc-idle00.png</key>
             <key type="filename">tiles/orc-idle01.png</key>
@@ -249,6 +264,8 @@
             <key type="filename">tiles/orc-walk-n00.png</key>
             <key type="filename">tiles/orc-walk-s00.png</key>
             <key type="filename">tiles/orc-walk-w00.png</key>
+            <key type="filename">tiles/padded_armour.png</key>
+            <key type="filename">tiles/plate_armour.png</key>
             <key type="filename">tiles/platinum_coins.png</key>
             <key type="filename">tiles/poleaxe.png</key>
             <key type="filename">tiles/rat-dead00.png</key>
@@ -257,7 +274,10 @@
             <key type="filename">tiles/rat-walk-n00.png</key>
             <key type="filename">tiles/rat-walk-s00.png</key>
             <key type="filename">tiles/rat.png</key>
+            <key type="filename">tiles/ring_mail_armour.png</key>
             <key type="filename">tiles/rusty_key.png</key>
+            <key type="filename">tiles/scale_mail_armour.png</key>
+            <key type="filename">tiles/shortsword.png</key>
             <key type="filename">tiles/silver_coins.png</key>
             <key type="filename">tiles/skull.png</key>
             <key type="filename">tiles/slime-dead00.png</key>
@@ -272,6 +292,7 @@
             <key type="filename">tiles/spider-walk-s00.png</key>
             <key type="filename">tiles/spider-walk-w00.png</key>
             <key type="filename">tiles/spider.png</key>
+            <key type="filename">tiles/studded_leather_armour.png</key>
             <key type="filename">tiles/ui-best-adventure00.png</key>
             <key type="filename">tiles/ui-best-adventure01.png</key>
             <key type="filename">tiles/ui-checkbox00.png</key>
@@ -348,7 +369,9 @@
             <key type="filename">tiles/barbarian1-walk-w02.png</key>
             <key type="filename">tiles/barbarian1-walk-w03.png</key>
             <key type="filename">tiles/barbarian1.png</key>
+            <key type="filename">tiles/green_flask.png</key>
             <key type="filename">tiles/rat-idle01.png</key>
+            <key type="filename">tiles/red_flask.png</key>
             <key type="filename">tiles/slime-idle00.png</key>
             <key type="filename">tiles/slime-idle01.png</key>
             <key type="filename">tiles/slime-idle02.png</key>
@@ -399,6 +422,7 @@
                 <false/>
             </struct>
             <key type="filename">tiles/engraved_pillar.png</key>
+            <key type="filename">tiles/handaxe.png</key>
             <key type="filename">tiles/iron_rations.png</key>
             <key type="filename">tiles/rat-walk-w00.png</key>
             <key type="filename">tiles/waterskin.png</key>

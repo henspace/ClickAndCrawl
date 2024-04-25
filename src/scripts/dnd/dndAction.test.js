@@ -90,7 +90,7 @@ test('take rest short insufficient dice', () => {
 
 test('take rest does not exceed HP_MAX', () => {
   const actor = new Actor({}, ActorType.HERO);
-  let hp = 10;
+  let hp = 12;
   let level = 6;
   let hpMax = 12;
   actor.traits = new CharacterTraits();
