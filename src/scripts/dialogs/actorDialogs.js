@@ -642,8 +642,12 @@ function createSelfActionArtefactDialogButtons(container, options) {
     case ArtefactType.CONSUMABLE:
       actionButtons = createConsumeButtons(options);
       break;
+    case ArtefactType.KEY:
+      actionButtons = createKeyButtons(options);
+      break;
     default:
       actionButtons = createStandardArtefactButtons(options);
+      break;
   }
 
   //actionButtons.forEach((button) => container.appendChild(button.element));
@@ -654,6 +658,17 @@ function createSelfActionArtefactDialogButtons(container, options) {
     })
   );
   return actionButtons;
+}
+
+/**
+ * Create KEY artefact buttons.
+ * @param {ArtefactDialogOptions} options
+ * @returns {module:utils/dom/components~BaseControlElement[]}
+ */
+function createKeyButtons(optionsUnused) {
+  const buttons = [];
+  // nothing you can do with keys. If you discard or sell it you could get stuck.
+  return buttons;
 }
 
 /**
@@ -1129,7 +1144,7 @@ function createArtefactButtonLabel(options) {
   let label = traits.get('NAME');
   if (options.showDamage) {
     const damage = traits.getDamageDiceWhenCastBy
-      ? traits.getDamageDiceWhenCastBy(options.currentOwner)
+      ? traits.getDamageDiceWhenCastBy(options.currentOwner.traits)
       : traits.get('DMG');
     const range = traits.get('RANGE');
     if (damage) {

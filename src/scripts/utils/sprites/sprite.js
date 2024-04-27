@@ -50,8 +50,8 @@ export class Sprite {
   #acceleration = new Acceleration(0, 0, 0);
   /** @type {SpriteCanvasRenderer[]} */
   #renderer;
-  /** @type {AbstractModifier} */
-  modifier;
+  /** @type {module:utils/sprite.AbstractModifier} */
+  #modifier;
   /** @type {boolean} */
   visible;
   /** @type {number} */
@@ -123,6 +123,19 @@ export class Sprite {
   }
 
   /**
+   * Add a new modifier. If there is already a modifier running,
+   * it's kill function is called to make sure any pending promises
+   * are resolved.
+   * @param {module:utils/sprite.AbstractModifier} modifier
+   */
+  replaceModifier(modifier) {
+    if (this.#modifier) {
+      this.#modifier.kill();
+    }
+    this.#modifier = modifier;
+  }
+
+  /**
    * Returns the value but converts non-numeric values to 0.
    * @param {number} value
    * @returns {number}
@@ -136,8 +149,8 @@ export class Sprite {
    * @param {number} deltaSeconds - elapsed time.
    */
   update(deltaSeconds) {
-    if (this.modifier) {
-      this.modifier = this.modifier.update(this, deltaSeconds);
+    if (this.#modifier) {
+      this.#modifier = this.#modifier.update(this, deltaSeconds);
     }
     if (this.visible) {
       this.#render();
@@ -173,7 +186,7 @@ export class Sprite {
   }
 
   /**
-   * Get image file name used for passive renderers. If this is a multirenderer,
+   * Get image file name used for passive renderers. If this is a multi-renderer,
    * the first one with a bitmap is returned.
    * @returns {module:utils/sprites/imageManager~SpriteBitmap}
    */

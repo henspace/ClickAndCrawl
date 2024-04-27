@@ -337,7 +337,7 @@ export function parseAlmanacLine(line, almanacKey) {
   entry.imageName = derivedParts.imageName;
   entry.description = derivedParts.description;
   entry.equipmentIds = csvToArray(parts[5]);
-  entry.traitsString = parts[6];
+  entry.traitsString = `_TYPE_ID:${entry.typeId},${parts[6]}`;
   entry.challengeRating = extractCrValue(entry.traitsString);
   return entry;
 }

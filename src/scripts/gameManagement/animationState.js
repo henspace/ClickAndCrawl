@@ -42,14 +42,17 @@ class AnimationState {
   /** Construct the animation state. */
   constructor() {
     this.#animationState = false;
-    this.#savedAnimationState = false;
+    this.#savedAnimationState = undefined;
 
     window.addEventListener('blur', () => {
+      LOG.debug(`Blur: current animation state ${this.#animationState}`);
       this.#savedAnimationState = this.#animationState;
       this.setAnimationState(false);
     });
     window.addEventListener('focus', () => {
+      LOG.debug(`Focus: saved animation state ${this.#savedAnimationState}`);
       this.setAnimationState(this.#savedAnimationState ?? true);
+      this.#savedAnimationState = undefined; // This is to allow for debugger issue where focus can fire without preceding blur.
     });
   }
 

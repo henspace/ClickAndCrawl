@@ -48,16 +48,16 @@ import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/canvasStyles.js';
 
 /**
- * Apply poison damage and transient effects to defender
+ * Apply poison damage to defender
  * @param {module:players/artefacts.Artefact} poison
  * @param {module:players/actors.Actor} victim
  * @param {number} damage
  * @returns {number} resulting HP of defender
  */
 function applyPoisonDamage(poison, victim, damage) {
-  victim.traits.addTransientFxTraits(poison.traits);
   SOUND_MANAGER.playEffect('POISONED');
-  if (damage >= 0) {
+  if (damage > 0) {
+    LOG.debug(`Poison applied`);
     addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
       delaySecs: 0,
       lifetimeSecs: 1,
@@ -65,6 +65,14 @@ function applyPoisonDamage(poison, victim, damage) {
       velocity: new Velocity(0, 0, 0),
     });
     return applyDamage(poison, victim, damage);
+  } else {
+    addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
+      delaySecs: 0,
+      lifetimeSecs: 1,
+      position: victim.position,
+      velocity: new Velocity(0, 0, 0),
+    });
+    LOG.debug(`Poison resisted.`);
   }
 }
 /**
@@ -282,7 +290,7 @@ export class Fight extends AbstractInteraction {
     let totalDamage = 0;
     let successfulAttacks = 0;
     attacker.traits.getAttacks().forEach((attack) => {
-      const damage = dndAction.getMeleeDamage(attack, defender);
+      const damage = dndAction.getMeleeDamage(attack, defender.traits);
       if (damage > 0) {
         successfulAttacks++;
         totalDamage += damage;
@@ -523,7 +531,7 @@ export class Poison extends AbstractInteraction {
    * @returns {Promise}
    */
   enact(reactor) {
-    const damage = dndAction.getPoisonDamage(this.owner, reactor);
+    const damage = dndAction.getPoisonDamage(this.owner.traits, reactor.traits);
     applyPoisonDamage(this.owner, reactor, damage);
     reactor.traits.addTransientFxTraits(this.owner.traits);
     return Promise.resolve();
@@ -641,7 +649,10 @@ export class ConsumeFood extends AbstractInteraction {
     const traits = this.owner.traits;
     const foodType = traits.get('TYPE');
     if (foodType === 'POISON') {
-      const damage = dndAction.getPoisonDamage(this.owner, enactor);
+      const damage = dndAction.getPoisonDamage(
+        this.owner.traits,
+        enactor.traits
+      );
       if (damage === 0) {
         return UI.showOkDialog(i18n`MESSAGE RESISTED POISON`);
       } else if (applyPoisonDamage(this.owner, enactor, damage) <= 0) {
@@ -650,34 +661,24 @@ export class ConsumeFood extends AbstractInteraction {
         return UI.showOkDialog(i18n`MESSAGE IT'S POISON ${damage}`);
       }
     } else {
-      let gainHp = this.owner.traits.getInt('HP', 0);
+      const gainDetail = dndAction.getConsumptionBenefit(
+        this.owner.traits,
+        enactor.traits
+      );
+      const gainHp = gainDetail.newHp - gainDetail.oldHp;
+      if (gainDetail.shortFall <= 0) {
+        return UI.showOkDialog(i18n`MESSAGE CONSUME BUT ALREADY FULL HP`);
+      }
       if (gainHp === 0) {
         return UI.showOkDialog(i18n`MESSAGE CONSUME BUT NO HP GAIN`);
       }
-      const enactorHp = enactor.traits.getInt('HP');
-      const enactorHpMax = enactor.traits.getInt('HP_MAX');
-      if (!enactorHpMax) {
-        LOG.error(`Actor ${enactor.traits.get('NAME')} has no HP_MAX set`);
-        return Promise.resolve();
-      }
-      const shortfall = enactorHpMax - enactorHp;
-      if (shortfall < 0) {
-        LOG.error(
-          `Actor ${enactor.traits.get('NAME')} has HP higher than HP_MAX`
-        );
-        return Promise.resolve();
-      }
-      gainHp = Math.min(shortfall, gainHp);
-      if (gainHp === 0) {
-        return UI.showOkDialog(i18n`MESSAGE CONSUME BUT ALREADY FULL HP`);
-      }
-      const finalHp = enactorHp + gainHp;
+
       const message =
         foodType === 'POTION'
           ? i18n`MESSAGE IT'S A HEALTHY DRINK ${gainHp}`
           : i18n`MESSAGE IT'S HEALTHY ${gainHp}`;
       return UI.showOkDialog(message).then(() =>
-        enactor.traits.set('HP', finalHp)
+        enactor.traits.set('HP', gainDetail.newHp)
       );
     }
   }

@@ -59,9 +59,7 @@ export class AttackDetail {
   /** @type {number} */
   abilityModifier;
   /** @type {boolean} */
-  twoWeaponFighting;
-  /** @type {boolean} */
-  isSecondAttack;
+  #twoWeaponFighting;
   /** @type {boolean} */
   unarmed;
 
@@ -80,15 +78,16 @@ export class AttackDetail {
     const subType = options.weaponType ?? '';
     if (subType === 'UNARMED') {
       this.unarmed = true;
-      this.twoWeaponFighting = false;
+      this.#twoWeaponFighting = false;
     } else if (subType.includes('SIMPLE') && subType.includes('LIGHT')) {
-      this.twoWeaponFighting = true;
+      this.unarmed = false;
+      this.#twoWeaponFighting = true;
     } else {
-      this.twoWeaponFighting = false;
+      this.unarmed = false;
+      this.#twoWeaponFighting = false;
     }
     this.proficiencyBonus = options?.proficiencyBonus ?? 0;
     this.abilityModifier = options?.abilityModifier ?? 0;
-    this.isSecondAttack = options.secondAttack;
   }
 
   /**
@@ -107,17 +106,30 @@ export class AttackDetail {
     if (this.unarmed) {
       return this.#getUnarmedDamage();
     } else {
-      return dice.maxRoll(this.damageDice) + this.proficiencyBonus;
+      return dice.maxRoll(this.damageDice) + this.abilityModifier;
     }
   }
 
   /**
+   * Is two weapon fighting allowed.
+   * @returns {boolean}
+   */
+  canUseTwoWeapons() {
+    return this.#twoWeaponFighting;
+  }
+
+  /**
    * Roll for attack.
-   * @returns {number}
+   * @returns {{roll:number, value: number}}
    */
   rollForAttack() {
-    return dice.rollDice(20) + this.abilityModifier + this.proficiencyBonus;
+    const roll = dice.rollDice(20);
+    return {
+      roll: roll,
+      value: roll + this.abilityModifier + this.proficiencyBonus,
+    };
   }
+
   /**
    * Roll for damage.
    * @returns {number}
@@ -126,14 +138,11 @@ export class AttackDetail {
     if (this.unarmed) {
       return this.#getUnarmedDamage();
     }
-    let modifier;
-    if (this.isSecondAttack && this.abilityModifier > 0) {
-      modifier = 0;
-    } else {
-      modifier = this.abilityModifier;
-    }
-    const damage = dice.rollMultiDice(this.damageDice) + modifier;
-    LOG.debug(`Damage: ${this.damageDice} + ${modifier} = ${damage}`);
+
+    const damage = dice.rollMultiDice(this.damageDice) + this.abilityModifier;
+    LOG.debug(
+      `Damage: ${this.damageDice} + ${this.abilityModifier} = ${damage}`
+    );
     return damage;
   }
 
@@ -145,9 +154,8 @@ export class AttackDetail {
     const attackDetail = new AttackDetail({});
     attackDetail.abilityModifier = this.abilityModifier;
     attackDetail.damageDice = this.damageDice;
-    attackDetail.isSecondAttack = this.isSecondAttack;
     attackDetail.proficiencyBonus = this.proficiencyBonus;
-    attackDetail.twoWeaponFighting = this.twoWeaponFighting;
+    attackDetail.#twoWeaponFighting = this.#twoWeaponFighting;
     attackDetail.unarmed = this.unarmed;
     return attackDetail;
   }
@@ -398,13 +406,19 @@ export class Traits {
    * @param {string} value
    */
   #setIntOrDiceValueFromString(key, value) {
-    if (!dice.isMultiDice(value) && isNaN(parseInt(value))) {
-      LOG.error(
-        `Invalid trait value ${value} for ${key}. Integer or dice definition required.`
-      );
-      value = '0';
+    let result;
+    if (dice.isMultiDice(value)) {
+      result = value;
+    } else {
+      result = parseInt(value);
+      if (isNaN(result)) {
+        LOG.error(
+          `Invalid trait value ${value} for ${key}. Integer or dice definition required.`
+        );
+        result = 0;
+      }
     }
-    this.set(key, value);
+    this.set(key, result);
   }
   /**
    * Set the trait for key to value. This is for a value passed in by the
@@ -489,15 +503,16 @@ export class MagicTraits extends Traits {
 
   /**
    * Get the damage dice when cast by an actor.
-   * @param {module:players/actors.Actor} actor
+   * @param {Traits} actorTraits
    * @returns {string}
    */
-  getDamageDiceWhenCastBy(actor) {
-    let damageDice = this._traits.get('DMG');
-    let adjustedDice = dice.changeQtyOfDice(
-      damageDice,
-      actor.traits.getCharacterLevel() - 1
+  getDamageDiceWhenCastBy(actorTraits) {
+    const damageDice = this.get('DMG');
+    const extraDicePerLevel = this.getFloat('DICE_PER_LEVEL', 0);
+    const extraDice = Math.floor(
+      (actorTraits.getCharacterLevel() - 1) * extraDicePerLevel
     );
+    let adjustedDice = dice.changeQtyOfDice(damageDice, extraDice);
     LOG.info(
       `Spell cast: base damage dice = ${damageDice} raised to ${adjustedDice} for level.`
     );
@@ -566,7 +581,7 @@ export class CharacterTraits extends Traits {
     actorTraits._proficiencyBonus = this._proficiencyBonus;
     actorTraits._level = this._level;
     actorTraits._attacks = this._attacks.map((attack) => attack.clone());
-    actorTraits._availableArtefactTraits = this._availableArtefactTraits; //refererence okay
+    actorTraits._availableArtefactTraits = this._availableArtefactTraits; //reference okay
     actorTraits._effectiveTraits = this._effectiveTraits.clone();
     actorTraits._transientFxTraits = [];
     this._transientFxTraits.forEach((traits) =>
@@ -644,7 +659,7 @@ export class CharacterTraits extends Traits {
     }
   }
 
-  /** Traits that affect victims rather than the owner are preceeded by 'FX'.
+  /** Traits that affect victims rather than the owner are preceded by 'FX'.
    * This function converts a key to an FX key; i.e. 'FX_key'.
    * @param {string} key
    * @returns {string}
@@ -671,9 +686,7 @@ export class CharacterTraits extends Traits {
    * @returns {*}
    */
   getEffective(key, defaultValue) {
-    return (
-      this._effectiveTraits.get(key) ?? this._traits.get(key, defaultValue)
-    );
+    return this._effectiveTraits.get(key) ?? this.get(key, defaultValue);
   }
 
   /**
@@ -690,7 +703,7 @@ export class CharacterTraits extends Traits {
   }
 
   /**
-   * Get the effective armour class;
+   * Get the effective character level;
    * @returns {number}
    */
   getCharacterLevel() {
@@ -701,10 +714,12 @@ export class CharacterTraits extends Traits {
    * This is not applicable to melee attacks.
    *
    */
-  getNonMeleeSaveAbilityModifier(attacker) {
-    const saveAbility = attacker.traits.get('SAVE_ABILITY');
+  getNonMeleeSaveAbilityModifier(attackerTraits) {
+    const saveAbility = attackerTraits.get('SAVE_ABILITY');
     if (!saveAbility) {
-      LOG.error(`Non-melee ${attacker.id} has no SAVE_ABILITY set.`);
+      LOG.error(
+        `Non-melee ${attackerTraits.get('NAME')} has no SAVE_ABILITY set.`
+      );
       return 0;
     }
     const ability = this.getInt(saveAbility);
@@ -750,7 +765,7 @@ export class CharacterTraits extends Traits {
     if (!updatedKey || CHAR_STATS_KEYS.includes(updatedKey)) {
       this._setLevelAndProfBonusFromExp();
       this._initialiseEffectiveTraits();
-      if (this._traits.has('DMG')) {
+      if (this._traits.get('TYPE_ID') === 'ENEMY') {
         this._deriveValuesFromTraits();
       } else {
         this._utiliseTransientTraits();
@@ -923,7 +938,6 @@ export class CharacterTraits extends Traits {
       weaponType: weaponType,
       proficiencyBonus: proficient ? this._proficiencyBonus : 0,
       abilityModifier: abilityModifier,
-      secondAttack: false,
     });
 
     let secondAttack;
@@ -934,18 +948,19 @@ export class CharacterTraits extends Traits {
         proficiencyBonus: this.isProficient(weaponsTraits[1])
           ? this._proficiencyBonus
           : 0,
-        abilityModifier: abilityModifier < 0 ? abilityModifier : 0, // only used for second weapon if negative
-        secondAttack: true,
+        abilityModifier: abilityModifier,
       });
     }
-    if (secondAttack?.twoWeaponFighting && firstAttack.twoWeaponFighting) {
+    if (secondAttack?.canUseTwoWeapons() && firstAttack.canUseTwoWeapons()) {
       this._attacks.push(firstAttack);
+      if (secondAttack.abilityModifier > 0) {
+        secondAttack.abilityModifier = 0;
+      }
       this._attacks.push(secondAttack);
     } else if (
       secondAttack &&
       secondAttack.getMaxDamage() > firstAttack.getMaxDamage()
     ) {
-      secondAttack.isSecondAttack = false;
       this._attacks.push(secondAttack);
     } else {
       this._attacks.push(firstAttack);
@@ -960,17 +975,18 @@ export class CharacterTraits extends Traits {
    */
   _getAcFromTraits(traits) {
     const dexterity = this.getEffectiveInt('DEX', 1);
+    console.log(`Dexterity: ${dexterity}`);
     const modifier = characteristicToModifier(dexterity);
     const armourType = traits.get('TYPE', '').toUpperCase();
     const acTrait = traits.get('AC', 0);
     let armourClass = maths.safeParseInt(acTrait);
     if (armourType.includes('MEDIUM')) {
       armourClass += Math.min(2, modifier);
-    } else {
+    } else if (!armourType.includes('HEAVY')) {
       armourClass += modifier;
     }
     return {
-      additional: acTrait.startsWith('+'),
+      additional: /^[+-]/.test(acTrait),
       value: armourClass,
     };
   }
@@ -1039,18 +1055,5 @@ export class CharacterTraits extends Traits {
       }
     }
     return false;
-  }
-}
-
-/**
- * DnD artefact traits
- */
-export class ArtefactTraits extends Traits {
-  /**
-   *
-   * @param {Map<string, *>} initialTraits
-   */
-  constructor(initialTraits) {
-    super(initialTraits ?? new Map([['NAME', 'mystery']]));
   }
 }

@@ -522,9 +522,9 @@ class HeroTurnIdle extends State {
         LOG.log('Escaping');
         const unlocked = await tryToUnlockExit();
         if (unlocked) {
-          await moveHeroToPoint(point, { usePathFinder: false })
-            .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT`))
-            .then(() => startNextScene(this));
+          await moveHeroToPoint(point, { usePathFinder: false }).then(() =>
+            startNextScene(this)
+          );
         }
         break;
       }
@@ -591,9 +591,9 @@ class HeroTurnInteracting extends State {
       case EventId.CLICKED_EXIT: {
         const unlocked = await tryToUnlockExit();
         if (unlocked) {
-          await this.#tryToDisengage(point, { usePathFinder: false })
-            .then(() => UI.showOkDialog(i18n`MESSAGE OPEN EXIT WHILE FIGHTING`))
-            .then(() => startNextScene(this));
+          await this.#tryToDisengage(point, { usePathFinder: false }).then(() =>
+            startNextScene(this)
+          );
         }
         break;
       }
@@ -677,7 +677,6 @@ class ComputerTurnInteracting extends State {
   }
   async onEntry() {
     await super.onEntry();
-    LOG.log('Enter ComputerTurnInteracting');
     await applyOrganicToActors();
     const tileMap = WORLD.getTileMap();
 
@@ -821,7 +820,7 @@ function startNextScene(currentState) {
     })
     .then((scene) => {
       if (scene.intro) {
-        return UI.showOkDialog(scene.intro, { className: 'mask' });
+        return UI.showOkDialog(scene.intro, { className: 'wall' });
       } else {
         return;
       }
@@ -904,7 +903,7 @@ function getHeroActor() {
 }
 
 /** Unlock the exit if necessary.
- * @returns {Promise} fufills to true if exit can be unlocked.
+ * @returns {Promise} fulfils to true if exit can be unlocked.
  */
 function tryToUnlockExit() {
   if (exitKeyArtefact) {

@@ -136,6 +136,10 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION LEATHER_ARMOUR',
     'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
   ],
+  [
+    'DESCRIPTION NOXIOUS_GAS',
+    'A cloud of foul smelling gas. Poisonous and strength sapping',
+  ],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
 
   ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
@@ -224,7 +228,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE ENTER LEVEL',
-    "You enter level ${0}. The door slams shut behind you. There's no way back.",
+    "You enter level ${0}. The door slams shut behind you. There's no way back. Like it or not, your only path is to continue deeper into the depths of this stone hell.",
   ],
   ['MESSAGE EXIT LOCKED', 'The exit is locked. There must be a key somewhere.'],
   [
@@ -234,11 +238,11 @@ const MESSAGE_MAP = new Map([
 
   [
     'MESSAGE DUNGEON INTRO',
-    'Welcome, ${0}. You enter a dark and dingy dungeon. Water runs down the wall and the smell of rotting corpses fills the air',
+    'Welcome, ${0}. You enter a dark and dingy dungeon. Water runs down the walls and the smell of rotting corpses fills the air',
   ],
   [
     'MESSAGE DUNGEON INTRO CONTINUE',
-    'Welcome back, ${0}. The adventure continues. Water runs down the wall and the smell of rotting corpses fills the air.',
+    'Welcome back, ${0}. The adventure continues. You recognise the familiar smell of death.',
   ],
   [
     'MESSAGE DUNGEON INTRO CASUAL',
@@ -349,20 +353,6 @@ const MESSAGE_MAP = new Map([
   ],
   ['MESSAGE NO SAVED ADVENTURE', 'No adventure has been saved yet.'],
   ['MESSAGE NOTHING HERE', "There's nothing here."],
-  [
-    'MESSAGE OPEN EXIT',
-    [
-      'The door opens and you slip away.',
-      "You decide that's enough exploring this room and slip away into the darkness.",
-    ],
-  ],
-  [
-    'MESSAGE OPEN EXIT WHILE FIGHTING',
-    [
-      'A dangerous move, but despite the fighting, you manage to escape.',
-      'Dodging a blow, you manage to open the door and make your escape.',
-    ],
-  ],
   [
     'MESSAGE WELCOME',
     'Welcome to the Click and Crawl old-school dungeon crawler. How far will you get?',

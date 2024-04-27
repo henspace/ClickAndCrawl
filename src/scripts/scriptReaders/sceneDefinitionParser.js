@@ -208,7 +208,8 @@ class ParsedScene extends AbstractScene {
     WORLD.setTileMap(tileMap);
 
     const exitKeyAlmanacEntry = ALMANAC_LIBRARY.getRandomEntry('KEYS');
-    const exitKeyArtefact = buildArtefact(exitKeyAlmanacEntry);
+    const exitKeyArtefact =
+      rollDice(6) > 3 ? buildArtefact(exitKeyAlmanacEntry) : null;
     let keysToAdd = exitKeyArtefact ? 1 : 0;
 
     const pooledArtefactAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(

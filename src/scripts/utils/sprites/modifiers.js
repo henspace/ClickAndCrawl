@@ -57,17 +57,35 @@ export class AbstractModifier {
   }
 
   /**
+   * Resolve any pending promise.
+   * @param {*} fulfilValue
+   */
+  #resolve(fulfilValue) {
+    if (this.#resolveFunc) {
+      this.#resolveFunc(fulfilValue);
+      this.#resolveFunc = null;
+    }
+  }
+
+  /**
+   * Kill this modifier. Resolves any pending promises.
+   */
+  kill() {
+    this.#resolve();
+  }
+
+  /**
    * Apply the modifier as transient to a sprite.
    * @param {AbstractModifier} modifier
    * @param {Sprite} sprite
-   * @param {number} [timeoutSeconds =
+   * @param {number} [timeoutSeconds = DEFAULT_TIMEOUT_SECS]
    * @returns {Promise} fulfils to null on completion;
    */
   applyAsTransientToSprite(sprite, timeoutSeconds = DEFAULT_TIMEOUT_SECS) {
     this.#timeoutSeconds = timeoutSeconds;
     return new Promise((resolve) => {
       this.#resolveFunc = resolve;
-      sprite.modifier = this;
+      sprite.replaceModifier(this);
     });
   }
 
@@ -76,7 +94,7 @@ export class AbstractModifier {
    * @param {Sprite} sprite
    */
   applyAsContinuousToSprite(sprite) {
-    sprite.modifier = this;
+    sprite.replaceModifier(this);
   }
 
   /** Do the update modification. If a decoratedModifier has been set, this is then
@@ -103,7 +121,7 @@ export class AbstractModifier {
 
     const nextModifier = this.doUpdate(sprite, deltaSeconds);
     if (!nextModifier || this.#activeSeconds > this.#timeoutSeconds) {
-      this.#resolveFunc?.(null);
+      this.#resolve(null);
       return null;
     }
     return nextModifier;

@@ -40,28 +40,26 @@ export const DRINKS_FOR_SHORT_REST = 1;
 /**
  * Roll an attack and damage dice.
  * @param {module:dnd/traits~AttackDetail} attack
- * @param {module:players/actors.Actor} target
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
  * @returns {number} amount of damage
  */
-export function getMeleeDamage(attack, target) {
-  LOG.debug(`Attack on ${target.traits.get('NAME')}`);
-  const diceRoll = dice.rollDice(20);
+export function getMeleeDamage(attack, targetTraits) {
+  LOG.debug(`Attack on ${targetTraits.get('NAME')}`);
+  const attackRoll = attack.rollForAttack();
   // handle fate and curses.
-  if (diceRoll === 1) {
+  if (attackRoll.roll === 1) {
     LOG.debug('Attack dice rolled 0: cursed.');
     return 0; // cursed.
-  } else if (diceRoll === 20) {
+  } else if (attackRoll.roll === 20) {
     LOG.debug('Attack dice rolled 20: critical hit. Damage will be doubled.');
     return 2 * attack.rollForDamage(); // critical hit
   }
 
-  const attackRoll =
-    diceRoll + attack.abilityModifier + attack.proficiencyBonus;
-  const targetAc = target.traits.getEffectiveInt('AC');
+  const targetAc = targetTraits.getEffectiveInt('AC');
   LOG.debug(
-    `Attack: dice + ability + prof_bonus: ${diceRoll}+${attack.abilityModifier}+${attack.proficiencyBonus} vs target AC: ${targetAc}`
+    `Attack: rolled ${attackRoll.roll}; value ${attackRoll.value} vs target AC ${targetAc}`
   );
-  if (attackRoll >= targetAc) {
+  if (attackRoll.value >= targetAc) {
     return attack.rollForDamage();
   }
   return 0;
@@ -69,16 +67,17 @@ export function getMeleeDamage(attack, target) {
 
 /**
  * poison with saving throw.
- * @param {module:players/actors~TraitsHolder} attack
- * @param {module:players/actors.Actor} target
+ * @param {module:dnd/traits.Traits} attackerTraits
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
  * @returns {number}
  */
-export function getPoisonDamage(attacker, target) {
-  const damage = dice.rollMultiDice(attacker.traits.get('DMG', '1D4'));
-  const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(attacker);
-  const difficulty = attacker.traits.getInt('DC');
+export function getPoisonDamage(attackerTraits, targetTraits) {
+  const damage = dice.rollMultiDice(attackerTraits.get('DMG', '1D4'));
+  const saveModifier =
+    targetTraits.getNonMeleeSaveAbilityModifier(attackerTraits);
+  const difficulty = attackerTraits.getInt('DC');
   if (!difficulty) {
-    LOG.error(`Poisoner ${attacker.traits.get('NAME')} has no DC set.`);
+    LOG.error(`Poisoner ${attackerTraits.get('NAME')} has no DC set.`);
     return damage;
   }
   if (dice.rollDice(20) + saveModifier >= difficulty) {
@@ -90,16 +89,21 @@ export function getPoisonDamage(attacker, target) {
 
 /**
  * Get consumption benefit in HP, clipped to HP max.
- * @param {module:players/actors~TraitsHolder} attack
- * @param {module:players/actors.Actor} target
- * @returns {number}
+ * @param {module:dnd/traits.Traits} consumableTraits
+ * @param {module:dnd/traits.Traits} consumerTraits
+ * @returns {{shortFall:number, oldHp:number, newHp:number}}
  */
-export function getConsumptionBenefit(consumable, consumer) {
-  const gain = dice.rollMultiDice(consumable.traits.get('HP', '1D4'));
-  const currentHp = consumer.traits.get('HP', 0);
-  const maxHp = consumer.traits.get('HP_MAX', currentHp);
+export function getConsumptionBenefit(consumableTraits, consumerTraits) {
+  const gain = dice.rollMultiDice(consumableTraits.get('HP', '1D4'));
+  const currentHp = consumerTraits.get('HP', 0);
+  const maxHp = consumerTraits.get('HP_MAX', currentHp);
   const shortFall = maxHp - currentHp;
-  return Math.min(shortFall, gain);
+  const appliedGain = shortFall < 0 ? 0 : Math.min(shortFall, gain);
+  return {
+    shortFall: shortFall,
+    oldHp: currentHp,
+    newHp: currentHp + appliedGain,
+  };
 }
 
 /**
@@ -111,7 +115,9 @@ export function getConsumptionBenefit(consumable, consumer) {
  */
 export function getSpellDamage(attacker, target, spell) {
   const attackerIntelligence = attacker.traits.get('INT', 1);
-  const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(spell);
+  const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(
+    spell.traits
+  );
   let difficulty = spell.traits.getInt('DC');
   if (difficulty === null || difficulty === undefined) {
     LOG.error(`Magic ${attacker.id} has no DC set.`);
@@ -124,7 +130,7 @@ export function getSpellDamage(attacker, target, spell) {
   const fullDifficulty = difficulty + spellModifier;
   let savingThrow = dice.rollDice(20) + saveModifier;
   const damage = dice.rollMultiDice(
-    spell.traits.getDamageDiceWhenCastBy(attacker)
+    spell.traits.getDamageDiceWhenCastBy(attacker.traits)
   );
   if (savingThrow >= fullDifficulty) {
     const factor = spell.traits.getFloat('DMG_SAVED', 0);
