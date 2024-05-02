@@ -48,6 +48,8 @@
   --window-contrast: rgb(255, 255, 255);
   --window-highlight: rgb(230, 230, 230);
 
+  --splash-color: #81795d;
+
   --padding-thickness: 0.25rem;
   --font-base-size: 15px;
   --line-thickness: max(2px, 0.2rem);
@@ -203,6 +205,11 @@ a:active {
   margin-left: 4px;
 }
 
+.actor-id-card canvas {
+  background-color: rgb(100, 100, 100);
+  border: solid 1px var(--window-contrast);
+}
+
 h1 {
   font-size: 1.5rem;
 }
@@ -260,17 +267,59 @@ button:hover {
 }
 
 .popup {
-  background-color: black;
-  border: 2px solid white;
-  left: 50vw;
-  top: 50vh;
-  opacity: 0;
+  background-color: var(--window-base);
+  background-image: url(../assets/images/dungeon-splash.jpg);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
   position: absolute;
-  width: 75vw;
+  opacity: 0;
+  transition: opacity 0.5s;
+  width: 100vw;
+  height: 100vh;
+}
+
+.popup > div {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--splash-color);
+  border: none;
+  left: 0;
+  top: 50vh;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  position: absolute;
+  width: 100vw;
   text-align: center;
-  transform: translate(-50%, -50%);
+  transform: translate(0%, -50%);
   transition: opacity 1s;
 }
+
+.popup img {
+  max-width: 90vw;
+}
+
+.progress-indicator {
+  width: 1rem;
+  height: 1rem;
+  border: solid 2px var(--splash-color);
+  color: var(--splash-color);
+  position: relative;
+  animation-name: progress;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes progress {
+  from {
+    left: 25vw;
+  }
+  to {
+    left: 75vw;
+  }
+}
+
 .styled-checkbox {
   display: inline-block;
   line-height: 0px;

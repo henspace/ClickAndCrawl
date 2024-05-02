@@ -482,6 +482,10 @@ class HeroTurnIdle extends State {
     await super.onEntry();
     LOG.log('Enter HeroTurnIdle');
     await prepareHeroTurn();
+    const dead = await doToxicEffectsKillHero();
+    if (dead) {
+      await this.transitionTo(new AtGameOver());
+    }
   }
   /**
    * @override
@@ -548,6 +552,10 @@ class HeroTurnInteracting extends State {
     await super.onEntry();
     LOG.log('Enter HeroTurnInteracting');
     await prepareHeroTurn();
+    const dead = await doToxicEffectsKillHero();
+    if (dead) {
+      await this.transitionTo(new AtGameOver());
+    }
   }
   /**
    * @override
@@ -730,6 +738,18 @@ function prepareHeroTurn() {
   tileMap.setInteractActors(tileMap.getParticipants(heroActor));
   tileMap.calcReachableDoors(heroActor.position);
   return Promise.resolve(null);
+}
+
+/**
+ * Apply any toxic effects to the hero.
+ * @returns {boolean} true if dead.
+ */
+function doToxicEffectsKillHero() {
+  if (heroActor.toxify?.isActive) {
+    heroActor.toxify.enact(heroActor);
+    return heroActor.traits.getInt('HP', 0) <= 0;
+  }
+  return false;
 }
 
 /**

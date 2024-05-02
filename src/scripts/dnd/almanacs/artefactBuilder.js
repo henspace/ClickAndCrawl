@@ -28,7 +28,7 @@
  */
 
 import { Artefact, ArtefactType } from '../../players/artefacts.js';
-import { CastSpell, ConsumeFood } from '../interact.js';
+import { CastSpell, ConsumeFood, TriggerTrap } from '../interact.js';
 import { Traits, MagicTraits } from '../traits.js';
 
 /**
@@ -46,29 +46,30 @@ function createArtefact(almanacEntry, imageName, traits) {
 /**
  * Create an artefact from an almanac entry.
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
- * @param {string} [traitsString] - map of values to override the default
+ * @param {module:dnd/traits.Traits} [initialTraits] - initial traits
  * almanac entry. Normally only required if restoring an artefact from saved values.
  * @returns {Artefact}
  */
-export function buildArtefact(almanacEntry, traitsString) {
-  const traitsInitialValues = traitsString ?? almanacEntry.traitsString;
+export function buildArtefact(almanacEntry, initialTraits) {
   let traits;
   let imageName;
   if (almanacEntry.type === ArtefactType.SPELL) {
-    traits = new MagicTraits(traitsInitialValues);
+    traits = initialTraits ?? new MagicTraits(almanacEntry.traitsString);
     imageName = 'spell';
   } else if (almanacEntry.type === ArtefactType.CANTRIP) {
-    traits = new MagicTraits(traitsInitialValues);
+    traits = initialTraits ?? new MagicTraits(almanacEntry.traitsString);
     imageName = 'cantrip';
   } else {
-    traits = new Traits(traitsInitialValues);
+    traits = initialTraits ?? new Traits(almanacEntry.traitsString);
     imageName = almanacEntry.imageName;
   }
 
   traits.set('NAME', almanacEntry.name);
   const artefact = createArtefact(almanacEntry, imageName, traits);
   artefact.description = almanacEntry.description;
-  if (artefact.isMagic()) {
+  if (artefact.isTrap()) {
+    artefact.interaction = new TriggerTrap(artefact);
+  } else if (artefact.isMagic()) {
     artefact.interaction = new CastSpell(artefact);
   } else if (artefact.isConsumable()) {
     artefact.interaction = new ConsumeFood(artefact);

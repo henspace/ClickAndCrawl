@@ -103,15 +103,16 @@ function createFindableArtefact(almanacEntry, preBuiltArtefact) {
   let id;
   let type;
 
-  if (
-    almanacEntry.type === ArtefactType.SPELL ||
-    almanacEntry.type === ArtefactType.CANTRIP
-  ) {
-    id = 'engraved_pillar';
-    type = ActorType.PROP;
-  } else {
-    id = 'hidden_artefact';
-    type = ActorType.HIDDEN_ARTEFACT;
+  switch (almanacEntry.type) {
+    case ArtefactType.SPELL:
+    case ArtefactType.CANTRIP:
+      id = 'engraved_pillar';
+      type = ActorType.PROP;
+      break;
+    default:
+      id = rollDice(6) > 6 ? 'hidden_artefact' : 'trapdoor';
+      type = ActorType.HIDDEN_ARTEFACT;
+      break;
   }
 
   const actor = buildActor({

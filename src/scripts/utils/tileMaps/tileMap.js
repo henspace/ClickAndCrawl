@@ -689,7 +689,7 @@ export class TileMap {
       }
     }
     const isDeadProp = !occupant?.alive && occupant?.isProp();
-    if ((movement && interaction) || isDeadProp) {
+    if ((movement && interaction) || (interaction && isDeadProp)) {
       clickHandler(target, point, {
         filter: ClickEventFilter.MOVE_OR_INTERACT_TILE,
         occupant: occupant,

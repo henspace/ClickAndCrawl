@@ -378,37 +378,45 @@ function showRestActionDialog(actor) {
   const messageContainer = document.createElement('div');
   messageContainer.appendChild(createIdCard(actor));
 
-  const longRestPossible = dndAction.canRest(
-    'LONG',
-    meals.length,
-    drinks.length
-  );
-  const shortRestPossible = dndAction.canRest(
-    'SHORT',
-    meals.length,
-    drinks.length
-  );
-  const choices = [];
-
   messageContainer.appendChild(
     components.createElement('p', { text: i18n`MESSAGE EXPLAIN REST` })
   );
-  let message;
-  if (!longRestPossible && !shortRestPossible) {
-    message = i18n`MESSAGE CANNOT REST`;
-  } else if (!longRestPossible) {
-    message = i18n`MESSAGE CANNOT REST LONG`;
-  }
-  messageContainer.appendChild(
-    components.createElement('p', { text: message })
-  );
+  const choices = [];
   let shortIndex = -1;
   let longIndex = -1;
-  if (shortRestPossible) {
+
+  const restDetails = dndAction.canRest(
+    meals.length,
+    drinks.length,
+    actor.traits
+  );
+
+  let message = '';
+  if (!restDetails.shortRest.possible) {
+    if (
+      restDetails.shortRest.failure === dndAction.RestFailure.NEED_LONG_REST
+    ) {
+      message = i18n`MESSAGE CANNOT REST SHORT NEED LONG REST`;
+    } else {
+      message = i18n`MESSAGE CANNOT REST SHORT NEED RATIONS`;
+    }
+    messageContainer.appendChild(
+      components.createElement('p', { text: message })
+    );
+  }
+  if (!restDetails.longRest.possible) {
+    message = i18n`MESSAGE CANNOT REST LONG NEED RATIONS`;
+
+    messageContainer.appendChild(
+      components.createElement('p', { text: message })
+    );
+  }
+
+  if (restDetails.shortRest.possible) {
     shortIndex = choices.length;
     choices.push(i18n`BUTTON REST SHORT`);
   }
-  if (longRestPossible) {
+  if (restDetails.longRest.possible) {
     longIndex = choices.length;
     choices.push(i18n`BUTTON REST LONG`);
   }
@@ -422,12 +430,19 @@ function showRestActionDialog(actor) {
     if (choice === shortIndex) {
       discardItemsFromStore(store, meals, dndAction.MEALS_FOR_SHORT_REST);
       discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_SHORT_REST);
-      dndAction.takeRest(actor, 'SHORT');
+      const result = dndAction.takeRest(actor, 'SHORT');
+      return UI.showOkDialog(
+        i18n`MESSAGE REST SHORT HP GAIN ${result.newHp - result.oldHp}`
+      );
     } else if (choice === longIndex) {
       discardItemsFromStore(store, meals, dndAction.MEALS_FOR_LONG_REST);
       discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_LONG_REST);
-      dndAction.takeRest(actor, 'LONG');
-      return showPrepareSpellsDialog(actor);
+      const result = dndAction.takeRest(actor, 'LONG');
+      return showPrepareSpellsDialog(actor).then(() =>
+        UI.showOkDialog(
+          `MESSAGE REST LONG HP GAIN ${result.newHp - result.oldHp}`
+        )
+      );
     }
     return;
   });
@@ -949,7 +964,9 @@ function createNoFundsGuidance(availableGp, requiredGp) {
  */
 function createFailedStorageGuidance(options) {
   let text;
-  if (options.artefact.stashInWagon) {
+  if (options.prospectiveOwner.isTrader()) {
+    text = i18n`MESSAGE TRADER CANNOT STASH`;
+  } else if (options.artefact.stashInWagon) {
     text = i18n`MESSAGE MAKE SPACE IN EQUIP`;
   } else {
     text = i18n`MESSAGE MAKE SPACE IN BACKPACK`;
@@ -1416,7 +1433,11 @@ export function showArtefactDialog(options) {
         break;
       case ArtefactAction.STASH:
         if (!destStoreManager.stash(artefact)) {
-          UI.showOkDialog(i18n`MESSAGE CANNOT STASH`);
+          UI.showOkDialog(
+            options.prospectiveOwner.isTrader()
+              ? i18n`MESSAGE TRADER CANNOT STASH`
+              : i18n`MESSAGE CANNOT STASH`
+          );
         }
         break;
       case ArtefactAction.TAKE:
@@ -1447,18 +1468,7 @@ export function showRestDialog(heroActor) {
       text: i18n`MESSAGE REST DIALOG`,
     })
   );
-  const restReqs = components.createElement('ul');
-  messageContainer.appendChild(restReqs);
-  restReqs.appendChild(
-    components.createElement('li', {
-      text: i18n`SHORT REST REQ ${dndAction.DRINKS_FOR_SHORT_REST} ${dndAction.MEALS_FOR_SHORT_REST}`,
-    })
-  );
-  restReqs.appendChild(
-    components.createElement('li', {
-      text: i18n`LONG REST REQ ${dndAction.DRINKS_FOR_LONG_REST} ${dndAction.MEALS_FOR_LONG_REST}`,
-    })
-  );
+
   return showActorDetailsDialog(heroActor, {
     allowConsumption: true,
     allowRest: true,

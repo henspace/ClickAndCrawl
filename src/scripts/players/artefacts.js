@@ -116,6 +116,10 @@ export const ArtefactType = {
     storageSpace: 1,
     storeType: { stash: StoreType.SPELLS, equip: StoreType.PREPARED_SPELLS },
   },
+  TRAP: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK },
+  },
   TWO_HANDED_WEAPON: {
     storageSpace: 2,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
@@ -226,6 +230,17 @@ class ArtefactStore {
    * @returns {number}
    */
   get maxSpace() {
+    return this.#maxSize;
+  }
+
+  /**
+   * Adjust capacity. Note it cannot be reduced below the number of items already
+   * contained.
+   * @param {number} capacity
+   * @returns {number} resulting capacity
+   */
+  adjustCapacity(capacity) {
+    this.#maxSize = Math.max(capacity, this.#usedSpace);
     return this.#maxSize;
   }
 
@@ -603,6 +618,14 @@ export class Artefact {
   }
 
   /**
+   * Test if this is a trap item.
+   * @returns {boolean}
+   */
+  isTrap() {
+    return this.artefactType === ArtefactType.TRAP;
+  }
+
+  /**
    * Test if this is a useable item.
    * @returns {boolean}
    */
@@ -615,6 +638,30 @@ export class Artefact {
    */
   isConsumable() {
     return this.artefactType === ArtefactType.CONSUMABLE;
+  }
+
+  /**
+   * Convert to JSON.
+   * @returns {module:utils/persistentData~ObjectJSON}
+   */
+  toJSON() {
+    return {
+      reviver: 'Artefact',
+      data: {
+        almanacEntry: this.almanacEntry,
+        traits: this.traits,
+      },
+    };
+  }
+
+  /**
+   * Revive from previous call to toJSON
+   * @param {Array.Array<key,value>} data - array of map values
+   * @param {function(module:dnd/almanacs~AlmanacEntry,module:dnd/traits.Traits)} builder
+   * @returns {Artefact}
+   */
+  static revive(data, builder) {
+    return builder(data.almanacEntry, data.traits);
   }
 }
 
@@ -794,7 +841,9 @@ export class ArtefactStoreManager {
       this.#stores.get(StoreType.PREPARED_SPELLS),
     ];
     for (const store of stores) {
-      store.values().forEach((item) => result.push(item));
+      for (const item of store.values()) {
+        result.push(item);
+      }
     }
     return result;
   }
@@ -804,10 +853,10 @@ export class ArtefactStoreManager {
    */
   getAllStorageDetails() {
     const storageDetails = [];
-    this.#stores.values().forEach((store) => {
-      store.values().forEach((artefact) => {
+    this.#stores.forEach((store) => {
+      for (const artefact of store.values()) {
         storageDetails.push({ store: store, artefact: artefact });
-      });
+      }
     });
     return storageDetails;
   }

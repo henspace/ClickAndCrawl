@@ -29,12 +29,14 @@
 
 import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
-import { characteristicToModifier } from './traits.js';
+import { characteristicToModifier, AttackDetail } from './traits.js';
+import * as magic from './magic.js';
 
 /** @type number */
 export const MEALS_FOR_LONG_REST = 3;
+export const DRINKS_FOR_LONG_REST = 3;
+
 export const MEALS_FOR_SHORT_REST = 1;
-export const DRINKS_FOR_LONG_REST = 1;
 export const DRINKS_FOR_SHORT_REST = 1;
 
 /**
@@ -94,9 +96,9 @@ export function getPoisonDamage(attackerTraits, targetTraits) {
  * @returns {{shortFall:number, oldHp:number, newHp:number}}
  */
 export function getConsumptionBenefit(consumableTraits, consumerTraits) {
-  const gain = dice.rollMultiDice(consumableTraits.get('HP', '1D4'));
-  const currentHp = consumerTraits.get('HP', 0);
-  const maxHp = consumerTraits.get('HP_MAX', currentHp);
+  const gain = consumableTraits.getInt('HP', 0);
+  const currentHp = consumerTraits.getInt('HP', 0);
+  const maxHp = consumerTraits.getInt('HP_MAX', currentHp);
   const shortFall = maxHp - currentHp;
   const appliedGain = shortFall < 0 ? 0 : Math.min(shortFall, gain);
   return {
@@ -107,33 +109,71 @@ export function getConsumptionBenefit(consumableTraits, consumerTraits) {
 }
 
 /**
- * Magic with saving throw.
- * @param {module:dnd/traits~AttackDetail} attack
- * @param {module:players/actors.Actor} target
- * @param {module:players/actors~Artefact} spell
+ * Get the spell damage. Uses the ATTACK to determine the mechanics used.
+ * @param {module:dnd/traits.CharacterTraits} attackerTraits
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
+ * @param {module:dnd/traits.MagicTraits} spellTraits
  * @returns {number}
  */
-export function getSpellDamage(attacker, target, spell) {
-  const attackerIntelligence = attacker.traits.get('INT', 1);
-  const saveModifier = target.traits.getNonMeleeSaveAbilityModifier(
-    spell.traits
-  );
-  let difficulty = spell.traits.getInt('DC');
+export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
+  switch (spellTraits.get('ATTACK')) {
+    case 'MELEE':
+      return getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits);
+    default:
+      return getSpellNormalDamage(attackerTraits, targetTraits, spellTraits);
+  }
+}
+
+/**
+ * Magic with using melee attack mechanics.
+ * @param {module:dnd/traits.CharacterTraits} attackerTraits
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
+ * @param {module:dnd/traits.MagicTraits} spellTraits
+ * @returns {number}
+ */
+function getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits) {
+  const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
+  const spellCastAbilityValue = attackerTraits.getInt(spellCastAbility, 1);
+  const attack = new AttackDetail({
+    damageDice: spellTraits.getDamageDiceWhenCastBy(attackerTraits),
+    weaponType: 'UNARMED',
+    proficiencyBonus: attackerTraits.getCharacterPb(spellTraits),
+    abilityModifier: characteristicToModifier(spellCastAbilityValue),
+  });
+  return getMeleeDamage(attack, targetTraits);
+}
+
+/**
+ * Magic with saving throw.
+ * @param {module:dnd/traits.CharacterTraits} attackerTraits
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
+ * @param {module:dnd/traits.MagicTraits} spellTraits
+ * @returns {number}
+ */
+export function getSpellNormalDamage(
+  attackerTraits,
+  targetTraits,
+  spellTraits
+) {
+  const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
+  const spellCastAbilityValue = attackerTraits.getInt(spellCastAbility, 1);
+  const saveModifier = targetTraits.getNonMeleeSaveAbilityModifier(spellTraits);
+  let difficulty = spellTraits.getInt('DC');
   if (difficulty === null || difficulty === undefined) {
-    LOG.error(`Magic ${attacker.id} has no DC set.`);
+    LOG.error(`Magic ${attackerTraits.get('NAME')} has no DC set.`);
     difficulty = 0;
   }
 
   const spellModifier =
-    attacker.traits.getCharacterPb(spell.traits) +
-    characteristicToModifier(attackerIntelligence);
+    attackerTraits.getCharacterPb(spellTraits) +
+    characteristicToModifier(spellCastAbilityValue);
   const fullDifficulty = difficulty + spellModifier;
   let savingThrow = dice.rollDice(20) + saveModifier;
   const damage = dice.rollMultiDice(
-    spell.traits.getDamageDiceWhenCastBy(attacker.traits)
+    spellTraits.getDamageDiceWhenCastBy(attackerTraits)
   );
   if (savingThrow >= fullDifficulty) {
-    const factor = spell.traits.getFloat('DMG_SAVED', 0);
+    const factor = spellTraits.getFloat('DMG_SAVED', 0);
     return Math.round(factor * damage);
   } else {
     return damage;
@@ -141,45 +181,77 @@ export function getSpellDamage(attacker, target, spell) {
 }
 
 /**
+ * @typedef {string} RestFailureValue
+ */
+/**
+ * @enum {RestFailureValue}
+ */
+export const RestFailure = {
+  NONE: '',
+  NEED_LONG_REST: 'need long rest',
+  NEED_MORE_RATIONS: 'need more rations',
+};
+/**
+ * @typedef {Object} RestDetails
+ * @property {boolean} possible
+ * @property {RestFailureValue} failure
+ */
+/**
  * Test if a rest can be taken.
  * A long rest takes 8 hours and cannot occur more than once.
  * So in this game we require three meals and a drink to mimic a full day.
- * For a short rest, we require 1 meal and a drink is all that is required.
- * @param {string} length - LONG or SHORT
+ * For a short rest, we require 1 meal and a drink is all the rations that are required.
+ * However, a short rest requires a hit dice and if these have run out, a long rest
+ * is necessary.
  * @param {number} nMeals - number of meals available
  * @param {number} nDrinks - number of drinks available
- *
- * @returns {boolean}
+ * @param {Traits} traits = actor's traits.
+ * @returns {{shortRest: RestDetails, longRest: RestDetail}}
  */
-export function canRest(length, nMeals, nDrinks) {
-  switch (length) {
-    case 'SHORT':
-      return nMeals >= MEALS_FOR_SHORT_REST && nDrinks >= DRINKS_FOR_SHORT_REST;
-    case 'LONG':
-      return nMeals >= MEALS_FOR_LONG_REST && nDrinks >= DRINKS_FOR_LONG_REST;
+export function canRest(nMeals, nDrinks, traits) {
+  const shortRest = { possible: true, failure: RestFailure.NONE };
+  const longRest = { possible: true, failure: RestFailure.NONE };
+  const hitDice = traits.get('HIT_DICE', '0D6');
+  if (!hitDice || dice.maxRoll(hitDice) < 1) {
+    shortRest.possible = false;
+    shortRest.failure = RestFailure.NEED_LONG_REST;
+  } else if (nMeals < MEALS_FOR_SHORT_REST || nDrinks < DRINKS_FOR_SHORT_REST) {
+    shortRest.possible = false;
+    shortRest.failure = RestFailure.NEED_MORE_RATIONS;
   }
-  LOG.error(`Attempt to rest for unknown length of ${length}`);
-  return false;
+  if (nMeals < MEALS_FOR_LONG_REST || nDrinks < DRINKS_FOR_LONG_REST) {
+    longRest.possible = false;
+    longRest.failure = RestFailure.NEED_MORE_RATIONS;
+  }
+
+  return {
+    shortRest: shortRest,
+    longRest: longRest,
+  };
 }
 
 /**
  * Take a rest.
  * @param {module:players/actors.Actor} actor
  * @param {string} length - LONG or SHORT
+ * @returns {{oldHp: number, newHp: number}}
  */
 export function takeRest(actor, length) {
+  const currentHp = actor.traits.getInt('HP', 0);
+  let newHp = currentHp;
   switch (length) {
     case 'SHORT':
       {
         const hitDice = actor.traits.get('HIT_DICE');
-        let hp = actor.traits.getInt('HP', 0);
-        const hpMax = actor.traits.getInt('HP_MAX', hp);
+        const hpMax = actor.traits.getInt('HP_MAX', currentHp);
         const constitutionModifier = actor.traits.getAsModifier('CON');
         const diceDetails = dice.getDiceDetails(hitDice);
         if (diceDetails.qty > 0) {
           diceDetails.qty--;
-          hp += dice.rollDice(diceDetails.sides) + constitutionModifier; // just roll one.
-          actor.traits.set('HP', Math.min(hp, hpMax));
+          newHp =
+            currentHp + dice.rollDice(diceDetails.sides) + constitutionModifier; // just roll one.
+          newHp = Math.min(newHp, hpMax);
+          actor.traits.set('HP', newHp);
           actor.traits.set(
             'HIT_DICE',
             dice.getDiceDetailsAsString(diceDetails)
@@ -204,10 +276,17 @@ export function takeRest(actor, length) {
           'HIT_DICE',
           dice.getDiceDetailsAsString(currentDiceDetails)
         );
-        actor.traits.set('HP', actor.traits.getInt('HP_MAX', 0));
+        newHp = actor.traits.getInt('HP_MAX', currentHp);
+        actor.traits.set('HP', newHp);
+        actor.toxify.cure();
+        magic.restoreCastingPower(actor.traits);
       }
       break;
     default:
       LOG.error(`Attempt to rest for unknown length of ${length}`);
   }
+  return {
+    oldHp: currentHp,
+    newHp: newHp,
+  };
 }

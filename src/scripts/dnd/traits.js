@@ -71,7 +71,6 @@ export class AttackDetail {
    * @param {string} options.weaponType - UNARMED makes this an unarmed strike.
    * @param {number} options.proficiencyBonus
    * @param {number} options.abilityModifier
-   * @param {boolean} options.secondAttack - true if this is a second attack
    */
   constructor(options) {
     this.damageDice = options.damageDice ?? '1D1';
@@ -212,7 +211,7 @@ export class Traits {
    * @returns {boolean}
    */
   has(key) {
-    return this._traits.has(key);
+    return this._traits.has(key) || this._traits.has('_' + key);
   }
 
   /**
@@ -487,6 +486,25 @@ export class Traits {
     });
     return result;
   }
+  /**
+   * Stringify traits.
+   * @return {module:utils/persistentData~ObjectJSON}
+   */
+  toJSON() {
+    return {
+      reviver: 'Traits',
+      data: [...this._traits],
+    };
+  }
+
+  /**
+   * Revive object created using toJSON
+   * @param {Array.Array<key,value>} data - array of map initialisation values
+   * @returns {Traits}
+   */
+  static revive(data) {
+    return new Traits(new Map(data));
+  }
 }
 
 /**
@@ -517,6 +535,23 @@ export class MagicTraits extends Traits {
       `Spell cast: base damage dice = ${damageDice} raised to ${adjustedDice} for level.`
     );
     return adjustedDice;
+  }
+
+  /**
+   * Convert to JSON
+   * @returns {module:utils/persistentData~ObjectJSON}
+   */
+  toJSON() {
+    const json = super.toJSON();
+    json.reviver = 'MagicTraits';
+    return json;
+  }
+  /**
+   * Revive from previous call to toJSON
+   * @param {Array.Array<key,value>} data - array of map values
+   */
+  static revive(data) {
+    return new MagicTraits(new Map(data));
   }
 }
 
@@ -560,7 +595,6 @@ export class CharacterTraits extends Traits {
     this._proficiencyBonus = 0;
     this.#setInitialAbilityScores();
     this._transientFxTraits = [];
-    this.#initialiseHitPoints();
     this._refreshDerivedValues();
   }
 
@@ -638,19 +672,23 @@ export class CharacterTraits extends Traits {
    * Initialise the hit points unless already set.
    * This is calculated as the maximum hit dice roll + the constitution modifier.
    */
-  #initialiseHitPoints() {
+  _updateHitPoints() {
     const alreadyHasHp = this._traits.has('HP');
     const alreadyHasHpMax = this._traits.has('HP_MAX');
-    if (alreadyHasHp && alreadyHasHpMax) {
+    const hitDice = this.get('HIT_DICE');
+    if (alreadyHasHp && alreadyHasHpMax && !hitDice) {
       return;
     }
-    const hitDice = this.get('HIT_DICE');
+
     if (hitDice) {
       const con = this.getInt('CON', 0);
       const conMod = characteristicToModifier(con);
-      if (!alreadyHasHpMax) {
-        this.set('HP_MAX', dice.maxRoll(hitDice) + conMod);
-      }
+      const maxRoll = dice.maxRoll(hitDice);
+      const averageDiceRoll = Math.ceil((maxRoll + 1) / 2);
+      const hpMax =
+        maxRoll + conMod + (this._level - 1) * (averageDiceRoll + conMod);
+      this.set('HP_MAX', hpMax);
+
       if (!alreadyHasHp) {
         this.set('HP', dice.maxRoll(hitDice) + conMod);
       }
@@ -763,7 +801,8 @@ export class CharacterTraits extends Traits {
    */
   _refreshDerivedValues(updatedKey) {
     if (!updatedKey || CHAR_STATS_KEYS.includes(updatedKey)) {
-      this._setLevelAndProfBonusFromExp();
+      this._adjustForExperience();
+      this._updateHitPoints();
       this._initialiseEffectiveTraits();
       if (this._traits.get('TYPE_ID') === 'ENEMY') {
         this._deriveValuesFromTraits();
@@ -994,7 +1033,7 @@ export class CharacterTraits extends Traits {
   /**
    * Set the level and prof bonus. These are calculated from the experience.
    */
-  _setLevelAndProfBonusFromExp() {
+  _adjustForExperience() {
     const values = tables.getLevelAndProfBonusFromExp(this._traits.get('EXP'));
     this._level = values.level;
     this._proficiencyBonus = values.profBonus;
@@ -1019,7 +1058,7 @@ export class CharacterTraits extends Traits {
     LOG.info(`Experience increased from ${currentExp} to ${newExp}.`);
     this.set('EXP', newExp);
     const currentLevel = this._level;
-    this._setLevelAndProfBonusFromExp();
+    this._adjustForExperience();
     const newLevel = this._level;
     return {
       exp: { was: currentExp, now: newExp },
@@ -1055,5 +1094,23 @@ export class CharacterTraits extends Traits {
       }
     }
     return false;
+  }
+  /**
+   * Convert to JSON. Note transient FXs are not saved as these are
+   * not persistent. Also additional traits from equipment are not
+   * included as equipment, etc. are utilised when a character is revived.
+   * @returns {module:utils/persistentData~ObjectJSON}
+   */
+  toJSON() {
+    const json = super.toJSON();
+    json.reviver = 'CharacterTraits';
+    return json;
+  }
+  /**
+   * Revive from previous call to toJSON
+   * @param {Array.Array<key,value>} data - array of map values
+   */
+  static revive(data) {
+    return new CharacterTraits(new Map(data));
   }
 }

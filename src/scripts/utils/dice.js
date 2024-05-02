@@ -126,13 +126,17 @@ export function changeQtyOfDice(dice, delta) {
 /**
  * Take a multidice definition of the form nDS + offset get the number of dice.
  * @param {string} multidice - multidice definition
- * @returns {DiceDetails} null if invalid
+ * @returns {DiceDetails}
  */
 export function getDiceDetails(dice) {
-  const match = dice.match(MULTIDICE_REGEX);
+  const match = dice?.match(MULTIDICE_REGEX);
   if (!match) {
     LOG.error(`Invalid dice format: ${dice}`);
-    return null;
+    return {
+      qty: 0,
+      sides: 0,
+      offset: 0,
+    };
   }
   const qty = parseInt(match[1]);
   const sides = parseInt(match[2]);
@@ -151,7 +155,9 @@ export function getDiceDetails(dice) {
  * @returns {string}
  */
 export function getDiceDetailsAsString(details) {
-  if (details.offset) {
+  if (!details) {
+    return '';
+  } else if (details.offset) {
     return `${details.qty}D${details.sides}+${details.offset}`;
   } else {
     return `${details.qty}D${details.sides}`;

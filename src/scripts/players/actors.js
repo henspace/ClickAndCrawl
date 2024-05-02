@@ -29,7 +29,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { AbstractInteraction } from '../dnd/interact.js';
+import { AbstractInteraction, Toxify } from '../dnd/interact.js';
 import { UiClickHandler } from '../utils/ui/interactions.js';
 import { ArtefactStoreManager, ArtefactType } from './artefacts.js';
 import * as dice from '../utils/dice.js';
@@ -106,8 +106,10 @@ export class Actor extends UiClickHandler {
   sprite;
   /** @type {Traits} */
   traits;
-  /** @type {AbstractInteraction} */
+  /** @type {module:dnd/interact.AbstractInteraction} */
   interaction;
+  /** @type {module:dnd/interact.Toxify} */
+  toxify;
   /** @type {boolean} */
   alive;
   /** True if actor is disengaging from a fight. @type {boolean} */
@@ -396,5 +398,54 @@ export class Actor extends UiClickHandler {
    */
   actionPointerDown(pointUnused) {
     super.actionPointerDown(this.sprite.position);
+  }
+
+  /**
+   * Convert to JSON.
+   * Note this only stores the actor.
+   * @returns {module:utils/persistentData~ObjectJSON}
+   */
+  toJSON() {
+    const storageDetails = this.storeManager.getAllStorageDetails();
+    const inventory = [];
+    for (const detail of storageDetails) {
+      inventory.push({
+        storeTypeId: detail.store.storeTypeId,
+        artefact: detail.artefact,
+      });
+    }
+    return {
+      reviver: 'Actor',
+      data: {
+        alive: this.alive,
+        almanacEntry: this.almanacEntry,
+        traits: this.traits,
+        inventory: inventory,
+        toxin: this?.toxify.getToxin(),
+      },
+    };
+  }
+
+  /**
+   * Revive from previous call to toJSON
+   * @param {Array.Array<key,value>} data - array of map values
+   * @param {function(module:dnd/almanacs~AlmanacEntry,module:dnd/traits.Traits)} builder
+   * @returns {Actor}
+   */
+  static revive(data, builder) {
+    const actor = builder(data.almanacEntry, data.traits);
+    actor.alive = data.alive;
+    actor.toxify = new Toxify(data.toxin);
+    for (const item of data.inventory) {
+      const store = actor.storeManager.getStoreByTypeId(item.storeTypeId);
+      if (!store) {
+        LOG.error(
+          `Unable to find store matching ${item.storeTypeId}. Game restore abandoned.`
+        );
+        return;
+      }
+      store.add(item.artefact);
+    }
+    return actor;
   }
 }

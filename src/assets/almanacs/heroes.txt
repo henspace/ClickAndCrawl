@@ -1,2 +1,6 @@
-0,COMMON,HERO,fighter1 [chain_mail_armour,shield,shortsword,gold_coins] * HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield
-0,COMMON,HERO,barbarian1 [studded_leather_armour,shortsword,handaxe,handaxe,gold_coins] * HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield
+# base abilities are:
+# STR:1D6+7,DEX:1D6+7,CON:1D6+7,INT:1D6+7,WIS:1D6+7,CHA:1D6+7
+# Two abilities should be changed to 1D4+11 as appropriate for the class.
+#0,COMMON,HERO,fighter1 [chain_mail_armour,shield,shortsword,gold_coins] * CLASS:FIGHTER,STR:1D4+11,DEX:1D6+7,CON:1D4+11,INT:1D6+7,WIS:1D6+7,CHA:1D6+7,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield,
+#0,COMMON,HERO,barbarian1 [studded_leather_armour,shortsword,handaxe,handaxe,gold_coins] * CLASS:FIGHTER,STR:1D4+11,DEX:1D6+7,CON:1D4+11,INT:1D6+7,WIS:1D6+7,CHA:1D6+7,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield
+0,COMMON,HERO,cleric1 [scale_mail_armour,warhammer,gold_coins] * CLASS:CLERIC,STR:1D6+7,DEX:1D6+7,CON:1D4+11,INT:1D6+7,WIS:1D4+11,CHA:1D6+7,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:light armour&medium armour&shield,SPELL_CAST:WIS

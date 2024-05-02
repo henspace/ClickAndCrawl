@@ -43,6 +43,7 @@ export const AssetUrls = {
     ['TRADERS', new URL('./almanacs/traders.txt', import.meta.url)],
     ['WEAPONS', new URL('./almanacs/weapons.txt', import.meta.url)],
     ['KEYS', new URL('./almanacs/keys.txt', import.meta.url)],
+    ['TRAPS', new URL('./almanacs/traps.txt', import.meta.url)],
   ]),
   DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
   HELP_MD: new URL('./guides/help.md', import.meta.url),
@@ -62,6 +63,7 @@ export const AssetUrls = {
     ['POISONED', new URL('./audio/bubbling-trimmed.mp3', import.meta.url)],
     ['DIE', new URL('./audio/male-hurt-sound-trimmed.mp3', import.meta.url)],
   ]),
+  SPLASH_IMAGE: new URL('./images/click-and-crawl.png', import.meta.url),
 };
 
 /**

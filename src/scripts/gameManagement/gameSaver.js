@@ -32,8 +32,10 @@ import PERSISTENT_DATA from '../utils/persistentData.js';
 import LOG from '../utils/logging.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
-import { strToActorType } from '../players/actors.js';
-import { strToArtefactType } from '../players/artefacts.js';
+import { Actor } from '../players/actors.js';
+import { Artefact } from '../players/artefacts.js';
+import { Traits, CharacterTraits, MagicTraits } from '../dnd/traits.js';
+import { Toxin } from '../dnd/toxins.js';
 
 /** @typedef {Object} AdventureResult
  * @property {string} name
@@ -104,24 +106,9 @@ function saveAdventureIfBest(hero) {
  */
 export function saveGameState(hero) {
   saveAdventureIfBest(hero);
-  const storageDetails = hero.storeManager.getAllStorageDetails();
-  const artefactDetails = [];
-  storageDetails.forEach((detail) =>
-    artefactDetails.push({
-      storeTypeId: detail.store.storeTypeId,
-      almanacEntry: detail.artefact.almanacEntry,
-      traitsString: detail.artefact.traits.valuesToString(),
-    })
-  );
-
   const gameState = {
     sceneLevel: SCENE_MANAGER.getCurrentSceneLevel(),
-    hero: {
-      alive: hero.alive,
-      almanacEntry: hero.almanacEntry,
-      traitsString: hero.traits.valuesToString(),
-      artefactDetails: artefactDetails,
-    },
+    hero: hero,
   };
   PERSISTENT_DATA.set('GAME_STATE', gameState);
 }
@@ -132,7 +119,8 @@ export function saveGameState(hero) {
  * @returns {{hero: Actor, sceneLevel: number}} - undefined if failure
  */
 export function restoreGameState() {
-  const gameState = PERSISTENT_DATA.get('GAME_STATE');
+  const gameState = PERSISTENT_DATA.get('GAME_STATE', null, revive);
+
   if (!gameState) {
     LOG.info('No saved game state to restore.');
     return;
@@ -141,25 +129,29 @@ export function restoreGameState() {
     LOG.info('Last hero state was dead, so not restoring.');
     return;
   }
-  gameState.hero.almanacEntry.equipmentIds = []; // these are intial arefacts which may have been dropped.
-  gameState.hero.almanacEntry.type = strToActorType(
-    gameState.hero.almanacEntry.typeId
-  );
-  const heroActor = buildActor(
-    gameState.hero.almanacEntry,
-    gameState.hero.traitsString
-  );
-  gameState.hero.artefactDetails.forEach((details) => {
-    details.almanacEntry.type = strToArtefactType(details.almanacEntry.typeId);
-    const artefact = buildArtefact(details.almanacEntry, details.traitsString);
-    const store = heroActor.storeManager.getStoreByTypeId(details.storeTypeId);
-    if (!store) {
-      LOG.error(
-        `Unable to find store matching ${details.storeTypeId}. Game restore abandoned.`
-      );
-      return;
-    }
-    store.add(artefact);
-  });
-  return { hero: heroActor, sceneLevel: gameState.sceneLevel };
+  return { hero: gameState.hero, sceneLevel: gameState.sceneLevel };
+}
+
+/**
+ * Reviver function called by JSON.parse
+ * @param {string} keyUnused
+ * @param {*} value
+ */
+function revive(keyUnused, value) {
+  switch (value?.reviver) {
+    case 'Actor':
+      return Actor.revive(value.data, buildActor);
+    case 'Toxin':
+      return Toxin.revive(value.data);
+    case 'Artefact':
+      return Artefact.revive(value.data, buildArtefact);
+    case 'Traits':
+      return Traits.revive(value.data);
+    case 'CharacterTraits':
+      return CharacterTraits.revive(value.data);
+    case 'MagicTraits':
+      return MagicTraits.revive(value.data);
+    default:
+      return value;
+  }
 }

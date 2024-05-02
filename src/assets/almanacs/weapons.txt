@@ -2,3 +2,4 @@
 0,COMMON,WEAPON,dagger * VALUE:2GP, DMG:1d4, TYPE: simple melee finesse light thrown
 0,COMMON,WEAPON,shortsword * VALUE:10GP , DMG:1D6, TYPE: martial melee light
 0,COMMON,WEAPON,handaxe * VALUE:5GP, DMG:1D6, TYPE: simple melee light thrown
+0,COMMON,WEAPON,warhammer * VALUE:15GP,DMG:1D8, TYPE:martial melee

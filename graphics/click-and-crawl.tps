@@ -246,6 +246,7 @@
             <key type="filename">tiles/hud-fullscreen00.png</key>
             <key type="filename">tiles/hud-fullscreen01.png</key>
             <key type="filename">tiles/leather_armour.png</key>
+            <key type="filename">tiles/magic00.png</key>
             <key type="filename">tiles/miss.png</key>
             <key type="filename">tiles/noxious_gas-dead00.png</key>
             <key type="filename">tiles/noxious_gas-idle00.png</key>
@@ -277,6 +278,7 @@
             <key type="filename">tiles/ring_mail_armour.png</key>
             <key type="filename">tiles/rusty_key.png</key>
             <key type="filename">tiles/scale_mail_armour.png</key>
+            <key type="filename">tiles/shield.png</key>
             <key type="filename">tiles/shortsword.png</key>
             <key type="filename">tiles/silver_coins.png</key>
             <key type="filename">tiles/skull.png</key>
@@ -293,6 +295,9 @@
             <key type="filename">tiles/spider-walk-w00.png</key>
             <key type="filename">tiles/spider.png</key>
             <key type="filename">tiles/studded_leather_armour.png</key>
+            <key type="filename">tiles/trapdoor-dead00.png</key>
+            <key type="filename">tiles/trapdoor-idle00.png</key>
+            <key type="filename">tiles/trapdoor.png</key>
             <key type="filename">tiles/ui-best-adventure00.png</key>
             <key type="filename">tiles/ui-best-adventure01.png</key>
             <key type="filename">tiles/ui-checkbox00.png</key>
@@ -334,6 +339,7 @@
             <key type="filename">tiles/wall2-B.png</key>
             <key type="filename">tiles/wall2-HI.png</key>
             <key type="filename">tiles/wall2-T.png</key>
+            <key type="filename">tiles/warhammer.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -369,6 +375,26 @@
             <key type="filename">tiles/barbarian1-walk-w02.png</key>
             <key type="filename">tiles/barbarian1-walk-w03.png</key>
             <key type="filename">tiles/barbarian1.png</key>
+            <key type="filename">tiles/cleric1-dead00.png</key>
+            <key type="filename">tiles/cleric1-idle00.png</key>
+            <key type="filename">tiles/cleric1-idle01.png</key>
+            <key type="filename">tiles/cleric1-walk-e00.png</key>
+            <key type="filename">tiles/cleric1-walk-e01.png</key>
+            <key type="filename">tiles/cleric1-walk-e02.png</key>
+            <key type="filename">tiles/cleric1-walk-e03.png</key>
+            <key type="filename">tiles/cleric1-walk-n00.png</key>
+            <key type="filename">tiles/cleric1-walk-n01.png</key>
+            <key type="filename">tiles/cleric1-walk-n02.png</key>
+            <key type="filename">tiles/cleric1-walk-n03.png</key>
+            <key type="filename">tiles/cleric1-walk-s00.png</key>
+            <key type="filename">tiles/cleric1-walk-s01.png</key>
+            <key type="filename">tiles/cleric1-walk-s02.png</key>
+            <key type="filename">tiles/cleric1-walk-s03.png</key>
+            <key type="filename">tiles/cleric1-walk-w00.png</key>
+            <key type="filename">tiles/cleric1-walk-w01.png</key>
+            <key type="filename">tiles/cleric1-walk-w02.png</key>
+            <key type="filename">tiles/cleric1-walk-w03.png</key>
+            <key type="filename">tiles/cleric1.png</key>
             <key type="filename">tiles/green_flask.png</key>
             <key type="filename">tiles/rat-idle01.png</key>
             <key type="filename">tiles/red_flask.png</key>
@@ -407,6 +433,7 @@
             </struct>
             <key type="filename">tiles/blood-splat-twice.png</key>
             <key type="filename">tiles/blood-splat.png</key>
+            <key type="filename">tiles/failed-spell.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>

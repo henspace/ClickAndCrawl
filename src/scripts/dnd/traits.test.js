@@ -28,6 +28,8 @@
  */
 import { test, expect } from '@jest/globals';
 import * as traits from './traits.js';
+import * as tables from './tables.js';
+import * as dice from '../utils/dice.js';
 
 const TEST_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
@@ -246,11 +248,16 @@ test('Traits.constructor case imposition', () => {
 });
 
 test('Traits.has', () => {
-  const testTraits = new traits.Traits('PROPA:valueA, PROPB:valueB');
+  const testTraits = new traits.Traits(
+    'PROPA:valueA, PROPB:valueB,_PROPX:hidden'
+  );
   testTraits.set('PROPC', 68);
   expect(testTraits.has('PROPA')).toBe(true);
+  expect(testTraits.has('_PROPA')).toBe(false);
   expect(testTraits.has('PROPB')).toBe(true);
   expect(testTraits.has('PROPC')).toBe(true);
+  expect(testTraits.has('PROPX')).toBe(true);
+  expect(testTraits.has('_PROPX')).toBe(true);
 });
 
 test('Traits.get', () => {
@@ -585,6 +592,23 @@ test('CharacterTraits.getCharacterLevel', () => {
   expect(characterTraits.getCharacterLevel()).toEqual(expectedLevel);
 });
 
+test('CharacterTraits HP_MAX reflects level', () => {
+  for (let level = 1; level <= 20; level++) {
+    const conValue = Math.floor(6 + level / 2);
+    const conMod = traits.characteristicToModifier(conValue);
+    const initialExp = tables.getMinExpPointsForLevel(level);
+    const diceCount = 2;
+    const diceSides = 6;
+    const characterTraits = new traits.CharacterTraits(
+      `CON:${conValue},EXP: ${initialExp}, HIT_DICE:${diceCount}D${diceSides}`
+    );
+    const avDiceRoll = Math.ceil((diceCount * diceSides + 1) / 2); // rounded up
+    const hpMax =
+      diceCount * diceSides + conMod + (level - 1) * (avDiceRoll + conMod);
+    expect(characterTraits.getInt('HP_MAX')).toEqual(hpMax);
+  }
+});
+
 test('CharacterTraits.getNonMeleeSaveAbilityModifier', () => {
   const conAbility = 5;
   const dexAbility = 30;
@@ -894,4 +918,124 @@ test('CharacterTraits.isProficient', () => {
   expect(
     characterTraits.isProficient(new traits.Traits('TYPE:KEYB KEY2 KEY99'))
   ).toEqual(true);
+});
+
+/* Magic Traits */
+test('getDamageDiceWhenCastBy: no extra dice per level', () => {
+  const exp = 125000;
+  const diceCount = 4;
+  const diceSides = 8;
+  const magicTraits = new traits.MagicTraits(`DMG:${diceCount}D${diceSides}`);
+  let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
+  const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
+  const diceDetails = dice.getDiceDetails(result);
+  expect(diceDetails).toStrictEqual({
+    offset: 0,
+    qty: diceCount,
+    sides: diceSides,
+  });
+});
+
+/* Magic Traits */
+test('getDamageDiceWhenCastBy: extra dice per level', () => {
+  const exp = 125000;
+  const diceCount = 4;
+  const diceSides = 8;
+  const extraDicePerLevel = 3;
+  const level = tables.getLevelAndProfBonusFromExp(exp).level;
+  const magicTraits = new traits.MagicTraits(
+    `DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+  );
+  let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
+  const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
+  const diceDetails = dice.getDiceDetails(result);
+  expect(diceDetails).toStrictEqual({
+    offset: 0,
+    qty: diceCount + (level - 1) * extraDicePerLevel,
+    sides: diceSides,
+  });
+  expect(diceDetails.qty).toBeGreaterThan(diceCount);
+});
+
+/* Magic Traits */
+test('getDamageDiceWhenCastBy: fractional extra dice per level', () => {
+  const exp = 200000;
+  const diceCount = 4;
+  const diceSides = 8;
+  const extraDicePerLevel = 0.5;
+  const level = tables.getLevelAndProfBonusFromExp(exp).level;
+  const magicTraits = new traits.MagicTraits(
+    `DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+  );
+  let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
+  const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
+  const diceDetails = dice.getDiceDetails(result);
+  expect(diceDetails).toStrictEqual({
+    offset: 0,
+    qty: diceCount + Math.floor((level - 1) * extraDicePerLevel),
+    sides: diceSides,
+  });
+  expect(diceDetails.qty).toBeGreaterThan(diceCount);
+});
+
+/* Persistence checks */
+test('Traits toJSON and revive', () => {
+  const original = new traits.Traits(
+    new Map([
+      ['STR', 10],
+      ['DMG', '3D8'],
+      ['TYPE', 'SOME RANDOM TYPE'],
+    ])
+  );
+
+  const asJSON = JSON.stringify(original);
+  const revived = JSON.parse(asJSON, (key, value) => {
+    if (value?.reviver === 'Traits') {
+      return traits.Traits.revive(value.data);
+    } else {
+      return value;
+    }
+  });
+  expect(revived).toStrictEqual(original);
+});
+
+test('MagicTraits toJSON and revive', () => {
+  const original = new traits.MagicTraits(
+    new Map([
+      ['STR', 10],
+      ['DMG', '3D8'],
+      ['TYPE', 'SOME RANDOM TYPE'],
+    ])
+  );
+
+  const asJSON = JSON.stringify(original);
+  const revived = JSON.parse(asJSON, (key, value) => {
+    if (value?.reviver === 'MagicTraits') {
+      return traits.MagicTraits.revive(value.data);
+    } else {
+      return value;
+    }
+  });
+  expect(revived).toStrictEqual(original);
+});
+
+test('CharacterTraits toJSON and revive', () => {
+  const original = new traits.CharacterTraits(
+    new Map([
+      ['STR', 10],
+      ['DMG', '3D8'],
+      ['TYPE', 'SOME RANDOM TYPE'],
+      ['HIT_DICE', '3D6'],
+    ])
+  );
+
+  const asJSON = JSON.stringify(original);
+  const revived = JSON.parse(asJSON, (key, value) => {
+    if (value?.reviver === 'CharacterTraits') {
+      return traits.CharacterTraits.revive(value.data);
+    } else {
+      return value;
+    }
+  });
+  expect(revived).toStrictEqual(original);
 });

@@ -68,6 +68,7 @@ let lastTimeStamp;
  */
 async function initialise(screenOptions) {
   SCREEN.setOptions(screenOptions);
+  const splashPopup = UI.popupElement(createSplashElement());
   MESSAGES.setMap(MESSAGE_MAP);
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
@@ -85,7 +86,10 @@ async function initialise(screenOptions) {
     .then(() => assetLoaders.loadTextFromUrl(AssetUrls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
     .then(() => loadAlmanacs(AssetUrls.ALMANAC_MAP))
-    .then(() => TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU))
+    .then(() => {
+      splashPopup.remove();
+      return TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU);
+    })
     .then(() => {
       ANIMATION_STATE_MANAGER.onStartAnimation = () => startAnimation();
       ANIMATION_STATE_MANAGER.setAnimationState(true);
@@ -209,6 +213,27 @@ function showFps(fps) {
     },
     { color: 'green' }
   );
+}
+
+/**
+ * Create the splash screen element.
+ * @returns {ELement}
+ */
+function createSplashElement() {
+  const splash = document.createElement('div');
+  const image = document.createElement('img');
+  image.src = AssetUrls.SPLASH_IMAGE;
+  splash.appendChild(image);
+
+  const loading = document.createElement('div');
+  loading.className = 'progress-indicator';
+  splash.appendChild(loading);
+
+  const loadingText = document.createElement('p');
+  loadingText.innerText = 'Loading'; // do not use message map as not loaded yet.
+  splash.appendChild(loadingText);
+
+  return splash;
 }
 
 /**

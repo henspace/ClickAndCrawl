@@ -103,7 +103,12 @@ function setOptions(options) {
     LOG.error('Multiple calls to setScreen ignored.');
     return;
   }
-  gameElement = document.getElementById('game-content');
+
+  gameElement = document?.getElementById('game-content');
+  if (!gameElement) {
+    LOG.debug('No game element so assuming running as Jest test. No ui');
+    return;
+  }
   fonts.initialise(options.width);
   canvas = document.createElement('canvas');
   canvas.id = 'game-canvas';

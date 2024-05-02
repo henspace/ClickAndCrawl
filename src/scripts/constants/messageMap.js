@@ -93,6 +93,10 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION CHAIN_MAIL_ARMOUR',
     'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
   ],
+  [
+    'DESCRIPTION CLERIC1',
+    'A powerful cleric who can act as a conduit between divine powers and the mortal world.',
+  ],
   ['DESCRIPTION CLUB', "A simple wooden club that's seen a lot of action."],
   [
     'DESCRIPTION COINS',
@@ -128,6 +132,10 @@ const MESSAGE_MAP = new Map([
     'A small, light axe. The blade is sharp and has been looked after with care.',
   ],
   ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
+  [
+    'DESCRIPTION INFLICT_WOUNDS',
+    'Target any creature you can touch to inflict necrotic damage.',
+  ],
   [
     'DESCRIPTION IRON_RATIONS',
     'Simple emergency rations. Crucial for resting between rooms.',
@@ -174,6 +182,10 @@ const MESSAGE_MAP = new Map([
 
   ['DESCRIPTION SPIDER', 'A giant spider with fangs dripping green venom.'],
   [
+    'DESCRIPTION SPIKES',
+    "It's a trap. Sharp iron spikes shoot up from the ground.",
+  ],
+  [
     'DESCRIPTION STUDDED_LEATHER_ARMOUR',
     'Tough and flexible leather armour with the addition of steel spikes and rivets.',
   ],
@@ -186,10 +198,17 @@ const MESSAGE_MAP = new Map([
     'A wandering trader with a wagon stacked high with a variety of artefacts found in the dungeon.',
   ],
   [
+    'DESCRIPTION TRAPDOOR',
+    "A small door in the floor. You can't tell what it hides.",
+  ],
+  [
     'DESCRIPTION WATERSKIN',
     'A leather drinking flask with fresh water. Crucial for resting between rooms.',
   ],
-
+  [
+    'DESCRIPTION WARHAMMER',
+    'A bludgeoning, versatile iron hammer favoured by many clerics.',
+  ],
   ['DIALOG TITLE BEST ADVENTURE', 'The most lucrative adventure so far'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
@@ -202,8 +221,16 @@ const MESSAGE_MAP = new Map([
   ['MENU TITLE GUIDES', 'Guides and information'],
   ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
   [
-    'MESSAGE CANNOT REST',
-    "You try to rest, but you don't have enough resources to restore your health.",
+    'MESSAGE CANNOT REST SHORT NEED LONG REST',
+    "You've had too many short rests. You need a long one first.",
+  ],
+  [
+    'MESSAGE CANNOT REST SHORT NEED RATIONS',
+    "You don't have enough rations for a short rest.",
+  ],
+  [
+    'MESSAGE CANNOT REST LONG NEED RATIONS',
+    "You don't have enough rations for a long rest.",
   ],
   [
     'MESSAGE CANNOT STASH',
@@ -213,10 +240,9 @@ const MESSAGE_MAP = new Map([
     'MESSAGE CANNOT STORE',
     "You're carrying too much stuff to pick up what you've found.",
   ],
-
   [
-    'MESSAGE CANNOT REST LONG',
-    'You have enough resource for a short rest, but not a long one.',
+    'MESSAGE CANNOT UNDERSTAND MAGIC',
+    "There is strange magic written here, but it's beyond your comprehension.",
   ],
   [
     'MESSAGE CONSUME BUT ALREADY FULL HP',
@@ -291,7 +317,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE REST DIALOG',
-    "You are on a dark staircase leading deeper into the dungeon, but safe for now. If you have enough food or drink, you can rest to restore some health. If you don't need to recover, save your rations. These are the requirements:",
+    "You are on a dark staircase leading deeper into the dungeon, but safe for now. If you have enough food or drink, you can rest to restore some health if necessary. If you don't need to recover, save your rations.",
   ],
   [
     'MESSAGE SEARCH CORPSE OR MOVE',
@@ -316,6 +342,7 @@ const MESSAGE_MAP = new Map([
     "You've found a spell, but you already know this incantation.",
   ],
   ['MESSAGE TRADE OR BARGE', 'Do you want to trade or barge past this guy?'],
+  ['MESSAGE TRADER CANNOT STASH', 'The trader has no space for this.'],
   [
     'MESSAGE ENTRANCE STUCK',
     [
@@ -337,7 +364,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE FOUND ENGRAVING',
-    'You find strange word engraved on the cold stone surface.',
+    'You find strange words engraved on the cold stone surface.',
   ],
   ['MESSAGE FOUND GENERIC', "It 's your lucky day. You' found something."],
   [
@@ -353,6 +380,11 @@ const MESSAGE_MAP = new Map([
   ],
   ['MESSAGE NO SAVED ADVENTURE', 'No adventure has been saved yet.'],
   ['MESSAGE NOTHING HERE', "There's nothing here."],
+  ['MESSAGE REST SHORT HP GAIN', 'Your short rest recovered ${0} HP.'],
+  [
+    'MESSAGE REST LONG HP GAIN',
+    'Your long rest recovered ${0} HP. You are also now cured of the toxic effects of any poisons you may have encountered.',
+  ],
   [
     'MESSAGE WELCOME',
     'Welcome to the Click and Crawl old-school dungeon crawler. How far will you get?',
@@ -361,8 +393,6 @@ const MESSAGE_MAP = new Map([
     'MESSAGE VICTORY',
     'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
   ],
-  ['LONG REST REQ', 'Long rest: drinks: ${0}; meals: ${1}'],
-  ['SHORT REST REQ', 'Short rest: drinks: ${0}; meals: ${1}; hit dice: 1'],
 
   // Miscellaneous words and phrases.
   ['AC (including armour)', 'AC (+armour): ${0}'],

@@ -46,10 +46,12 @@ import { ActorType, AttackMode } from '../players/actors.js';
 import { ArtefactType, StoreType } from '../players/artefacts.js';
 import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/canvasStyles.js';
+import { Toxin } from './toxins.js';
+import * as magic from './magic.js';
 
 /**
  * Apply poison damage to defender
- * @param {module:players/artefacts.Artefact} poison
+ * @param {module:players/artefacts.Artefact | module:players/artefacts.Actor } poison
  * @param {module:players/actors.Actor} victim
  * @param {number} damage
  * @returns {number} resulting HP of defender
@@ -64,6 +66,7 @@ function applyPoisonDamage(poison, victim, damage) {
       position: victim.position,
       velocity: new Velocity(0, 0, 0),
     });
+
     return applyDamage(poison, victim, damage);
   } else {
     addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
@@ -99,7 +102,7 @@ function applyDamage(attacker, defender, damage) {
     LOG.info('Killed actor.');
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
-    if (attacker.isHero?.()) {
+    if (attacker?.isHero?.()) {
       const change = attacker.traits.adjustForDefeatOfActor(defender.traits);
       let text;
       if (change.level.now > change.level.was) {
@@ -469,8 +472,18 @@ export class FindArtefact extends AbstractInteraction {
   async react(enactor) {
     this.owner.alive = false;
     const storageDetails = this.owner.storeManager.getFirstStorageDetails();
+
     if (storageDetails) {
       const artefact = storageDetails.artefact;
+      if (artefact.isTrap()) {
+        this.owner.storeManager.discardStashed(artefact, true);
+        return artefact.interaction.react(enactor);
+      } else if (
+        artefact.isMagic() &&
+        !magic.canActorLearnMagic(enactor.traits, artefact.traits)
+      ) {
+        return UI.showOkDialog(i18n`MESSAGE CANNOT UNDERSTAND MAGIC`);
+      }
       return actorDialogs.showArtefactDialog({
         preamble: this.#createDiscoveryMessage(artefact),
         currentOwner: this.owner,
@@ -493,7 +506,7 @@ export class FindArtefact extends AbstractInteraction {
   #createDiscoveryMessage(foundArtefact) {
     if (this.owner.type === ActorType.HIDDEN_ARTEFACT) {
       return i18n`MESSAGE FOUND HIDDEN ARTEFACT`;
-    } else if (foundArtefact.artefactType === ArtefactType.SPELL) {
+    } else if (foundArtefact.isMagic()) {
       // must be a prop and only engraved pillars currently supported.
       return i18n`MESSAGE FOUND ENGRAVING`;
     }
@@ -533,8 +546,90 @@ export class Poison extends AbstractInteraction {
   enact(reactor) {
     const damage = dndAction.getPoisonDamage(this.owner.traits, reactor.traits);
     applyPoisonDamage(this.owner, reactor, damage);
+    if (damage) {
+      reactor.toxify?.addToxicEffect(this.owner.traits);
+    }
     reactor.traits.addTransientFxTraits(this.owner.traits);
     return Promise.resolve();
+  }
+}
+
+/**
+ * Class to handle ongoing toxic effects.
+ */
+export class Toxify extends AbstractInteraction {
+  /** @type {Toxin} */
+  #toxin;
+
+  /**
+   * Construct the interaction.
+   * @param {module:dnd/toxins.Toxin} toxin - if not supplies an inactive toxin
+   * is added.
+   */
+  constructor(toxin) {
+    super(null); // no owner
+    this.#toxin = toxin ?? new Toxin();
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return true;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return false;
+  }
+  /**
+   * Each call applies the toxic effect so it should only be called once per turn.
+   * @param {module:players/actors.Actor} reactor
+   * @returns {Promise}
+   */
+  enact(reactor) {
+    if (!this.#toxin.isActive) {
+      return;
+    }
+    const damage = -this.#toxin.getChangeInHpThisTurn();
+    applyPoisonDamage(null, reactor, damage);
+    return Promise.resolve();
+  }
+
+  /**
+   * Add toxic effects.
+   * @param {module:dnd/traits.Traits} toxinTraits
+   */
+  addToxicEffect(toxinTraits) {
+    const hpPerTurn = -toxinTraits.getFloat('DMG_PER_TURN', 0);
+    if (hpPerTurn) {
+      LOG.debug(`Add toxic effect of ${hpPerTurn} HP/turn`);
+      this.#toxin.addToxicEffect(hpPerTurn);
+    }
+  }
+
+  /**
+   * Cure the toxic effects.
+   */
+  cure() {
+    this.#toxin.cure();
+  }
+
+  /**
+   * Test if toxins active
+   */
+  get isActive() {
+    return this.#toxin.isActive;
+  }
+
+  /**
+   * Get the underlying toxin
+   * @returns {Toxin}
+   */
+  getToxin() {
+    return this.#toxin;
   }
 }
 
@@ -567,7 +662,8 @@ export class CastSpell extends AbstractInteraction {
   }
 
   /**
-   * Respond to a spell cast
+   * Respond to a spell cast. Note that the magic system does not require an
+   * attack role unless the attack mode is set to ATTACK
    * @param {module:players/actors.Actor} enactor
    * @returns {Promise}
    */
@@ -578,23 +674,38 @@ export class CastSpell extends AbstractInteraction {
     const maxTargets = this.owner.traits.getInt('MAX_TARGETS', 999);
     let hitTargets = 0;
     const affectedTiles = tileMap.getRadiatingUpAndDown(gridPoint, range);
-
+    const attackMode = this.owner.traits.get('ATTACK', 'MAGIC');
     for (const tile of affectedTiles) {
       if (hitTargets > maxTargets) {
         break;
       }
-      this.#displaySpell(tile.worldPoint);
-      tile.getOccupants().forEach((occupant) => {
-        hitTargets++;
-        const damage = dndAction.getSpellDamage(enactor, occupant, this.owner);
+      if (attackMode === 'MAGIC') {
+        this.#displaySpell(tile.worldPoint);
+      }
+      let descendingHp = [...tile.getOccupants().values()].sort(
+        (a, b) => b.traits.getInt('HP') - a.traits.getInt('HP')
+      );
+      for (const occupant of descendingHp) {
+        const damage = dndAction.getSpellDamage(
+          enactor.traits,
+          occupant.traits,
+          this.owner.traits
+        );
         if (damage > 0) {
+          hitTargets++;
+          if (attackMode === 'MELEE') {
+            this.#displaySpell(tile.worldPoint);
+          }
           applyDamage(enactor, occupant, damage);
           occupant.traits.addTransientFxTraits(this.owner.traits);
         }
-      });
+      }
+    }
+    if (attackMode === 'MELEE' && hitTargets === 0) {
+      this.#displayFailedSpell(enactor.position);
     }
     if (this.owner.artefactType === ArtefactType.SPELL) {
-      enactor.storeManager.stash(this.owner); // spells have to be prepared again once used.
+      magic.expendSpellPower(this.enactor.traits, this.owner.traits);
     }
     return Promise.resolve();
   }
@@ -606,6 +717,18 @@ export class CastSpell extends AbstractInteraction {
   #displaySpell(worldPoint) {
     const spellType = this.owner.traits.get('EFFECT');
     addFadingAnimatedImage(spellType.toLowerCase(), {
+      position: worldPoint,
+      delaySecs: 0,
+      lifetimeSecs: 1,
+    });
+  }
+
+  /**
+   * Display a spell attack at a point.
+   * @param {Point} worldPoint
+   */
+  #displayFailedSpell(worldPoint) {
+    addFadingAnimatedImage('failed-spell', {
       position: worldPoint,
       delaySecs: 0,
       lifetimeSecs: 1,
@@ -681,5 +804,42 @@ export class ConsumeFood extends AbstractInteraction {
         enactor.traits.set('HP', gainDetail.newHp)
       );
     }
+  }
+}
+
+/**
+ * Class to handle triggering a trap
+ * @implements {ActorInteraction}
+ */
+export class TriggerTrap extends AbstractInteraction {
+  /**
+   * Construct the interaction.
+   * @param {module:players/artefacts.Artefact} owner - parent actor.
+   */
+  constructor(owner) {
+    super(owner);
+  }
+
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
+  /**
+   * Respond to a trap being triggered.
+   * @param {module:players/actors.Actor} enactor
+   * @returns {Promise}
+   */
+  async react(enactor) {
+    return UI.showOkDialog('Trap triggered: code to do.');
   }
 }

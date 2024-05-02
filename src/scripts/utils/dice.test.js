@@ -125,7 +125,11 @@ test('getDiceDetails', () => {
     sides: 10,
     offset: 32,
   });
-  expect(dice.getDiceDetails('15X10')).toBeNull();
+  expect(dice.getDiceDetails('15X10')).toEqual({
+    qty: 0,
+    sides: 0,
+    offset: 0,
+  });
 });
 
 test('getDiceDetailsAsString', () => {

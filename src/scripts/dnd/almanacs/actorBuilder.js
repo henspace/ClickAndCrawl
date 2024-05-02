@@ -34,7 +34,7 @@ import * as animation from '../../utils/sprites/animation.js';
 import { Position } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
 import { Colours } from '../../constants/canvasStyles.js';
-import { Fight, Trade, FindArtefact, Poison } from '../interact.js';
+import { Fight, Trade, FindArtefact, Poison, Toxify } from '../interact.js';
 import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
 import * as maths from '../../utils/maths.js';
 import GameConstants from '../../utils/game/gameConstants.js';
@@ -44,7 +44,7 @@ import { buildArtefact } from './artefactBuilder.js';
 import LOG from '../../utils/logging.js';
 import IMAGE_MANAGER from '../../utils/sprites/imageManager.js';
 import { getRandomFullName } from '../../utils/nameGenerator.js';
-
+import * as magic from '../magic.js';
 /**
  * Specialist traits renderer
  */
@@ -352,7 +352,7 @@ function createTrader(imageName, iconImageName, traits, actorType) {
  * @param {string[]} equipmentIds - ids of artefacts in the artefacts almanac.
  */
 function equipActor(actor, equipmentIds) {
-  if (!equipmentIds) {
+  if (!equipmentIds || equipmentIds.length === 0) {
     return;
   }
 
@@ -378,11 +378,12 @@ function equipActor(actor, equipmentIds) {
 /**
  * Create an actor from an almanac entry.
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
- * @param {Map<string, *>} [traitsString] - map of values to override the default
+ * @param {module:dnd/traits.CharacterTraits} [initialTraits]
  * almanacEntry. This is normally only used if rebuilding from saved values.
  */
-export function buildActor(almanacEntry, traitsString) {
-  const traits = new CharacterTraits(traitsString ?? almanacEntry.traitsString);
+export function buildActor(almanacEntry, initialTraits) {
+  const traits =
+    initialTraits ?? new CharacterTraits(almanacEntry.traitsString);
   if (!traits.get('NAME')) {
     traits.set('NAME', almanacEntry.name);
   }
@@ -391,16 +392,18 @@ export function buildActor(almanacEntry, traitsString) {
     case ActorType.HERO:
       actor = createActor(almanacEntry.imageName, null, traits, almanacEntry);
       actor.type = ActorType.HERO;
-      if (!traitsString) {
+      if (!initialTraits) {
         traits.set('NAME', getRandomFullName());
+        magic.restoreCastingPower(traits);
       }
+      actor.toxify = new Toxify();
       break;
     case ActorType.TRADER:
       actor = createTrader(almanacEntry.imageName, null, traits, almanacEntry);
       break;
     case ActorType.HIDDEN_ARTEFACT:
       actor = createArtefactHolder(
-        'hidden-artefact',
+        almanacEntry.imageName,
         null,
         traits,
         almanacEntry
@@ -415,7 +418,7 @@ export function buildActor(almanacEntry, traitsString) {
   }
 
   actor.description = almanacEntry.description;
-  if (almanacEntry.equipmentIds) {
+  if (!initialTraits && almanacEntry.equipmentIds) {
     equipActor(actor, almanacEntry.equipmentIds);
   }
   return actor;

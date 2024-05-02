@@ -99,6 +99,25 @@ function showMessage(message) {
   popup.addEventListener('click', () => popup.remove());
 }
 
+/**
+ * Displays a popup element. A background glass layer is shown behind the popup
+ * This is displayed in a similar way to showMessage but with the difference that
+ * no event listener is added to close the popup. This is the responsibility of
+ * the caller who should use the returned element to close it.
+ * @param {Element} element
+ * @returns {Element} the popup element.
+ */
+function popupElement(element) {
+  const popup = document.createElement('div');
+  popup.className = 'popup';
+  const popupInner = document.createElement('div');
+  popup.appendChild(popupInner);
+  popupInner.appendChild(element);
+  popup.style.opacity = 1;
+  document.body.appendChild(popup);
+  return popup;
+}
+
 /** Create an okDialog.
  * @param {string} message
  * @param {Object} options
@@ -268,6 +287,7 @@ function showControlsDialog(mainContent, options = {}) {
  * The UI singleton.
  */
 const UI = {
+  popupElement: popupElement,
   showChoiceDialog: showChoiceDialog,
   showMessage: showMessage,
   showOkDialog: showOkDialog,

@@ -1,6 +1,8 @@
-# Almanac entry
+# Almanacs
 
-## Format
+The alamancs comprise a number of single line entries.
+
+# Line format
 
 Each entry is a single line of the form:
 
@@ -19,9 +21,21 @@ before the + character will be used for the image name.
 A trait key value can be preceded by an underscore to prevent it being displayed to 
 players.
 
-## Heroes
+The key traits depend on the almanac and are described below.
 
-### Proficiency
+# Heroes
+
+Heroes should not normally have traits describing the key abilities as these are
+created randomly. The following key traits should be included:
+
+- PROF: set of proficiencies. This is a set of proficiencies separated by ampersands. See below for more detail.
+- CLASS: the character's class.
+- HIT_DICE: the starting hit dice for the character
+- AC: character's base armour class
+- SPEED: character's maximum movement per turn in feet. One tile equals 7.5 feet.
+- SPELL_CAST: the ability used for spell casting. Defaults to _INT_ for intelligence.
+
+## PROF trait
 Heroes can be proficient in equipment use by adding a *PROF* trait.
 This is a set of proficiencies separated by ampersands. E.g.
 
@@ -49,19 +63,24 @@ The following TYPE traits would not be proficient:
 - TYPE: ARMOUR
 
 
-## Monsters
+# Monsters
 
-### Attack mode
+Monsters should have the following traits.
+
+- STR,CHA,WIS,INT,DEX: standard abilities
+- ATTACK: the attack mode. 
+
+## ATTACK trait
 
 Monsters have an ATTACK trait which can be set to COMBAT or POISON.
 The interaction will always be a Fight but a melee or poison interaction will then be selected. If a monster has equipped spells, or cantrips, they will always be selected over a melee combat.
 
-### Magic
+## Use of magic
 
 If a monster is equipped with a spell or cantrip, the first entry is used. Spells have precedence over cantrips.
 Note that prepared spells are immediately unequipped once used.
 
-## Spells
+# Spells
 
 There are three key traits for spells:
 
@@ -71,3 +90,14 @@ point value so fractional values will work.  Some spells are defined in the DnD 
 -SAVE_ABILITY: this defines which ability is used for saving tests. E.g. 
 SAVE_ABILITY:DEX
 -DMG_SAVED: this give the proportion of damage applied if a save is successful. E.g. DMG_SAVED:0.5
+
+# Poisons
+
+Poisons have three key attributes:
+- DMG: the damage inflicted when first applied.
+- DMG_PER_TURN: the damage inflicted on every turn until cured.
+
+# Potions
+
+Potions can also be consumed. They have one key attribute:
+- HP: the opposite to damage. This is the number of hit points gained. It is not a dice roll.
