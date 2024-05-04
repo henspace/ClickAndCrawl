@@ -62,6 +62,15 @@ export const AssetUrls = {
     ['MISS', new URL('./audio/long-medium-swish-trimmed.mp3', import.meta.url)],
     ['POISONED', new URL('./audio/bubbling-trimmed.mp3', import.meta.url)],
     ['DIE', new URL('./audio/male-hurt-sound-trimmed.mp3', import.meta.url)],
+    ['DIE_MONSTER', new URL('./audio/pig-oink-47167.mp3', import.meta.url)],
+    [
+      'DIE_MONSTER_SMALL',
+      new URL('./audio/squeal-thing-103111.mp3', import.meta.url),
+    ],
+    [
+      'TRIGGER TRAP',
+      new URL('./audio/metal-blade-slice-32-195321.mp3', import.meta.url),
+    ],
   ]),
   SPLASH_IMAGE: new URL('./images/click-and-crawl.png', import.meta.url),
 };

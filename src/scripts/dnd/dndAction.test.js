@@ -665,3 +665,71 @@ test('canRest short and long rest success', () => {
     },
   });
 });
+
+test('canDetectTrap', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = 10;
+  const ability = 'WIS';
+  const trapDetails = {
+    difficulty: difficulty,
+    attackBonus: 0,
+    damageDice: '1D10',
+    detectBy: ability,
+    disableBy: 'INT',
+  };
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new Traits(`${ability}:${abilityValue}`);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.canDetectTrap(actorTraits, trapDetails)).toBe(
+        expectedResult
+      );
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});
+
+test('canDisableTrap', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = 10;
+  const ability = 'INT';
+  const trapDetails = {
+    difficulty: difficulty,
+    attackBonus: 0,
+    damageDice: '1D10',
+    detectBy: ability,
+    disableBy: 'INT',
+  };
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new Traits(`${ability}:${abilityValue}`);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.canDisableTrap(actorTraits, trapDetails)).toBe(
+        expectedResult
+      );
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});

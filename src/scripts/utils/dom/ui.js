@@ -175,7 +175,7 @@ function showChoiceDialog(title, message, choices) {
   });
 }
 
-/** Create an ok Dialog but just showing raw html.
+/** Create an ok Dialog but just showing a precreate element.
  * @param {string} title
  * @param {Element} element
  * @param {string} [okButtonLabel = 'BUTTON OK']
@@ -219,7 +219,7 @@ function showElementOkDialog(
  * @param {string | Element} mainContent -message or element to show..
  * @param {Object} options
  * @param {Object} options.title
- * @param {string} options.preamble - text placed before content..
+ * @param {string | Element} options.preamble - text placed before content..
  * @param {BaseControl[]} options.actionButtons
  * @param {boolean} options.row - if true, controls are in a row rather than the
  * default column.
@@ -244,9 +244,13 @@ function showControlsDialog(mainContent, options = {}) {
     );
   }
   if (options.preamble) {
-    scrollContainer.appendChild(
-      components.createElement('p', { text: options.preamble })
-    );
+    if (options.preamble instanceof Element) {
+      scrollContainer.appendChild(options.preamble);
+    } else {
+      scrollContainer.appendChild(
+        components.createElement('p', { text: options.preamble })
+      );
+    }
   }
   if (mainContent instanceof Element) {
     scrollContainer.appendChild(mainContent);

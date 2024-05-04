@@ -225,8 +225,13 @@ class ParsedScene extends AbstractScene {
       (entry) => entry.id === 'iron_rations'
     );
 
-    createEnemies(this.#sceneDefn).forEach((enemy) => {
-      enemy.position = tileMap.getRandomFreeGroundTile().worldPoint;
+    for (const enemy of createEnemies(this.#sceneDefn)) {
+      const freeTile = tileMap.getRandomFreeGroundTile();
+      if (!freeTile) {
+        LOG.info('No free tiles for enemy.');
+        break;
+      }
+      enemy.position = freeTile.worldPoint;
       WORLD.addActor(enemy);
       if (enemy.isTrader()) {
         let qtyOfItems = 7;
@@ -253,25 +258,40 @@ class ParsedScene extends AbstractScene {
         keysToAdd = 0;
         LOG.debug('Added key to actor.');
       }
-    });
+    }
     if (keysToAdd) {
       const holdingActor = createFindableArtefact(
         exitKeyAlmanacEntry,
         exitKeyArtefact
       );
-      holdingActor.position = tileMap.getRandomFreeGroundTile().worldPoint;
-      WORLD.addArtefact(holdingActor);
-      keysToAdd = 0;
-      LOG.debug('Added key as hidden object.');
+      const freeTile = tileMap.getRandomFreeGroundTile();
+      if (freeTile) {
+        holdingActor.position = freeTile.worldPoint;
+        WORLD.addArtefact(holdingActor);
+        keysToAdd = 0;
+        LOG.debug('Added key as hidden object.');
+      }
     }
-    createArtefacts(this.#sceneDefn).forEach((artefact) => {
-      artefact.position = tileMap.getRandomFreeGroundTile().worldPoint;
+
+    for (const artefact of createArtefacts(this.#sceneDefn)) {
+      const freeTile = tileMap.getRandomFreeGroundTile();
+      if (!freeTile) {
+        LOG.info('No free tile to add artefact.');
+        break;
+      }
+      artefact.position = freeTile.worldPoint;
       WORLD.addArtefact(artefact);
-    });
+    }
     SCENE_MANAGER.setCameraToTrack(this.heroActor.sprite, 200, 0);
     WORLD.addActor(this.heroActor);
     TURN_MANAGER.setHero(this.heroActor);
-    TURN_MANAGER.setExitKeyArtefact(exitKeyArtefact);
+    // if keysToAdd > 0 we couldn't find a free tile for it, son don't use.
+    if (keysToAdd > 0) {
+      TURN_MANAGER.setExitKeyArtefact(exitKeyArtefact);
+    } else {
+      TURN_MANAGER.setExitKeyArtefact(null);
+    }
+
     return Promise.resolve();
   }
 

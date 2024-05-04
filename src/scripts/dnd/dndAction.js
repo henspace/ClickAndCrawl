@@ -290,3 +290,27 @@ export function takeRest(actor, length) {
     newHp: newHp,
   };
 }
+
+/**
+ * Detect a trap. Uses wisdom unless DETECT_BY is set.
+ * @param {module:dnd/traits.Traits} detectorTraits
+ * @param {module:dnd/trapCharacteristics.TrapDetails} trapDetails
+ */
+export function canDetectTrap(detectorTraits, trapDetails) {
+  const abilityValue = detectorTraits.get(trapDetails.detectBy, 0);
+  const modifier = characteristicToModifier(abilityValue);
+  const detectionRoll = dice.rollDice(20) + modifier;
+  return detectionRoll >= trapDetails.difficulty;
+}
+
+/**
+ * Can disable trap. Uses intelligence unless DISABLE_BY is set.
+ * @param {module:dnd/traits.Traits} detectorTraits
+ * @param {module:dnd/trapCharacteristics.TrapDetails} trapDetails
+ */
+export function canDisableTrap(detectorTraits, trapDetails) {
+  const abilityValue = detectorTraits.get(trapDetails.disableBy, 0);
+  const modifier = characteristicToModifier(abilityValue);
+  const disableRoll = dice.rollDice(20) + modifier;
+  return disableRoll >= trapDetails.difficulty;
+}

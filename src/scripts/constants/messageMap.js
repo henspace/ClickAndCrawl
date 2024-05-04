@@ -63,6 +63,8 @@ const MESSAGE_MAP = new Map([
   ['BUTTON SETTINGS', 'Settings'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON STASH', 'Stash'],
+  ['BUTTON TRAP DISABLE', 'Try to disable'],
+  ['BUTTON TRAP LEAVE', 'Leave it alone'],
   ['BUTTON TAKE ARTEFACT', 'Take'],
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
@@ -216,6 +218,10 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
+  ['DIALOG TITLE TRAP DETECTED', 'Trap detected!'],
+  ['DIALOG TITLE TRAP DISABLED', 'Trap disabled!'],
+  ['DIALOG TITLE TRAP TRIGGERED SURVIVED', 'Trap triggered!'],
+  ['DIALOG TITLE TRAP TRIGGERED INJURED', 'Trap triggered!'],
 
   ['MENU TITLE MAIN', 'Click and Crawl'],
   ['MENU TITLE GUIDES', 'Guides and information'],
@@ -344,6 +350,23 @@ const MESSAGE_MAP = new Map([
   ['MESSAGE TRADE OR BARGE', 'Do you want to trade or barge past this guy?'],
   ['MESSAGE TRADER CANNOT STASH', 'The trader has no space for this.'],
   [
+    'MESSAGE TRAP ATTEMPT DISABLE',
+    "You find a trap. You can't tell what it is though. Do you want to try to disable it?",
+  ],
+  [
+    'MESSAGE TRAP TRIGGERED SURVIVED',
+    'Despite the trap triggering, you luckily avoid any injury.',
+  ],
+  [
+    'MESSAGE TRAP TRIGGERED INJURED',
+    "You're caught by surprise and sustain a number of injuries from the trap.",
+  ],
+  [
+    'MESSAGE TRAP DISABLED',
+    'Taking great care you manage to disable the trap.',
+  ],
+
+  [
     'MESSAGE ENTRANCE STUCK',
     [
       "The entrance is locked or jammed. You can't tell. Either way, you can't escape in that direction.",
@@ -371,7 +394,7 @@ const MESSAGE_MAP = new Map([
     'MESSAGE GROUND DISTURBED',
     [
       'The ground appears to have been disturbed.',
-      "There's been some recent digging here.",
+      "The dungeon flagstones look like they've been moved.",
     ],
   ],
   [

@@ -895,9 +895,11 @@ function disambiguateFilter(filter, occupant) {
     if (occupant?.isHiddenArtefact()) {
       const storageDetails = occupant.storeManager.getFirstStorageDetails();
       const artefact = storageDetails?.artefact;
-      return artefact
-        ? ClickEventFilter.INTERACT_TILE
-        : ClickEventFilter.MOVEMENT_TILE;
+      if (occupant.alive && artefact) {
+        return ClickEventFilter.INTERACT_TILE;
+      } else if (!occupant.alive && !artefact) {
+        return ClickEventFilter.MOVEMENT_TILE;
+      }
     }
 
     return UI.showChoiceDialog(

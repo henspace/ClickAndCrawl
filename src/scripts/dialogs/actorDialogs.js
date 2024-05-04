@@ -984,7 +984,7 @@ function showEquipDialog(options) {
   const container = components.createElement('div', {
     className: 'use-weapon-dialog',
   });
-  container.appendChild(createActorElement(artefact));
+  container.appendChild(createActorElement(artefact, options));
 
   const actionButtons = createArtefactDialogButtons(container, options);
 
@@ -1379,7 +1379,7 @@ export function showArtefactDialog(options) {
   if (!options.prospectiveOwner) {
     options.prospectiveOwner = options.currentOwner; // self action
   }
-  const sourceStoreManager = options.currentOwner.storeManager;
+  const sourceStoreManager = options.currentOwner?.storeManager;
   const destStoreManager = options.prospectiveOwner.storeManager;
   const artefact = options.artefact;
 
@@ -1441,7 +1441,7 @@ export function showArtefactDialog(options) {
         }
         break;
       case ArtefactAction.TAKE:
-        sourceStoreManager.discard(artefact);
+        sourceStoreManager?.discard(artefact); // store manager could be null for programmatically created artefact.
         if (artefact.stashInWagon && !destStoreManager.hasWagon) {
           destStoreManager.equip(artefact, { direct: true });
         } else {

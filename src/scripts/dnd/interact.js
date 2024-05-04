@@ -48,6 +48,9 @@ import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/canvasStyles.js';
 import { Toxin } from './toxins.js';
 import * as magic from './magic.js';
+import * as traps from './trapCharacteristics.js';
+import * as trapDialogs from '../dialogs/trapDialogs.js';
+import { buildArtefactFromId } from './almanacs/artefactBuilder.js';
 
 /**
  * Apply poison damage to defender
@@ -98,7 +101,7 @@ function applyDamage(attacker, defender, damage) {
   defenderHP = Math.max(0, defenderHP - damage);
   defender.traits.set('HP', defenderHP);
   if (defenderHP === 0) {
-    SOUND_MANAGER.playEffect('DIE');
+    SOUND_MANAGER.playEffect(defender.traits.get('SOUND', 'DIE'));
     LOG.info('Killed actor.');
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
@@ -141,7 +144,7 @@ export class AbstractInteraction {
   }
   /**
    * @param {module:players/actors.Actor} reactor
-   * @returns {Promise}
+   * @returns {Promise} fulfils to value depending on interaction. Can be undefined
    */
   enact(reactorUnused) {
     return Promise.resolve();
@@ -149,7 +152,7 @@ export class AbstractInteraction {
 
   /**
    * @param {module:players/actors.Actor} enactor
-   * @returns {Promise}
+   * @returns {Promise} fulfils to value depending on interaction. Can be undefined
    */
   react(enactorUnused) {
     return Promise.resolve();
@@ -474,10 +477,20 @@ export class FindArtefact extends AbstractInteraction {
     const storageDetails = this.owner.storeManager.getFirstStorageDetails();
 
     if (storageDetails) {
-      const artefact = storageDetails.artefact;
+      let artefact = storageDetails.artefact;
       if (artefact.isTrap()) {
-        this.owner.storeManager.discardStashed(artefact, true);
-        return artefact.interaction.react(enactor);
+        const trapResult = await artefact.interaction.react(enactor);
+        if (trapResult.outcome === TrapOutcome.LEAVE) {
+          this.owner.alive = true; // reset trap
+          return Promise.resolve();
+        }
+        this.owner.storeManager.discardStashed(artefact, true); // remove trap
+        if (!trapResult.artefact) {
+          return Promise.resolve(); // nothing to find
+        }
+
+        artefact = trapResult.artefact;
+        this.owner.storeManager.stash(artefact, { direct: true }); // trap now just found artefact.
       } else if (
         artefact.isMagic() &&
         !magic.canActorLearnMagic(enactor.traits, artefact.traits)
@@ -491,6 +504,7 @@ export class FindArtefact extends AbstractInteraction {
         storeType: storageDetails.store.storeType,
         artefact: artefact,
         actionType: actorDialogs.ArtefactActionType.FIND,
+        hideTraits: artefact.isMagic(),
       });
     } else {
       return UI.showOkDialog(i18n`MESSAGE NOTHING MORE TO DISCOVER`);
@@ -808,6 +822,19 @@ export class ConsumeFood extends AbstractInteraction {
 }
 
 /**
+ * @typedef {string} TrapOutcomeValue
+ */
+/**
+ * @enum {TrapOutcomeValue}
+ */
+export const TrapOutcome = {
+  ATTEMPT_DISABLE: 'attempt disable',
+  LEAVE: 'leave',
+  DISABLED: 'disabled',
+  TRIGGERED: 'triggered',
+};
+
+/**
  * Class to handle triggering a trap
  * @implements {ActorInteraction}
  */
@@ -837,9 +864,92 @@ export class TriggerTrap extends AbstractInteraction {
   /**
    * Respond to a trap being triggered.
    * @param {module:players/actors.Actor} enactor
-   * @returns {Promise}
+   * @returns {Promise<{outcome:TrapOutcome, artefact:module:players/artefacts.Artefact}>} fulfils to artefact that is found if successfully disabled.
    */
   async react(enactor) {
-    return UI.showOkDialog('Trap triggered: code to do.');
+    let foundArtefact = null;
+    const trapDetails = traps.getCharacteristics(
+      enactor.traits.getCharacterLevel(),
+      this.owner.traits
+    );
+    const action = await this.#attemptToDisable(enactor.traits, trapDetails);
+    let damage;
+    switch (action) {
+      case TrapOutcome.TRIGGERED: {
+        LOG.info('Trigger the trap.');
+        damage = dndAction.getMeleeDamage(trapDetails.attack, enactor.traits);
+        const dialog =
+          damage === 0
+            ? trapDialogs.showSurvivedTrap
+            : trapDialogs.showInjuredByTrap;
+        return dialog(enactor, trapDetails, this.owner.description)
+          .then(() => this.#applyAndShowDamage(enactor, damage))
+          .then(() => ({ outcome: action, artefact: foundArtefact }));
+      }
+      case TrapOutcome.DISABLED:
+        LOG.info('Disable the trap.');
+        foundArtefact = buildArtefactFromId(trapDetails.reward);
+        return trapDialogs
+          .showDisableSuccess(enactor, trapDetails, this.owner.description)
+          .then(() => ({ outcome: action, artefact: foundArtefact }));
+      case TrapOutcome.LEAVE:
+        LOG.info('Leave the trap.');
+        return Promise.resolve({ outcome: action, artefact: foundArtefact });
+    }
+  }
+
+  /**
+   * Apply and show damage.
+   * @param {module:players/actors.Actor} enactor
+   * @param {number} damage
+   */
+  #applyAndShowDamage(enactor, damage) {
+    return new Promise((resolve) => {
+      if (damage <= 0) {
+        SOUND_MANAGER.playEffect('MISS');
+        addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
+          delaySecs: 2,
+          lifetimeSecs: 4,
+          position: enactor.position,
+          velocity: new Velocity(0, 0, 0),
+        });
+        resolve();
+        return;
+      }
+      SOUND_MANAGER.playEffect('TRIGGER TRAP');
+      addFadingImage(IMAGE_MANAGER.getSpriteBitmap('blood-splat.png'), {
+        delaySecs: 2,
+        lifetimeSecs: 4,
+        position: enactor.position,
+        velocity: new Velocity(0, 0, 0),
+      });
+      applyDamage(this.owner, enactor, damage);
+      resolve();
+    });
+  }
+
+  /**
+   * Attempt to disable a trap if possible
+   * @param {module:dnd/traits.Traits} enactorTraits
+   * @param {module:dnd/trapCharacteristics~TrapDetails} trapDetails
+   * @returns {Promise<string>} fulfils to 'leave', 'disable' or 'trigger'
+   */
+  #attemptToDisable(enactorTraits, trapDetails) {
+    if (dndAction.canDetectTrap(enactorTraits, trapDetails)) {
+      return trapDialogs
+        .showDisableTrap(enactorTraits, trapDetails, this.owner.description)
+        .then((outcome) => {
+          if (outcome === TrapOutcome.LEAVE) {
+            return outcome;
+          }
+          if (dndAction.canDisableTrap(enactorTraits, trapDetails)) {
+            return TrapOutcome.DISABLED;
+          } else {
+            return TrapOutcome.TRIGGERED;
+          }
+        });
+    } else {
+      return Promise.resolve(TrapOutcome.TRIGGERED);
+    }
   }
 }

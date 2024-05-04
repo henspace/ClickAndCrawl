@@ -13,6 +13,12 @@ Pixabay via Pixabay - trimmed.
 long-medium-swish-trimmed.mp3 based on long-medium-swish-44324.mp3 by Pixabay
 via Pixabay
 
-bubbling-trimmed.mpw based on bubbling-6184.mp3
+bubbling-trimmed.mp3 based on bubbling-6184.mp3
 [https://pixabay.com/sound-effects/bubbling-6184/] by Pixabay via Pixabay -
 trimmed
+
+metal-blade-slice-32-195321.mp3 by [https://pixabay.com/users/floraphonic-38928062|floraphonic] via Pixabay
+
+pig-oink-47167.mp3 [https://pixabay.com/sound-effects/pig-oink-47167/] by Pixabay via Pixabay
+
+squeal-thing-103111.mp3 [https://pixabay.com/sound-effects/squeal-thing-103111/] by Pixabay via Pixabay

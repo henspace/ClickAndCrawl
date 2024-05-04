@@ -30,6 +30,8 @@
 import { Artefact, ArtefactType } from '../../players/artefacts.js';
 import { CastSpell, ConsumeFood, TriggerTrap } from '../interact.js';
 import { Traits, MagicTraits } from '../traits.js';
+import LOG from '../../utils/logging.js';
+import { ALMANAC_LIBRARY } from './almanacs.js';
 
 /**
  * Create an artefact.
@@ -75,4 +77,19 @@ export function buildArtefact(almanacEntry, initialTraits) {
     artefact.interaction = new ConsumeFood(artefact);
   }
   return artefact;
+}
+
+/**
+ * Build an artefact from its id.
+ * @param {string} id
+ * @param {string[]} [keys = 'MONEY] - the almanacs to search.
+ * @returns {Artefact} null if not found
+ */
+export function buildArtefactFromId(id, keys = ['MONEY']) {
+  const artefactEntry = ALMANAC_LIBRARY.findById(id, keys);
+  if (!artefactEntry) {
+    LOG.error(`Could not find artefact ${id} in ${keys} almanacs.`);
+    return null;
+  }
+  return buildArtefact(artefactEntry);
 }

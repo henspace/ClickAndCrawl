@@ -242,8 +242,11 @@ test('Traits.constructor dice roll', () => {
 
 test('Traits.constructor case imposition', () => {
   const str = 'A Name of Mixed Case';
-  const testTraits = new traits.Traits(`NAME:${str}, OTHER:${str}`);
+  const testTraits = new traits.Traits(
+    `NAME:${str}, OTHER:${str}, REWARD:${str}`
+  );
   expect(testTraits.get('NAME')).toBe(str);
+  expect(testTraits.get('REWARD')).toBe(str);
   expect(testTraits.get('OTHER')).toBe(str.toUpperCase());
 });
 
@@ -618,13 +621,13 @@ test('CharacterTraits.getNonMeleeSaveAbilityModifier', () => {
   );
   expect(
     characterTraits.getNonMeleeSaveAbilityModifier(
-      new traits.Traits('SAVE_ABILITY:CON')
+      new traits.Traits('SAVE_BY:CON')
     )
   ).toEqual(abilityToModifier(conAbility));
 
   expect(
     characterTraits.getNonMeleeSaveAbilityModifier(
-      new traits.Traits('SAVE_ABILITY:DEX')
+      new traits.Traits('SAVE_BY:DEX')
     )
   ).toEqual(abilityToModifier(dexAbility));
 
@@ -1022,7 +1025,12 @@ test('MagicTraits toJSON and revive', () => {
 test('CharacterTraits toJSON and revive', () => {
   const original = new traits.CharacterTraits(
     new Map([
+      ['CHA', 11],
+      ['CON', 11],
+      ['DEX', 11],
+      ['INT', 11],
       ['STR', 10],
+      ['WIS', 11],
       ['DMG', '3D8'],
       ['TYPE', 'SOME RANDOM TYPE'],
       ['HIT_DICE', '3D6'],
@@ -1038,4 +1046,19 @@ test('CharacterTraits toJSON and revive', () => {
     }
   });
   expect(revived).toStrictEqual(original);
+});
+
+test('CharacterTraits initialises base traits', () => {
+  const original = new traits.CharacterTraits(
+    new Map([
+      ['CLASS', 'FIGHTER'],
+      ['DMG', '3D8'],
+      ['TYPE', 'SOME RANDOM TYPE'],
+      ['HIT_DICE', '3D6'],
+    ])
+  );
+  for (const key of TEST_KEYS) {
+    expect(original.getInt(key)).toBeGreaterThanOrEqual(8);
+    expect(original.getInt(key)).toBeLessThanOrEqual(15);
+  }
 });

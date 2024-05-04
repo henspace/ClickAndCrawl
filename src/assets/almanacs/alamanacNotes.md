@@ -69,6 +69,7 @@ Monsters should have the following traits.
 
 - STR,CHA,WIS,INT,DEX: standard abilities
 - ATTACK: the attack mode. 
+- SOUND: sound made when dieing. Defaults to die.
 
 ## ATTACK trait
 
@@ -87,8 +88,8 @@ There are three key traits for spells:
 - DMG: the damage dice
 - DICE_PER_LEVEL: the number of damage dice per character level. This is a floating
 point value so fractional values will work.  Some spells are defined in the DnD 5e guide as increasing per spell level rather than per character level. As there are 20 character levels and 9 spell levels the spell level rate should be divided by two to give an approximate value for the DICE_PER_LEVEL.
--SAVE_ABILITY: this defines which ability is used for saving tests. E.g. 
-SAVE_ABILITY:DEX
+-SAVE_BY: this defines which ability is used for saving tests. E.g. 
+SAVE_BY:DEX
 -DMG_SAVED: this give the proportion of damage applied if a save is successful. E.g. DMG_SAVED:0.5
 
 # Poisons
@@ -100,4 +101,16 @@ Poisons have three key attributes:
 # Potions
 
 Potions can also be consumed. They have one key attribute:
+
 - HP: the opposite to damage. This is the number of hit points gained. It is not a dice roll.
+
+# Traps
+
+Traps can be triggered by actors when interacting. The basic attributes are
+ - SEVERITY: determines the damage and can be SETBACK, DANGEROUS or DEADLY.
+ The actual damage is calculated and adjusted to the character's level.
+ - DETECT_BY: the attribute to detect the trap. Defaults to WIS. Normally, you should set this to INT for magic traps.
+ - DISABLE_BY: the attribute to disable the trap. Defaults to INT.
+ - GOLD: the number of gold coins provided by successfully disabling a trap. This is an integer.
+Traps always perform a melee attack. Magic traps are regarded as magic only for
+the purposes of detection. The spell always performs a melee attack.

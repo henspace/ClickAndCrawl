@@ -31,7 +31,7 @@
 import * as maths from '../utils/maths.js';
 import * as dice from '../utils/dice.js';
 import * as tables from './tables.js';
-import * as arrayManip from '../utils/arrays/arrayManip.js';
+import { getClassAbilities } from './abilityGenerator.js';
 
 import LOG from '../utils/logging.js';
 
@@ -322,7 +322,7 @@ export class Traits {
    */
   #imposeCase(key, value) {
     key = key.toUpperCase();
-    if (key !== 'NAME') {
+    if (key !== 'NAME' && key !== 'REWARD') {
       value = value.toUpperCase();
     }
     return [key, value];
@@ -660,11 +660,10 @@ export class CharacterTraits extends Traits {
    * Set initial ability scores unless already set.
    */
   #setInitialAbilityScores() {
-    const values = arrayManip.randomise([15, 14, 13, 12, 10, 8]);
-    let valueIndex = 0;
-    CHAR_STATS_KEYS.forEach((key) => {
+    const baseAbilities = getClassAbilities(this.get('CLASS'));
+    baseAbilities.forEach((value, key) => {
       if (!this.get(key)) {
-        this.set(key, values[valueIndex++] ?? 8);
+        this.set(key, value ?? 8);
       }
     });
   }
@@ -753,11 +752,9 @@ export class CharacterTraits extends Traits {
    *
    */
   getNonMeleeSaveAbilityModifier(attackerTraits) {
-    const saveAbility = attackerTraits.get('SAVE_ABILITY');
+    const saveAbility = attackerTraits.get('SAVE_BY');
     if (!saveAbility) {
-      LOG.error(
-        `Non-melee ${attackerTraits.get('NAME')} has no SAVE_ABILITY set.`
-      );
+      LOG.error(`Non-melee ${attackerTraits.get('NAME')} has no SAVE_BY set.`);
       return 0;
     }
     const ability = this.getInt(saveAbility);
