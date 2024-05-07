@@ -73,7 +73,7 @@ export function showBestAdventureDialog() {
     );
     list.appendChild(
       components.createElement('li', {
-        text: i18n`Dungeon level:${bestAdventure.dungeonLevel}`,
+        text: i18n`Dungeon floor:${bestAdventure.dungeonFloor}`,
       })
     );
   } else {

@@ -87,9 +87,11 @@ export class VelocityMover extends AbstractModifier {
   doUpdate(sprite, deltaSeconds) {
     sprite.position.x += sprite.velocity.x * deltaSeconds;
     sprite.position.y += sprite.velocity.y * deltaSeconds;
+    sprite.position.rotation += sprite.velocity.rotation * deltaSeconds;
     if (sprite.acceleration) {
       sprite.velocity.x += sprite.acceleration.x * deltaSeconds;
       sprite.velocity.y += sprite.acceleration.y * deltaSeconds;
+      sprite.velocity.rotation += sprite.acceleration.rotation * deltaSeconds;
     }
     return this;
   }

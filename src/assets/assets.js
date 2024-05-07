@@ -44,14 +44,22 @@ export const AssetUrls = {
     ['WEAPONS', new URL('./almanacs/weapons.txt', import.meta.url)],
     ['KEYS', new URL('./almanacs/keys.txt', import.meta.url)],
     ['TRAPS', new URL('./almanacs/traps.txt', import.meta.url)],
+    ['OBJECTIVES', new URL('./almanacs/objectives.txt', import.meta.url)],
   ]),
+  DUNGEON_COMPLETE: new URL('./stories/dungeon-completed.md', import.meta.url),
   DUNGEON_SCRIPT: new URL('./stories/dungeon_script.txt', import.meta.url),
+  DUNGEON_WELCOME: new URL('./stories/dungeon-welcome.md', import.meta.url),
+  DUNGEON_WELCOME_CASUAL: new URL(
+    './stories/dungeon-welcome-casual.md',
+    import.meta.url
+  ),
   HELP_MD: new URL('./guides/help.md', import.meta.url),
   MUSIC: new URL(
     './audio/do-alto-do-trono-da-desolacao-trimmed.mp3', // cspell:disable-line
     import.meta.url
   ),
   PRIVACY_MD: new URL('./guides/privacy.md', import.meta.url),
+  STARTUP_TIPS_MD: new URL('./guides/startupTips.md', import.meta.url),
   QUICK_START_MD: new URL('./guides/quickStart.md', import.meta.url),
   SOUND_EFFECTS_MAP: new Map([
     ['PUNCH', new URL('./audio/punch-trimmed.mp3', import.meta.url)],

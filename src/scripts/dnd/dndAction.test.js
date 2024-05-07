@@ -28,7 +28,6 @@
  */
 import { jest, test, expect } from '@jest/globals';
 import * as mockedDice from '../utils/dice.mockable.js';
-import { characteristicToModifier } from './traits.js';
 
 jest.unstable_mockModule('../utils/dice.js', () => {
   return {
@@ -39,6 +38,7 @@ jest.unstable_mockModule('../utils/dice.js', () => {
 });
 
 const mockDice = await import('../utils/dice.js');
+const { characteristicToModifier } = await import('./traits.js');
 const { Actor, ActorType } = await import('../players/actors.js');
 const dndAction = await import('./dndAction.js');
 const { CharacterTraits, Traits } = await import('./traits.js');
@@ -732,4 +732,51 @@ test('canDisableTrap', () => {
     expect(successes).toBeGreaterThan(0);
     expect(failures).toBeGreaterThan(0);
   }
+});
+
+test(`Standard difficulties`, () => {
+  expect(dndAction.Difficulty.VERY_EASY).toBe(5);
+  expect(dndAction.Difficulty.EASY).toBe(10);
+  expect(dndAction.Difficulty.MEDIUM).toBe(15);
+  expect(dndAction.Difficulty.HARD).toBe(20);
+  expect(dndAction.Difficulty.VERY_HARD).toBe(25);
+  expect(dndAction.Difficulty.NEARLY_IMPOSSIBLE).toBe(30);
+});
+
+test('canSteal', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = 15;
+  const ability = 'DEX';
+  const traderTraits = new Traits(`DC:${difficulty}`);
+
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new Traits(`${ability}:${abilityValue}`);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.canSteal(actorTraits, traderTraits)).toBe(
+        expectedResult
+      );
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});
+
+test('getDamageByTraderOnRobber', () => {
+  let traderTraits = new Traits('DMG:28D1');
+  expect(dndAction.getDamageByTraderOnRobber(traderTraits, null)).toBe(28);
+  traderTraits = new Traits('');
+  const damage = dndAction.getDamageByTraderOnRobber(traderTraits, null);
+  expect(damage).toBeGreaterThanOrEqual(1);
+  expect(damage).toBeLessThanOrEqual(6);
 });

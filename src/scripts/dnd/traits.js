@@ -32,6 +32,7 @@ import * as maths from '../utils/maths.js';
 import * as dice from '../utils/dice.js';
 import * as tables from './tables.js';
 import { getClassAbilities } from './abilityGenerator.js';
+import { Difficulty } from './dndAction.js';
 
 import LOG from '../utils/logging.js';
 
@@ -235,6 +236,15 @@ export class Traits {
   }
 
   /**
+   * Delete the trait value.
+   * @param {string} key
+   * @returns {boolean} true if deleted; false if didn't  exist
+   */
+  delete(key) {
+    return this._traits.delete(key);
+  }
+
+  /**
    * Refresh derived values.
    * This is expected to be overridden.
    * @param {string} key - key that was updated and triggered refresh.
@@ -342,13 +352,20 @@ export class Traits {
   #setValueFromString(key, value) {
     switch (key) {
       case 'PROF':
+      case '_PROF':
         return this.#setProficienciesFromString(key, value);
       case 'VALUE':
+      case '_VALUE':
         return this.#setCostValueFromString(key, value);
       case 'DMG':
+      case '_DMG':
         return this.#setIntOrDiceValueFromString(key, value);
       case 'HIT_DICE':
+      case '_HIT_DICE':
         return this.#setDiceValueFromString(key, value);
+      case 'DC':
+      case '_DC':
+        return this.#setDCValueFromString(key, value);
       default:
         return this.#setGenericValueFromString(key, value);
     }
@@ -381,6 +398,23 @@ export class Traits {
       value = `${faceValue} ${match[2]}`;
     }
     this.set(key, value);
+  }
+
+  /**
+   * Set the trait for key to value.
+   * The DC value is normally an int but a dndAction difficulty can be
+   * used.
+   * @param {string} key
+   * @param {string} value
+   */
+  #setDCValueFromString(key, value) {
+    let difficulty;
+    if (isNaN(value)) {
+      difficulty = Difficulty[value] ?? 1;
+    } else {
+      difficulty = maths.safeParseInt(value);
+    }
+    this.set(key, difficulty);
   }
   /**
    * Set the trait for key to value. This is for a value passed in by the
@@ -447,7 +481,7 @@ export class Traits {
     const items = value.split(/\s*&\s*/);
     const proficiencies = [];
     items.forEach((item) => proficiencies.push(item.toUpperCase()));
-    this._traits.set('PROF', proficiencies);
+    this._traits.set(key, proficiencies);
   }
 
   /**
@@ -586,6 +620,8 @@ export class CharacterTraits extends Traits {
   /** Amount movement is reduced in tiles */
   _maxTileMovePerTurn;
 
+  /** Flag to allow calculation of derived parameters. @type{boolean} */
+  _allowRefreshDerived = false;
   /**
    *
    * @param {Map<string, *>} initialTraits
@@ -595,6 +631,7 @@ export class CharacterTraits extends Traits {
     this._proficiencyBonus = 0;
     this.#setInitialAbilityScores();
     this._transientFxTraits = [];
+    this._allowRefreshDerived = true;
     this._refreshDerivedValues();
   }
 
@@ -623,6 +660,22 @@ export class CharacterTraits extends Traits {
     );
     actorTraits._maxTileMovePerTurn = this._maxTileMovePerTurn;
     return actorTraits;
+  }
+
+  /**
+   * Exceed abilities of another character. The character's key stats, excluding AC,
+   * and EXP are set the other's + extra if they exceed the current values.
+   * @param {Traits} other
+   * @param {number} [extra = 0]
+   */
+  exceedAbilitiesAndExp(other, extra = 0) {
+    ['STR', 'DEX', 'INT', 'WIS', 'CON', 'CHA', 'EXP'].forEach((key) => {
+      const otherValue = other.getInt(key) + extra;
+      const myValue = this.getInt(key);
+      if (otherValue > myValue) {
+        this.set(key, otherValue);
+      }
+    });
   }
 
   /** Add transient traits. Note only values which affect CHAR_STATS_KEYS are
@@ -657,7 +710,7 @@ export class CharacterTraits extends Traits {
   }
 
   /**
-   * Set initial ability scores unless already set.
+   * Set initial ability scores and EXP unless already set.
    */
   #setInitialAbilityScores() {
     const baseAbilities = getClassAbilities(this.get('CLASS'));
@@ -666,6 +719,9 @@ export class CharacterTraits extends Traits {
         this.set(key, value ?? 8);
       }
     });
+    if (!this.has('EXP')) {
+      this.set('EXP', 0);
+    }
   }
   /**
    * Initialise the hit points unless already set.
@@ -797,6 +853,9 @@ export class CharacterTraits extends Traits {
    * @param {string} updatedKey
    */
   _refreshDerivedValues(updatedKey) {
+    if (!this._allowRefreshDerived) {
+      return;
+    }
     if (!updatedKey || CHAR_STATS_KEYS.includes(updatedKey)) {
       this._adjustForExperience();
       this._updateHitPoints();
@@ -1014,7 +1073,7 @@ export class CharacterTraits extends Traits {
     console.log(`Dexterity: ${dexterity}`);
     const modifier = characteristicToModifier(dexterity);
     const armourType = traits.get('TYPE', '').toUpperCase();
-    const acTrait = traits.get('AC', 0);
+    const acTrait = traits.get('AC', 1);
     let armourClass = maths.safeParseInt(acTrait);
     if (armourType.includes('MEDIUM')) {
       armourClass += Math.min(2, modifier);

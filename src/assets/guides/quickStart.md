@@ -11,15 +11,12 @@ with things to your north, south, east or west -- not diagonally.
 
 To interact, just click on the object or monster.
 
-Tip: some objects might be hidden, but they will be highlighted if you are in a position
-to interact with them.
+Tip: some objects might be hidden, but they will be highlighted if you are in a position to interact with them.
 
-Explore the dungeon, do what you need to do, find the exit and move on to the next
-room.
+Explore the dungeon, do what you need to do, find the exit and move on to the next floor.
 
 + If you click **Play&nbsp;adventure** your progress is saved when you complete a room, and if you collect more gold than ever before, you achievement is saved as the **Best adventure**.
-+ If you click **Play&nbsp;casual**, nothing is saved -- no progress and no best
-adventure.
++ If you click **Play&nbsp;casual**, nothing is saved -- no progress and no best adventure.
 
 More detailed guidance is in the **Help** guide, but the best guide is just to get
 in there and play.

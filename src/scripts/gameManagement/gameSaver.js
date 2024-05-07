@@ -36,13 +36,14 @@ import { Actor } from '../players/actors.js';
 import { Artefact } from '../players/artefacts.js';
 import { Traits, CharacterTraits, MagicTraits } from '../dnd/traits.js';
 import { Toxin } from '../dnd/toxins.js';
+import { sceneToFloor } from '../dnd/floorNumbering.js';
 
 /** @typedef {Object} AdventureResult
  * @property {string} name
  * @property {number} gold
  * @property {number} exp
  * @property {number} characterLevel
- * @property {number} dungeonLevel
+ * @property {number} dungeonFloor
  */
 
 /**
@@ -56,7 +57,7 @@ function createAdventureResult(hero) {
     gold: 0,
     exp: 0,
     characterLevel: 0,
-    dungeonLevel: 0,
+    dungeonFloor: 0,
     score: 0,
   };
   if (hero) {
@@ -64,7 +65,7 @@ function createAdventureResult(hero) {
     result.gold = hero.storeManager.getPurseValue();
     result.exp = hero.traits.getInt('EXP', 0);
     result.characterLevel = hero.traits.getCharacterLevel();
-    result.dungeonLevel = SCENE_MANAGER.getCurrentSceneLevel();
+    result.dungeonFloor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel());
     result.score = Math.floor(100 * result.gold * result.characterLevel);
   }
   return result;

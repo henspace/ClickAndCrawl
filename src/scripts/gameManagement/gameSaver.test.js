@@ -27,6 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { beforeAll, beforeEach, jest, test, expect } from '@jest/globals';
+import { sceneToFloor } from '../dnd/floorNumbering.js';
 
 jest.unstable_mockModule('../utils/game/screen.js', () => {
   return {
@@ -85,7 +86,7 @@ test('getBestAdventure', () => {
 });
 
 test('saveGameState', () => {
-  const dungeonLevel = 12;
+  const sceneLevel = 12;
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
   const gold = 10;
@@ -95,7 +96,7 @@ test('saveGameState', () => {
   );
   const hero = buildActor(almanacEntry);
   hero.storeManager.addToPurse(gold);
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(dungeonLevel);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(hero);
   const bestAdventure = gameSaver.getBestAdventure();
   expect(bestAdventure).toEqual({
@@ -103,13 +104,13 @@ test('saveGameState', () => {
     gold: gold,
     exp: exp,
     characterLevel: characterLevel,
-    dungeonLevel: dungeonLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
     score: Math.floor(100 * gold * characterLevel),
   });
 });
 
 test('saveGameState overwrites if better', () => {
-  const dungeonLevel = 12;
+  const sceneLevel = 12;
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
   const goldWorst = 10;
@@ -123,9 +124,9 @@ test('saveGameState overwrites if better', () => {
   heroWorst.storeManager.addToPurse(goldWorst);
   heroBest.storeManager.addToPurse(goldBest);
 
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(dungeonLevel);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(heroWorst);
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(dungeonLevel);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(heroBest);
   const bestAdventure = gameSaver.getBestAdventure();
   expect(bestAdventure).toEqual({
@@ -133,13 +134,13 @@ test('saveGameState overwrites if better', () => {
     gold: goldBest,
     exp: exp,
     characterLevel: characterLevel,
-    dungeonLevel: dungeonLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
     score: Math.floor(100 * goldBest * characterLevel),
   });
 });
 
 test('saveGameState does not overwrite if worse', () => {
-  const dungeonLevel = 12;
+  const sceneLevel = 12;
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
   const goldWorst = 10;
@@ -153,9 +154,9 @@ test('saveGameState does not overwrite if worse', () => {
   heroWorst.storeManager.addToPurse(goldWorst);
   heroBest.storeManager.addToPurse(goldBest);
 
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(dungeonLevel);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(heroBest);
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(dungeonLevel);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(heroWorst);
   const bestAdventure = gameSaver.getBestAdventure();
   expect(bestAdventure).toEqual({
@@ -163,7 +164,7 @@ test('saveGameState does not overwrite if worse', () => {
     gold: goldBest,
     exp: exp,
     characterLevel: characterLevel,
-    dungeonLevel: dungeonLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
     score: Math.floor(100 * goldBest * characterLevel),
   });
 });

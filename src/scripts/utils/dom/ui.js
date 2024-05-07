@@ -75,13 +75,25 @@ function displayOnGlass(element, options) {
 }
 /**
  * Get a message element. This returns a div which contains the message text.
- * @param {string} message
+ * @param {string | string[]} message
+ * @param {string} title
  */
-function createMessageElement(message) {
+function createMessageElement(message, title) {
   const element = components.createElement('div', {
     className: 'dialog-scroll-content',
   });
-  element.innerText = message;
+  if (title) {
+    element.appendChild(
+      components.createElement('p', { className: 'dialog-title', text: title })
+    );
+  }
+  if (Array.isArray(message)) {
+    for (const paragraph of message) {
+      element.appendChild(createMessageElement(paragraph));
+    }
+  } else {
+    element.appendChild(components.createElement('p', { text: message }));
+  }
   element.classList.add(['scrollable']);
   return element;
 }
@@ -119,19 +131,20 @@ function popupElement(element) {
 }
 
 /** Create an okDialog.
- * @param {string} message
- * @param {Object} options
- * @param {string} [options.okButtonLabel = 'BUTTON OK']
+ * @param {string | string[]} message
+ * @param {Object} [options = {}]
+ * @param {string} [options.okButtonLabel = i18n`BUTTON OK`]
  * @param {string} options.className
+ * @param {string} options.title
  * @returns {Promise} fulfils to DialogResponse.OK
  */
-function showOkDialog(message, options) {
+function showOkDialog(message, options = {}) {
   prepareDialog();
   const container = document.createElement('div');
-  container.appendChild(createMessageElement(message));
+  container.appendChild(createMessageElement(message, options.title));
   const buttonEl = document.createElement('button');
   buttonEl.appendChild(
-    document.createTextNode(options?.okButtonLabel ?? i18n`BUTTON OK`)
+    document.createTextNode(options.okButtonLabel ?? i18n`BUTTON OK`)
   );
   container.appendChild(buttonEl);
   return displayOnGlass(container, {
@@ -154,12 +167,7 @@ function showOkDialog(message, options) {
  */
 function showChoiceDialog(title, message, choices) {
   const container = document.createElement('div');
-  if (title) {
-    container.appendChild(
-      components.createElement('p', { className: 'dialog-title', text: title })
-    );
-  }
-  container.appendChild(components.createElement('p', { text: message }));
+  container.appendChild(createMessageElement(message, title));
   const actionButtons = [];
   choices?.forEach((choice, index) => {
     const button = new components.TextButtonControl({

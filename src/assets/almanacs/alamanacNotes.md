@@ -62,6 +62,12 @@ The following TYPE traits would not be proficient:
 - TYPE: WOODEN
 - TYPE: ARMOUR
 
+# Traders
+
+Traders are normally provided with the following traits.
+
+- MAX_THEFT: maximum number of gold coins taken when attempting to rob.
+- DMG: damage inflicted after failed robbery
 
 # Monsters
 

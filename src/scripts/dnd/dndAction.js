@@ -40,6 +40,21 @@ export const MEALS_FOR_SHORT_REST = 1;
 export const DRINKS_FOR_SHORT_REST = 1;
 
 /**
+ * @typedef {number} DifficultyValue
+ */
+/**
+ * @enum {DifficultyValue}
+ */
+export const Difficulty = {
+  VERY_EASY: 5,
+  EASY: 10,
+  MEDIUM: 15,
+  HARD: 20,
+  VERY_HARD: 25,
+  NEARLY_IMPOSSIBLE: 30,
+};
+
+/**
  * Roll an attack and damage dice.
  * @param {module:dnd/traits~AttackDetail} attack
  * @param {module:dnd/traits.CharacterTraits} targetTraits
@@ -313,4 +328,27 @@ export function canDisableTrap(detectorTraits, trapDetails) {
   const modifier = characteristicToModifier(abilityValue);
   const disableRoll = dice.rollDice(20) + modifier;
   return disableRoll >= trapDetails.difficulty;
+}
+
+/**
+ * Can steal from trader.
+ * @param {module:dnd/traits.Traits} robberTraits
+ * @param {module:dnd/traits.Traits} traderTraits
+ */
+export function canSteal(detectorTraits, traderTraits) {
+  const abilityValue = detectorTraits.getInt('DEX', 1);
+  const modifier = characteristicToModifier(abilityValue);
+  const stealRoll = dice.rollDice(20) + modifier;
+  return stealRoll >= traderTraits.getInt('DC', Difficulty.HARD);
+}
+
+/**
+ * Get damage from trader
+ * @param {module:dnd/traits.Traits} traderTraits
+ * @param {module:dnd/traits.Traits} robberTraitsUnused
+ * @returns {number}
+ */
+export function getDamageByTraderOnRobber(traderTraits, robberTraitsUnused) {
+  const damageDice = traderTraits.get('DMG', '1D6');
+  return dice.rollMultiDice(damageDice);
 }

@@ -34,6 +34,7 @@ import LOG from '../utils/logging.js';
 import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
 import { i18n } from '../utils/messageManager.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
+import { sceneToFloor } from '../dnd/floorNumbering.js';
 
 /** @type {module:players/actors~Actor} */
 let heroActor;
@@ -140,13 +141,16 @@ class AutoSceneList {
     this.#addTraders();
     this.#addArtefacts();
     this.#addMap();
+    this.#addObjective();
   }
 
   /**
    * Add scene introduction.
    */
   #addIntro() {
-    this.#sceneDefn.intro = i18n`MESSAGE ENTER LEVEL ${this.#index}`;
+    this.#sceneDefn.intro = i18n`MESSAGE ENTER FLOOR ${sceneToFloor(
+      this.#index
+    )}`;
   }
   /**
    * Add hero to scene.
@@ -207,6 +211,19 @@ class AutoSceneList {
       if (almanacEntry) {
         this.#sceneDefn.artefacts.push(almanacEntry);
       }
+    }
+  }
+
+  /**
+   * Add an objective to the scene
+   */
+  #addObjective() {
+    const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(
+      'OBJECTIVES',
+      (entry) => entry.minLevel <= this.#index
+    );
+    if (almanacEntry) {
+      this.#sceneDefn.objective = almanacEntry;
     }
   }
 

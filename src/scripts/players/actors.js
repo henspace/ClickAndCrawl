@@ -55,6 +55,7 @@ export const ActorType = {
   HIDDEN_ARTEFACT: 3,
   TRADER: 4,
   PROP: 5,
+  OBJECTIVE: 6,
 };
 
 /**
@@ -304,6 +305,14 @@ export class Actor extends UiClickHandler {
    */
   isProp() {
     return this?.type === ActorType.PROP;
+  }
+
+  /**
+   * Is this an objective
+   * @returns {boolean}
+   */
+  isObjective() {
+    return this?.type === ActorType.OBJECTIVE;
   }
 
   /**

@@ -35,6 +35,7 @@ import { ClickEventFilter } from '../utils/tileMaps/tileMap.js';
 import WORLD from '../utils/game/world.js';
 
 import UI from '../utils/dom/ui.js';
+
 import SCENE_MANAGER from './sceneManager.js';
 
 import { addFadingText } from '../utils/effects/transient.js';
@@ -49,6 +50,10 @@ import { i18n } from '../utils/messageManager.js';
 import * as dice from '../utils/dice.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { restoreGameState, saveGameState } from './gameSaver.js';
+import { showMarkdownDialog } from '../dialogs/guideDialogs.js';
+import { AssetUrls } from '../../assets/assets.js';
+import PERSISTENT_DATA from '../utils/persistentData.js';
+import { TextButtonControl } from '../utils/dom/components.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -370,25 +375,23 @@ class AtStart extends State {
   onEntry() {
     LOG.log('Enter AtStart');
 
-    return this.#loadFirstOrContinuationScene()
+    return this.#showQuickTips()
+      .then(() => this.#loadFirstOrContinuationScene())
       .then((continuation) => {
         const name = heroActor.traits.get('NAME');
-        let message;
         if (continuation) {
           return UI.showOkDialog(i18n`MESSAGE DUNGEON INTRO CONTINUE ${name}`, {
             okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
             className: 'wall',
           }).then(() => actorDialogs.showRestDialog(heroActor));
-        }
-        if (!persistentGame) {
-          message = i18n`MESSAGE DUNGEON INTRO CASUAL ${name}')}`;
         } else {
-          message = i18n`MESSAGE DUNGEON INTRO ${name}`;
+          const mdUrl = persistentGame
+            ? AssetUrls.DUNGEON_WELCOME
+            : AssetUrls.DUNGEON_WELCOME_CASUAL;
+          return showMarkdownDialog(mdUrl, {
+            okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
+          });
         }
-        return UI.showOkDialog(message, {
-          okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
-          className: 'wall',
-        });
       })
       .then(() => {
         heroActor.sprite.position =
@@ -421,6 +424,31 @@ class AtStart extends State {
     } else {
       return SCENE_MANAGER.switchToFirstScene().then(() => false);
     }
+  }
+
+  /** Show quick tips if required.
+   * @returns {Promise}
+   */
+  #showQuickTips() {
+    if (!PERSISTENT_DATA.get('SHOW_QUICK_TIPS_AT_START', true)) {
+      return Promise.resolve();
+    }
+    const okButton = new TextButtonControl({
+      label: i18n`BUTTON OK`,
+      closes: 'OK',
+    });
+    const notAgainButton = new TextButtonControl({
+      label: i18n`BUTTON DO NOT SHOW AGAIN`,
+      closes: 'NOT AGAIN',
+    });
+    return showMarkdownDialog(AssetUrls.STARTUP_TIPS_MD, {
+      actionButtons: [okButton, notAgainButton],
+    }).then((choice) => {
+      if (choice === 'NOT AGAIN') {
+        PERSISTENT_DATA.set('SHOW_QUICK_TIPS_AT_START', false);
+      }
+      return;
+    });
   }
 }
 
@@ -459,7 +487,7 @@ class AtGameCompleted extends State {
     if (persistentGame) {
       saveGameState(heroActor);
     }
-    await UI.showOkDialog(i18n`MESSAGE VICTORY`, {
+    await showMarkdownDialog(AssetUrls.DUNGEON_COMPLETE, {
       okButtonLabel: i18n`BUTTON TRY AGAIN`,
     })
       .then(() => SCENE_MANAGER.unloadCurrentScene())
@@ -511,7 +539,12 @@ class HeroTurnIdle extends State {
                 detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
             });
           }
-          if (heroActor.traits.get('HP', 0) === 0) {
+          if (
+            detail.occupant?.isObjective() &&
+            filter === ClickEventFilter.INTERACT_TILE
+          ) {
+            await endGameObjectiveFound();
+          } else if (heroActor.traits.get('HP', 0) === 0) {
             await this.transitionTo(new AtGameOver());
           } else {
             await this.transitionTo(new ComputerTurnIdle());
@@ -581,7 +614,13 @@ class HeroTurnInteracting extends State {
                 detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
             });
           }
-          if (heroActor.traits.get('HP', 0) === 0) {
+
+          if (
+            detail.occupant?.isObjective() &&
+            filter === ClickEventFilter.INTERACT_TILE
+          ) {
+            await endGameObjectiveFound();
+          } else if (heroActor.traits.get('HP', 0) === 0) {
             await this.transitionTo(new AtGameOver());
           } else if (
             WORLD.getTileMap().getParticipants(heroActor).length === 0
@@ -818,6 +857,16 @@ function interact(point) {
 }
 
 /**
+ * End the game because the objective was found.
+ */
+function endGameObjectiveFound() {
+  heroActor.traits.clearTransientFxTraits();
+  if (persistentGame) {
+    saveGameState(heroActor);
+  }
+  return currentState.transitionTo(new AtGameCompleted());
+}
+/**
  * Start next scene.
  * @param {State} currentState
  * @returns {Promise} fulfils to undefined.
@@ -859,7 +908,7 @@ function showOccupantDetails(occupant) {
     return Promise.resolve();
   }
   if (occupant.isHiddenArtefact()) {
-    return UI.showOkDialog(i18n`MESSAGE GROUND DISTURBED`);
+    return UI.showOkDialog(occupant.description);
   }
 
   return actorDialogs.showActorDetailsDialog(occupant, {

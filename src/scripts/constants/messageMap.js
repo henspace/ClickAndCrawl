@@ -38,6 +38,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON BEST ADVENTURE', 'Best adventure'],
 
   ['BUTTON DISCARD', 'Discard'],
+  ['BUTTON DO NOT SHOW AGAIN', 'Do not show again'],
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
   ['BUTTON EQUIP', 'Equip'],
   ['BUTTON FORGET', 'Forget'],
@@ -63,17 +64,19 @@ const MESSAGE_MAP = new Map([
   ['BUTTON SETTINGS', 'Settings'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON STASH', 'Stash'],
+  ['BUTTON STEAL', 'Steal'],
   ['BUTTON TRAP DISABLE', 'Try to disable'],
   ['BUTTON TRAP LEAVE', 'Leave it alone'],
   ['BUTTON TAKE ARTEFACT', 'Take'],
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
-  ['BUTTON TO NEXT ROOM', 'To the next room'],
+  ['BUTTON TO NEXT FLOOR', 'To the next floor'],
   ['BUTTON USE', 'Use'],
 
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
+  ['CONTROL SHOW QUICK TIPS', 'Show quick tips'],
   [
     'DESCRIPTION ACID_SPLASH',
     'Casting this spell hurls acid over your enemies.',
@@ -133,18 +136,22 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION HANDAXE',
     'A small, light axe. The blade is sharp and has been looked after with care.',
   ],
-  ['DESCRIPTION HIDDEN_ARTEFACT', 'There might be something hidden here.'],
+  ['DESCRIPTION HIDDEN_ARTEFACT', 'The ground appears to have been disturbed.'],
   [
     'DESCRIPTION INFLICT_WOUNDS',
     'Target any creature you can touch to inflict necrotic damage.',
   ],
   [
     'DESCRIPTION IRON_RATIONS',
-    'Simple emergency rations. Crucial for resting between rooms.',
+    'Simple emergency rations. Crucial for resting between floors.',
   ],
   [
     'DESCRIPTION LEATHER_ARMOUR',
     'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
+  ],
+  [
+    'DESCRIPTION MANHOLE_COVER',
+    'A small manhole cover set into the dungeon floor.',
   ],
   [
     'DESCRIPTION NOXIOUS_GAS',
@@ -192,6 +199,10 @@ const MESSAGE_MAP = new Map([
     'Tough and flexible leather armour with the addition of steel spikes and rivets.',
   ],
   [
+    'DESCRIPTION TOMB_OF_ELDER',
+    'A large ancient shrine. It appears to be stone but with a magical gold lustre.',
+  ],
+  [
     'DESCRIPTION TRADER1',
     'A wandering trader selling all manner of things gathered during many months in the dungeon.',
   ],
@@ -205,7 +216,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'DESCRIPTION WATERSKIN',
-    'A leather drinking flask with fresh water. Crucial for resting between rooms.',
+    'A leather drinking flask with fresh water. Crucial for resting between floors.',
   ],
   [
     'DESCRIPTION WARHAMMER',
@@ -259,34 +270,34 @@ const MESSAGE_MAP = new Map([
     'Tastes nice, but your health hasn`t improved.',
   ],
   [
-    'MESSAGE ENTER LEVEL',
-    "You enter level ${0}. The door slams shut behind you. There's no way back. Like it or not, your only path is to continue deeper into the depths of this stone hell.",
-  ],
-  ['MESSAGE EXIT LOCKED', 'The exit is locked. There must be a key somewhere.'],
-  [
-    'MESSAGE EXPLAIN REST',
-    'Trying to use the safety of the corridor to rest and eat?',
-  ],
-
-  [
-    'MESSAGE DUNGEON INTRO',
-    'Welcome, ${0}. You enter a dark and dingy dungeon. Water runs down the walls and the smell of rotting corpses fills the air',
-  ],
-  [
-    'MESSAGE DUNGEON INTRO CONTINUE',
-    'Welcome back, ${0}. The adventure continues. You recognise the familiar smell of death.',
-  ],
-  [
-    'MESSAGE DUNGEON INTRO CASUAL',
-    'Welcome, ${0}. You enter a dark and dingy dungeon. Explore as far as you can but remember your progress will not be saved.',
-  ],
-  [
     'MESSAGE DEAD HERO HAS NO INVENTORY',
     'Dead heroes have no use for material belongings. Your inventory is lost in the dungeon, perhaps to be rediscovered by the next intrepid explorer.',
   ],
   [
     'MESSAGE DEFEAT',
     'Despite your valiant efforts, you died. Your legend will live on.',
+  ],
+
+  [
+    'MESSAGE DUNGEON INTRO CONTINUE',
+    'Welcome back, ${0}. The adventure continues. You recognise the familiar smell of death.',
+  ],
+  [
+    'MESSAGE DUNGEON INTRO CASUAL',
+    'You enter the dungeon for a quick exploration and to check on what dangers might exist before starting a full adventure. You progress will not be saved and any achievements will be lost.',
+  ],
+  [
+    'MESSAGE ENTER FLOOR',
+    "You enter dungeon floor ${0}. The door slams shut behind you. There's no way back. Like it or not, your only path is to continue deeper into the depths of this stone hell.",
+  ],
+  ['MESSAGE EXIT LOCKED', 'The exit is locked. There must be a key somewhere.'],
+  [
+    'MESSAGE EXPLAIN REST',
+    'Trying to use the safety of the corridor to rest and eat?',
+  ],
+  [
+    'MESSAGE EXPLAIN SPELL NEEDS REST',
+    'To use a spell you need to prepare it. Preparation can only be done between dungeon floors after a long rest.',
   ],
   [
     'MESSAGE GENERIC EPITAPH',
@@ -347,8 +358,27 @@ const MESSAGE_MAP = new Map([
     'MESSAGE SPELL ALREADY KNOWN',
     "You've found a spell, but you already know this incantation.",
   ],
-  ['MESSAGE TRADE OR BARGE', 'Do you want to trade or barge past this guy?'],
+  [
+    'MESSAGE STOLE GOLD',
+    "Success. You pick the trader's pocket undetected and steal ${0} gold coins.",
+  ],
+  [
+    'MESSAGE TRADE STEAL OR BARGE',
+    'Do you want to trade or barge past this guy?',
+  ],
+  [
+    'MESSAGE TRADER ATTACKS BACK',
+    'The angry trader detects your clumsy attack and catches you with a concealed blade. You lose ${0} health.',
+  ],
   ['MESSAGE TRADER CANNOT STASH', 'The trader has no space for this.'],
+  [
+    'MESSAGE TRADER WILL NOT TRADE',
+    'The trader has had enough of your trickery and will not trade with you.',
+  ],
+  [
+    'MESSAGE TRADERS PROTECTED',
+    'Traders are protected from attack under the ancient law for the protection of travelling merchants, "Míriel roita ohtaril alamë."',
+  ],
   [
     'MESSAGE TRAP ATTEMPT DISABLE',
     "You find a trap. You can't tell what it is though. Do you want to try to disable it?",
@@ -391,13 +421,6 @@ const MESSAGE_MAP = new Map([
   ],
   ['MESSAGE FOUND GENERIC', "It 's your lucky day. You' found something."],
   [
-    'MESSAGE GROUND DISTURBED',
-    [
-      'The ground appears to have been disturbed.',
-      "The dungeon flagstones look like they've been moved.",
-    ],
-  ],
-  [
     'MESSAGE KEY UNLOCKS EXIT',
     'You use the key you found earlier to unlock the door.',
   ],
@@ -412,10 +435,6 @@ const MESSAGE_MAP = new Map([
     'MESSAGE WELCOME',
     'Welcome to the Click and Crawl old-school dungeon crawler. How far will you get?',
   ],
-  [
-    'MESSAGE VICTORY',
-    'You have conquered the dungeon. Your name will live on forever and generations will sing of your great achievements.',
-  ],
 
   // Miscellaneous words and phrases.
   ['AC (including armour)', 'AC (+armour): ${0}'],
@@ -426,7 +445,7 @@ const MESSAGE_MAP = new Map([
   ['Character level:', 'Character level: ${0}'],
   ['CHARACTER LEVEL:', 'level: ${0}'],
   ['(DEAD)', '(DEAD!)'],
-  ['Dungeon level:', 'Dungeon level: ${0}'],
+  ['Dungeon floor:', 'Dungeon floor: ${0}'],
   ['Experience:', 'Experience: ${0}'],
   ['Feet', 'Feet'],
   ['Score:', 'Score: ${0}'],

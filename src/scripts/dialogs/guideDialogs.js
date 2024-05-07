@@ -53,16 +53,20 @@ export function showGuideDialog() {
     label: i18n`BUTTON PRIVACY`,
     action: () => showMarkdownDialog(AssetUrls.PRIVACY_MD),
   });
-  return showMarkdownDialog(AssetUrls.QUICK_START_MD, [help, about, privacy]);
+  return showMarkdownDialog(AssetUrls.QUICK_START_MD, {
+    actionButtons: [help, about, privacy],
+  });
 }
 
 /**
  * Load markdown, parse and display in dialog.
  * @param {URL} url
- * @param {BaseControl[]} actionButtons
+ * @param {Object} [options = {}]
+ * @param {BaseControl[]} options.actionButtons
+ * @param {Object} options.okButtonLabel
  * @returns {Promise}
  */
-export function showMarkdownDialog(url, actionButtons) {
+export function showMarkdownDialog(url, options = {}) {
   return loadTextFromUrl(url).then((markdown) => {
     let html;
     let text;
@@ -78,8 +82,9 @@ export function showMarkdownDialog(url, actionButtons) {
       html: html,
     });
     return UI.showControlsDialog(container, {
-      actionButtons: actionButtons,
+      actionButtons: options.actionButtons,
       row: true,
+      okButtonLabel: options.okButtonLabel,
     });
   });
 }

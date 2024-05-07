@@ -36,6 +36,8 @@ import { gpAsString } from '../utils/game/coins.js';
 import * as dndAction from '../dnd/dndAction.js';
 import LOG from '../utils/logging.js';
 import ANIMATION_STATE_MANAGER from '../gameManagement/animationState.js';
+import { sceneToFloor } from '../dnd/floorNumbering.js';
+
 /**
  * @typedef {number} ArtefactActionTypeValue
  */
@@ -1279,7 +1281,9 @@ export function showActorDetailsDialog(actor, options = {}) {
   const container = document.createElement('div');
   container.appendChild(
     components.createElement('span', {
-      text: i18n`Dungeon level: ${SCENE_MANAGER.getCurrentSceneLevel()}`,
+      text: i18n`Dungeon floor: ${sceneToFloor(
+        SCENE_MANAGER.getCurrentSceneLevel()
+      )}`,
     })
   );
   const actorContainer = components.createElement('div', {
@@ -1406,6 +1410,9 @@ export function showArtefactDialog(options) {
           const store = destStoreManager.findSuitableStore(artefact);
           store.add(artefact);
         }
+        if (artefact.artefactType === ArtefactType.SPELL) {
+          return UI.showOkDialog(i18n`MESSAGE EXPLAIN SPELL NEEDS REST`);
+        }
         break;
       case ArtefactAction.PILLAGE:
         {
@@ -1473,6 +1480,6 @@ export function showRestDialog(heroActor) {
     allowConsumption: true,
     allowRest: true,
     description: messageContainer,
-    okButtonLabel: i18n`BUTTON TO NEXT ROOM`,
+    okButtonLabel: i18n`BUTTON TO NEXT FLOOR`,
   });
 }

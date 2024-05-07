@@ -57,6 +57,15 @@ const SETTINGS = [
       SOUND_MANAGER.playEffect('PUNCH');
     },
   },
+  {
+    id: 'SHOW_QUICK_TIPS_AT_START',
+    labelKey: 'CONTROL SHOW QUICK TIPS',
+    defValue: true,
+    controlType: ControlType.CHECKBOX,
+    persistent: true,
+    action: null,
+    onChange: null,
+  },
 ];
 
 /**

@@ -1,7 +1,7 @@
 /**
- * @file Almanac of different actor types
+ * @file Floor numbering utils
  *
- * @module dnd/almanacs/almanacActors
+ * @module dnd/floorNumbering
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -28,8 +28,12 @@
  */
 
 /**
- * @typedef {Object} AlmanacEntry
- * @property {number} minLevel - minimum scene level at which this appears.
- * @property {string} id - ID used to locate it in the actor or artefact map.
- * @property {string} traits - string representation of traits.
+ * Convert a scene number to a floor.
+ * Scene levels go 0, 1, 2 ... etc.
+ * Floors adopt US numbering and go 1, B1, B2, B3 ... etc. for basement.
+ * @param {number} scene
+ * @returns {string}
  */
+export function sceneToFloor(scene) {
+  return scene === 0 ? '1' : `B${scene}`;
+}

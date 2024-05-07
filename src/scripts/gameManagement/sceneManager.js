@@ -94,6 +94,8 @@ export class SceneDefinition {
   artefacts;
   /** @type {string[]} */
   mapDesign;
+  /** @type {ActorDefn[]} */
+  objective;
   /**
    * Construct an empty scene
    */

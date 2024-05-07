@@ -34,7 +34,14 @@ import * as animation from '../../utils/sprites/animation.js';
 import { Position } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
 import { Colours } from '../../constants/canvasStyles.js';
-import { Fight, Trade, FindArtefact, Poison, Toxify } from '../interact.js';
+import {
+  Fight,
+  Trade,
+  FindArtefact,
+  FindObjective,
+  Poison,
+  Toxify,
+} from '../interact.js';
 import StdAnimations from '../../scriptReaders/actorAnimationKeys.js';
 import * as maths from '../../utils/maths.js';
 import GameConstants from '../../utils/game/gameConstants.js';
@@ -346,6 +353,20 @@ function createTrader(imageName, iconImageName, traits, actorType) {
 }
 
 /**
+ * Create objective
+ * @param {string} imageName - without extension
+ * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
+ * @param {module:dnd/traits~Traits} traits
+ * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
+ * @returns {Actor}
+ */
+function createObjective(imageName, iconImageName, traits, actorType) {
+  const actor = createActor(imageName, iconImageName, traits, actorType);
+  actor.interaction = new FindObjective(actor);
+  return actor;
+}
+
+/**
  * Equip the actor. Note only MONEY, WEAPONS and ARMOUR are equipped. Anything else
  * is ignored.
  * @param {module:players/actors.Actor} actor
@@ -397,6 +418,14 @@ export function buildActor(almanacEntry, initialTraits) {
         magic.restoreCastingPower(traits);
       }
       actor.toxify = new Toxify();
+      break;
+    case ActorType.OBJECTIVE:
+      actor = createObjective(
+        almanacEntry.imageName,
+        null,
+        traits,
+        almanacEntry
+      );
       break;
     case ActorType.TRADER:
       actor = createTrader(almanacEntry.imageName, null, traits, almanacEntry);

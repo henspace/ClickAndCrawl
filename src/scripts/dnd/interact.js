@@ -35,7 +35,11 @@ import {
 } from '../utils/effects/transient.js';
 import { Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
-import { PathFollower, moveActorToPosition } from '../utils/sprites/movers.js';
+import {
+  PathFollower,
+  VelocityMover,
+  moveActorToPosition,
+} from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
 import UI from '../utils/dom/ui.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
@@ -51,6 +55,9 @@ import * as magic from './magic.js';
 import * as traps from './trapCharacteristics.js';
 import * as trapDialogs from '../dialogs/trapDialogs.js';
 import { buildArtefactFromId } from './almanacs/artefactBuilder.js';
+import * as maths from '../utils/maths.js';
+import { pause } from '../utils/timers.js';
+import { TimeFader } from '../utils/sprites/faders.js';
 
 /**
  * Apply poison damage to defender
@@ -413,19 +420,53 @@ export class Trade extends AbstractInteraction {
    * @returns {Promise}
    */
   react(enactor) {
+    if (this.owner.traits.get('NO_TRADE')) {
+      return UI.showOkDialog([
+        i18n`MESSAGE TRADER WILL NOT TRADE`,
+        i18n`MESSAGE TRADERS PROTECTED`,
+      ]);
+    }
     return UI.showChoiceDialog(
       i18n`DIALOG TITLE CHOICES`,
-      i18n`MESSAGE TRADE OR BARGE`,
-      [i18n`BUTTON TRADE`, i18n`BUTTON BARGE`]
+      i18n`MESSAGE TRADE STEAL OR BARGE`,
+      [i18n`BUTTON TRADE`, i18n`BUTTON STEAL`, i18n`BUTTON BARGE`]
     ).then((choice) => {
       if (choice === 0) {
         return actorDialogs.showTradeDialog(enactor, this.owner);
+      } else if (choice === 1) {
+        return this.#attemptTheftBy(enactor);
       } else {
         return this.#swapPositions(enactor);
       }
     });
   }
 
+  /**
+   * Attempt by robber steal.
+   * @param {module:players/actors.Actor} robber
+   * @returns {Promise} fulfils to undefined when complete.
+   */
+  #attemptTheftBy(robber) {
+    if (dndAction.canSteal(robber.traits, this.owner.traits)) {
+      const maxGold = this.owner.traits.getInt('MAX_THEFT', 1);
+      const takenGold = maths.getRandomIntInclusive(1, maxGold);
+      robber.storeManager.addToPurse(takenGold);
+      return UI.showOkDialog(i18n`MESSAGE STOLE GOLD ${takenGold}`);
+    } else {
+      this.owner.traits.set('NO_TRADE', true);
+      const damage = dndAction.getDamageByTraderOnRobber(
+        this.owner.traits,
+        robber
+      );
+      applyDamage(this.owner, robber, damage);
+      return UI.showOkDialog(i18n`MESSAGE TRADER ATTACKS BACK ${damage}`)
+        .then(() => pause(2))
+        .then(() => {
+          const fight = new Fight(this.owner);
+          return fight.enact(robber);
+        });
+    }
+  }
   /**
    * Swap position with another actor
    * @param {module:players/actors.Actor} them
@@ -951,5 +992,70 @@ export class TriggerTrap extends AbstractInteraction {
     } else {
       return Promise.resolve(TrapOutcome.TRIGGERED);
     }
+  }
+}
+
+/**
+ * Class to handle searching a corpse.
+ * @implements {ActorInteraction}
+ */
+export class FindObjective extends AbstractInteraction {
+  /**
+   * Construct the interaction.
+   * @param {module:players/actors.Actor} owner - parent actor.
+   */
+  constructor(owner) {
+    super(owner);
+  }
+
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canEnact() {
+    return false;
+  }
+  /**
+   * @override
+   * @returns {boolean}
+   */
+  canReact() {
+    return true;
+  }
+  /**
+   * Respond to a interaction
+   * @param {module:players/actors.Actor} reactor
+   * @returns {Promise}
+   */
+  async react(enactor) {
+    return this.#displayPortal(enactor, this.owner);
+  }
+  /**
+   * Display portal
+   * @param {module:players/actors.Actor} enactor
+   * @param {module:players/actors.Actor} objective
+   * @returns {Promise}
+   */
+  #displayPortal(enactor, objective) {
+    const pathModifier = new PathFollower({
+      path: [objective.position],
+      speed: 5,
+    });
+    addFadingImage(IMAGE_MANAGER.getSpriteBitmap('portal.png'), {
+      delaySecs: 0,
+      lifetimeSecs: 6,
+      position: objective.position,
+      velocity: new Velocity(0, 0, -3),
+    });
+
+    new TimeFader(0, 3, new VelocityMover()).applyAsTransientToSprite(
+      enactor.sprite,
+      20
+    );
+
+    const fader = new TimeFader(0, 3, new VelocityMover());
+    return pathModifier
+      .applyAsTransientToSprite(enactor.sprite)
+      .then(() => fader.applyAsTransientToSprite(enactor.sprite));
   }
 }

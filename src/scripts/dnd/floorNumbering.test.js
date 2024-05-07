@@ -1,7 +1,7 @@
 /**
- * @file Almanac of different actor types
+ * @file Test floor numbering.
  *
- * @module dnd/almanacs/almanacActors
+ * @module dnd\floorNumbering.test
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -27,9 +27,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * @typedef {Object} AlmanacEntry
- * @property {number} minLevel - minimum scene level at which this appears.
- * @property {string} id - ID used to locate it in the actor or artefact map.
- * @property {string} traits - string representation of traits.
- */
+import { test, expect } from '@jest/globals';
+import * as floorNumbering from './floorNumbering.js';
+
+test('sceneToFloor', () => {
+  expect(floorNumbering.sceneToFloor(0)).toBe('1');
+  expect(floorNumbering.sceneToFloor(1)).toBe('B1');
+  expect(floorNumbering.sceneToFloor(10)).toBe('B10');
+});

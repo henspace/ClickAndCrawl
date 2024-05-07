@@ -230,9 +230,9 @@
             <key type="filename">tiles/gold_coins.png</key>
             <key type="filename">tiles/half_plate_armour.png</key>
             <key type="filename">tiles/helmet.png</key>
-            <key type="filename">tiles/hidden-artefact-dead00.png</key>
-            <key type="filename">tiles/hidden-artefact-idle00.png</key>
-            <key type="filename">tiles/hidden-artefact.png</key>
+            <key type="filename">tiles/hidden_artefact-dead00.png</key>
+            <key type="filename">tiles/hidden_artefact-idle00.png</key>
+            <key type="filename">tiles/hidden_artefact.png</key>
             <key type="filename">tiles/hud-arrow-down00.png</key>
             <key type="filename">tiles/hud-arrow-down01.png</key>
             <key type="filename">tiles/hud-arrow-left00.png</key>
@@ -247,6 +247,9 @@
             <key type="filename">tiles/hud-fullscreen01.png</key>
             <key type="filename">tiles/leather_armour.png</key>
             <key type="filename">tiles/magic00.png</key>
+            <key type="filename">tiles/manhole_cover-dead00.png</key>
+            <key type="filename">tiles/manhole_cover-idle00.png</key>
+            <key type="filename">tiles/manhole_cover.png</key>
             <key type="filename">tiles/miss.png</key>
             <key type="filename">tiles/noxious_gas-dead00.png</key>
             <key type="filename">tiles/noxious_gas-idle00.png</key>
@@ -295,6 +298,7 @@
             <key type="filename">tiles/spider-walk-w00.png</key>
             <key type="filename">tiles/spider.png</key>
             <key type="filename">tiles/studded_leather_armour.png</key>
+            <key type="filename">tiles/tomb_of_elder.png</key>
             <key type="filename">tiles/trapdoor-dead00.png</key>
             <key type="filename">tiles/trapdoor-idle00.png</key>
             <key type="filename">tiles/trapdoor.png</key>
@@ -434,6 +438,7 @@
             <key type="filename">tiles/blood-splat-twice.png</key>
             <key type="filename">tiles/blood-splat.png</key>
             <key type="filename">tiles/failed-spell.png</key>
+            <key type="filename">tiles/portal.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>

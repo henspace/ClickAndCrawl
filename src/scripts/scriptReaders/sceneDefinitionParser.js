@@ -91,6 +91,15 @@ function createEnemies(sceneDefn) {
   return enemies;
 }
 
+/**
+ * Create the objective.
+ * @param {SceneDefinition} sceneDefn
+ * @returns {Actor}
+ */
+function createObjective(sceneDefn) {
+  return buildActor(sceneDefn.objective);
+}
+
 /** Create an artefact that is located in the dungeon.
  * The artefact is placed in a suitable actor such as a
  * pillar or as a hidden artefact.
@@ -110,7 +119,16 @@ function createFindableArtefact(almanacEntry, preBuiltArtefact) {
       type = ActorType.PROP;
       break;
     default:
-      id = rollDice(6) > 6 ? 'hidden_artefact' : 'trapdoor';
+      {
+        const roll = rollDice(6);
+        if (roll < 3) {
+          id = 'hidden_artefact';
+        } else if (roll < 5) {
+          id = 'trapdoor';
+        } else {
+          id = 'manhole_cover';
+        }
+      }
       type = ActorType.HIDDEN_ARTEFACT;
       break;
   }
@@ -225,6 +243,17 @@ class ParsedScene extends AbstractScene {
       (entry) => entry.id === 'iron_rations'
     );
 
+    const objective = createObjective(this.#sceneDefn);
+    if (objective) {
+      const freeTile = tileMap.getRandomFreeGroundTile();
+      if (freeTile) {
+        objective.position = freeTile.worldPoint;
+        WORLD.addArtefact(objective);
+      } else {
+        LOG.info('No free tiles for objective.');
+        keysToAdd = 0; // The objective is the way out so don't add the key
+      }
+    }
     for (const enemy of createEnemies(this.#sceneDefn)) {
       const freeTile = tileMap.getRandomFreeGroundTile();
       if (!freeTile) {
@@ -234,6 +263,7 @@ class ParsedScene extends AbstractScene {
       enemy.position = freeTile.worldPoint;
       WORLD.addActor(enemy);
       if (enemy.isTrader()) {
+        enemy.traits.exceedAbilitiesAndExp?.(this.heroActor.traits, 1);
         let qtyOfItems = 7;
         if (rollDice(6) > 3) {
           addArtefactToActor(enemy, water, { equip: false });
@@ -287,9 +317,9 @@ class ParsedScene extends AbstractScene {
     TURN_MANAGER.setHero(this.heroActor);
     // if keysToAdd > 0 we couldn't find a free tile for it, son don't use.
     if (keysToAdd > 0) {
-      TURN_MANAGER.setExitKeyArtefact(exitKeyArtefact);
-    } else {
       TURN_MANAGER.setExitKeyArtefact(null);
+    } else {
+      TURN_MANAGER.setExitKeyArtefact(exitKeyArtefact);
     }
 
     return Promise.resolve();

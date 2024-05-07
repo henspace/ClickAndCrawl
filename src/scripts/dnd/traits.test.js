@@ -189,6 +189,15 @@ test('Traits.constructor PROF', () => {
   expect(proficiencies[2]).toEqual('VALUE C');
 });
 
+test('Traits.constructor _PROF', () => {
+  const testTraits = new traits.Traits('_PROF:value A & value B & value C');
+  const proficiencies = testTraits.get('_PROF');
+  expect(proficiencies).toHaveLength(3);
+  expect(proficiencies[0]).toEqual('VALUE A');
+  expect(proficiencies[1]).toEqual('VALUE B');
+  expect(proficiencies[2]).toEqual('VALUE C');
+});
+
 test('Traits.constructor VALUE', () => {
   let testTraits = new traits.Traits('VALUE:20SP');
   expect(testTraits.get('VALUE')).toEqual('20 SP');
@@ -197,6 +206,21 @@ test('Traits.constructor VALUE', () => {
     const diceSides = 8;
     testTraits = new traits.Traits(`VALUE:${diceCount}D${diceSides}SP`);
     const result = testTraits.get('VALUE');
+    expect(result).toMatch(/\d{1,2} SP/);
+    const value = parseInt(result);
+    expect(value).toBeGreaterThanOrEqual(diceCount);
+    expect(value).toBeLessThanOrEqual(diceCount * diceSides);
+  }
+});
+
+test('Traits.constructor _VALUE', () => {
+  let testTraits = new traits.Traits('_VALUE:20SP');
+  expect(testTraits.get('_VALUE')).toEqual('20 SP');
+  for (let roll = 0; roll < 20; roll++) {
+    const diceCount = 3;
+    const diceSides = 8;
+    testTraits = new traits.Traits(`_VALUE:${diceCount}D${diceSides}SP`);
+    const result = testTraits.get('_VALUE');
     expect(result).toMatch(/\d{1,2} SP/);
     const value = parseInt(result);
     expect(value).toBeGreaterThanOrEqual(diceCount);
@@ -213,6 +237,15 @@ test('Traits.constructor DMG', () => {
   expect(testTraits.get('DMG')).toEqual(0);
 });
 
+test('Traits.constructor _DMG', () => {
+  let testTraits = new traits.Traits('_DMG:3D12');
+  expect(testTraits.get('_DMG')).toEqual('3D12');
+  testTraits = new traits.Traits('_DMG:99');
+  expect(testTraits.get('_DMG')).toEqual(99);
+  testTraits = new traits.Traits('_DMG:INVALID');
+  expect(testTraits.get('_DMG')).toEqual(0);
+});
+
 test('Traits.constructor HIT_DICE', () => {
   let testTraits = new traits.Traits('HIT_DICE:3D12');
   expect(testTraits.get('HIT_DICE')).toEqual('3D12');
@@ -220,6 +253,36 @@ test('Traits.constructor HIT_DICE', () => {
   expect(testTraits.get('HIT_DICE')).toEqual('1D6');
   testTraits = new traits.Traits('HIT_DICE:GARBAGE');
   expect(testTraits.get('HIT_DICE')).toEqual('1D6');
+});
+
+test('Traits.constructor _HIT_DICE', () => {
+  let testTraits = new traits.Traits('_HIT_DICE:3D12');
+  expect(testTraits.get('_HIT_DICE')).toEqual('3D12');
+  testTraits = new traits.Traits('_HIT_DICE:3');
+  expect(testTraits.get('_HIT_DICE')).toEqual('1D6');
+  testTraits = new traits.Traits('_HIT_DICE:GARBAGE');
+  expect(testTraits.get('_HIT_DICE')).toEqual('1D6');
+});
+
+test('Traits.constructor DC and _DC', () => {
+  let testTraits = new traits.Traits('DC:32');
+  expect(testTraits.get('DC')).toEqual(32);
+  testTraits = new traits.Traits('_DC:28');
+  expect(testTraits.get('_DC')).toEqual(28);
+  testTraits = new traits.Traits('DC:VERY_EASY');
+  expect(testTraits.get('DC')).toEqual(5);
+  testTraits = new traits.Traits('DC:EASY');
+  expect(testTraits.get('DC')).toEqual(10);
+  testTraits = new traits.Traits('_DC:MEDIUM');
+  expect(testTraits.get('DC')).toEqual(15);
+  testTraits = new traits.Traits('_DC:HARD');
+  expect(testTraits.get('DC')).toEqual(20);
+  testTraits = new traits.Traits('DC:VERY_HARD');
+  expect(testTraits.get('DC')).toEqual(25);
+  testTraits = new traits.Traits('DC:NEARLY_IMPOSSIBLE');
+  expect(testTraits.get('DC')).toEqual(30);
+  testTraits = new traits.Traits('DC:GARBAGE');
+  expect(testTraits.get('DC')).toEqual(1);
 });
 
 test('Traits.constructor boolean', () => {
@@ -261,6 +324,15 @@ test('Traits.has', () => {
   expect(testTraits.has('PROPC')).toBe(true);
   expect(testTraits.has('PROPX')).toBe(true);
   expect(testTraits.has('_PROPX')).toBe(true);
+});
+
+test('Traits delete', () => {
+  const testTraits = new traits.Traits('KEY:100, ANOTHER:200');
+  expect(testTraits.has('KEY')).toBe(true);
+  expect(testTraits.delete('RANDOM')).toBe(false);
+  expect(testTraits.delete('KEY')).toBe(true);
+  expect(testTraits.has('KEY')).toBe(false);
+  expect(testTraits.has('ANOTHER')).toBe(true);
 });
 
 test('Traits.get', () => {
@@ -610,6 +682,17 @@ test('CharacterTraits HP_MAX reflects level', () => {
       diceCount * diceSides + conMod + (level - 1) * (avDiceRoll + conMod);
     expect(characterTraits.getInt('HP_MAX')).toEqual(hpMax);
   }
+});
+
+test('HP initialised including CON', () => {
+  const conValue = 16;
+  const conMod = traits.characteristicToModifier(conValue);
+  const hitDiceCount = 1;
+  const hitDiceSides = 12;
+  const chrTraits = new traits.CharacterTraits(
+    `HIT_DICE:${hitDiceCount}D${hitDiceSides}, CON:${conValue}`
+  );
+  expect(chrTraits.getInt('HP')).toBe(hitDiceCount * hitDiceSides + conMod);
 });
 
 test('CharacterTraits.getNonMeleeSaveAbilityModifier', () => {
@@ -1061,4 +1144,109 @@ test('CharacterTraits initialises base traits', () => {
     expect(original.getInt(key)).toBeGreaterThanOrEqual(8);
     expect(original.getInt(key)).toBeLessThanOrEqual(15);
   }
+});
+
+test('CharacterTraits.exceedAbilitiesAndExp theirs exceeds current', () => {
+  const myBase = 10;
+  const theirBase = 20;
+  const extra = 5;
+  let myTraits = new traits.CharacterTraits([
+    ['STR', myBase],
+    ['DEX', myBase + 1],
+    ['CON', myBase + 2],
+    ['INT', myBase + 3],
+    ['WIS', myBase + 4],
+    ['CHA', myBase + 5],
+    ['AC', myBase + 6],
+    ['EXP', myBase + 7],
+  ]);
+  let theirTraits = new traits.CharacterTraits([
+    ['STR', theirBase],
+    ['DEX', theirBase + 1],
+    ['CON', theirBase + 2],
+    ['INT', theirBase + 3],
+    ['WIS', theirBase + 4],
+    ['CHA', theirBase + 5],
+    ['AC', theirBase + 6],
+    ['EXP', theirBase + 7],
+  ]);
+  myTraits.exceedAbilitiesAndExp(theirTraits, extra);
+  expect(myTraits.getInt('STR')).toBe(theirBase + extra);
+  expect(myTraits.getInt('DEX')).toBe(theirBase + extra + 1);
+  expect(myTraits.getInt('CON')).toBe(theirBase + extra + 2);
+  expect(myTraits.getInt('INT')).toBe(theirBase + extra + 3);
+  expect(myTraits.getInt('WIS')).toBe(theirBase + extra + 4);
+  expect(myTraits.getInt('CHA')).toBe(theirBase + extra + 5);
+  expect(myTraits.getInt('AC')).toBe(myBase + 6);
+  expect(myTraits.getInt('EXP')).toBe(theirBase + extra + 7);
+});
+
+test('CharacterTraits.exceedAbilitiesAndExp extra defaults to 0', () => {
+  const myBase = 10;
+  const theirBase = 20;
+  const extra = 0;
+  let myTraits = new traits.CharacterTraits([
+    ['STR', myBase],
+    ['DEX', myBase + 1],
+    ['CON', myBase + 2],
+    ['INT', myBase + 3],
+    ['WIS', myBase + 4],
+    ['CHA', myBase + 5],
+    ['AC', myBase + 6],
+    ['EXP', myBase + 7],
+  ]);
+  let theirTraits = new traits.CharacterTraits([
+    ['STR', theirBase],
+    ['DEX', theirBase + 1],
+    ['CON', theirBase + 2],
+    ['INT', theirBase + 3],
+    ['WIS', theirBase + 4],
+    ['CHA', theirBase + 5],
+    ['AC', theirBase + 6],
+    ['EXP', theirBase + 7],
+  ]);
+  myTraits.exceedAbilitiesAndExp(theirTraits);
+  expect(myTraits.getInt('STR')).toBe(theirBase + extra);
+  expect(myTraits.getInt('DEX')).toBe(theirBase + extra + 1);
+  expect(myTraits.getInt('CON')).toBe(theirBase + extra + 2);
+  expect(myTraits.getInt('INT')).toBe(theirBase + extra + 3);
+  expect(myTraits.getInt('WIS')).toBe(theirBase + extra + 4);
+  expect(myTraits.getInt('CHA')).toBe(theirBase + extra + 5);
+  expect(myTraits.getInt('AC')).toBe(myBase + 6);
+  expect(myTraits.getInt('EXP')).toBe(theirBase + extra + 7);
+});
+
+test('CharacterTraits.exceedAbilitiesAndExp theirs does not exceed currenr', () => {
+  const myBase = 20;
+  const theirBase = 10;
+  const extra = 5;
+  let myTraits = new traits.CharacterTraits([
+    ['STR', myBase],
+    ['DEX', myBase + 1],
+    ['CON', myBase + 2],
+    ['INT', myBase + 3],
+    ['WIS', myBase + 4],
+    ['CHA', myBase + 5],
+    ['AC', myBase + 6],
+    ['EXP', myBase + 7],
+  ]);
+  let theirTraits = new traits.CharacterTraits([
+    ['STR', theirBase],
+    ['DEX', theirBase + 1],
+    ['CON', theirBase + 2],
+    ['INT', theirBase + 3],
+    ['WIS', theirBase + 4],
+    ['CHA', theirBase + 5],
+    ['AC', theirBase + 6],
+    ['EXP', theirBase + 7],
+  ]);
+  myTraits.exceedAbilitiesAndExp(theirTraits, extra);
+  expect(myTraits.getInt('STR')).toBe(myBase);
+  expect(myTraits.getInt('DEX')).toBe(myBase + 1);
+  expect(myTraits.getInt('CON')).toBe(myBase + 2);
+  expect(myTraits.getInt('INT')).toBe(myBase + 3);
+  expect(myTraits.getInt('WIS')).toBe(myBase + 4);
+  expect(myTraits.getInt('CHA')).toBe(myBase + 5);
+  expect(myTraits.getInt('AC')).toBe(myBase + 6);
+  expect(myTraits.getInt('EXP')).toBe(myBase + 7);
 });
