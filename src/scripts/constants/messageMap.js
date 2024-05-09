@@ -35,7 +35,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON CONTINUE', 'Continue'],
   ['BUTTON CLIMB OVER', 'Climb over'],
   ['BUTTON BARGE', 'Barge past'],
-  ['BUTTON BEST ADVENTURE', 'Best adventure'],
+  ['BUTTON HALL OF FAME', 'Hall of fame'],
 
   ['BUTTON DISCARD', 'Discard'],
   ['BUTTON DO NOT SHOW AGAIN', 'Do not show again'],
@@ -222,7 +222,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION WARHAMMER',
     'A bludgeoning, versatile iron hammer favoured by many clerics.',
   ],
-  ['DIALOG TITLE BEST ADVENTURE', 'The most lucrative adventure so far'],
+  ['DIALOG TITLE HALL OF FAME', 'Hall of Fame'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
@@ -303,6 +303,10 @@ const MESSAGE_MAP = new Map([
     'MESSAGE GENERIC EPITAPH',
     'Here lies the corpse of one more defeated enemy.',
   ],
+  [
+    'MESSAGE HALL OF FAME ENTRY',
+    '${3-startDate}: ${0-name}; level ${1-level} ${2-class}; ${4-gold} GP; floor ${5-floor}',
+  ],
   ['MESSAGE HERO EPITAPH FOR', 'Here lies the body of ${0}. Rest in peace.'],
   [
     'MESSAGE INSUFFICIENT FUNDS',
@@ -368,7 +372,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE TRADER ATTACKS BACK',
-    'The angry trader detects your clumsy attack and catches you with a concealed blade. You lose ${0} health.',
+    'The angry trader detects your clumsy attempt at robbery and strikes back at you.',
   ],
   ['MESSAGE TRADER CANNOT STASH', 'The trader has no space for this.'],
   [
@@ -456,6 +460,7 @@ const MESSAGE_MAP = new Map([
   ['(HP OUT OF VALUE)', '(HP:\u{00A0}${0}/${1})'],
   ['(HP VALUE)', '(HP:\u{00A0}${0})'],
   ['Known spells', 'Known spells'],
+  ['level', 'level'],
   ['LEVEL UP', 'Level up to ${0}'],
   ['Name:', 'Name: ${0}'],
   ['Prepared spells', 'Prepared spells'],

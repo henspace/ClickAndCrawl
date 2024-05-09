@@ -771,12 +771,3 @@ test('canSteal', () => {
     expect(failures).toBeGreaterThan(0);
   }
 });
-
-test('getDamageByTraderOnRobber', () => {
-  let traderTraits = new Traits('DMG:28D1');
-  expect(dndAction.getDamageByTraderOnRobber(traderTraits, null)).toBe(28);
-  traderTraits = new Traits('');
-  const damage = dndAction.getDamageByTraderOnRobber(traderTraits, null);
-  expect(damage).toBeGreaterThanOrEqual(1);
-  expect(damage).toBeLessThanOrEqual(6);
-});

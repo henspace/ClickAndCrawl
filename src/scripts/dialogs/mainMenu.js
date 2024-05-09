@@ -32,7 +32,7 @@ import UI from '../utils/dom/ui.js';
 import { BitmapButtonControl } from '../utils/dom/components.js';
 import { showSettingsDialog } from './settingsDialog.js';
 import { i18n } from '../utils/messageManager.js';
-import { showBestAdventureDialog } from './bestAdventureDialog.js';
+import { showHallOfFameDialog } from './hallOfFameDialogs.js';
 import { showGuideDialog } from './guideDialogs.js';
 
 /**
@@ -60,10 +60,10 @@ export function showMainMenu() {
     action: () => showSettingsDialog(),
   });
   const bestAdventure = new BitmapButtonControl({
-    leftLabel: i18n`BUTTON BEST ADVENTURE`,
-    imageName: 'ui-best-adventure00.png',
+    leftLabel: i18n`BUTTON HALL OF FAME`,
+    imageName: 'ui-hall-of-fame00.png',
     internalLabel: true,
-    action: () => showBestAdventureDialog(),
+    action: () => showHallOfFameDialog(),
   });
   const guides = new BitmapButtonControl({
     leftLabel: i18n`BUTTON GUIDES`,

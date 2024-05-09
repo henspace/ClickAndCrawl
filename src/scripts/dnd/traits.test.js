@@ -30,6 +30,7 @@ import { test, expect } from '@jest/globals';
 import * as traits from './traits.js';
 import * as tables from './tables.js';
 import * as dice from '../utils/dice.js';
+import * as abilityGenerator from './abilityGenerator.js';
 
 const TEST_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
@@ -100,6 +101,27 @@ test('AttackDetail.canUseTwoWeapons', () => {
     secondAttack: false,
   });
   expect(attack.canUseTwoWeapons()).toEqual(true);
+});
+
+test('AttackDetails.rollForAttack', () => {
+  const abilityModifier = 4;
+  const proficiencyBonus = 10;
+  const diceN = 3;
+  const diceSides = 6;
+  let attack = new traits.AttackDetail({
+    damageDice: `${diceN}D${diceSides}`,
+    weaponType: 'MARTIAL',
+    proficiencyBonus: proficiencyBonus,
+    abilityModifier: abilityModifier,
+  });
+  for (let roll = 0; roll < 20; roll++) {
+    const attackRoll = attack.rollForAttack();
+    expect(attackRoll.roll).toBeGreaterThanOrEqual(1);
+    expect(attackRoll.roll).toBeLessThanOrEqual(20);
+    expect(attackRoll.value).toEqual(
+      attackRoll.roll + abilityModifier + proficiencyBonus
+    );
+  }
 });
 
 test('AttackDetails.rollForAttack', () => {
@@ -823,6 +845,19 @@ test('CharacterTraits.getAttacks Two weapon. First proficient', () => {
   }
 });
 
+test('CharacterTraits: Rogue gets double proficiency bonus in attacks', () => {
+  const strength = 14;
+  const chrTraits = new traits.CharacterTraits(
+    `CLASS:ROGUE, EXP:100000, STR:${strength}, PROF:MARTIAL`
+  );
+  const expectProfBonus = 4; // from page 56 of 5e
+  chrTraits.utiliseAdditionalTraits({
+    weapons: [new traits.Traits('TYPE:MARTIAL MELEE, DMG:5D6')],
+  });
+  const attacks = chrTraits.getAttacks();
+  expect(attacks[0].proficiencyBonus).toEqual(expectProfBonus * 2);
+});
+
 test('CharacterTraits.utiliseAdditionalTraits: weapons', () => {
   console.log('No test necessary as covered by getAttacks testing.');
 });
@@ -1249,4 +1284,107 @@ test('CharacterTraits.exceedAbilitiesAndExp theirs does not exceed currenr', () 
   expect(myTraits.getInt('CHA')).toBe(myBase + 5);
   expect(myTraits.getInt('AC')).toBe(myBase + 6);
   expect(myTraits.getInt('EXP')).toBe(myBase + 7);
+});
+
+test('Abilities no adjustment if below level', () => {
+  const myBase = 10;
+  const chrClass = 'ROGUE';
+  const adjDetails = abilityGenerator.getTraitAdjustmentDetails(chrClass);
+  const level = adjDetails.levels[0] - 1;
+  const exp = tables.getMinExpPointsForLevel(level);
+  let myTraits = new traits.CharacterTraits([
+    ['CLASS', chrClass],
+    ['EXP', exp],
+    ['STR', myBase],
+    ['DEX', myBase],
+    ['CON', myBase],
+    ['INT', myBase],
+    ['WIS', myBase],
+    ['CHA', myBase],
+  ]);
+
+  // in order of ROGUE traits
+  expect(myTraits.getInt('DEX')).toBe(myBase);
+  expect(myTraits.getInt('STR')).toBe(myBase);
+  expect(myTraits.getInt('INT')).toBe(myBase);
+  expect(myTraits.getInt('CHA')).toBe(myBase);
+  expect(myTraits.getInt('CON')).toBe(myBase);
+  expect(myTraits.getInt('WIS')).toBe(myBase);
+});
+
+test('Abilities adjustment if equals first adj level', () => {
+  const myBase = 10;
+  const chrClass = 'ROGUE';
+  const adjDetails = abilityGenerator.getTraitAdjustmentDetails(chrClass);
+  const level = adjDetails.levels[0];
+  const exp = tables.getMinExpPointsForLevel(level);
+  let myTraits = new traits.CharacterTraits([
+    ['CLASS', chrClass],
+    ['EXP', exp],
+    ['STR', myBase],
+    ['DEX', myBase],
+    ['CON', myBase],
+    ['INT', myBase],
+    ['WIS', myBase],
+    ['CHA', myBase],
+  ]);
+  // in order of ROGUE traits
+  expect(myTraits.getInt('DEX')).toBe(myBase + 2);
+  expect(myTraits.getInt('STR')).toBe(myBase);
+  expect(myTraits.getInt('INT')).toBe(myBase);
+  expect(myTraits.getInt('CHA')).toBe(myBase);
+  expect(myTraits.getInt('CON')).toBe(myBase);
+  expect(myTraits.getInt('WIS')).toBe(myBase);
+});
+
+test('Abilities adjustment if above first and second adj levels', () => {
+  const myBase = 10;
+  const chrClass = 'ROGUE';
+  const adjDetails = abilityGenerator.getTraitAdjustmentDetails(chrClass);
+  const level = adjDetails.levels[1];
+  const exp = tables.getMinExpPointsForLevel(level);
+  let myTraits = new traits.CharacterTraits([
+    ['CLASS', chrClass],
+    ['EXP', exp],
+    ['STR', myBase],
+    ['DEX', myBase],
+    ['CON', myBase],
+    ['INT', myBase],
+    ['WIS', myBase],
+    ['CHA', myBase],
+  ]);
+  // in order of ROGUE traits
+  expect(myTraits.getInt('DEX')).toBe(myBase + 4);
+  expect(myTraits.getInt('STR')).toBe(myBase);
+  expect(myTraits.getInt('INT')).toBe(myBase);
+  expect(myTraits.getInt('CHA')).toBe(myBase);
+  expect(myTraits.getInt('CON')).toBe(myBase);
+  expect(myTraits.getInt('WIS')).toBe(myBase);
+});
+
+test('Abilities adjustments shared to ensure not max not exceeded', () => {
+  const chrClass = 'ROGUE';
+  const adjDetails = abilityGenerator.getTraitAdjustmentDetails(chrClass);
+  const level = adjDetails.levels[adjDetails.levels.length - 1];
+  const exp = tables.getMinExpPointsForLevel(level);
+  let myTraits = new traits.CharacterTraits([
+    ['CLASS', chrClass],
+    ['EXP', exp],
+    ['STR', 16],
+    ['DEX', 17],
+    ['CON', 18],
+    ['INT', 19],
+    ['WIS', 10],
+    ['CHA', 19],
+  ]);
+  // in order of ROGUE traits
+  expect(adjDetails.levels).toHaveLength(6);
+  expect(adjDetails.gainPerAdjustment).toEqual(2);
+  // so we have 12 points to share
+  expect(myTraits.getInt('DEX')).toBe(20); // +3
+  expect(myTraits.getInt('STR')).toBe(20); // +4
+  expect(myTraits.getInt('INT')).toBe(20); // +1
+  expect(myTraits.getInt('CHA')).toBe(20); // +1
+  expect(myTraits.getInt('CON')).toBe(20); // +2
+  expect(myTraits.getInt('WIS')).toBe(11); // +1 to bring total gain to 2 * 6
 });

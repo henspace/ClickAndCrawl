@@ -31,16 +31,27 @@ import { MESSAGES, i18n } from './messageManager.js';
 
 const messages = new Map([
   ['PLAIN', 'Plain text'],
-  ['WITH ARGS', 'Testing ${0} and ${1} and ${2}'],
+  ['WITH ARGS', 'Testing ${0} and ${2} and ${1}'],
+  [
+    'WITH NAMED ARGS',
+    'Testing ${0name} and ${2another_name} and ${1yet-another-name}',
+  ],
 ]);
 
 beforeAll(() => {
   MESSAGES.setMap(messages);
 });
 
-test('i18n', () => {
+test('i18n with normal arguments', () => {
   expect(i18n`PLAIN`).toBe('Plain text');
   expect(i18n`WITH ARGS ${'ONE'} and ${'TWO'} ${'THREE'}`).toBe(
-    'Testing ONE and TWO and THREE'
+    'Testing ONE and THREE and TWO'
+  );
+});
+
+test('i18n with named arguments', () => {
+  expect(i18n`PLAIN`).toBe('Plain text');
+  expect(i18n`WITH NAMED ARGS ${'ONE'} and ${'TWO'} ${'THREE'}`).toBe(
+    'Testing ONE and THREE and TWO'
   );
 });

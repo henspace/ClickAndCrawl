@@ -66,6 +66,11 @@ function getText(key) {
  * Then placeholders of ${n} are replaced by the
  * replacement values at the appropriate index.
  * Spaces around the key are replaced.
+ * Placeholders can have text (a-z, A-Z, _, or -) after the digits to help translators identify
+ * what parameter is being passed. So these placeholders are equivalent.
+ *
+ * - ${2}
+ * - ${2name_here}
  * @param {string[]} strings
  * @param  {...string} values - replacement values
  */
@@ -85,7 +90,7 @@ export function i18n(strings, ...values) {
 
   result = getText(key);
   values.forEach((value, index) => {
-    const placeHolder = `\${${index}}`;
+    const placeHolder = new RegExp(`\\$\\{${index}[a-zA-Z_-]*\\}`);
     result = result.replace(placeHolder, value);
   });
   return result;

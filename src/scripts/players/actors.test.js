@@ -85,6 +85,7 @@ test('Actor toJson and revive', () => {
   if (original.almanacEntry.equipmentIds === undefined) {
     revived.almanacEntry.equipmentIds = undefined; // it won't have been parsed as JSON.
   }
+  expect(revived.adventureStartTime).toEqual(original.adventureStartTime);
   expect(revived).toStrictEqual(original);
   expect(original.toxify.getToxin().getChangeInHpThisTurn()).toBe(-312);
   expect(revived.toxify.getToxin().getChangeInHpThisTurn()).toBe(-312);
@@ -138,4 +139,25 @@ test('Actor toJson and revive with equipment', () => {
     originalArtefactDetails.artefact.id
   );
   expect(revivedArtefactDetails.store).toEqual(originalArtefactDetails.store);
+});
+
+test('constructor for hero sets adventureStartTime', () => {
+  const constructionStart = new Date().getTime();
+  const almanacEntry = parseAlmanacLine(
+    '0,COMMON,HERO,fighter1 [chain_mail_armour,shield,shortsword,gold_coins] * CLASS:FIGHTER, HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield',
+    'HEROES'
+  );
+  const original = buildActor(almanacEntry);
+  const constructionEnd = new Date().getTime();
+  expect(original.adventureStartTime).toBeGreaterThanOrEqual(constructionStart);
+  expect(original.adventureStartTime).toBeLessThanOrEqual(constructionEnd);
+});
+
+test('constructor for enemy does not set adventureStartTime', () => {
+  const almanacEntry = parseAlmanacLine(
+    '0,COMMON,ENEMY,fighter1 [chain_mail_armour,shield,shortsword,gold_coins] * CLASS:FIGHTER, HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield',
+    'HEROES'
+  );
+  const original = buildActor(almanacEntry);
+  expect(original.adventureStartTime).toBeUndefined();
 });

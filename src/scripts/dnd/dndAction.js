@@ -61,19 +61,18 @@ export const Difficulty = {
  * @returns {number} amount of damage
  */
 export function getMeleeDamage(attack, targetTraits) {
-  LOG.debug(`Attack on ${targetTraits.get('NAME')}`);
   const attackRoll = attack.rollForAttack();
   // handle fate and curses.
   if (attackRoll.roll === 1) {
-    LOG.debug('Attack dice rolled 0: cursed.');
+    LOG.info('Attack dice rolled 0: cursed.');
     return 0; // cursed.
   } else if (attackRoll.roll === 20) {
-    LOG.debug('Attack dice rolled 20: critical hit. Damage will be doubled.');
+    LOG.info('Attack dice rolled 20: critical hit. Damage will be doubled.');
     return 2 * attack.rollForDamage(); // critical hit
   }
 
   const targetAc = targetTraits.getEffectiveInt('AC');
-  LOG.debug(
+  LOG.info(
     `Attack: rolled ${attackRoll.roll}; value ${attackRoll.value} vs target AC ${targetAc}`
   );
   if (attackRoll.value >= targetAc) {
@@ -340,15 +339,4 @@ export function canSteal(detectorTraits, traderTraits) {
   const modifier = characteristicToModifier(abilityValue);
   const stealRoll = dice.rollDice(20) + modifier;
   return stealRoll >= traderTraits.getInt('DC', Difficulty.HARD);
-}
-
-/**
- * Get damage from trader
- * @param {module:dnd/traits.Traits} traderTraits
- * @param {module:dnd/traits.Traits} robberTraitsUnused
- * @returns {number}
- */
-export function getDamageByTraderOnRobber(traderTraits, robberTraitsUnused) {
-  const damageDice = traderTraits.get('DMG', '1D6');
-  return dice.rollMultiDice(damageDice);
 }

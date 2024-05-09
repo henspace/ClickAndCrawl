@@ -31,7 +31,11 @@
 import * as maths from '../utils/maths.js';
 import * as dice from '../utils/dice.js';
 import * as tables from './tables.js';
-import { getClassAbilities } from './abilityGenerator.js';
+import {
+  getTraitAdjustmentDetails,
+  getClassAbilities,
+  getAttackModifiers,
+} from './abilityGenerator.js';
 import { Difficulty } from './dndAction.js';
 
 import LOG from '../utils/logging.js';
@@ -124,6 +128,9 @@ export class AttackDetail {
    */
   rollForAttack() {
     const roll = dice.rollDice(20);
+    LOG.info(
+      `Attack roll ${roll} + ability(${this.abilityModifier})+ proficiency(${this.proficiencyBonus})`
+    );
     return {
       roll: roll,
       value: roll + this.abilityModifier + this.proficiencyBonus,
@@ -141,7 +148,7 @@ export class AttackDetail {
 
     const damage = dice.rollMultiDice(this.damageDice) + this.abilityModifier;
     LOG.debug(
-      `Damage: ${this.damageDice} + ${this.abilityModifier} = ${damage}`
+      `Damage: ${this.damageDice} + ability(${this.abilityModifier}) = ${damage}`
     );
     return damage;
   }
@@ -1009,6 +1016,8 @@ export class CharacterTraits extends Traits {
 
     const strength = this.getEffectiveInt('STR', 1);
     const abilityModifier = characteristicToModifier(strength);
+    const attackModifiers = getAttackModifiers(this.get('CLASS'));
+    const effectivePb = this._proficiencyBonus * attackModifiers.pbMultiplier;
     if (weaponsTraits.length > 2) {
       LOG.error(
         `Unexpected number of equipped weapons. Expected 2; received ${weaponsTraits.length}`
@@ -1031,7 +1040,7 @@ export class CharacterTraits extends Traits {
     firstAttack = new AttackDetail({
       damageDice: damageDice,
       weaponType: weaponType,
-      proficiencyBonus: proficient ? this._proficiencyBonus : 0,
+      proficiencyBonus: proficient ? effectivePb : 0,
       abilityModifier: abilityModifier,
     });
 
@@ -1040,9 +1049,7 @@ export class CharacterTraits extends Traits {
       secondAttack = new AttackDetail({
         damageDice: weaponsTraits[1].get('DMG', '1D1') ?? '1D1',
         weaponType: weaponsTraits[1].get('TYPE') ?? '',
-        proficiencyBonus: this.isProficient(weaponsTraits[1])
-          ? this._proficiencyBonus
-          : 0,
+        proficiencyBonus: this.isProficient(weaponsTraits[1]) ? effectivePb : 0,
         abilityModifier: abilityModifier,
       });
     }
@@ -1070,7 +1077,6 @@ export class CharacterTraits extends Traits {
    */
   _getAcFromTraits(traits) {
     const dexterity = this.getEffectiveInt('DEX', 1);
-    console.log(`Dexterity: ${dexterity}`);
     const modifier = characteristicToModifier(dexterity);
     const armourType = traits.get('TYPE', '').toUpperCase();
     const acTrait = traits.get('AC', 1);
@@ -1090,9 +1096,43 @@ export class CharacterTraits extends Traits {
    * Set the level and prof bonus. These are calculated from the experience.
    */
   _adjustForExperience() {
+    const currentLevel = this._level ?? 1;
     const values = tables.getLevelAndProfBonusFromExp(this._traits.get('EXP'));
     this._level = values.level;
     this._proficiencyBonus = values.profBonus;
+    this._adjustTraitsForLevelChange(currentLevel, this._level);
+  }
+
+  /**
+   * Adjust traits for a level change.
+   * @param {number} oldLevel
+   * @param {number} newLevel
+   */
+  _adjustTraitsForLevelChange(oldLevel, nextLevel) {
+    const details = getTraitAdjustmentDetails(this.get('CLASS'));
+    if (details.levels.length === 0) {
+      return;
+    }
+    let availableGain = 0;
+    for (const level of details.levels) {
+      if (level > nextLevel) {
+        break;
+      }
+      if (level > oldLevel) {
+        availableGain += details.gainPerAdjustment;
+      }
+    }
+    let traitIndex = 0;
+    while (availableGain > 0 && traitIndex < details.traits.length) {
+      const key = details.traits[traitIndex];
+      let value = this.get(key);
+      if (value < details.maxAbility) {
+        this.set(key, value + 1);
+        availableGain--;
+      } else {
+        traitIndex++;
+      }
+    }
   }
 
   /**

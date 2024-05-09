@@ -56,7 +56,6 @@ import * as traps from './trapCharacteristics.js';
 import * as trapDialogs from '../dialogs/trapDialogs.js';
 import { buildArtefactFromId } from './almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
-import { pause } from '../utils/timers.js';
 import { TimeFader } from '../utils/sprites/faders.js';
 
 /**
@@ -344,6 +343,9 @@ export class Fight extends AbstractInteraction {
    * @returns {Promise}
    */
   #resolveAttackerDefender(attacker, defender) {
+    LOG.info(
+      `${attacker.traits?.get('NAME')} attacks ${defender.traits.get('NAME')}`
+    );
     return this.#displayAttack(attacker, defender).then(() =>
       this.#undertakeAllAttacks(attacker, defender)
     );
@@ -453,18 +455,11 @@ export class Trade extends AbstractInteraction {
       robber.storeManager.addToPurse(takenGold);
       return UI.showOkDialog(i18n`MESSAGE STOLE GOLD ${takenGold}`);
     } else {
-      this.owner.traits.set('NO_TRADE', true);
-      const damage = dndAction.getDamageByTraderOnRobber(
-        this.owner.traits,
-        robber
-      );
-      applyDamage(this.owner, robber, damage);
-      return UI.showOkDialog(i18n`MESSAGE TRADER ATTACKS BACK ${damage}`)
-        .then(() => pause(2))
-        .then(() => {
-          const fight = new Fight(this.owner);
-          return fight.enact(robber);
-        });
+      this.owner.traits.set('_NO_TRADE', true);
+      return UI.showOkDialog(i18n`MESSAGE TRADER ATTACKS BACK`).then(() => {
+        const fight = new Fight(this.owner);
+        return fight.enact(robber);
+      });
     }
   }
   /**
@@ -928,13 +923,13 @@ export class TriggerTrap extends AbstractInteraction {
           .then(() => ({ outcome: action, artefact: foundArtefact }));
       }
       case TrapOutcome.DISABLED:
-        LOG.info('Disable the trap.');
+        LOG.info('Disabled the trap.');
         foundArtefact = buildArtefactFromId(trapDetails.reward);
         return trapDialogs
           .showDisableSuccess(enactor, trapDetails, this.owner.description)
           .then(() => ({ outcome: action, artefact: foundArtefact }));
       case TrapOutcome.LEAVE:
-        LOG.info('Leave the trap.');
+        LOG.info('Left the trap.');
         return Promise.resolve({ outcome: action, artefact: foundArtefact });
     }
   }
@@ -946,25 +941,23 @@ export class TriggerTrap extends AbstractInteraction {
    */
   #applyAndShowDamage(enactor, damage) {
     return new Promise((resolve) => {
+      SOUND_MANAGER.playEffect('TRIGGER TRAP');
       if (damage <= 0) {
-        SOUND_MANAGER.playEffect('MISS');
         addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
-          delaySecs: 2,
-          lifetimeSecs: 4,
+          delaySecs: 1,
+          lifetimeSecs: 3,
           position: enactor.position,
           velocity: new Velocity(0, 0, 0),
         });
-        resolve();
-        return;
+      } else {
+        addFadingImage(IMAGE_MANAGER.getSpriteBitmap('blood-splat.png'), {
+          delaySecs: 1,
+          lifetimeSecs: 3,
+          position: enactor.position,
+          velocity: new Velocity(0, 0, 0),
+        });
+        applyDamage(this.owner, enactor, damage);
       }
-      SOUND_MANAGER.playEffect('TRIGGER TRAP');
-      addFadingImage(IMAGE_MANAGER.getSpriteBitmap('blood-splat.png'), {
-        delaySecs: 2,
-        lifetimeSecs: 4,
-        position: enactor.position,
-        velocity: new Velocity(0, 0, 0),
-      });
-      applyDamage(this.owner, enactor, damage);
       resolve();
     });
   }
@@ -1045,7 +1038,7 @@ export class FindObjective extends AbstractInteraction {
       delaySecs: 0,
       lifetimeSecs: 6,
       position: objective.position,
-      velocity: new Velocity(0, 0, -3),
+      velocity: new Velocity(0, 0, 3),
     });
 
     new TimeFader(0, 3, new VelocityMover()).applyAsTransientToSprite(

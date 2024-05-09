@@ -79,3 +79,24 @@ test('getClassAbilities UNKNOWN', () => {
     }
   }
 });
+
+test('getAttackModifiers', () => {
+  expect(generator.getAttackModifiers('ROGUE')).toEqual({ pbMultiplier: 2 });
+  expect(generator.getAttackModifiers('UNKNOWN')).toEqual({ pbMultiplier: 1 });
+});
+
+test('getTraitAdjustmentDetails', () => {
+  expect(generator.getTraitAdjustmentDetails('UNKNOWN')).toEqual({
+    levels: [],
+    traits: ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA'],
+    gainPerAdjustment: 2,
+    maxAbility: 20,
+  });
+
+  expect(generator.getTraitAdjustmentDetails('ROGUE')).toEqual({
+    levels: [4, 8, 10, 12, 16, 19],
+    traits: ['DEX', 'STR', 'INT', 'CHA', 'CON', 'WIS'],
+    gainPerAdjustment: 2,
+    maxAbility: 20,
+  });
+});

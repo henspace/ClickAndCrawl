@@ -302,12 +302,12 @@
             <key type="filename">tiles/trapdoor-dead00.png</key>
             <key type="filename">tiles/trapdoor-idle00.png</key>
             <key type="filename">tiles/trapdoor.png</key>
-            <key type="filename">tiles/ui-best-adventure00.png</key>
-            <key type="filename">tiles/ui-best-adventure01.png</key>
             <key type="filename">tiles/ui-checkbox00.png</key>
             <key type="filename">tiles/ui-checkbox01.png</key>
             <key type="filename">tiles/ui-guides00.png</key>
             <key type="filename">tiles/ui-guides01.png</key>
+            <key type="filename">tiles/ui-hall-of-fame00.png</key>
+            <key type="filename">tiles/ui-hall-of-fame01.png</key>
             <key type="filename">tiles/ui-play00.png</key>
             <key type="filename">tiles/ui-play01.png</key>
             <key type="filename">tiles/ui-settings00.png</key>

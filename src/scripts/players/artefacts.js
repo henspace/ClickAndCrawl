@@ -1021,7 +1021,7 @@ export class ArtefactStoreManager {
     const stashStore = this.getStore(artefact.stashStoreType);
     const equipStore = this.getStore(artefact.equipStoreType);
     if (!stashStore) {
-      LOG.info(
+      LOG.debug(
         'Cannot stash artefact as there isn`t a suitable stash store to put it in.'
       );
       return false;

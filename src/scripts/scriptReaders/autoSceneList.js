@@ -61,13 +61,15 @@ export const DungeonChallenge = {
 /**
  * Create a pool of enemies based on the dungeon rating.
  * @param {DungeonChallengeValue} dungeonRating
+ * @param {number} minLevel
  * @returns {module:almanacs/almanacs~Almanac}
  */
-function createEnemyPoolAlmanac(dungeonRating) {
+function createEnemyPoolAlmanac(dungeonRating, minLevel) {
   const level = heroActor?.traits.getCharacterLevel() ?? 1;
   const maxMonsterChallenge = dungeonRating * level + 0.001; // prevent float issues.
   return ALMANAC_LIBRARY.getAlmanac('ENEMIES').filter(
-    (entry) => entry.challengeRating <= maxMonsterChallenge
+    (entry) =>
+      entry.challengeRating <= maxMonsterChallenge && entry.minLevel <= minLevel
   );
 }
 /**
@@ -172,7 +174,7 @@ class AutoSceneList {
    */
   #addEnemies(challenge = DungeonChallenge.MEDIUM) {
     const maxEnemies = 8;
-    const enemyPoolAlmanac = createEnemyPoolAlmanac(challenge);
+    const enemyPoolAlmanac = createEnemyPoolAlmanac(challenge, this.#index);
     let totalCr = 0;
     let totalEnemies = 0;
     while (totalCr < challenge && totalEnemies < maxEnemies) {

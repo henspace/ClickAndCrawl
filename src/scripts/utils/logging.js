@@ -50,7 +50,7 @@ function logGeneral(...data) {
  * @param  {...any} data
  */
 function logInfo(...data) {
-  console.debug(...data);
+  console.info(...data);
 }
 
 /**

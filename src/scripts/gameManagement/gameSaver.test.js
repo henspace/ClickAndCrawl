@@ -79,10 +79,13 @@ beforeEach(() => {
   mockedStorage.clear();
 });
 
-test('getBestAdventure', () => {
-  const bestAdventure = 'random data';
-  PERSISTENT_DATA.set('BEST_ADVENTURE', bestAdventure);
-  expect(gameSaver.getBestAdventure()).toEqual(bestAdventure);
+test('getLeaderboard', () => {
+  const leaderboardData = ['lion', 'tiger', 'bear'];
+  let leaderBoard = gameSaver.getLeaderboard();
+  expect(leaderBoard.getCurrentData()).toEqual([]);
+  PERSISTENT_DATA.set('LEADERBOARD_DATA', leaderboardData);
+  leaderBoard = gameSaver.getLeaderboard();
+  expect(leaderBoard.getCurrentData()).toEqual(leaderboardData);
 });
 
 test('saveGameState', () => {
@@ -98,74 +101,91 @@ test('saveGameState', () => {
   hero.storeManager.addToPurse(gold);
   SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(hero);
-  const bestAdventure = gameSaver.getBestAdventure();
-  expect(bestAdventure).toEqual({
+  const leaderboard = gameSaver.getLeaderboard();
+  const leaderboardData = leaderboard.getCurrentData();
+  expect(leaderboardData[0]).toEqual({
+    adventureStartTime: hero.adventureStartTime,
     name: hero.traits.get('NAME'),
+    class: hero.traits.get('CLASS'),
     gold: gold,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
     score: Math.floor(100 * gold * characterLevel),
+    completed: false,
   });
 });
 
-test('saveGameState overwrites if better', () => {
+test('saveGameState: completed', () => {
   const sceneLevel = 12;
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
-  const goldWorst = 10;
-  const goldBest = 2 * goldWorst;
+  const gold = 10;
   const almanacEntry = parseAlmanacLine(
     `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
     'HEROES'
   );
-  const heroWorst = buildActor(almanacEntry);
-  const heroBest = buildActor(almanacEntry);
-  heroWorst.storeManager.addToPurse(goldWorst);
-  heroBest.storeManager.addToPurse(goldBest);
-
+  const hero = buildActor(almanacEntry);
+  hero.storeManager.addToPurse(gold);
   SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
-  gameSaver.saveGameState(heroWorst);
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
-  gameSaver.saveGameState(heroBest);
-  const bestAdventure = gameSaver.getBestAdventure();
-  expect(bestAdventure).toEqual({
-    name: heroBest.traits.get('NAME'),
-    gold: goldBest,
+  gameSaver.saveGameState(hero, true);
+  const leaderboard = gameSaver.getLeaderboard();
+  const leaderboardData = leaderboard.getCurrentData();
+  expect(leaderboardData[0]).toEqual({
+    adventureStartTime: hero.adventureStartTime,
+    name: hero.traits.get('NAME'),
+    class: hero.traits.get('CLASS'),
+    gold: gold,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
-    score: Math.floor(100 * goldBest * characterLevel),
+    score: Math.floor(100 * gold * characterLevel),
+    completed: true,
   });
 });
 
-test('saveGameState does not overwrite if worse', () => {
+test('saveGameState adds if better', () => {
   const sceneLevel = 12;
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
-  const goldWorst = 10;
-  const goldBest = 2 * goldWorst;
+
   const almanacEntry = parseAlmanacLine(
     `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
     'HEROES'
   );
-  const heroWorst = buildActor(almanacEntry);
-  const heroBest = buildActor(almanacEntry);
-  heroWorst.storeManager.addToPurse(goldWorst);
-  heroBest.storeManager.addToPurse(goldBest);
+  // fill the leaderboard.
+  for (let n = 0; n <= 12; n++) {
+    const hero = buildActor(almanacEntry);
+    (hero.adventureStartTime = 1000 + n), hero.traits.set('NAME', `NAME${n}`);
+    hero.storeManager.addToPurse(100 + n);
+    SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
+    gameSaver.saveGameState(hero);
+  }
 
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
-  gameSaver.saveGameState(heroBest);
-  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
-  gameSaver.saveGameState(heroWorst);
-  const bestAdventure = gameSaver.getBestAdventure();
-  expect(bestAdventure).toEqual({
-    name: heroBest.traits.get('NAME'),
-    gold: goldBest,
+  const leaderboard = gameSaver.getLeaderboard();
+  const leaderboardData = leaderboard.getCurrentData();
+  expect(leaderboardData).toHaveLength(10);
+  expect(leaderboardData[0]).toEqual({
+    adventureStartTime: 1012,
+    name: 'NAME12',
+    class: 'FIGHTER',
+    gold: 112,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
-    score: Math.floor(100 * goldBest * characterLevel),
+    score: Math.floor(100 * 112 * characterLevel),
+    completed: false,
+  });
+  expect(leaderboardData[9]).toEqual({
+    adventureStartTime: 1003,
+    name: 'NAME3',
+    class: 'FIGHTER',
+    gold: 103,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
+    score: Math.floor(100 * 103 * characterLevel),
+    completed: false,
   });
 });
 
@@ -230,6 +250,24 @@ test('restoreGameState returns undefined if no saved game', () => {
   SCENE_MANAGER.getCurrentSceneLevel.mockReturnValue(sceneLevel);
   gameSaver.saveGameState(hero);
   mockedStorage.clear();
+  const restored = gameSaver.restoreGameState();
+  expect(restored).toBeUndefined();
+});
+
+test('restoreGameState returns undefined if completed', () => {
+  const sceneLevel = 12;
+  const characterLevel = 6;
+  const exp = getMinExpPointsForLevel(characterLevel);
+  const gold = 10;
+  const almanacEntry = parseAlmanacLine(
+    `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
+    'HEROES'
+  );
+  const hero = buildActor(almanacEntry);
+  hero.storeManager.addToPurse(gold);
+  hero.alive = false;
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValue(sceneLevel);
+  gameSaver.saveGameState(hero, true);
   const restored = gameSaver.restoreGameState();
   expect(restored).toBeUndefined();
 });

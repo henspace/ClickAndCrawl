@@ -63,7 +63,7 @@ class AnimationState {
   setAnimationState(state) {
     if (state !== this.#animationState) {
       this.#animationState = state;
-      LOG.info(`Set animation state to ${this.#animationState}`);
+      LOG.debug(`Set animation state to ${this.#animationState}`);
       if (this.#animationState && this.onStartAnimation) {
         this.onStartAnimation();
       }

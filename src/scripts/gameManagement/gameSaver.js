@@ -37,8 +37,16 @@ import { Artefact } from '../players/artefacts.js';
 import { Traits, CharacterTraits, MagicTraits } from '../dnd/traits.js';
 import { Toxin } from '../dnd/toxins.js';
 import { sceneToFloor } from '../dnd/floorNumbering.js';
+import { Leaderboard } from '../utils/leaderBoard.js';
+
+/** @type {number} */
+const DEFAULT_LEADERBOARD_LEN = 10;
+
+/** @type {string} */
+const LEADERBOARD_DATA_KEY = 'LEADERBOARD_DATA';
 
 /** @typedef {Object} AdventureResult
+ * @property {number} adventureStartTime
  * @property {string} name
  * @property {number} gold
  * @property {number} exp
@@ -49,85 +57,100 @@ import { sceneToFloor } from '../dnd/floorNumbering.js';
 /**
  * Create an adventure result
  * @param {module:players/actors.Actor} hero
+ * @param {boolean} completed
  * @returns {AdventureResult}
  */
-function createAdventureResult(hero) {
+function createAdventureResult(hero, completed) {
   const result = {
+    adventureStartTime: 0,
     name: 'unknown',
+    class: 'unknown',
     gold: 0,
     exp: 0,
     characterLevel: 0,
     dungeonFloor: 0,
     score: 0,
+    completed: false,
   };
   if (hero) {
+    result.adventureStartTime = hero.adventureStartTime;
     result.name = hero.traits.get('NAME');
+    result.class = hero.traits.get('CLASS');
     result.gold = hero.storeManager.getPurseValue();
     result.exp = hero.traits.getInt('EXP', 0);
     result.characterLevel = hero.traits.getCharacterLevel();
     result.dungeonFloor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel());
     result.score = Math.floor(100 * result.gold * result.characterLevel);
+    result.completed = completed;
   }
   return result;
 }
 
 /**
- * Get the best stored adventure result.
- * @returns {AdventureResult}
+ * Get the leaderboard.
+ * @returns {module:utils/Leaderboard.LeaderBoard}
  */
-export function getBestAdventure() {
-  return PERSISTENT_DATA.get('BEST_ADVENTURE');
+export function getLeaderboard() {
+  const data = PERSISTENT_DATA.get(LEADERBOARD_DATA_KEY);
+  return new Leaderboard(data, {
+    maxLength: DEFAULT_LEADERBOARD_LEN,
+    sortFn: (a, b) => (a.score > b.score ? -1 : 1),
+    equalFn: (a, b) =>
+      a.adventureStartTime === b.adventureStartTime && a.name === b.name,
+  });
 }
 
 /**
  * Get the best stored adventure result.
  * @param {AdventureResult} adventureResult
+ * @returns {number} index of the new entry 0 is first. -1 is unplaced.
  */
-function saveBestAdventure(adventureResult) {
-  return PERSISTENT_DATA.set('BEST_ADVENTURE', adventureResult);
-}
-
-/**
- * Save the hero's adventure if better than the last.
- * @param {module:players/actors.Actor} hero
- */
-function saveAdventureIfBest(hero) {
-  const adventureResult = createAdventureResult(hero);
-  const currentBest = getBestAdventure();
-  const lastScore = currentBest?.score ?? 0;
-
-  if (adventureResult.score > lastScore) {
-    saveBestAdventure(adventureResult);
+function saveToLeaderboard(adventureResult) {
+  const leaderboard = getLeaderboard();
+  const index = leaderboard.add(adventureResult);
+  if (index >= 0) {
+    PERSISTENT_DATA.set(LEADERBOARD_DATA_KEY, leaderboard.getCurrentData());
   }
+  return index;
 }
+
 /**
- * Save the current game. The adventure is also saved if better than previous
- * attempts.
+ * Save the current game. The adventure is also added to the leaderboard if good
+ * enough.
  * @param {module:players/actors.Actor} hero
+ * @param {boolean} [completed = false]
+ * @returns {number} position in leaderboard. 0 is top. -1 is unplaced.
  */
-export function saveGameState(hero) {
-  saveAdventureIfBest(hero);
+export function saveGameState(hero, completed = false) {
+  const adventureResult = createAdventureResult(hero, completed);
+  const leaderboardIndex = saveToLeaderboard(adventureResult);
   const gameState = {
     sceneLevel: SCENE_MANAGER.getCurrentSceneLevel(),
     hero: hero,
+    completed: completed,
   };
   PERSISTENT_DATA.set('GAME_STATE', gameState);
+  return leaderboardIndex;
 }
 
 /** Restore the game state.
  * The state is only restored if the hero is alive.
  *
- * @returns {{hero: Actor, sceneLevel: number}} - undefined if failure
+ * @returns {{hero: Actor, sceneLevel: number, completed: boolean}} - undefined if failure
  */
 export function restoreGameState() {
   const gameState = PERSISTENT_DATA.get('GAME_STATE', null, revive);
 
   if (!gameState) {
-    LOG.info('No saved game state to restore.');
+    LOG.debug('No saved game state to restore.');
     return;
   }
   if (!gameState.hero.alive) {
-    LOG.info('Last hero state was dead, so not restoring.');
+    LOG.debug('Last hero state was dead, so not restoring.');
+    return;
+  }
+  if (gameState.completed) {
+    LOG.debug('Last game was completed, so not restoring.');
     return;
   }
   return { hero: gameState.hero, sceneLevel: gameState.sceneLevel };

@@ -339,7 +339,7 @@ class State {
  */
 class WaitingToStart extends State {
   onEntry() {
-    LOG.log('WaitingToStart state');
+    LOG.debug('WaitingToStart state');
   }
   /**
    * @override
@@ -373,7 +373,7 @@ class AtMainMenu extends State {
  */
 class AtStart extends State {
   onEntry() {
-    LOG.log('Enter AtStart');
+    LOG.debug('Enter AtStart');
 
     return this.#showQuickTips()
       .then(() => this.#loadFirstOrContinuationScene())
@@ -457,7 +457,7 @@ class AtStart extends State {
  */
 class AtGameOver extends State {
   async onEntry() {
-    LOG.log('Enter AtGameOver');
+    LOG.debug('Enter AtGameOver');
     if (persistentGame) {
       saveGameState(heroActor);
     }
@@ -483,10 +483,7 @@ class AtGameOver extends State {
  */
 class AtGameCompleted extends State {
   async onEntry() {
-    LOG.log('Enter AtGameCompleted');
-    if (persistentGame) {
-      saveGameState(heroActor);
-    }
+    LOG.debug('Enter AtGameCompleted');
     await showMarkdownDialog(AssetUrls.DUNGEON_COMPLETE, {
       okButtonLabel: i18n`BUTTON TRY AGAIN`,
     })
@@ -508,7 +505,7 @@ class HeroTurnIdle extends State {
    */
   async onEntry() {
     await super.onEntry();
-    LOG.log('Enter HeroTurnIdle');
+    LOG.debug('Enter HeroTurnIdle');
     await prepareHeroTurn();
     const dead = await doToxicEffectsKillHero();
     if (dead) {
@@ -556,7 +553,7 @@ class HeroTurnIdle extends State {
         await UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
         break;
       case EventId.CLICKED_EXIT: {
-        LOG.log('Escaping');
+        LOG.debug('Escaping');
         const unlocked = await tryToUnlockExit();
         if (unlocked) {
           await moveHeroToPoint(point, { usePathFinder: false }).then(() =>
@@ -583,7 +580,7 @@ class HeroTurnInteracting extends State {
    */
   async onEntry() {
     await super.onEntry();
-    LOG.log('Enter HeroTurnInteracting');
+    LOG.debug('Enter HeroTurnInteracting');
     await prepareHeroTurn();
     const dead = await doToxicEffectsKillHero();
     if (dead) {
@@ -682,7 +679,7 @@ class ComputerTurnIdle extends State {
   }
   async onEntry() {
     await super.onEntry();
-    LOG.log('Enter ComputerTurnIdle');
+    LOG.debug('Enter ComputerTurnIdle');
     await applyOrganicToActors();
     const tileMap = WORLD.getTileMap();
 
@@ -862,7 +859,7 @@ function interact(point) {
 function endGameObjectiveFound() {
   heroActor.traits.clearTransientFxTraits();
   if (persistentGame) {
-    saveGameState(heroActor);
+    saveGameState(heroActor, true);
   }
   return currentState.transitionTo(new AtGameCompleted());
 }
@@ -978,7 +975,7 @@ function getHeroActor() {
  */
 function tryToUnlockExit() {
   if (exitKeyArtefact) {
-    if (heroActor.storeManager.discard(exitKeyArtefact)) {
+    if (heroActor.storeManager.discard(exitKeyArtefact, true)) {
       return UI.showOkDialog(i18n`MESSAGE KEY UNLOCKS EXIT`).then(() => true);
     } else {
       return UI.showOkDialog(i18n`MESSAGE EXIT LOCKED`).then(() => false);

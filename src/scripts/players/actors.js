@@ -123,6 +123,8 @@ export class Actor extends UiClickHandler {
   storeManager;
   /** @type {ActorType} */
   type;
+  /** @type {number} */
+  adventureStartTime;
 
   /**
    * Create the actor.
@@ -142,6 +144,9 @@ export class Actor extends UiClickHandler {
       type === ActorType.TRADER || type === ActorType.HIDDEN_ARTEFACT,
       () => this.#updateTraitsFromStore()
     );
+    if (type === ActorType.HERO) {
+      this.adventureStartTime = new Date().getTime();
+    }
   }
 
   /**
@@ -426,6 +431,7 @@ export class Actor extends UiClickHandler {
     return {
       reviver: 'Actor',
       data: {
+        adventureStartTime: this.adventureStartTime,
         alive: this.alive,
         almanacEntry: this.almanacEntry,
         traits: this.traits,
@@ -443,6 +449,7 @@ export class Actor extends UiClickHandler {
    */
   static revive(data, builder) {
     const actor = builder(data.almanacEntry, data.traits);
+    actor.adventureStartTime = data.adventureStartTime;
     actor.alive = data.alive;
     actor.toxify = new Toxify(data.toxin);
     for (const item of data.inventory) {

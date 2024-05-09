@@ -1,7 +1,7 @@
 /**
- * @file Dialog to show the best adventure
+ * @file Dialog to show the hall of fame
  *
- * @module dialogs/bestAdventureDialog
+ * @module dialogs/hallOfFameDialog
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -31,58 +31,46 @@ import UI from '../utils/dom/ui.js';
 import { i18n } from '../utils/messageManager.js';
 import * as components from '../utils/dom/components.js';
 
-import { getBestAdventure } from '../gameManagement/gameSaver.js';
+import { getLeaderboard } from '../gameManagement/gameSaver.js';
 
+/**
+ *
+ * @param {module:gameManagement/gameSaver~AdventureResult} adventure
+ * @returns {string}
+ */
+function formHallOfFameEntry(adventure) {
+  let startDate = new Date(adventure.adventureStartTime)
+    .toISOString()
+    .split('T')[0];
+  const chrClass = adventure.class?.toLowerCase() ?? '';
+  return i18n`MESSAGE HALL OF FAME ENTRY ${adventure.name} ${adventure.characterLevel} ${chrClass} ${startDate} ${adventure.gold} ${adventure.dungeonFloor}`;
+}
 /**
  * Show a dialog with the best adventure results which are picked
  * up from persistent storage.
  * @returns {Promise}
  */
-export function showBestAdventureDialog() {
-  const bestAdventure = getBestAdventure();
+export function showHallOfFameDialog() {
   const container = components.createElement('div', {
     className: 'best-adventure',
   });
-  if (bestAdventure) {
-    const list = document.createElement('ul');
-    container.appendChild(list);
-    list.appendChild(
-      components.createElement('li', {
-        text: i18n`Name:${bestAdventure.name}`,
-      })
-    );
-    list.appendChild(
-      components.createElement('li', {
-        text: i18n`Score:${bestAdventure.score}`,
-      })
-    );
-    list.appendChild(
-      components.createElement('li', {
-        text: i18n`Gold:${bestAdventure.gold.toFixed(2)}`,
-      })
-    );
-    list.appendChild(
-      components.createElement('li', {
-        text: i18n`Character level:${bestAdventure.characterLevel}`,
-      })
-    );
-    list.appendChild(
-      components.createElement('li', {
-        text: i18n`Experience:${bestAdventure.exp}`,
-      })
-    );
-    list.appendChild(
-      components.createElement('li', {
-        text: i18n`Dungeon floor:${bestAdventure.dungeonFloor}`,
-      })
-    );
-  } else {
+  const leaderboardData = getLeaderboard().getCurrentData();
+  if (leaderboardData.length === 0) {
     container.appendChild(
       components.createElement('p', {
         text: i18n`MESSAGE NO SAVED ADVENTURE`,
       })
     );
+  } else {
+    const list = document.createElement('ul');
+    container.appendChild(list);
+    for (const adventure of leaderboardData) {
+      list.appendChild(
+        components.createElement('li', {
+          text: formHallOfFameEntry(adventure),
+        })
+      );
+    }
   }
-
-  return UI.showElementOkDialog(i18n`DIALOG TITLE BEST ADVENTURE`, container);
+  return UI.showElementOkDialog(i18n`DIALOG TITLE HALL OF FAME`, container);
 }

@@ -54,7 +54,31 @@ const DEFAULT_RANGE = [8, 15];
 const CLASS_TRAIT_ORDER = new Map([
   ['FIGHTER', ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']],
   ['CLERIC', ['WIS', 'CON', 'STR', 'DEX', 'INT', 'CHA']],
+  ['ROGUE', ['DEX', 'STR', 'INT', 'CHA', 'CON', 'WIS']],
   ['DEFAULT', ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA']],
+]);
+
+/**
+ * @typedef {Object} AttackModifiers
+ * @property {number} pbMultiplier - multiplication factor for proficiency bonuses
+ */
+/**
+ * Attack modifiers
+ * @type {Map<string, AttackModifiers>}
+ */
+const CLASS_ATTACK_MODIFIERS = new Map([
+  ['ROGUE', { pbMultiplier: 2 }],
+  ['DEFAULT', { pbMultiplier: 1 }],
+]);
+
+/**
+ * Trait adjustments for level changes.
+ * The array holds the levels at which a trait adjustment takes place. These
+ * are indexes into the classes CLASS_TRAIT_ORDER
+ * @type {Map<string, number[]}
+ */
+const CLASS_TRAIT_ADJUSTMENT_LEVELS = new Map([
+  ['ROGUE', [4, 8, 10, 12, 16, 19]],
 ]);
 
 /**
@@ -73,4 +97,39 @@ export function getClassAbilities(characterClass) {
     result.set(keys[index], value);
   }
   return result;
+}
+
+/**
+ * Get attack modifiers.
+ * @param {string} characterClass
+ * @returns {AttackModifiers}
+ */
+export function getAttackModifiers(characterClass) {
+  return (
+    CLASS_ATTACK_MODIFIERS.get(characterClass) ??
+    CLASS_ATTACK_MODIFIERS.get('DEFAULT')
+  );
+}
+
+/**
+ * @typedef {Object} LevelAdjustmentDetails
+ * @property {number[]} levels - array of levels at which an adjustment should be made.
+ * @property {string[]} traits - array of traits in the order at which adjustments should be made
+ * @property {number} gainPerAdjustment - total amount abilities can be changed.
+ * @property {number} maxAbility - maximum an ability can rise to.
+ */
+/**
+ * Get the trait adjustments for a level change.
+ * Normally only one level change is expected.
+ * @param {string} characterClass
+ * @returns {number[]} array of levels at which characteristics should be adjusted. Undefined if none.
+ */
+export function getTraitAdjustmentDetails(characterClass) {
+  return {
+    levels: CLASS_TRAIT_ADJUSTMENT_LEVELS.get(characterClass) ?? [],
+    traits:
+      CLASS_TRAIT_ORDER.get(characterClass) ?? CLASS_TRAIT_ORDER.get('DEFAULT'),
+    gainPerAdjustment: 2,
+    maxAbility: 20,
+  };
 }

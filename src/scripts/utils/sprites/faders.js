@@ -40,6 +40,8 @@ export class TimeFader extends AbstractModifier {
   #delaySecs;
   /** @type {number} */
   #elapsedSecs;
+  /** @type {number} */
+  #easeInDuration;
 
   /**
    * Create fader.
@@ -50,7 +52,9 @@ export class TimeFader extends AbstractModifier {
   constructor(delaySecs, lifetimeSecs, decoratedModifier) {
     super(decoratedModifier);
     this.#delaySecs = delaySecs;
-    this.#deltaOpacityPerSec = 1 / Math.max(lifetimeSecs - delaySecs, 0.5);
+    this.#easeInDuration = 0.3 * lifetimeSecs;
+    const fadeOutDuration = lifetimeSecs - this.#easeInDuration;
+    this.#deltaOpacityPerSec = 1 / Math.max(fadeOutDuration, 0.5);
     this.#elapsedSecs = 0;
   }
 
@@ -63,10 +67,12 @@ export class TimeFader extends AbstractModifier {
    */
   doUpdate(sprite, deltaSeconds) {
     this.#elapsedSecs += deltaSeconds;
-    if (this.#elapsedSecs > this.#delaySecs) {
+    if (this.#elapsedSecs > this.#delaySecs + this.#easeInDuration) {
       sprite.opacity = Math.max(
         0,
-        1 - (this.#elapsedSecs - this.#delaySecs) * this.#deltaOpacityPerSec
+        1 -
+          (this.#elapsedSecs - this.#delaySecs - this.#easeInDuration) *
+            this.#deltaOpacityPerSec
       );
     } else {
       sprite.opacity = 1;

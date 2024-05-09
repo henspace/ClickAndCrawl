@@ -226,7 +226,7 @@ export class RoomCreator {
    * @param {number} numberOfRows
    */
   #createRoom(leftLandCols, roomCols, rightLandCols, numberOfRows) {
-    LOG.log(
+    LOG.debug(
       `Create room ${leftLandCols} ${roomCols} ${rightLandCols} ${numberOfRows}`
     );
     let columns = '';

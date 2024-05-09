@@ -94,10 +94,10 @@ function createEnemies(sceneDefn) {
 /**
  * Create the objective.
  * @param {SceneDefinition} sceneDefn
- * @returns {Actor}
+ * @returns {Actor} null if not created.
  */
 function createObjective(sceneDefn) {
-  return buildActor(sceneDefn.objective);
+  return sceneDefn.objective ? buildActor(sceneDefn.objective) : null;
 }
 
 /** Create an artefact that is located in the dungeon.
@@ -226,10 +226,23 @@ class ParsedScene extends AbstractScene {
     );
     WORLD.setTileMap(tileMap);
 
+    let objective = createObjective(this.#sceneDefn);
+    if (objective) {
+      const freeTile = tileMap.getRandomFreeGroundTile();
+      if (freeTile) {
+        objective.position = freeTile.worldPoint;
+        WORLD.addArtefact(objective);
+      } else {
+        LOG.debug('No free tiles for objective.');
+        objective = null;
+      }
+    }
+
     const exitKeyAlmanacEntry = ALMANAC_LIBRARY.getRandomEntry('KEYS');
     const exitKeyArtefact =
-      rollDice(6) > 3 ? buildArtefact(exitKeyAlmanacEntry) : null;
-    let keysToAdd = exitKeyArtefact ? 1 : 0;
+      objective || rollDice(6) > 3 ? buildArtefact(exitKeyAlmanacEntry) : null;
+    // Note: don't add a key to find if this level has the objective as that is the way out.
+    let keysToAdd = !objective && exitKeyArtefact ? 1 : 0;
 
     const pooledArtefactAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
       ['ARTEFACTS', 'ARMOUR', 'WEAPONS'],
@@ -243,21 +256,10 @@ class ParsedScene extends AbstractScene {
       (entry) => entry.id === 'iron_rations'
     );
 
-    const objective = createObjective(this.#sceneDefn);
-    if (objective) {
-      const freeTile = tileMap.getRandomFreeGroundTile();
-      if (freeTile) {
-        objective.position = freeTile.worldPoint;
-        WORLD.addArtefact(objective);
-      } else {
-        LOG.info('No free tiles for objective.');
-        keysToAdd = 0; // The objective is the way out so don't add the key
-      }
-    }
     for (const enemy of createEnemies(this.#sceneDefn)) {
       const freeTile = tileMap.getRandomFreeGroundTile();
       if (!freeTile) {
-        LOG.info('No free tiles for enemy.');
+        LOG.debug('No free tiles for enemy.');
         break;
       }
       enemy.position = freeTile.worldPoint;
@@ -306,7 +308,7 @@ class ParsedScene extends AbstractScene {
     for (const artefact of createArtefacts(this.#sceneDefn)) {
       const freeTile = tileMap.getRandomFreeGroundTile();
       if (!freeTile) {
-        LOG.info('No free tile to add artefact.');
+        LOG.debug('No free tile to add artefact.');
         break;
       }
       artefact.position = freeTile.worldPoint;

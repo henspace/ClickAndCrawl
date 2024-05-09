@@ -172,7 +172,7 @@ function setupListeners() {
  * Start the game.
  */
 function startAnimation() {
-  LOG.info('Start animations');
+  LOG.debug('Start animations');
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -195,7 +195,7 @@ function gameLoop(timeStamp) {
   if (ANIMATION_STATE_MANAGER.isAnimationOn()) {
     window.requestAnimationFrame(gameLoop);
   } else {
-    LOG.info('Animation paused');
+    LOG.debug('Animation paused');
   }
 }
 
