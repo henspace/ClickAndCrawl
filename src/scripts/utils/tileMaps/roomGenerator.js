@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import LOG from '../logging.js';
+
 import * as maths from '../maths.js';
 import * as arrayManip from '../arrays/arrayManip.js';
 import { SpecialSymbols } from './tilePlan.js';
@@ -226,9 +226,6 @@ export class RoomCreator {
    * @param {number} numberOfRows
    */
   #createRoom(leftLandCols, roomCols, rightLandCols, numberOfRows) {
-    LOG.debug(
-      `Create room ${leftLandCols} ${roomCols} ${rightLandCols} ${numberOfRows}`
-    );
     let columns = '';
     columns += this.#getLandChr(leftLandCols);
     columns += this.#getWallChr(roomCols);

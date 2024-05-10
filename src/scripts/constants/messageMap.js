@@ -62,6 +62,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON SEARCH', 'Search'],
   ['BUTTON SELL FOR GP', 'Sell for ${0}\u{00A0}GP'],
   ['BUTTON SETTINGS', 'Settings'],
+  ['BUTTON SHOW DEBUG LOG', 'The chronicles of Debug Loggerman'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON STASH', 'Stash'],
   ['BUTTON STEAL', 'Steal'],
@@ -77,6 +78,7 @@ const MESSAGE_MAP = new Map([
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
   ['CONTROL SHOW QUICK TIPS', 'Show quick tips'],
+  ['CONTROL START IN FULLSCREEN', 'Start in fullscreen'],
   [
     'DESCRIPTION ACID_SPLASH',
     'Casting this spell hurls acid over your enemies.',
@@ -222,6 +224,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION WARHAMMER',
     'A bludgeoning, versatile iron hammer favoured by many clerics.',
   ],
+  ['DIALOG TITLE DEBUG LOG', 'Chronicles of Debug Loggerman'],
   ['DIALOG TITLE HALL OF FAME', 'Hall of Fame'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],

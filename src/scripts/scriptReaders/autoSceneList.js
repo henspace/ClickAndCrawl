@@ -207,7 +207,7 @@ class AutoSceneList {
       ['ARTEFACTS', 'MAGIC', 'MONEY', 'WEAPONS', 'TRAPS'],
       (entry) => entry.minLevel <= this.#index
     );
-    let totalArtefacts = maths.getRandomIntInclusive(10, 10);
+    let totalArtefacts = maths.getRandomIntInclusive(4, 12);
     while (totalArtefacts-- > 0) {
       const almanacEntry = pooledAlmanac.getRandomEntry();
       if (almanacEntry) {
@@ -240,8 +240,6 @@ class AutoSceneList {
       maxRoomRows: 6,
     });
     this.#sceneDefn.mapDesign = creator.generate();
-    LOG.debug('Random map');
-    this.#sceneDefn.mapDesign.forEach((line) => LOG.debug(line));
   }
 }
 

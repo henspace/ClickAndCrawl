@@ -33,6 +33,7 @@ import { createElement, TextButtonControl } from '../utils/dom/components.js';
 import { i18n } from '../utils/messageManager.js';
 import UI from '../utils/dom/ui.js';
 import { AssetUrls } from '../../assets/assets.js';
+import LOG from '../utils/logging.js';
 
 /**
  * Show the guide dialog. This is the portal to all help information.
@@ -53,6 +54,7 @@ export function showGuideDialog() {
     label: i18n`BUTTON PRIVACY`,
     action: () => showMarkdownDialog(AssetUrls.PRIVACY_MD),
   });
+
   return showMarkdownDialog(AssetUrls.QUICK_START_MD, {
     actionButtons: [help, about, privacy],
   });

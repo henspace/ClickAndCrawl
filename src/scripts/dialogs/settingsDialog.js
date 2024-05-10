@@ -33,6 +33,7 @@ import UI from '../utils/dom/ui.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import { i18n, MESSAGES } from '../utils/messageManager.js';
+import { showLogDialog } from './logDialog.js';
 
 /** Settings */
 const SETTINGS = [
@@ -64,6 +65,24 @@ const SETTINGS = [
     controlType: ControlType.CHECKBOX,
     persistent: true,
     action: null,
+    onChange: null,
+  },
+  {
+    id: 'START_IN_FULLSCREEN',
+    labelKey: 'CONTROL START IN FULLSCREEN',
+    defValue: false,
+    controlType: ControlType.CHECKBOX,
+    persistent: true,
+    action: null,
+    onChange: null,
+  },
+  {
+    id: 'SHOW_DEBUG_LOG',
+    labelKey: 'BUTTON SHOW DEBUG LOG',
+    defValue: true,
+    controlType: ControlType.TEXT_BUTTON,
+    persistent: false,
+    action: () => showLogDialog(),
     onChange: null,
   },
 ];

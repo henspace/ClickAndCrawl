@@ -755,7 +755,7 @@ export class CastSpell extends AbstractInteraction {
       this.#displayFailedSpell(enactor.position);
     }
     if (this.owner.artefactType === ArtefactType.SPELL) {
-      magic.expendSpellPower(this.enactor.traits, this.owner.traits);
+      magic.useCastingPower(this.enactor.traits, this.owner.traits);
     }
     return Promise.resolve();
   }

@@ -33,6 +33,7 @@ import { AnimatedImage } from '../utils/sprites/animation.js';
 import { LoopMethod } from '../utils/arrays/indexer.js';
 import { CameraTracking } from '../utils/game/camera.js';
 import { Point } from '../utils/geometry.js';
+import { showSettingsDialog } from '../dialogs/settingsDialog.js';
 /**
  * @type {number}
  */
@@ -60,11 +61,6 @@ export class NavigationButtons {
   /** @type {module:utils/sprites/imageManager~SpriteBitmap} */
   #trackingButtonImage;
 
-  /** @type {Actor} */
-  #fullscreenButton;
-  /** @type {AnimatedImage} */
-  #fullscreenButtonImage;
-
   /**
    *
    * @param {CameraDolly} cameraDolly
@@ -75,16 +71,16 @@ export class NavigationButtons {
   constructor(cameraDolly, gridSize, locationNav, locationFullscreen) {
     this.#cameraDolly = cameraDolly;
     this.#createButtonSet(gridSize, locationNav, false);
-    this.#createFullscreenButton(gridSize, locationFullscreen);
+    this.#createSettingsButton(gridSize, locationFullscreen);
   }
 
   /**
-   * Create the button to handle fullscreen mode
+   * Create the button to handle showing settings.
    */
-  #createFullscreenButton(gridSize, location) {
-    this.#fullscreenButtonImage = new AnimatedImage(
+  #createSettingsButton(gridSize, location) {
+    const buttonImage = new AnimatedImage(
       {
-        prefix: 'hud-fullscreen',
+        prefix: 'ui-settings',
         startIndex: 0,
         padding: 2,
         suffix: '.png',
@@ -92,48 +88,12 @@ export class NavigationButtons {
       { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
     );
 
-    this.#setFullscreenButtonImage();
-    this.#fullscreenButton = HUD.addButton(
-      this.#fullscreenButtonImage,
-      () => {
-        this.#requestFullscreen(document.body, { navigationUI: 'hide' });
-      },
-      () => {
-        document.exitFullscreen();
-      }
+    const settingsButton = HUD.addButton(buttonImage, () =>
+      showSettingsDialog()
     );
     const centre = this.#getLocationPoint(gridSize, location, 1);
-    this.#fullscreenButton.position.x = centre.x;
-    this.#fullscreenButton.position.y = centre.y;
-    addEventListener('fullscreenchange', () => {
-      this.#setFullscreenButtonImage();
-    });
-  }
-  /**
-   * Set the image for the full screen button. It is assumed that
-   * index 0 is shown when not in fullscreen and image 1 when it it.
-   * @param {AnimatedI} fullscreenButtonImage
-   */
-  #setFullscreenButtonImage() {
-    if (!document.fullscreenElement) {
-      this.#fullscreenButtonImage.setCurrentIndex(0);
-    } else {
-      this.#fullscreenButtonImage.setCurrentIndex(1);
-    }
-  }
-  /**
-   * Request full screen mode.
-   * @param {Element} element - what should go full screen.
-   * @param {Object} options - see {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen}
-   * @returns {Promise}
-   */
-  #requestFullscreen(element, options) {
-    if (element.requestFullscreen) {
-      return element.requestFullscreen(options);
-    }
-    return Promise.reject(
-      new Error('Fullscreen requests not supported by browser')
-    );
+    settingsButton.position.x = centre.x;
+    settingsButton.position.y = centre.y;
   }
 
   /** Get centre point information

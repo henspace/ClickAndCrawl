@@ -27,8 +27,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
-let messages = [];
+import { RingBuffer } from './ringBuffer.js';
+/**
+ * @type {RingBuffer}
+ */
+let messages = new RingBuffer(50);
 
 /** Add listener for syntax errors. */
 window.addEventListener('error', (event) => {
@@ -37,6 +40,15 @@ window.addEventListener('error', (event) => {
   );
 });
 
+/**
+ * Add data to messages.
+ * @param {*} data
+ */
+function addDataToMessages(data) {
+  for (const item of data) {
+    messages.add(item);
+  }
+}
 /**
  * Log information.
  * @param  {...any} data
@@ -51,6 +63,7 @@ function logGeneral(...data) {
  */
 function logInfo(...data) {
   console.info(...data);
+  addDataToMessages(data);
 }
 
 /**
@@ -59,6 +72,7 @@ function logInfo(...data) {
  */
 function logDebug(...data) {
   console.debug(...data);
+  addDataToMessages(data);
 }
 
 /**
@@ -67,7 +81,7 @@ function logDebug(...data) {
  */
 function logError(...data) {
   console.error(...data);
-  messages = messages.concat(data);
+  addDataToMessages(data);
 }
 
 /**
@@ -83,7 +97,7 @@ function logFatal(error) {
     message = error;
   }
   alert(`Fatal error: ${message}\nPrevious errors:\n${messages.join('\n')}`);
-  messages.push(message);
+  messages.add(message);
 }
 
 /**
@@ -95,6 +109,7 @@ const LOG = {
   debug: logDebug,
   error: logError,
   fatal: logFatal,
+  getMessages: () => messages.getAll(),
 };
 
 export default LOG;
