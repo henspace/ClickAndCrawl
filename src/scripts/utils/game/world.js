@@ -205,6 +205,7 @@ function update(deltaSeconds) {
   });
 
   passiveSprites.forEach((sprite) => sprite.update(deltaSeconds));
+  worldTileMap?.updateHighlights(deltaSeconds);
 }
 
 /**

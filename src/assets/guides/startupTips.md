@@ -3,10 +3,11 @@ within its dank, dark walls. The only way you can really learn about the dangers
 
 On a scrap of vellum passed to you by the village elder, are some notes that previous explorers have passed on to their successors.
 
-- To interact with people and objects, that includes fighting and trading, you must be next to them. That means to their north, south, east or west -- not diagonally.
-- Slime and other organic growths will only affect you if you linger in them. You can always run through them unharmed.
+- Click on people and objects. To interact with them you must be next to them. That means to their north, south, east or west -- not diagonally.
+- To manage your own inventory, click on yourself.
 - Your masters are expecting a return on their investments, so keep your eye out for gold. The more gold and experience you can gain, the greater your reputation will be.
-- To use any spells you learn, you'll need to rest between dungeon floors and eat 3 meals each comprising a drink and rations.
+- Resting between dungeon floors can restore some health. You need one meal (food and drink) for a short rest, and three meals for a long rest.
+- To use any spells you learn, you'll need to take a long rest so you can prepare them.
 - Cantrips are quick magic. If you learn any, you can use them straight away.
 
 Good luck. You're going to need it.

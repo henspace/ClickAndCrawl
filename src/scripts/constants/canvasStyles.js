@@ -38,10 +38,10 @@ export const Colours = {
   HP_GAUGE: 'rgba(204, 51, 0, 0.4)',
   HP_TRANSIENT_TEXT_HERO: 'white',
   HP_TRANSIENT_TEXT_ENEMY: 'black',
-  INTERACT_HIGHLIGHT_FILL: 'transparent',
-  INTERACT_HIGHLIGHT_STROKE: 'black',
+  INTERACT_HIGHLIGHT_FILL: undefined,
+  INTERACT_HIGHLIGHT_STROKE: 'red',
   MORALE_GAUGE: 'rgba(0, 0, 255, 0.4)',
 
-  MOVE_HIGHLIGHT_FILL: 'rgba(255, 255, 255, 0.2)',
+  MOVE_HIGHLIGHT_FILL: undefined,
   MOVE_HIGHLIGHT_STROKE: 'white',
 };

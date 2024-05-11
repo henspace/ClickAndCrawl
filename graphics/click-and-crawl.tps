@@ -213,6 +213,16 @@
             <key type="filename">tiles/fighter1-walk-w03.png</key>
             <key type="filename">tiles/fighter1.png</key>
             <key type="filename">tiles/fire00.png</key>
+            <key type="filename">tiles/fire_beetle-dead00.png</key>
+            <key type="filename">tiles/fire_beetle-idle00.png</key>
+            <key type="filename">tiles/fire_beetle-idle01.png</key>
+            <key type="filename">tiles/fire_beetle-idle02.png</key>
+            <key type="filename">tiles/fire_beetle-idle03.png</key>
+            <key type="filename">tiles/fire_beetle-walk-e00.png</key>
+            <key type="filename">tiles/fire_beetle-walk-n00.png</key>
+            <key type="filename">tiles/fire_beetle-walk-s00.png</key>
+            <key type="filename">tiles/fire_beetle-walk-w00.png</key>
+            <key type="filename">tiles/fire_beetle.png</key>
             <key type="filename">tiles/floor-SBE.png</key>
             <key type="filename">tiles/floor-SBW.png</key>
             <key type="filename">tiles/floor.png</key>
@@ -246,6 +256,7 @@
             <key type="filename">tiles/hud-fullscreen00.png</key>
             <key type="filename">tiles/hud-fullscreen01.png</key>
             <key type="filename">tiles/leather_armour.png</key>
+            <key type="filename">tiles/liquid_blue.png</key>
             <key type="filename">tiles/magic00.png</key>
             <key type="filename">tiles/manhole_cover-dead00.png</key>
             <key type="filename">tiles/manhole_cover-idle00.png</key>

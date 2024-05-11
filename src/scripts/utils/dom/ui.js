@@ -226,7 +226,7 @@ function showElementOkDialog(
 /** Create a controls dialog.
  * @param {string | Element} mainContent -message or element to show..
  * @param {Object} options
- * @param {Object} options.title
+ * @param {Object} options.title - title 
  * @param {string | Element} options.preamble - text placed before content..
  * @param {BaseControl[]} options.actionButtons
  * @param {boolean} options.row - if true, controls are in a row rather than the

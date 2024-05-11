@@ -122,6 +122,10 @@ const MESSAGE_MAP = new Map([
     "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
   ],
   [
+    'DESCRIPTION FIRE_BEETLE',
+    'A giant fire beetle. Glowing gland radiate a fiery light across the dungeon.',
+  ],
+  [
     'DESCRIPTION GOBLIN',
     "Small humanoid creature.Treat with caution. They're small but vicious.",
   ],
@@ -150,6 +154,10 @@ const MESSAGE_MAP = new Map([
   [
     'DESCRIPTION LEATHER_ARMOUR',
     'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
+  ],
+  [
+    'DESCRIPTION LIQUID_BLUE',
+    'A blue, viscous liquid covering the dungeon flagstones.',
   ],
   [
     'DESCRIPTION MANHOLE_COVER',

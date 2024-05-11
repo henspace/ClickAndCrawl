@@ -35,5 +35,5 @@ export const OPTIONS = {
   /**
    * Show framerate
    */
-  showFps: true,
+  showFps: false,
 };

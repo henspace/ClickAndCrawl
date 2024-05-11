@@ -420,9 +420,16 @@ export class TileMap {
         }
       }
     }
-    this.#highlightTiles(deltaSeconds);
   }
 
+  /**
+   * Post update. This is used to highlight tiles which should be done after
+   * actors have been drawn.
+   * @param {number} deltaSeconds - elapsed time.
+   */
+  updateHighlights(deltaSeconds) {
+    this.#highlightTiles(deltaSeconds);
+  }
   /**
    * Set up the ray tracer if not already set.
    */

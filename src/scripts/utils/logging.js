@@ -28,8 +28,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { RingBuffer } from './ringBuffer.js';
+
 /**
- * @type {RingBuffer}
+ * @typedef {number} LogTypeValue
+ */
+/**
+ * @enum {LogTypeValue}
+ */
+const LogType = {
+  LOG: 0,
+  INFO: 1,
+  DEBUG: 2,
+  ERROR: 3,
+};
+
+/**
+ * Only info and errors are recorded.
+ * @type {RingBuffer<LogEntry>}
  */
 let messages = new RingBuffer(50);
 
@@ -44,9 +59,25 @@ window.addEventListener('error', (event) => {
  * Add data to messages.
  * @param {*} data
  */
-function addDataToMessages(data) {
+function addDataToMessages(data, logType) {
+  let prefix;
+  switch (logType) {
+    case LogType.DEBUG:
+      prefix = ':-/ ';
+      break;
+    case LogType.INFO:
+      prefix = '(i) ';
+      break;
+    case LogType.ERROR:
+      prefix = '/! ';
+      break;
+    case LogType.LOG:
+    default:
+      prefix = '';
+      break;
+  }
   for (const item of data) {
-    messages.add(item);
+    messages.add(`${prefix}${item}`);
   }
 }
 /**
@@ -55,6 +86,7 @@ function addDataToMessages(data) {
  */
 function logGeneral(...data) {
   console.log(...data);
+  //addDataToMessages(LogType.LOG);
 }
 
 /**
@@ -63,7 +95,7 @@ function logGeneral(...data) {
  */
 function logInfo(...data) {
   console.info(...data);
-  addDataToMessages(data);
+  addDataToMessages(data, LogType.INFO);
 }
 
 /**
@@ -72,7 +104,7 @@ function logInfo(...data) {
  */
 function logDebug(...data) {
   console.debug(...data);
-  addDataToMessages(data);
+  //addDataToMessages(data, LogType.DEBUG);
 }
 
 /**
@@ -81,7 +113,7 @@ function logDebug(...data) {
  */
 function logError(...data) {
   console.error(...data);
-  addDataToMessages(data);
+  addDataToMessages(data, LogType.ERROR);
 }
 
 /**
@@ -97,7 +129,15 @@ function logFatal(error) {
     message = error;
   }
   alert(`Fatal error: ${message}\nPrevious errors:\n${messages.join('\n')}`);
-  messages.add(message);
+  addDataToMessages(message, LogType.ERROR);
+}
+
+/**
+ * Get the messages.
+ * @returns {string[]}
+ */
+function getAll() {
+  return messages.getAll();
 }
 
 /**
@@ -109,7 +149,7 @@ const LOG = {
   debug: logDebug,
   error: logError,
   fatal: logFatal,
-  getMessages: () => messages.getAll(),
+  getMessages: getAll,
 };
 
 export default LOG;
