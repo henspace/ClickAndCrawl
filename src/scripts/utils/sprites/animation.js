@@ -35,13 +35,31 @@ import LOG from '../logging.js';
 import * as maths from '../maths.js';
 
 /**
+ * @typedef {number} FlipDirectionValue
+ */
+/**
+ * @enum {FlipDirectionValue}
+ */
+export const FlipDirection = {
+  NONE: 0,
+  HORIZONTAL: 1,
+  VERTICAL: 2,
+};
+
+/**
+ * @typedef {Object} Frame
+ * @property {module:utils/sprites/imageManager~SpriteBitmap}
+ * @property {number} rotation
+ * @property {FlipDirectionValue} flip
+ */
+/**
  * Collection of SpriteBitmap objects
  */
 export class AnimatedImage {
   /** @type {boolean} */
   playing;
   /** @type {module:utils/sprites/imageManager~SpriteBitmap[]} */
-  #frames;
+  #frameBitmaps;
   /** @type {Indexer} */
   #indexer;
   /** @type {number} */
@@ -51,6 +69,7 @@ export class AnimatedImage {
 
   /** Period in ms for frame animations @type {number}*/
   #framePeriodMs;
+
   /**
    * Construct animation.
    * @param {Object | string} filenamePattern - if a string is parsed then the image is a single frame.
@@ -63,11 +82,12 @@ export class AnimatedImage {
    * @param {LoopMethod} options.loopMethod - method of looping animation.
    */
   constructor(filenamePattern, options) {
-    this.#frames = [];
+    this.#frameBitmaps = [];
     this.#lastFrameCount = 0;
     this.#timeOffset = maths.getRandomInt(0, 1000);
+
     if (typeof filenamePattern === 'string') {
-      this.#frames.push(IMAGE_MANAGER.getSpriteBitmap(filenamePattern));
+      this.#frameBitmaps.push(IMAGE_MANAGER.getSpriteBitmap(filenamePattern));
       return;
     }
 
@@ -76,33 +96,54 @@ export class AnimatedImage {
     let index = filenamePattern.startIndex ?? 0;
     let padding = filenamePattern.padding ?? 0;
     let textureFrame;
-    let firstFrame = true;
     do {
       const fileName = `${filenamePattern.prefix}${index
         .toString()
         .padStart(padding, '0')}${filenamePattern.suffix}`;
-      if (firstFrame) {
-        textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName);
-        firstFrame = false;
+      let quiet;
+      if (
+        index === 0 &&
+        (filenamePattern.prefix.endsWith('idle') ||
+          filenamePattern.prefix.endsWith('dead'))
+      ) {
+        quiet = false;
       } else {
-        textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName, { quiet: true });
+        quiet = true;
       }
+      textureFrame = IMAGE_MANAGER.getSpriteBitmap(fileName, { quiet: quiet });
 
       if (textureFrame) {
-        this.#frames.push(textureFrame);
+        this.#frameBitmaps.push(textureFrame);
       }
       index++;
     } while (textureFrame);
-    this.#indexer = new Indexer(this.#frames.length, options.loopMethod);
+    this.#indexer = new Indexer(this.#frameBitmaps.length, options.loopMethod);
     this.playing = true;
   }
 
   /**
+   * Get first frame
+   * @returns {Frame}
+   */
+  getFirstFrame() {
+    return {
+      bitmap: this.#frameBitmaps[0],
+      rotation: 0,
+      flip: FlipDirection.NONE,
+    };
+  }
+  /**
    * Get current frame
-   * @returns {module:utils/sprites/imageManager~SpriteBitmap}
+   * @returns {Frame}
    */
   getCurrentFrame() {
-    if (this.#frames.length > 1) {
+    const frame = {
+      bitmap: undefined,
+      rotation: 0,
+      flip: FlipDirection.NONE,
+    };
+
+    if (this.#frameBitmaps.length > 1) {
       if (this.playing) {
         const frameCount = GAME_CLOCK.getFrameCount(
           this.#framePeriodMs,
@@ -113,10 +154,11 @@ export class AnimatedImage {
           this.#lastFrameCount = frameCount;
         }
       }
-      return this.#frames[this.#indexer.index];
+      frame.bitmap = this.#frameBitmaps[this.#indexer.index];
     } else {
-      return this.#frames[0];
+      frame.bitmap = this.#frameBitmaps[0];
     }
+    return frame.bitmap ? frame : undefined;
   }
 
   /**
@@ -126,7 +168,7 @@ export class AnimatedImage {
    */
 
   setCurrentIndex(index) {
-    if (this.#frames.length > 1) {
+    if (this.#frameBitmaps.length > 1) {
       this.playing = false;
       this.#indexer.index = index;
     }
@@ -137,7 +179,7 @@ export class AnimatedImage {
    * @returns {number}
    */
   getCurrentIndex() {
-    if (this.#frames.length > 1) {
+    if (this.#frameBitmaps.length > 1) {
       return this.#indexer.index;
     } else {
       return 0;
@@ -161,8 +203,10 @@ export class KeyedAnimatedImages {
    */
   constructor(key, animatedImage) {
     this.#animatedImages = {};
-    this.#animatedImages[key] = animatedImage;
-    this.#currentImage = animatedImage;
+    if (key) {
+      this.#animatedImages[key] = animatedImage;
+      this.#currentImage = animatedImage;
+    }
   }
 
   /**
@@ -196,9 +240,18 @@ export class KeyedAnimatedImages {
 
   /**
    * Get current frame
-   * @returns {module:utils/sprites/imageManager~SpriteBitmap}
+   * @returns {Frame}
    */
   getCurrentFrame() {
     return this.#currentImage.getCurrentFrame();
+  }
+
+  /**
+   * Get specific frame.
+   * @param {string} key
+   * @returns {AnimatedImage}
+   */
+  getAnimatedImage(key) {
+    return this.#animatedImages[key];
   }
 }

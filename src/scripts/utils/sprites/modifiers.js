@@ -85,7 +85,7 @@ export class AbstractModifier {
     this.#timeoutSeconds = timeoutSeconds;
     return new Promise((resolve) => {
       this.#resolveFunc = resolve;
-      sprite.replaceModifier(this);
+      sprite.replaceTransientModifier(this);
     });
   }
 
@@ -94,7 +94,7 @@ export class AbstractModifier {
    * @param {Sprite} sprite
    */
   applyAsContinuousToSprite(sprite) {
-    sprite.replaceModifier(this);
+    sprite.replaceBaseModifier(this);
   }
 
   /** Do the update modification. If a decoratedModifier has been set, this is then

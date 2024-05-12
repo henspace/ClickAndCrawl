@@ -51,7 +51,9 @@ export class Sprite {
   /** @type {SpriteCanvasRenderer[]} */
   #renderer;
   /** @type {module:utils/sprite.AbstractModifier} */
-  #modifier;
+  #baseModifier;
+  /** @type {module:utils/sprite.AbstractModifier} */
+  #transientModifier;
   /** @type {boolean} */
   visible;
   /** @type {number} */
@@ -128,11 +130,24 @@ export class Sprite {
    * are resolved.
    * @param {module:utils/sprite.AbstractModifier} modifier
    */
-  replaceModifier(modifier) {
-    if (this.#modifier) {
-      this.#modifier.kill();
+  replaceTransientModifier(modifier) {
+    if (this.#transientModifier) {
+      this.#transientModifier.kill();
     }
-    this.#modifier = modifier;
+    this.#transientModifier = modifier;
+  }
+
+  /**
+   * Set the base modifier. If there is already a modifier running,
+   * it's kill function is called to make sure any pending promises
+   * are resolved.
+   * @param {module:utils/sprite.AbstractModifier} modifier
+   */
+  replaceBaseModifier(modifier) {
+    if (this.#baseModifier) {
+      this.#baseModifier.kill();
+    }
+    this.#baseModifier = modifier;
   }
 
   /**
@@ -149,8 +164,14 @@ export class Sprite {
    * @param {number} deltaSeconds - elapsed time.
    */
   update(deltaSeconds) {
-    if (this.#modifier) {
-      this.#modifier = this.#modifier.update(this, deltaSeconds);
+    if (this.#baseModifier) {
+      this.#baseModifier = this.#baseModifier.update(this, deltaSeconds);
+    }
+    if (this.#transientModifier) {
+      this.#transientModifier = this.#transientModifier.update(
+        this,
+        deltaSeconds
+      );
     }
     if (this.visible) {
       this.#render();

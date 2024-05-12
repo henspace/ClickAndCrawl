@@ -61,18 +61,31 @@ export function createDescriptionFromId(id) {
 }
 
 /**
+ * Strip orientation information from an image name.
+ * @param {*} fullName
+ * @returns {string}
+ */
+function stripViewInfo(fullName) {
+  if (fullName.endsWith('_pv')) {
+    return fullName.substring(0, fullName.length - 3);
+  }
+  return fullName;
+}
+
+/**
  * Takes an ID including its extension and creates name, imageName and description.
  * @param {string} [id = '?']
  * @returns {{name:string, imageName:string, description:string}}
  */
 export function derivePartsFromId(id = '?') {
   const parts = id.split('+');
-  if (id.len < 2) {
-    return id;
+  const strippedName = stripViewInfo(parts[0]);
+  if (!id) {
+    return {};
   }
   return {
-    name: createNameFromId(parts[0]),
+    name: createNameFromId(strippedName),
     imageName: parts[0].toLowerCase(),
-    description: createDescriptionFromId(parts[0]),
+    description: createDescriptionFromId(strippedName),
   };
 }

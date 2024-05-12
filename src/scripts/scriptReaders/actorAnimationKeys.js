@@ -97,10 +97,10 @@ const PeripateticAnimationDefns = {
 };
 
 /**
- * Standard animation definitions for an actor.
- * It is assumed that animation images are formed from a root nam
+ * Standard animation definitions for an actor holding an artefact.
+ * It is assumed that animation images are formed from a root name
  */
-const ArtefactAnimationDefns = {
+const ArtefactHolderAnimationDefns = {
   DEAD: {
     keyName: 'DEAD',
     suffix: 'dead',
@@ -154,6 +154,22 @@ class AnimationKeys {
   getKeyName(key) {
     return this.#definitions[key].keyName;
   }
+
+  /**
+   * Get default image name. This is the first frame of IDLE.
+   * @returns {string} root
+   */
+  getDefaultImageName(root) {
+    return `${this.#formFrameNameRoot('IDLE', root)}00.png`;
+  }
+
+  /**
+   * Get the fallback key
+   * @returns {string}
+   */
+  getFallbackKey() {
+    return this.getKeyName('IDLE');
+  }
   /**
    * Add all animations to the keyed animation.
    * @param {KeyedAnimatedImages} keyedAnimations
@@ -182,7 +198,7 @@ class AnimationKeys {
 /** Object to access standard animations. */
 const StdAnimations = {
   peripatetic: new AnimationKeys(PeripateticAnimationDefns),
-  artefact: new AnimationKeys(ArtefactAnimationDefns),
+  artefact: new AnimationKeys(ArtefactHolderAnimationDefns),
 };
 
 export default StdAnimations;

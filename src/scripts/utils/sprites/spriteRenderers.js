@@ -528,7 +528,7 @@ export class PathSpriteCanvasRenderer extends SpriteCanvasRenderer {
  */
 export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
   /** @type {module:utils/sprites/imageManager~SpriteBitmap} */
-  #spriteBitmap;
+  #spriteFrame;
   /** @type {animation.KeyedAnimatedImages} */
   #animation;
 
@@ -541,13 +541,17 @@ export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
     super(context);
     if (imageDefinition?.getCurrentFrame) {
       this.#animation = imageDefinition;
-      this.#spriteBitmap = this.#animation.getCurrentFrame();
+      this.#spriteFrame = this.#animation.getCurrentFrame();
     } else {
-      this.#spriteBitmap = imageDefinition;
+      this.#spriteFrame = {
+        bitmap: imageDefinition,
+        rotation: 0,
+        flip: animation.FlipDirection.NONE,
+      };
     }
-    if (this.#spriteBitmap) {
-      this._boundingBoxCanvas.width = this.#spriteBitmap?.width ?? 0;
-      this._boundingBoxCanvas.height = this.#spriteBitmap?.height ?? 0;
+    if (this.#spriteFrame?.bitmap) {
+      this._boundingBoxCanvas.width = this.#spriteFrame.bitmap.width ?? 0;
+      this._boundingBoxCanvas.height = this.#spriteFrame.bitmap.height ?? 0;
     } else {
       LOG.error(`No image frame available for sprite.`, imageDefinition);
     }
@@ -557,7 +561,7 @@ export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @override
    */
   getImageFilename() {
-    return this.#spriteBitmap.filename;
+    return this.#spriteFrame?.bitmap.filename;
   }
 
   /**
@@ -565,20 +569,21 @@ export class ImageSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @param {module:utils/geometry~Position} position - this will have been adjusted to the screen.
    */
   _doRender(position) {
-    if (!this.#spriteBitmap) {
+    if (!this.#spriteFrame) {
       return;
     }
     const frame = this.#animation
       ? this.#animation.getCurrentFrame()
-      : this.#spriteBitmap;
+      : this.#spriteFrame;
 
     this._boundingBoxCanvas.x = position.x - this._boundingBoxCanvas.width / 2;
     this._boundingBoxCanvas.y = position.y - this._boundingBoxCanvas.height / 2;
 
+    position.rotation = frame.rotation;
     this._context.drawImage(
-      frame.image,
-      position.x - frame.centreX,
-      position.y - frame.centreY
+      frame.bitmap.image,
+      position.x - frame.bitmap.centreX,
+      position.y - frame.bitmap.centreY
     );
   }
 }

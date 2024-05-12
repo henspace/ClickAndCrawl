@@ -52,6 +52,7 @@ import LOG from '../../utils/logging.js';
 import IMAGE_MANAGER from '../../utils/sprites/imageManager.js';
 import { getRandomFullName } from '../../utils/nameGenerator.js';
 import * as magic from '../magic.js';
+import { VelocityAligner } from '../../utils/sprites/movers.js';
 /**
  * Specialist traits renderer
  */
@@ -101,15 +102,19 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   /** @type {animation.AnimatedImage} */
   #fallbackImage;
 
+  /** @type {number} */
+  #rotation;
+
   /**
-   * Create the keyed animated image
-   * @param {string} key
-   * @param {AnimatedImage} animatedImage
+   * Create the empty keyed animated image
+   * @param {string} [key]
+   * @param {AnimatedImage} [animatedImage]
    */
   constructor(key, animatedImage) {
     super(key, animatedImage);
     this.#compassDir = maths.CompassEightPoint.NONE;
     this.#fallbackImage = animatedImage;
+    this.#rotation = 0;
   }
 
   /**
@@ -121,6 +126,17 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
     this.#aliveStatus = this.#actor.alive;
   }
 
+  /**
+   * Set fallback key
+   * @param {string} key
+   */
+  setFallbackKey(key) {
+    this.#fallbackImage = this.getAnimatedImage(key);
+    if (!this.#fallbackImage?.getCurrentFrame()) {
+      LOG.error(`Fallback key ${key} has no image.`);
+    }
+  }
+
   /** override */
   getCurrentFrame() {
     const dir = this.#getCurrentDirection();
@@ -129,12 +145,14 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
       this.#aliveStatus = this.#actor?.alive;
       this.#setAnimationForState();
     }
-    const frame = super.getCurrentFrame();
-    return (
-      frame ??
-      this.#fallbackImage.getCurrentFrame() ??
-      IMAGE_MANAGER.getUndefinedBitmap()
-    );
+    const frame = super.getCurrentFrame() ??
+      this.#fallbackImage?.getCurrentFrame() ?? {
+        bitmap: IMAGE_MANAGER.getUndefinedBitmap(),
+        rotation: 0,
+        flip: animation.FlipDirection.NONE,
+      };
+    frame.rotation = this.#rotation;
+    return frame;
   }
 
   #getCurrentDirection() {
@@ -151,10 +169,20 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
    * Only four points supported.
    */
   #setAnimationForState() {
-    const reverse = this.#actor.disengaging;
     if (!this.#actor.alive) {
       return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('DEAD'));
+    } else if (this.#compassDir === maths.CompassEightPoint.NONE) {
+      return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('IDLE'));
     }
+
+    return this.#setAnimationForStateByFrame();
+  }
+  /**
+   * Set the appropriate animation based on the the current compass direction.
+   * Only four points supported.
+   */
+  #setAnimationForStateByFrame() {
+    const reverse = this.#actor.disengaging;
     switch (this.#compassDir) {
       case maths.CompassEightPoint.NONE:
         this.setCurrentKey(StdAnimations.peripatetic.getKeyName('IDLE'));
@@ -199,11 +227,9 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
  * @returns {animation.KeyedAnimatedImages}
  */
 function createStandardKeyFrames(imageName) {
-  const keyedAnimations = new ActorStateAnimator(
-    'still',
-    new animation.AnimatedImage(`${imageName}.png`)
-  );
+  const keyedAnimations = new ActorStateAnimator();
   StdAnimations.peripatetic.addAllToKeyedAnimation(keyedAnimations, imageName);
+  keyedAnimations.setFallbackKey(StdAnimations.peripatetic.getFallbackKey());
   return keyedAnimations;
 }
 
@@ -211,12 +237,10 @@ function createStandardKeyFrames(imageName) {
  * Create set of standard artefact animations.
  * @returns {animation.KeyedAnimatedImages}
  */
-function createArtefactKeyFrames(imageName) {
-  const keyedAnimations = new ActorStateAnimator(
-    'still',
-    new animation.AnimatedImage(`${imageName}.png`)
-  );
+function createArtefactHolderKeyFrames(imageName) {
+  const keyedAnimations = new ActorStateAnimator();
   StdAnimations.artefact.addAllToKeyedAnimation(keyedAnimations, imageName);
+  keyedAnimations.setFallbackKey(StdAnimations.artefact.getFallbackKey());
   return keyedAnimations;
 }
 
@@ -266,9 +290,15 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
   actor.almanacEntry = almanacEntry;
   actor.traits = traits;
   actor.velocity = { x: 0, y: 0, rotation: 0 };
+
   actor.iconImageName = iconImageName
     ? `${iconImageName}.png`
-    : `${imageName}.png`;
+    : StdAnimations.peripatetic.getDefaultImageName(imageName);
+
+  const planView = /\w+_pv/.test(imageName);
+  if (planView) {
+    actor.sprite.replaceBaseModifier(VelocityAligner.createUprightAligner());
+  }
   return actor;
 }
 
@@ -280,7 +310,7 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
  * @returns {Actor}
  */
 function createArtefactHolder(imageName, traits, almanacEntry) {
-  const keyedAnimation = createArtefactKeyFrames(imageName);
+  const keyedAnimation = createArtefactHolderKeyFrames(imageName);
   const imageRenderer = new spriteRenderers.ImageSpriteCanvasRenderer(
     SCREEN.getContext2D(),
     keyedAnimation

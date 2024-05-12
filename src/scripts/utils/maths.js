@@ -31,7 +31,7 @@
 /**
  * Common angles
  */
-const Radians = {
+export const Radians = {
   DEG_22_5: (1 / 8) * Math.PI,
   DEG_45: (2 / 8) * Math.PI,
   DEG_67_5: (3 / 8) * Math.PI,

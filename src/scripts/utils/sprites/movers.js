@@ -135,8 +135,10 @@ export class VelocityAligner extends AbstractModifier {
    * @returns {AbstractModifier}
    */
   doUpdate(sprite, deltaSecondsIgnored) {
-    sprite.position.rotation =
-      sprite.velocity.getScreenDirection() - this.#baseDirection;
+    sprite.position.rotation = sprite.velocity.isZero(0.1)
+      ? 0
+      : sprite.velocity.getScreenDirection() - this.#baseDirection;
+
     return this;
   }
 }

@@ -1,6 +1,6 @@
 # Almanacs
 
-The alamancs comprise a number of single line entries.
+The almanacs comprise a number of single line entries.
 
 # Line format
 
@@ -14,7 +14,7 @@ Any line beginning with a # character is ignored. The elements are described bel
 - rarity: string: Likelihood of appearance. Values are COMMON, UNCOMMON, RARE and VERY_RARE.
 - id: identifier for the entry. This is used for the image name. If you want to share
 an image, the id can be extended with a + character and a suffix. Only the characters
-before the + character will be used for the image name.
+before the + character will be used for the image name. 
 - starting artefacts: comma separated list of artefacts to start with. WEAPONS, ARTEFACTS and MAGIC items are allowed.
 - traits: comma separated list of traits as key:value pairs.
 
@@ -23,6 +23,28 @@ players.
 
 The key traits depend on the almanac and are described below.
 
+## Image names
+
+Normally images for actors are drawn face on and vertically. The following images
+can be supplied, where NN is a two digit animation index of 00, 01 ...
+
+- *imageName-idleNN.png* : the animation played when idle
+- *imageName-deadNN.png* : the animation played when dead
+- *imageName-walk-nNN.png* : the animation played when walking north
+- *imageName-walk-eNN.png* : the animation played when walking east
+- *imageName-walk-sNN.png* : the animation played when walking south
+- *imageName-walk-wNN.png* : the animation played when walking west
+
+You must supply *imageName-idle00.png* and, ideally, *imageName-dead00.png*.
+
+Note the image name is formed from the id by removing the *+extension* part if 
+provided.
+
+If the id ends with *_pv*, the image is expected to be in plan view. In this case
+the image will be rotated automatically and the walk animations should not be
+provided.
+
+Artefacts are not animated.
 # Heroes
 
 Heroes should not normally have traits describing the key abilities as these are
