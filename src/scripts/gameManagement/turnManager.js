@@ -54,6 +54,7 @@ import { showMarkdownDialog } from '../dialogs/guideDialogs.js';
 import { AssetUrls } from '../../assets/assets.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import { TextButtonControl } from '../utils/dom/components.js';
+import { showUnpickExitDialog } from '../dialogs/openExitDialogs.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -551,6 +552,7 @@ class HeroTurnIdle extends State {
         break;
       case EventId.CLICKED_ENTRANCE:
         await UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
+        await this.transitionTo(new ComputerTurnIdle());
         break;
       case EventId.CLICKED_EXIT: {
         LOG.debug('Escaping');
@@ -559,6 +561,8 @@ class HeroTurnIdle extends State {
           await moveHeroToPoint(point, { usePathFinder: false }).then(() =>
             startNextScene(this)
           );
+        } else {
+          await this.transitionTo(new ComputerTurnIdle());
         }
         break;
       }
@@ -619,18 +623,15 @@ class HeroTurnInteracting extends State {
             await endGameObjectiveFound();
           } else if (heroActor.traits.get('HP', 0) === 0) {
             await this.transitionTo(new AtGameOver());
-          } else if (
-            WORLD.getTileMap().getParticipants(heroActor).length === 0
-          ) {
-            await this.transitionTo(new ComputerTurnIdle());
           } else {
-            await this.transitionTo(new ComputerTurnInteracting());
+            await this.#transitionToComputerTurn();
           }
         }
 
         break;
       case EventId.CLICKED_ENTRANCE:
-        UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
+        await UI.showOkDialog(i18n`MESSAGE ENTRANCE STUCK`);
+        await this.#transitionToComputerTurn();
         break;
       case EventId.CLICKED_EXIT: {
         const unlocked = await tryToUnlockExit();
@@ -638,11 +639,24 @@ class HeroTurnInteracting extends State {
           await this.#tryToDisengage(point, { usePathFinder: false }).then(() =>
             startNextScene(this)
           );
+        } else {
+          await this.#transitionToComputerTurn();
         }
         break;
       }
     }
     return Promise.resolve(null);
+  }
+
+  /**
+   * Transition to the appropriate computer turn
+   */
+  async #transitionToComputerTurn() {
+    if (WORLD.getTileMap().getParticipants(heroActor).length === 0) {
+      await this.transitionTo(new ComputerTurnIdle());
+    } else {
+      await this.transitionTo(new ComputerTurnInteracting());
+    }
   }
 
   /**
@@ -975,10 +989,11 @@ function getHeroActor() {
  */
 function tryToUnlockExit() {
   if (exitKeyArtefact) {
-    if (heroActor.storeManager.discard(exitKeyArtefact, true)) {
+    if (heroActor.storeManager.hasArtefact(exitKeyArtefact)) {
+      heroActor.storeManager.discard(exitKeyArtefact);
       return UI.showOkDialog(i18n`MESSAGE KEY UNLOCKS EXIT`).then(() => true);
     } else {
-      return UI.showOkDialog(i18n`MESSAGE EXIT LOCKED`).then(() => false);
+      return showUnpickExitDialog(heroActor, exitKeyArtefact);
     }
   } else {
     return Promise.resolve(true);

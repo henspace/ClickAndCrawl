@@ -366,12 +366,16 @@ export class Traits {
         return this.#setCostValueFromString(key, value);
       case 'DMG':
       case '_DMG':
+      case 'HP_GAIN':
+      case '_HP_GAIN':
         return this.#setIntOrDiceValueFromString(key, value);
       case 'HIT_DICE':
       case '_HIT_DICE':
         return this.#setDiceValueFromString(key, value);
       case 'DC':
       case '_DC':
+      case 'IDENTIFY_DC':
+      case '_IDENTIFY_DC':
         return this.#setDCValueFromString(key, value);
       default:
         return this.#setGenericValueFromString(key, value);
@@ -567,13 +571,32 @@ export class MagicTraits extends Traits {
    */
   getDamageDiceWhenCastBy(actorTraits) {
     const damageDice = this.get('DMG');
+    return this.#getAdjustedDiceWhenCastBy(damageDice, actorTraits);
+  }
+
+  /**
+   * Get the damage dice when cast by an actor.
+   * @param {Traits} actorTraits
+   * @returns {string}
+   */
+  getHpGainDiceWhenCastBy(actorTraits) {
+    const hpDice = this.get('HP_GAIN');
+    return this.#getAdjustedDiceWhenCastBy(hpDice, actorTraits);
+  }
+  /**
+   * Get the health or damage dice when cast by an actor.
+   * @param {string} baseDice
+   * @param {Traits} actorTraits
+   * @returns {string}
+   */
+  #getAdjustedDiceWhenCastBy(baseDice, actorTraits) {
     const extraDicePerLevel = this.getFloat('DICE_PER_LEVEL', 0);
     const extraDice = Math.floor(
       (actorTraits.getCharacterLevel() - 1) * extraDicePerLevel
     );
-    let adjustedDice = dice.changeQtyOfDice(damageDice, extraDice);
+    let adjustedDice = dice.changeQtyOfDice(baseDice, extraDice);
     LOG.info(
-      `Spell cast: base damage dice = ${damageDice} raised to ${adjustedDice} for level.`
+      `Spell cast: base damage dice = ${baseDice} raised to ${adjustedDice} for level.`
     );
     return adjustedDice;
   }
@@ -826,11 +849,11 @@ export class CharacterTraits extends Traits {
 
   /**
    * Get the proficiency bonus;
-   * @param {Traits} artefactTraits
+   * @param {Traits| string} artefactTraitsOrType - traits or the artefact TYPE trait
    * @returns {number}
    */
-  getCharacterPb(artefactTraits) {
-    return this.isProficient(artefactTraits) ? this._proficiencyBonus : 0;
+  getCharacterPb(artefactTraitsOrType) {
+    return this.isProficient(artefactTraitsOrType) ? this._proficiencyBonus : 0;
   }
 
   /**
@@ -1166,13 +1189,17 @@ export class CharacterTraits extends Traits {
    * Test if proficient with an item.
    * The test looks at the artefact's TYPE trait. If it includes one of this trait's
    * PROF entries, the result is true. This means that a PROF entry of 'melee' would
-   * match 'simple melee' and 'martial melee'.
-   * @param {Traits} artefactTraits
+   * match 'simple melee' and 'martial melee'. You can pass in a string which will be
+   * taken as the TYPE trait.
+   * @param {Traits | string} artefactTraitsOrType
    * @returns {boolean}
    */
-  isProficient(artefactTraits) {
+  isProficient(artefactTraitsOrType) {
     const proficiencies = this.get('PROF');
-    const artefactSubtype = artefactTraits.get('TYPE');
+    const artefactSubtype =
+      typeof artefactTraitsOrType === 'string'
+        ? artefactTraitsOrType
+        : artefactTraitsOrType.get('TYPE');
     if (!proficiencies || !artefactSubtype) {
       return false;
     }

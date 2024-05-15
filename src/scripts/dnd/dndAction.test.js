@@ -38,6 +38,7 @@ jest.unstable_mockModule('../utils/dice.js', () => {
 });
 
 const mockDice = await import('../utils/dice.js');
+const { Difficulty } = await import('./dndAction.js');
 const { characteristicToModifier } = await import('./traits.js');
 const { Actor, ActorType } = await import('../players/actors.js');
 const dndAction = await import('./dndAction.js');
@@ -213,7 +214,7 @@ test('getConsumptionBenefit - gain clipped to max', () => {
   });
 });
 
-test('getSpellDamage - default ability of INT - proficient save failed', () => {
+test('getHpGain', () => {
   const isProficient = true;
   const exp = 125000;
   const profBonus = isProficient
@@ -254,6 +255,67 @@ test('getSpellDamage - default ability of INT - proficient save failed', () => {
     spellTraits
   );
   expect(result).toBe(spellDamage);
+});
+
+test('getSpellHpGain - space for restoration', () => {
+  const hpMax = 20;
+  const hp = 10;
+  const hpGain = 4;
+  const casterTraits = new CharacterTraits(`EXP:1000`);
+  const targetTraits = new CharacterTraits(`HP:${hp}, HP_MAX:${hpMax}`);
+  const spellTraits = new Traits(`HP_GAIN:${hpGain}`);
+
+  spellTraits.getHpGainDiceWhenCastBy = jest.fn(() => `${hpGain}D1`);
+
+  const result = dndAction.getSpellHpGain(
+    casterTraits,
+    targetTraits,
+    spellTraits
+  );
+  expect(result).toBe(hpGain);
+  expect(spellTraits.getHpGainDiceWhenCastBy).toHaveBeenCalledWith(
+    casterTraits
+  );
+});
+
+test('getSpellHpGain - clipped to max', () => {
+  const hpMax = 20;
+  const hp = 18;
+  const hpGain = 4;
+  const casterTraits = new CharacterTraits(`EXP:1000`);
+  const targetTraits = new CharacterTraits(`HP:${hp}, HP_MAX:${hpMax}`);
+  const spellTraits = new Traits(`HP_GAIN:${hpGain}`);
+
+  spellTraits.getHpGainDiceWhenCastBy = jest.fn(() => `${hpGain}D1`);
+
+  const result = dndAction.getSpellHpGain(
+    casterTraits,
+    targetTraits,
+    spellTraits
+  );
+  expect(result).toBe(hpMax - hp);
+  expect(spellTraits.getHpGainDiceWhenCastBy).toHaveBeenCalledWith(
+    casterTraits
+  );
+});
+
+test('getSpellHpGain - hpGain not set', () => {
+  const hpMax = 20;
+  const hp = 18;
+  const hpGain = 1;
+
+  const casterTraits = new CharacterTraits(`EXP:1000`);
+  const targetTraits = new CharacterTraits(`HP:${hp}, HP_MAX:${hpMax}`);
+  const spellTraits = new Traits(``);
+
+  spellTraits.getHpGainDiceWhenCastBy = jest.fn(() => `${hpGain}D1`);
+
+  const result = dndAction.getSpellHpGain(
+    casterTraits,
+    targetTraits,
+    spellTraits
+  );
+  expect(result).toBe(0);
 });
 
 test('getSpellDamage - proficient - save failed', () => {
@@ -680,7 +742,7 @@ test('canDetectTrap', () => {
   };
   for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
     const modifier = characteristicToModifier(abilityValue);
-    const actorTraits = new Traits(`${ability}:${abilityValue}`);
+    const actorTraits = new CharacterTraits(`${ability}:${abilityValue}`);
     for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
       mockDice.rollDice.mockReturnValueOnce(diceRoll);
       let expectedResult;
@@ -714,7 +776,7 @@ test('canDisableTrap', () => {
   };
   for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
     const modifier = characteristicToModifier(abilityValue);
-    const actorTraits = new Traits(`${ability}:${abilityValue}`);
+    const actorTraits = new CharacterTraits(`${ability}:${abilityValue}`);
     for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
       mockDice.rollDice.mockReturnValueOnce(diceRoll);
       let expectedResult;
@@ -741,6 +803,7 @@ test(`Standard difficulties`, () => {
   expect(dndAction.Difficulty.HARD).toBe(20);
   expect(dndAction.Difficulty.VERY_HARD).toBe(25);
   expect(dndAction.Difficulty.NEARLY_IMPOSSIBLE).toBe(30);
+  expect(dndAction.Difficulty.IMPOSSIBLE).toBe(999);
 });
 
 test('canSteal', () => {
@@ -752,7 +815,7 @@ test('canSteal', () => {
 
   for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
     const modifier = characteristicToModifier(abilityValue);
-    const actorTraits = new Traits(`${ability}:${abilityValue}`);
+    const actorTraits = new CharacterTraits(`${ability}:${abilityValue}`);
     for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
       mockDice.rollDice.mockReturnValueOnce(diceRoll);
       let expectedResult;
@@ -766,6 +829,146 @@ test('canSteal', () => {
       expect(dndAction.canSteal(actorTraits, traderTraits)).toBe(
         expectedResult
       );
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});
+
+test('canPickLock', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = Difficulty.HARD;
+  const ability = 'DEX';
+  const keyTraits = new Traits(`DC:${Difficulty.HARD}`);
+
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP: 15000,${ability}:${abilityValue}, PROF:PICK LOCK`
+    );
+    const pb = actorTraits.getCharacterPb('PICK LOCK');
+    expect(pb).toBeGreaterThan(0);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier + pb >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.canPickLock(actorTraits, keyTraits)).toBe(
+        expectedResult
+      );
+    }
+  }
+  expect(successes).toBeGreaterThan(0);
+  expect(failures).toBeGreaterThan(0);
+});
+
+test('canIdentify', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = Difficulty.HARD;
+  const ability = 'WIS';
+  const subtype = 'PLANT';
+  const objectTraits = new Traits(
+    `IDENTIFY_DC:${difficulty}, SUBTYPE:${subtype}`
+  );
+
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP: 15000,${ability}:${abilityValue}, PROF:${subtype}`
+    );
+    const pb = actorTraits.getCharacterPb(subtype);
+    expect(pb).toBeGreaterThan(0);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier + pb >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.canIdentify(actorTraits, objectTraits)).toBe(
+        expectedResult
+      );
+    }
+  }
+  expect(successes).toBeGreaterThan(0);
+  expect(failures).toBeGreaterThan(0);
+});
+
+test('canPerformTask: no proficiency', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = 15;
+  const ability = 'DEX';
+
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP:15000,${ability}:${abilityValue}`
+    );
+    const pb = 0;
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier + pb >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(
+        dndAction.canPerformTask(actorTraits, {
+          ability: ability,
+          difficulty: difficulty,
+          proficiency: 'SOME TASK',
+        })
+      ).toBe(expectedResult);
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});
+
+test('canPerformTask: proficient', () => {
+  let successes = 0;
+  let failures = 0;
+  const difficulty = 15;
+  const ability = 'DEX';
+
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP:15000,${ability}:${abilityValue},PROF:SOME TASK`
+    );
+    const pb = actorTraits.getCharacterPb('SOME TASK');
+    expect(pb).toBeGreaterThan(0);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier + pb >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(
+        dndAction.canPerformTask(actorTraits, {
+          ability: ability,
+          difficulty: difficulty,
+          proficiency: 'SOME TASK',
+        })
+      ).toBe(expectedResult);
     }
     expect(successes).toBeGreaterThan(0);
     expect(failures).toBeGreaterThan(0);

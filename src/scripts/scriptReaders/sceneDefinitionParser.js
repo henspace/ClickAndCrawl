@@ -111,26 +111,33 @@ function createObjective(sceneDefn) {
 function createFindableArtefact(almanacEntry, preBuiltArtefact) {
   let id;
   let type;
-
-  switch (almanacEntry.type) {
-    case ArtefactType.SPELL:
-    case ArtefactType.CANTRIP:
-      id = 'engraved_pillar';
-      type = ActorType.PROP;
-      break;
-    default:
-      {
-        const roll = rollDice(6);
-        if (roll < 3) {
-          id = 'hidden_artefact';
-        } else if (roll < 5) {
-          id = 'trapdoor';
-        } else {
-          id = 'manhole_cover';
+  if (
+    almanacEntry.type === ArtefactType.CONSUMABLE &&
+    /SUBTYPE *: *VEGETATION/i.test(almanacEntry.traitsString)
+  ) {
+    id = 'vegetation';
+    type = ActorType.HIDDEN_ARTEFACT;
+  } else {
+    switch (almanacEntry.type) {
+      case ArtefactType.SPELL:
+      case ArtefactType.CANTRIP:
+        id = 'engraved_pillar';
+        type = ActorType.PROP;
+        break;
+      default:
+        {
+          const roll = rollDice(6);
+          if (roll < 3) {
+            id = 'hidden_artefact';
+          } else if (roll < 5) {
+            id = 'trapdoor';
+          } else {
+            id = 'manhole_cover';
+          }
         }
-      }
-      type = ActorType.HIDDEN_ARTEFACT;
-      break;
+        type = ActorType.HIDDEN_ARTEFACT;
+        break;
+    }
   }
 
   const actor = buildActor({

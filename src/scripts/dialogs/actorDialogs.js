@@ -1014,7 +1014,7 @@ function createIdCard(actor) {
   );
 
   const hp = actor.traits.getInt('HP');
-  if (hp && !actor.traits.get('_HP')) {
+  if (!actor.artefactType && hp && !actor.traits.get('_HP')) {
     const hpMax = actor.traits.getInt('HP_MAX');
     let hpText;
     if (hp === 0) {
@@ -1068,7 +1068,10 @@ function createActorElement(actor, options = {}) {
           : components.createElement('p', { text: options.description });
     } else if (actor.description) {
       descriptionElement = components.createElement('p', {
-        text: actor.description,
+        text:
+          actor.unknown && actor.unknownDescription
+            ? actor.unknownDescription
+            : actor.description,
       });
     }
   }
@@ -1162,15 +1165,28 @@ function createArtefactButtonLabel(options) {
   const traits = options.artefact.traits;
   let label = traits.get('NAME');
   if (options.showDamage) {
-    const damage = traits.getDamageDiceWhenCastBy
-      ? traits.getDamageDiceWhenCastBy(options.currentOwner.traits)
-      : traits.get('DMG');
-    const range = traits.get('RANGE');
-    if (damage) {
-      label = `${label} DMG: ${damage}`;
+    let dice;
+    let diceLabel;
+    if (traits.has('HP_GAIN')) {
+      diceLabel = 'HP: +';
+      dice = traits.getHpGainDiceWhenCastBy
+        ? traits.getHpGainDiceWhenCastBy(options.currentOwner.traits)
+        : traits.get('HP_GAIN');
+    } else {
+      diceLabel = 'DMG: ';
+      dice = traits.getDamageDiceWhenCastBy
+        ? traits.getDamageDiceWhenCastBy(options.currentOwner.traits)
+        : traits.get('DMG');
     }
-    if (range) {
-      label = `${label} RANGE: ${range}`;
+
+    if (dice) {
+      label = `${label} ${diceLabel}${dice}`;
+    }
+    if (traits.get('ATTACK') !== 'BLESS') {
+      const range = traits.get('RANGE');
+      if (range) {
+        label = `${label} RANGE: ${range}`;
+      }
     }
   }
   if (
@@ -1387,82 +1403,115 @@ export function showArtefactDialog(options) {
   const destStoreManager = options.prospectiveOwner.storeManager;
   const artefact = options.artefact;
 
-  return showEquipDialog(options).then((response) => {
-    switch (response) {
-      case ArtefactAction.CONSUME:
-        sourceStoreManager.discard(artefact);
-        return artefact.interaction.react(options.currentOwner);
-      case ArtefactAction.DISCARD:
-        sourceStoreManager.discard(artefact);
-        break;
-      case ArtefactAction.PREPARE_SPELL:
-      case ArtefactAction.EQUIP:
-        destStoreManager.equip(artefact);
-        break;
-      case ArtefactAction.LEARN_SPELL:
-        if (
-          artefact.isMagic() &&
-          destStoreManager.hasArtefactWithSameId(artefact)
-        ) {
-          return UI.showOkDialog(i18n`MESSAGE SPELL ALREADY KNOWN`);
-        } else {
+  const originalHideTraits = options.hideTraits;
+  return identifyArtefact(options)
+    .then((known) => {
+      if (!known) {
+        options.hideTraits = true; // hide traits if item not known
+      }
+      return showEquipDialog(options);
+    })
+    .then((response) => {
+      options.hideTraits = originalHideTraits; // restore
+      switch (response) {
+        case ArtefactAction.CONSUME:
           sourceStoreManager.discard(artefact);
-          const store = destStoreManager.findSuitableStore(artefact);
-          store.add(artefact);
-        }
-        if (artefact.artefactType === ArtefactType.SPELL) {
-          return UI.showOkDialog(i18n`MESSAGE EXPLAIN SPELL NEEDS REST`);
-        }
-        break;
-      case ArtefactAction.PILLAGE:
-        {
+          return artefact.interaction.react(options.currentOwner);
+        case ArtefactAction.DISCARD:
           sourceStoreManager.discard(artefact);
-          const store = destStoreManager.findSuitableStore(artefact);
-          store.add(artefact);
-        }
-        break;
-      case ArtefactAction.SELL:
-        {
-          const money = options.currentOwner.isTrader()
-            ? artefact.costInGp
-            : artefact.sellBackPriceInGp;
-          sourceStoreManager.addToPurse(money);
-          if (!options.prospectiveOwner.isTrader()) {
-            destStoreManager.takeFromPurse(money); // traders have unlimited funds
+          break;
+        case ArtefactAction.PREPARE_SPELL:
+        case ArtefactAction.EQUIP:
+          destStoreManager.equip(artefact);
+          break;
+        case ArtefactAction.LEARN_SPELL:
+          if (
+            artefact.isMagic() &&
+            destStoreManager.hasArtefactWithSameId(artefact)
+          ) {
+            return UI.showOkDialog(i18n`MESSAGE SPELL ALREADY KNOWN`);
+          } else {
+            sourceStoreManager.discard(artefact);
+            const store = destStoreManager.findSuitableStore(artefact);
+            store.add(artefact);
           }
-          sourceStoreManager.discard(artefact);
+          if (artefact.artefactType === ArtefactType.SPELL) {
+            return UI.showOkDialog(i18n`MESSAGE EXPLAIN SPELL NEEDS REST`);
+          }
+          break;
+        case ArtefactAction.PILLAGE:
+          {
+            sourceStoreManager.discard(artefact);
+            const store = destStoreManager.findSuitableStore(artefact);
+            store.add(artefact);
+          }
+          break;
+        case ArtefactAction.SELL:
+          {
+            const money = options.currentOwner.isTrader()
+              ? artefact.costInGp
+              : artefact.sellBackPriceInGp;
+            sourceStoreManager.addToPurse(money);
+            if (!options.prospectiveOwner.isTrader()) {
+              destStoreManager.takeFromPurse(money); // traders have unlimited funds
+            }
+            sourceStoreManager.discard(artefact);
+            if (artefact.stashInWagon && !destStoreManager.hasWagon) {
+              destStoreManager.equip(artefact, { direct: true });
+            } else {
+              destStoreManager.stash(artefact, { direct: true });
+            }
+          }
+          break;
+        case ArtefactAction.STASH:
+          if (!destStoreManager.stash(artefact)) {
+            UI.showOkDialog(
+              options.prospectiveOwner.isTrader()
+                ? i18n`MESSAGE TRADER CANNOT STASH`
+                : i18n`MESSAGE CANNOT STASH`
+            );
+          }
+          break;
+        case ArtefactAction.TAKE:
+          sourceStoreManager?.discard(artefact); // store manager could be null for programmatically created artefact.
           if (artefact.stashInWagon && !destStoreManager.hasWagon) {
             destStoreManager.equip(artefact, { direct: true });
           } else {
             destStoreManager.stash(artefact, { direct: true });
           }
-        }
-        break;
-      case ArtefactAction.STASH:
-        if (!destStoreManager.stash(artefact)) {
-          UI.showOkDialog(
-            options.prospectiveOwner.isTrader()
-              ? i18n`MESSAGE TRADER CANNOT STASH`
-              : i18n`MESSAGE CANNOT STASH`
-          );
-        }
-        break;
-      case ArtefactAction.TAKE:
-        sourceStoreManager?.discard(artefact); // store manager could be null for programmatically created artefact.
-        if (artefact.stashInWagon && !destStoreManager.hasWagon) {
-          destStoreManager.equip(artefact, { direct: true });
-        } else {
-          destStoreManager.stash(artefact, { direct: true });
-        }
 
-        break;
-      case ArtefactAction.USE:
-        return artefact.interaction.react(options.currentOwner);
-    }
-    return Promise.resolve();
-  });
+          break;
+        case ArtefactAction.USE:
+          return artefact.interaction.react(options.currentOwner);
+      }
+      return Promise.resolve();
+    });
 }
 
+/**
+ * Show dialog allowing the identification of an artefact if necessary.
+ * @param {ArtefactDialogOptions} options
+ * @returns {Promise<boolean>} true if known.
+ */
+function identifyArtefact(options) {
+  if (!options.artefact?.unknown) {
+    return Promise.resolve(true);
+  }
+  const tester = options.prospectiveOwner ?? options.currentOwner;
+  const recognised = dndAction.canIdentify(
+    tester.traits,
+    options.artefact.traits
+  );
+  if (!recognised) {
+    return UI.showChoiceDialog(
+      i18n`DIALOG TITLE UNKNOWN ITEM`,
+      i18n`MESSAGE FAILED TO IDENTIFY`
+    ).then(() => false);
+  } else {
+    options.artefact.unknown = false;
+    return Promise.resolve(true);
+  }
+}
 /**
  * Show the rest dialog for the hero
  * @param {module:players/actors.Actor} actor} heroActor

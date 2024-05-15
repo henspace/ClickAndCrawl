@@ -52,9 +52,12 @@ const DEFAULT_RANGE = [8, 15];
  * @type {Map<string, Array.<string>>}
  */
 const CLASS_TRAIT_ORDER = new Map([
+  ['BARBARIAN', ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA']],
+  ['CLERIC', ['WIS', 'CON', 'STR', 'CHA', 'INT', 'DEX']],
   ['FIGHTER', ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']],
-  ['CLERIC', ['WIS', 'CON', 'STR', 'DEX', 'INT', 'CHA']],
-  ['ROGUE', ['DEX', 'STR', 'INT', 'CHA', 'CON', 'WIS']],
+  ['RANGER', ['STR', 'DEX', 'INT', 'CHA', 'CON', 'WIS']],
+  ['ROGUE', ['DEX', 'INT', 'CHA', 'STR', 'CON', 'WIS']],
+  ['WIZARD', ['INT', 'WIS', 'STR', 'CON', 'DEX', 'CHA']],
   ['DEFAULT', ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA']],
 ]);
 
@@ -78,7 +81,12 @@ const CLASS_ATTACK_MODIFIERS = new Map([
  * @type {Map<string, number[]}
  */
 const CLASS_TRAIT_ADJUSTMENT_LEVELS = new Map([
+  ['BARBARIAN', [4, 8, 12, 16, 19]],
+  ['CLERIC', [4, 8, 12, 16, 19]],
+  ['FIGHTER', [4, 6, 8, 12, 14, 16, 19]],
+  ['RANGER', [4, 8, 12, 16, 19]],
   ['ROGUE', [4, 8, 10, 12, 16, 19]],
+  ['WIZARD', [4, 8, 12, 16, 19]],
 ]);
 
 /**

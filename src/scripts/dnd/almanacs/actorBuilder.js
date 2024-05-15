@@ -413,6 +413,7 @@ function equipActor(actor, equipmentIds) {
       'WEAPONS',
       'ARMOUR',
       'MAGIC',
+      'ARTEFACTS',
     ]);
     if (artefactEntry) {
       const artefact = buildArtefact(artefactEntry);

@@ -36,12 +36,21 @@ import { ALMANAC_LIBRARY } from './almanacs.js';
 /**
  * Create an artefact.
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
- * @param {string} imageName
- * @param {module:dnd/traits~Traits} traits
+ * @param {Object} detail
+ * @param {string} detail.imageName
+ * @param {module:dnd/traits~Traits} detail.traits
+ * @param {string} detail.description
+ * @param {string} detail.unknownDescription
+ *
  */
-function createArtefact(almanacEntry, imageName, traits) {
-  const artefact = new Artefact(almanacEntry, '', `${imageName}.png`);
-  artefact.traits = traits;
+function createArtefact(almanacEntry, detail) {
+  const artefact = new Artefact(
+    almanacEntry,
+    detail.description,
+    `${detail.imageName}.png`,
+    detail.unknownDescription
+  );
+  artefact.traits = detail.traits;
   return artefact;
 }
 
@@ -67,8 +76,13 @@ export function buildArtefact(almanacEntry, initialTraits) {
   }
 
   traits.set('NAME', almanacEntry.name);
-  const artefact = createArtefact(almanacEntry, imageName, traits);
-  artefact.description = almanacEntry.description;
+  const artefact = createArtefact(almanacEntry, {
+    description: almanacEntry.description,
+    unknownDescription: almanacEntry.unknownDescription,
+    imageName: imageName,
+    traits: traits,
+  });
+
   if (artefact.isTrap()) {
     artefact.interaction = new TriggerTrap(artefact);
   } else if (artefact.isMagic()) {

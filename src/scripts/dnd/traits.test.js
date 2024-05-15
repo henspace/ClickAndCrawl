@@ -253,6 +253,8 @@ test('Traits.constructor _VALUE', () => {
 test('Traits.constructor DMG', () => {
   let testTraits = new traits.Traits('DMG:3D12');
   expect(testTraits.get('DMG')).toEqual('3D12');
+  testTraits = new traits.Traits('DMG:3D12 + 27');
+  expect(testTraits.get('DMG')).toEqual('3D12 + 27');
   testTraits = new traits.Traits('DMG:99');
   expect(testTraits.get('DMG')).toEqual(99);
   testTraits = new traits.Traits('DMG:INVALID');
@@ -266,6 +268,24 @@ test('Traits.constructor _DMG', () => {
   expect(testTraits.get('_DMG')).toEqual(99);
   testTraits = new traits.Traits('_DMG:INVALID');
   expect(testTraits.get('_DMG')).toEqual(0);
+});
+
+test('Traits.constructor HP_GAIN', () => {
+  let testTraits = new traits.Traits('HP_GAIN:3D12');
+  expect(testTraits.get('HP_GAIN')).toEqual('3D12');
+  testTraits = new traits.Traits('HP_GAIN:99');
+  expect(testTraits.get('HP_GAIN')).toEqual(99);
+  testTraits = new traits.Traits('HP_GAIN:INVALID');
+  expect(testTraits.get('HP_GAIN')).toEqual(0);
+});
+
+test('Traits.constructor _HP_GAIN', () => {
+  let testTraits = new traits.Traits('_HP_GAIN:3D12');
+  expect(testTraits.get('_HP_GAIN')).toEqual('3D12');
+  testTraits = new traits.Traits('_HP_GAIN:99');
+  expect(testTraits.get('_HP_GAIN')).toEqual(99);
+  testTraits = new traits.Traits('_HP_GAIN:INVALID');
+  expect(testTraits.get('_HP_GAIN')).toEqual(0);
 });
 
 test('Traits.constructor HIT_DICE', () => {
@@ -1008,7 +1028,7 @@ test('CharacterTraits.adjustForDefeatOfActor', () => {
   ).toEqual(expectedPb);
 });
 
-test('CharacterTraits.isProficient', () => {
+test('CharacterTraits.isProficient: passed traits', () => {
   let characterTraits = new traits.CharacterTraits('PROF:KEY1 & KEY2 & KEY3 ');
   expect(
     characterTraits.isProficient(new traits.Traits('TYPE:SOME WEAPON'))
@@ -1039,6 +1059,23 @@ test('CharacterTraits.isProficient', () => {
   expect(
     characterTraits.isProficient(new traits.Traits('TYPE:KEYB KEY2 KEY99'))
   ).toEqual(true);
+});
+
+test('CharacterTraits.isProficient: passed string', () => {
+  let characterTraits = new traits.CharacterTraits('PROF:KEY1 & KEY2 & KEY3 ');
+  expect(characterTraits.isProficient('SOME WEAPON')).toEqual(false);
+  expect(characterTraits.isProficient('SOME WEAPON KEY2')).toEqual(true);
+
+  characterTraits = new traits.CharacterTraits(
+    'PROF:KEY1 KEYA & KEY2 KEYB & KEY3 KEYC'
+  );
+  expect(characterTraits.isProficient('SOME WEAPON')).toEqual(false);
+  expect(characterTraits.isProficient('KEY2')).toEqual(false);
+  expect(characterTraits.isProficient('KEYB')).toEqual(false);
+
+  expect(characterTraits.isProficient('KEY2 KEYB')).toEqual(true);
+  expect(characterTraits.isProficient('KEYB KEY2')).toEqual(true);
+  expect(characterTraits.isProficient('KEYB KEY2 KEY99')).toEqual(true);
 });
 
 /* Magic Traits */
@@ -1099,6 +1136,25 @@ test('getDamageDiceWhenCastBy: fractional extra dice per level', () => {
   expect(diceDetails.qty).toBeGreaterThan(diceCount);
 });
 
+test('getHpGainDiceWhenCastBy: extra dice per level', () => {
+  const exp = 125000;
+  const diceCount = 4;
+  const diceSides = 8;
+  const extraDicePerLevel = 3;
+  const level = tables.getLevelAndProfBonusFromExp(exp).level;
+  const magicTraits = new traits.MagicTraits(
+    `HP_GAIN:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+  );
+  let actorTraits = new traits.CharacterTraits(`EXP:${exp}`);
+  const result = magicTraits.getHpGainDiceWhenCastBy(actorTraits);
+  const diceDetails = dice.getDiceDetails(result);
+  expect(diceDetails).toStrictEqual({
+    offset: 0,
+    qty: diceCount + (level - 1) * extraDicePerLevel,
+    sides: diceSides,
+  });
+  expect(diceDetails.qty).toBeGreaterThan(diceCount);
+});
 /* Persistence checks */
 test('Traits toJSON and revive', () => {
   const original = new traits.Traits(

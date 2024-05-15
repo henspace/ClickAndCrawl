@@ -204,7 +204,7 @@ class AutoSceneList {
    */
   #addArtefacts() {
     const pooledAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
-      ['ARTEFACTS', 'MAGIC', 'MONEY', 'WEAPONS', 'TRAPS'],
+      ['ARTEFACTS', 'MAGIC', 'MONEY', 'WEAPONS', 'TRAPS', 'PLANTS'],
       (entry) => entry.minLevel <= this.#index
     );
     let totalArtefacts = maths.getRandomIntInclusive(4, 12);

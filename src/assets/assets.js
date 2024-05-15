@@ -44,6 +44,7 @@ export const AssetUrls = {
     ['WEAPONS', new URL('./almanacs/weapons.txt', import.meta.url)],
     ['KEYS', new URL('./almanacs/keys.txt', import.meta.url)],
     ['TRAPS', new URL('./almanacs/traps.txt', import.meta.url)],
+    ['PLANTS', new URL('./almanacs/plants.txt', import.meta.url)],
     ['OBJECTIVES', new URL('./almanacs/objectives.txt', import.meta.url)],
   ]),
   DUNGEON_COMPLETE: new URL('./stories/dungeon-completed.md', import.meta.url),

@@ -95,7 +95,7 @@ test('getTraitAdjustmentDetails', () => {
 
   expect(generator.getTraitAdjustmentDetails('ROGUE')).toEqual({
     levels: [4, 8, 10, 12, 16, 19],
-    traits: ['DEX', 'STR', 'INT', 'CHA', 'CON', 'WIS'],
+    traits: ['DEX', 'INT', 'CHA', 'STR', 'CON', 'WIS'],
     gainPerAdjustment: 2,
     maxAbility: 20,
   });

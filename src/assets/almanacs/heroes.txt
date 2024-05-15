@@ -1,4 +1,7 @@
 # Base abilities are automatically calculated from the class:
-0,COMMON,HERO,fighter1 [chain_mail_armour,shield,shortsword,gold_coins] * CLASS:FIGHTER,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield,
-0,COMMON,HERO,barbarian1 [studded_leather_armour,shortsword,handaxe,handaxe,gold_coins] * CLASS:FIGHTER,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield
-0,COMMON,HERO,cleric1 [scale_mail_armour,warhammer,gold_coins] * CLASS:CLERIC,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:light armour&medium armour&shield,SPELL_CAST:WIS
+#0,COMMON,HERO,barbarian1 [studded_leather_armour,shortsword,handaxe,handaxe,copper_coins] * CLASS:BARBARIAN,HIT_DICE:1D12,EXP:0, AC:10,_SPEED:30 FEET,PROF:light armour&medium armour&shield&simple weapon&martial weapon
+0,COMMON,HERO,cleric1 [scale_mail_armour,warhammer,copper_coins,spare_me] * CLASS:CLERIC,HIT_DICE:1D8,EXP:0, AC:10,_SPEED:30 FEET,PROF:light armour&medium armour&shield&simple weapon,SPELL_CAST:WIS
+#0,COMMON,HERO,fighter1 [chain_mail_armour,shield,shortsword,copper_coins] * CLASS:FIGHTER,HIT_DICE:1D10,EXP:0, AC:10,_SPEED:30 FEET,PROF:armour&shield&simple weapon&martial weapon,
+#0,COMMON,HERO,ranger1 [chain_mail_armour,shield,shortsword,copper_coins] * CLASS:RANGER,HIT_DICE:1D10,EXP:0, AC:10,_SPEED:30 FEET,PROF:light armour&medium armour&shield&simple weapon&martial weapon&vegetation,
+#0,COMMON,HERO,rogue1 [leather_armour,shield,shortsword,copper_coins,lock_pick] * CLASS:ROGUE,HIT_DICE:1D8,EXP:0, AC:10,_SPEED:30 FEET,PROF:light armour&medium armour&shield&simple weapon&shortsword&stealing,
+#0,COMMON,HERO,wizard1 [quarterstaff,copper_coins,acid_splash,chill_touch,fire_bolt] * CLASS:WIZARD,HIT_DICE:1D6,EXP:0, AC:10,_SPEED:30 FEET,PROF:quarterstaff,

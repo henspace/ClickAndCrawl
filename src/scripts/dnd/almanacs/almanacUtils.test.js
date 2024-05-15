@@ -32,7 +32,20 @@ import * as utils from './almanacUtils.js';
 import { MESSAGES } from '../../utils/messageManager.js';
 
 beforeAll(() => {
-  MESSAGES.setMap(new Map([['DESCRIPTION PLAIN_TEXT', 'message plain text']]));
+  MESSAGES.setMap(
+    new Map([
+      ['DESCRIPTION PLAIN_TEXT', 'message plain text'],
+      ['DESCRIPTION PLAIN_TEXT_PV', 'message plain text pv'],
+      [
+        'DESCRIPTION PLAIN_TEXT+EXTENSIONS',
+        'message plain text plus extensions',
+      ],
+      [
+        'DESCRIPTION PLAIN_TEXT_PV+EXTENSIONS',
+        'message plain text pv plus extensions',
+      ],
+    ])
+  );
 });
 
 test('derivePartsFromId: no ID', () => {
@@ -40,10 +53,11 @@ test('derivePartsFromId: no ID', () => {
 });
 
 test('derivePartsFromId: plain id', () => {
-  expect(utils.derivePartsFromId('Plain_text')).toEqual({
+  expect(utils.derivePartsFromId('Plain_text')).toStrictEqual({
     name: 'Plain text',
     imageName: 'plain_text',
     description: 'message plain text',
+    unknownDescription: undefined,
   });
 });
 
@@ -51,7 +65,8 @@ test('derivePartsFromId: with orientation', () => {
   expect(utils.derivePartsFromId('Plain_text_pv')).toEqual({
     name: 'Plain text',
     imageName: 'plain_text_pv',
-    description: 'message plain text',
+    description: 'message plain text pv',
+    unknownDescription: undefined,
   });
 });
 
@@ -59,7 +74,8 @@ test('derivePartsFromId: with extended id', () => {
   expect(utils.derivePartsFromId('Plain_text+extensions')).toEqual({
     name: 'Plain text',
     imageName: 'plain_text',
-    description: 'message plain text',
+    description: 'message plain text plus extensions',
+    unknownDescription: 'message plain text',
   });
 });
 
@@ -68,5 +84,7 @@ test('derivePartsFromId: with orientation and extended id', () => {
     name: 'Plain text',
     imageName: 'plain_text_pv',
     description: 'message plain text',
+    description: 'message plain text pv plus extensions',
+    unknownDescription: 'message plain text pv',
   });
 });

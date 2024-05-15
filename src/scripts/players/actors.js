@@ -65,6 +65,7 @@ export const ActorType = {
 export const AttackMode = {
   COMBAT: 'COMBAT',
   POISON: 'POISON',
+  MAGIC: 'MAGIC',
 };
 
 /**

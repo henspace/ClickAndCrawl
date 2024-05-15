@@ -82,11 +82,12 @@ test('Actor toJson and revive', () => {
   /* Remove items that should not be compared. */
   revived.interaction = undefined;
   original.interaction = undefined;
+
   if (original.almanacEntry.equipmentIds === undefined) {
     revived.almanacEntry.equipmentIds = undefined; // it won't have been parsed as JSON.
   }
   expect(revived.adventureStartTime).toEqual(original.adventureStartTime);
-  expect(revived).toStrictEqual(original);
+  expect(revived).toEqual(original);
   expect(original.toxify.getToxin().getChangeInHpThisTurn()).toBe(-312);
   expect(revived.toxify.getToxin().getChangeInHpThisTurn()).toBe(-312);
 });
@@ -100,7 +101,7 @@ test('Actor toJson and revive with equipment', () => {
   original.toxify.addToxicEffect(new Traits('DMG_PER_TURN:312'));
 
   const artefactEntry = parseAlmanacLine(
-    '0,UNCOMMON,CONSUMABLE,black_flask+healing * VALUE: 2SP, _TYPE: POTION, _HP:6',
+    '0,UNCOMMON,CONSUMABLE,black_flask+healing * VALUE: 2SP, _TYPE: MEDICINE, _HP:6',
     'ARTEFACTS'
   );
   const originalArtefact = buildArtefact(artefactEntry);

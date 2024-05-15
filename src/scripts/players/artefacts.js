@@ -484,19 +484,25 @@ export class Artefact {
   interaction;
   /** @type {module:dnd/almanacs/almanacs~AlmanacEntry} */
   almanacEntry;
+  /** @type {boolean} */
+  unknown;
   /**
    * Create artefact.
    * @param {AlmanacEntry} almanacEntry
    * @param {string} description
    * @param {string} iconImageName
    * @param {number} artefactType - artefact enumeration
+   * @param {string} unknownDescription - description if not identified. If null
+   * or undefined or '' the artefact is regarded as identified.
    */
-  constructor(almanacEntry, description, iconImageName) {
+  constructor(almanacEntry, description, iconImageName, unknownDescription) {
     this.id = almanacEntry.id;
     this.description = description;
     this.iconImageName = iconImageName;
     this.artefactType = almanacEntry.type;
     this.almanacEntry = almanacEntry;
+    this.unknownDescription = unknownDescription;
+    this.unknown = !!unknownDescription;
   }
 
   /** Get the cost details.
@@ -599,10 +605,12 @@ export class Artefact {
     const clone = new Artefact(
       this.almanacEntry,
       this.description,
-      this.iconImageName
+      this.iconImageName,
+      this.unknownDescription
     );
     clone.traits = this.traits.clone();
     clone.value = this.value;
+    clone.unknown = this.unknown;
     return clone;
   }
 
@@ -650,6 +658,7 @@ export class Artefact {
       data: {
         almanacEntry: this.almanacEntry,
         traits: this.traits,
+        unknown: this.unknown,
       },
     };
   }
@@ -661,7 +670,9 @@ export class Artefact {
    * @returns {Artefact}
    */
   static revive(data, builder) {
-    return builder(data.almanacEntry, data.traits);
+    const artefact = builder(data.almanacEntry, data.traits);
+    artefact.unknown = data.unknown;
+    return artefact;
   }
 }
 
@@ -813,13 +824,29 @@ export class ArtefactStoreManager {
 
   /** Test whether a similar artefact is stored. This is done by
    * testing the id.
+   * @param {Artefact | string} artefactOrId
+   * @returns {boolean}
+   */
+  hasArtefactWithSameId(artefactOrId) {
+    const id =
+      typeof artefactOrId === 'string' ? artefactOrId : artefactOrId.id;
+    const storageDetails = this.getAllStorageDetails();
+    for (const details of storageDetails) {
+      if (details.artefact.id === id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Test whether a specific artefact is stored.
    * @param {Artefact} artefact
    * @returns {boolean}
    */
-  hasArtefactWithSameId(artefact) {
+  hasArtefact(artefact) {
     const storageDetails = this.getAllStorageDetails();
     for (const details of storageDetails) {
-      if (details.artefact.id === artefact.id) {
+      if (details.artefact === artefact) {
         return true;
       }
     }

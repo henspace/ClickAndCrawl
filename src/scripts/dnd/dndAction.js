@@ -52,6 +52,7 @@ export const Difficulty = {
   HARD: 20,
   VERY_HARD: 25,
   NEARLY_IMPOSSIBLE: 30,
+  IMPOSSIBLE: 999,
 };
 
 /**
@@ -148,8 +149,14 @@ export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
 function getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits) {
   const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
   const spellCastAbilityValue = attackerTraits.getInt(spellCastAbility, 1);
+  let damageDice;
+  if (spellTraits.getDamageDiceWhenCastBy) {
+    damageDice = spellTraits.getDamageDiceWhenCastBy(attackerTraits);
+  } else {
+    damageDice = spellTraits.get('DMG', '1D4');
+  }
   const attack = new AttackDetail({
-    damageDice: spellTraits.getDamageDiceWhenCastBy(attackerTraits),
+    damageDice: damageDice,
     weaponType: 'UNARMED',
     proficiencyBonus: attackerTraits.getCharacterPb(spellTraits),
     abilityModifier: characteristicToModifier(spellCastAbilityValue),
@@ -183,15 +190,42 @@ export function getSpellNormalDamage(
     characteristicToModifier(spellCastAbilityValue);
   const fullDifficulty = difficulty + spellModifier;
   let savingThrow = dice.rollDice(20) + saveModifier;
-  const damage = dice.rollMultiDice(
-    spellTraits.getDamageDiceWhenCastBy(attackerTraits)
-  );
+  let damageDice;
+  if (spellTraits.getDamageDiceWhenCastBy) {
+    damageDice = spellTraits.getDamageDiceWhenCastBy(attackerTraits);
+  } else {
+    damageDice = spellTraits.get('DMG', '1D4');
+  }
+  const damage = dice.rollMultiDice(damageDice);
   if (savingThrow >= fullDifficulty) {
     const factor = spellTraits.getFloat('DMG_SAVED', 0);
     return Math.round(factor * damage);
   } else {
     return damage;
   }
+}
+
+/**
+ * Get HP gain from spell.
+ * @param {module:dnd/traits.CharacterTraits} casterTraits
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
+ * @param {module:dnd/traits.MagicTraits} spellTraits
+ * @returns {number}
+ */
+export function getSpellHpGain(casterTraits, targetTraits, spellTraits) {
+  if (!spellTraits.has('HP_GAIN')) {
+    return 0;
+  }
+  let hpGainDice;
+  if (spellTraits.getHpGainDiceWhenCastBy) {
+    hpGainDice = spellTraits.getHpGainDiceWhenCastBy(casterTraits);
+  } else {
+    hpGainDice = spellTraits.get('HP_GAIN', 0);
+  }
+  const result = dice.rollMultiDice(hpGainDice);
+  const currentHp = targetTraits.getInt('HP');
+  const hpMax = targetTraits.getInt('HP_MAX');
+  return Math.min(result, hpMax - currentHp);
 }
 
 /**
@@ -311,10 +345,11 @@ export function takeRest(actor, length) {
  * @param {module:dnd/trapCharacteristics.TrapDetails} trapDetails
  */
 export function canDetectTrap(detectorTraits, trapDetails) {
-  const abilityValue = detectorTraits.get(trapDetails.detectBy, 0);
-  const modifier = characteristicToModifier(abilityValue);
-  const detectionRoll = dice.rollDice(20) + modifier;
-  return detectionRoll >= trapDetails.difficulty;
+  return canPerformTask(detectorTraits, {
+    ability: trapDetails.detectBy,
+    difficulty: trapDetails.difficulty,
+    proficiency: 'TRAPS',
+  });
 }
 
 /**
@@ -323,10 +358,11 @@ export function canDetectTrap(detectorTraits, trapDetails) {
  * @param {module:dnd/trapCharacteristics.TrapDetails} trapDetails
  */
 export function canDisableTrap(detectorTraits, trapDetails) {
-  const abilityValue = detectorTraits.get(trapDetails.disableBy, 0);
-  const modifier = characteristicToModifier(abilityValue);
-  const disableRoll = dice.rollDice(20) + modifier;
-  return disableRoll >= trapDetails.difficulty;
+  return canPerformTask(detectorTraits, {
+    ability: trapDetails.disableBy,
+    difficulty: trapDetails.difficulty,
+    proficiency: 'TRAPS',
+  });
 }
 
 /**
@@ -334,9 +370,57 @@ export function canDisableTrap(detectorTraits, trapDetails) {
  * @param {module:dnd/traits.Traits} robberTraits
  * @param {module:dnd/traits.Traits} traderTraits
  */
-export function canSteal(detectorTraits, traderTraits) {
-  const abilityValue = detectorTraits.getInt('DEX', 1);
+export function canSteal(robberTraits, traderTraits) {
+  return canPerformTask(robberTraits, {
+    ability: 'DEX',
+    difficulty: traderTraits.getInt('DC', Difficulty.HARD),
+    proficiency: 'STEALING',
+  });
+}
+
+/**
+ * Can pick a lock. The difficulty of the task comes from
+ * the keyTraits.
+ * @param {module:dnd/traits.CharacterTraits} robberTraits
+ * @param {module:dnd/traits.Traits} keyTraits
+ */
+export function canPickLock(robberTraits, keyTraits) {
+  return canPerformTask(robberTraits, {
+    ability: 'DEX',
+    difficulty: keyTraits.get('DC', Difficulty.EASY),
+    proficiency: 'PICK LOCK',
+  });
+}
+
+/**
+ * Can identify an object. The difficulty of the task comes from
+ * the keyTraits. The wisdom ability is used.
+ * @param {module:dnd/traits.CharacterTraits} identifierTraits
+ * @param {module:dnd/traits.Traits} objectTraits
+ */
+export function canIdentify(identifierTraits, objectTraits) {
+  return canPerformTask(identifierTraits, {
+    ability: 'WIS',
+    difficulty: objectTraits.get('IDENTIFY_DC', Difficulty.EASY),
+    proficiency: objectTraits.get('SUBTYPE'),
+  });
+}
+
+/**
+ * Can perform task.
+ * @param {module:dnd/traits.CharacterTraits} pickerTraits
+ * @param {Object} task
+ * @param {string} task.ability -e.g. DEX
+ * @param {string} task.proficiency - e.g. 'PICK LOCK'
+ * @param {number} task.difficulty - e.g. Difficulty.HARD
+ * @returns {boolean}
+ */
+export function canPerformTask(pickerTraits, task) {
+  const abilityValue = pickerTraits.getInt(task.ability, 1);
   const modifier = characteristicToModifier(abilityValue);
-  const stealRoll = dice.rollDice(20) + modifier;
-  return stealRoll >= traderTraits.getInt('DC', Difficulty.HARD);
+  const profBonus = task.proficiency
+    ? pickerTraits.getCharacterPb(task.proficiency)
+    : 0;
+  const pickRoll = dice.rollDice(20) + modifier + profBonus;
+  return pickRoll >= task.difficulty;
 }

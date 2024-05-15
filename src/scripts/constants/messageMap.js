@@ -47,6 +47,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON INVENTORY', 'Inventory'],
   ['BUTTON LEARN SPELL', 'Learn spell'],
   ['BUTTON LEAVE ARTEFACT', 'Leave'],
+  ['BUTTON LEAVE IT', 'Leave it'],
   ['BUTTON MAGIC', 'Magic'],
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
@@ -72,6 +73,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
+  ['BUTTON TRY TO PICK', 'Pick lock'],
   ['BUTTON TO NEXT FLOOR', 'To the next floor'],
   ['BUTTON USE', 'Use'],
 
@@ -91,7 +93,15 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION BLACK_FLASK',
     'A black flask containing a clear, pungent liquid.',
   ],
+  [
+    'DESCRIPTION BLACK_FLASK+SERPENT_VENOM',
+    'A black flask containing a clear, pungent liquid.',
+  ],
   ['DESCRIPTION BLUE_FLASK', 'A blue flask containing a clear, aromatic oil.'],
+  [
+    'DESCRIPTION BLUE_FLASK+LADY_OF_THE_MOON',
+    'A blue flask containing Lady of the Moon syrup.',
+  ],
   [
     'DESCRIPTION BURNING_HANDS',
     'Casting this spell with your thumbs touching and fingers spread creates a thin sheet of flames enveloping your enemies.',
@@ -101,8 +111,12 @@ const MESSAGE_MAP = new Map([
     'Armour comprising interlocking steel rings over a soft cushioning fabric. The suit includes gauntlets.',
   ],
   [
+    'DESCRIPTION CHILL_TOUCH',
+    'Casting this spell assails your victims with the chill of the grave.',
+  ],
+  [
     'DESCRIPTION CLERIC1',
-    'A powerful cleric who can act as a conduit between divine powers and the mortal world.',
+    'You are a powerful cleric who can act as a conduit between divine powers and the mortal world.',
   ],
   ['DESCRIPTION CLUB', "A simple wooden club that's seen a lot of action."],
   [
@@ -119,12 +133,13 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'DESCRIPTION FIGHTER1',
-    "You are a warrior whose family have fallen out of favour. You have been sent on a quest to recover the Chalice of Dark Sight. If found, your family's good name will be restored.",
+    "You are a fighter whose family have fallen out of favour. This is your chance to restore your family's good name.",
   ],
   [
-    'DESCRIPTION FIRE_BEETLE',
+    'DESCRIPTION FIRE_BEETLE_PV',
     'A giant fire beetle. Glowing gland radiate a fiery light across the dungeon.',
   ],
+  ['DESCRIPTION FIRE_BOLT', 'Casting this spell hurls fire at your victims.'],
   [
     'DESCRIPTION GOBLIN',
     "Small humanoid creature.Treat with caution. They're small but vicious.",
@@ -160,6 +175,11 @@ const MESSAGE_MAP = new Map([
     'A blue, viscous liquid covering the dungeon flagstones.',
   ],
   [
+    'DESCRIPTION LIQUID_BLUE+TOXIC_ACID',
+    'A blue, acidic liquid covering the dungeon flagstones.',
+  ],
+  ['DESCRIPTION LOCK_PICK', 'Set of lock picks.'],
+  [
     'DESCRIPTION MANHOLE_COVER',
     'A small manhole cover set into the dungeon floor.',
   ],
@@ -170,15 +190,32 @@ const MESSAGE_MAP = new Map([
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
 
   ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
+  ['DESCRIPTION PURPLE_PLANT', 'A small herb with a purple flower.'],
+  [
+    'DESCRIPTION QUARTERSTAFF',
+    'A large quarterstaff capable of causing significant damage in the right hands.',
+  ],
+  [
+    'DESCRIPTION PURPLE_PLANT+HEDGEWORT',
+    "Purple hedgewort. Renowned for it's health giving properties.",
+  ],
   [
     'DESCRIPTION PLATE_ARMOUR',
     'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
   ],
   ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
-  ['DESCRIPTION RAT', 'A giant rat, diseased and vicious.'],
+  ['DESCRIPTION RAT_PV', 'A giant rat, diseased and vicious.'],
+  [
+    'DESCRIPTION RANGER1',
+    'You are a ranger who is more at one with the forest. The dungeon is not your natural realm, but you are ready to take it on.',
+  ],
   [
     'DESCRIPTION RING_MAIL_ARMOUR',
     'Leather armour reinforced with heavy steel rings sown into the material.',
+  ],
+  [
+    'DESCRIPTION ROGUE1',
+    'You are a rogue whose slippery character may help you creep your way through the depths of this dark and unforgiving dungeon.',
   ],
   [
     'DESCRIPTION RUSTY_KEY',
@@ -198,8 +235,11 @@ const MESSAGE_MAP = new Map([
     'Silver coins, worn and tarnished but still of value.',
   ],
   ['DESCRIPTION SLIME', 'A green sticky substance that seems to be growing.'],
-
-  ['DESCRIPTION SPIDER', 'A giant spider with fangs dripping green venom.'],
+  [
+    'DESCRIPTION SPARE_ME',
+    'An ancient cantrip that when performed restores a small amount of health.',
+  ],
+  ['DESCRIPTION SPIDER_PV', 'A giant spider with fangs dripping green venom.'],
   [
     'DESCRIPTION SPIKES',
     "It's a trap. Sharp iron spikes shoot up from the ground.",
@@ -225,6 +265,10 @@ const MESSAGE_MAP = new Map([
     "A small door in the floor. You can't tell what it hides.",
   ],
   [
+    'DESCRIPTION VEGETATION',
+    'A patch of vegetation managing to grow between the cracks in the flagstones.',
+  ],
+  [
     'DESCRIPTION WATERSKIN',
     'A leather drinking flask with fresh water. Crucial for resting between floors.',
   ],
@@ -232,9 +276,18 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION WARHAMMER',
     'A bludgeoning, versatile iron hammer favoured by many clerics.',
   ],
+  [
+    'DESCRIPTION WIZARD1',
+    'You a wizard determined to find your way to the final level of this dungeon using your control of magical chaos.',
+  ],
+  [
+    'DESCRIPTION WRAITH',
+    'An undead, neutral evil creature with a touch of death.',
+  ],
   ['DIALOG TITLE DEBUG LOG', 'Chronicles of Debug Loggerman'],
   ['DIALOG TITLE HALL OF FAME', 'Hall of Fame'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
+  ['DIALOG TITLE LOCKED', 'Locked'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
@@ -244,7 +297,7 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE TRAP DISABLED', 'Trap disabled!'],
   ['DIALOG TITLE TRAP TRIGGERED SURVIVED', 'Trap triggered!'],
   ['DIALOG TITLE TRAP TRIGGERED INJURED', 'Trap triggered!'],
-
+  ['DIALOG TITLE UNKNOWN ITEM', 'Unidentified item'],
   ['MENU TITLE MAIN', 'Click and Crawl'],
   ['MENU TITLE GUIDES', 'Guides and information'],
   ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
@@ -301,6 +354,18 @@ const MESSAGE_MAP = new Map([
     'MESSAGE ENTER FLOOR',
     "You enter dungeon floor ${0}. The door slams shut behind you. There's no way back. Like it or not, your only path is to continue deeper into the depths of this stone hell.",
   ],
+  [
+    'MESSAGE ENTRANCE STUCK',
+    [
+      "The entrance is locked or jammed. You can't tell. Either way, you can't escape in that direction.",
+      "You can't open the entrance. It seems locked or jammed. There's no way back.",
+    ],
+  ],
+  [
+    'MESSAGE EXPLAIN SPELL PREP',
+    'After a long rest, you can prepare spells ready for use.',
+  ],
+
   ['MESSAGE EXIT LOCKED', 'The exit is locked. There must be a key somewhere.'],
   [
     'MESSAGE EXPLAIN REST',
@@ -310,6 +375,19 @@ const MESSAGE_MAP = new Map([
     'MESSAGE EXPLAIN SPELL NEEDS REST',
     'To use a spell you need to prepare it. Preparation can only be done between dungeon floors after a long rest.',
   ],
+  [
+    'MESSAGE FOUND HIDDEN ARTEFACT',
+    [
+      'Good fortune smiles upon you. You found something.',
+      'You find something hidden in the ground.',
+      'Buried beneath the surface, you find something.',
+    ],
+  ],
+  [
+    'MESSAGE FOUND ENGRAVING',
+    'You find strange words engraved on the cold stone surface.',
+  ],
+  ['MESSAGE FOUND GENERIC', "It 's your lucky day. You' found something."],
   [
     'MESSAGE GENERIC EPITAPH',
     'Here lies the corpse of one more defeated enemy.',
@@ -331,6 +409,10 @@ const MESSAGE_MAP = new Map([
   ],
   ["MESSAGE IT'S POISON", "Yuk! It's poison. -${0}HP"],
   [
+    'MESSAGE KEY UNLOCKS EXIT',
+    'You use the key you found earlier to unlock the door.',
+  ],
+  [
     'MESSAGE MAKE SPACE IN BACKPACK',
     'You need to make space in your backpack by discarding or using something.',
   ],
@@ -338,6 +420,13 @@ const MESSAGE_MAP = new Map([
     'MESSAGE MAKE SPACE IN EQUIP',
     "This is too big to store. Sell or discard what you're wearing so you can wear this.",
   ],
+  [
+    'MESSAGE NEED LOCK PICK',
+    "You can't pick a lock without a set of lock picks.",
+  ],
+  ['MESSAGE NO SAVED ADVENTURE', 'No adventure has been saved yet.'],
+  ['MESSAGE NOTHING HERE', "There's nothing here."],
+
   [
     'MESSAGE NOTHING MORE TO DISCOVER',
     "There's nothing more for you to learn or discover here.",
@@ -351,6 +440,13 @@ const MESSAGE_MAP = new Map([
     'MESSAGE REST DIALOG',
     "You are on a dark staircase leading deeper into the dungeon, but safe for now. If you have enough food or drink, you can rest to restore some health if necessary. If you don't need to recover, save your rations.",
   ],
+  [
+    'MESSAGE REST LONG HP GAIN',
+    'Your long rest recovered ${0} HP. You are also now cured of the toxic effects of any poisons you may have encountered.',
+  ],
+
+  ['MESSAGE REST SHORT HP GAIN', 'Your short rest recovered ${0} HP.'],
+
   [
     'MESSAGE SEARCH CORPSE OR MOVE',
     [
@@ -410,41 +506,17 @@ const MESSAGE_MAP = new Map([
     'MESSAGE TRAP DISABLED',
     'Taking great care you manage to disable the trap.',
   ],
-
   [
-    'MESSAGE ENTRANCE STUCK',
-    [
-      "The entrance is locked or jammed. You can't tell. Either way, you can't escape in that direction.",
-      "You can't open the door. It seems locked or jammed. There's no way back.",
-    ],
+    'MESSAGE FAILED TO IDENTIFY',
+    "You tried to identify this, but you're not sure exactly what it is. You might remember later.",
   ],
   [
-    'MESSAGE EXPLAIN SPELL PREP',
-    'After a long rest, you can prepare spells ready for use.',
+    'MESSAGE YOU FAIL TO PICK THE LOCK',
+    'This lock is tricky. Your attempt to pick it fails.',
   ],
   [
-    'MESSAGE FOUND HIDDEN ARTEFACT',
-    [
-      'Good fortune smiles upon you. You found something.',
-      'You find something hidden in the ground.',
-      'Buried beneath the surface, you find something.',
-    ],
-  ],
-  [
-    'MESSAGE FOUND ENGRAVING',
-    'You find strange words engraved on the cold stone surface.',
-  ],
-  ['MESSAGE FOUND GENERIC', "It 's your lucky day. You' found something."],
-  [
-    'MESSAGE KEY UNLOCKS EXIT',
-    'You use the key you found earlier to unlock the door.',
-  ],
-  ['MESSAGE NO SAVED ADVENTURE', 'No adventure has been saved yet.'],
-  ['MESSAGE NOTHING HERE', "There's nothing here."],
-  ['MESSAGE REST SHORT HP GAIN', 'Your short rest recovered ${0} HP.'],
-  [
-    'MESSAGE REST LONG HP GAIN',
-    'Your long rest recovered ${0} HP. You are also now cured of the toxic effects of any poisons you may have encountered.',
+    'MESSAGE YOU PICK THE LOCK',
+    'Using your skill, you manage to pick the lock.',
   ],
   [
     'MESSAGE WELCOME',

@@ -279,6 +279,9 @@ export class Fight extends AbstractInteraction {
       if (attacker.attackMode === AttackMode.POISON) {
         return new Poison(attacker).enact(defender);
       }
+      if (attacker.attackMode === AttackMode.MAGIC) {
+        return new CastSpell(attacker).react(attacker);
+      }
       // Monsters use a spell or cantrip if available.
       const storeManager = attacker.storeManager;
       let spell = storeManager.getStore(StoreType.PREPARED_SPELLS).getFirst();
@@ -718,46 +721,86 @@ export class CastSpell extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
+    if (this.owner.traits.get('ATTACK') === 'BLESS') {
+      return this.#castOnSelf(enactor);
+    }
     const tileMap = WORLD.getTileMap();
     const gridPoint = tileMap.worldPointToGrid(enactor.position);
     const range = this.owner.traits.getValueInFeetInTiles('RANGE', 1);
     const maxTargets = this.owner.traits.getInt('MAX_TARGETS', 999);
     let hitTargets = 0;
     const affectedTiles = tileMap.getRadiatingUpAndDown(gridPoint, range);
-    const attackMode = this.owner.traits.get('ATTACK', 'MAGIC');
     for (const tile of affectedTiles) {
-      if (hitTargets > maxTargets) {
+      if (hitTargets >= maxTargets) {
         break;
       }
-      if (attackMode === 'MAGIC') {
-        this.#displaySpell(tile.worldPoint);
-      }
+
       let descendingHp = [...tile.getOccupants().values()].sort(
         (a, b) => b.traits.getInt('HP') - a.traits.getInt('HP')
       );
       for (const occupant of descendingHp) {
-        const damage = dndAction.getSpellDamage(
-          enactor.traits,
-          occupant.traits,
-          this.owner.traits
-        );
-        if (damage > 0) {
-          hitTargets++;
-          if (attackMode === 'MELEE') {
+        if (this.#IsValidTarget(enactor, occupant)) {
+          const damage = dndAction.getSpellDamage(
+            enactor.traits,
+            occupant.traits,
+            this.owner.traits
+          );
+          if (damage > 0) {
+            hitTargets++;
             this.#displaySpell(tile.worldPoint);
+            applyDamage(enactor, occupant, damage);
+            occupant.traits.addTransientFxTraits(this.owner.traits);
           }
-          applyDamage(enactor, occupant, damage);
-          occupant.traits.addTransientFxTraits(this.owner.traits);
         }
       }
     }
-    if (attackMode === 'MELEE' && hitTargets === 0) {
+    if (hitTargets === 0) {
       this.#displayFailedSpell(enactor.position);
     }
     if (this.owner.artefactType === ArtefactType.SPELL) {
       magic.useCastingPower(this.enactor.traits, this.owner.traits);
     }
     return Promise.resolve();
+  }
+
+  /**
+   * Cast a spell on oneself. These are only for spells that have
+   *  a benefit and only for heroes.
+   * @param {module:players/actors.Actor} caster
+   * @returns {Promise<undefined>}
+   */
+  #castOnSelf(caster) {
+    if (!caster.isHero()) {
+      return;
+    }
+    const hpGain = dndAction.getSpellHpGain(
+      caster.traits,
+      caster.traits,
+      this.owner.traits
+    );
+    this.#displaySpell(caster.position);
+    if (hpGain > 0) {
+      caster.traits.addInt('HP', hpGain);
+      displayRisingText(
+        `+${hpGain}HP`,
+        caster.position,
+        Colours.HP_TRANSIENT_TEXT_HERO
+      );
+    }
+    return Promise.resolve();
+  }
+  /**
+   * Test if this is a valid target.
+   * @param {module:dnd/players.Actor} caster
+   * @param {module:dnd/players.Actor} target
+   * @returns {boolean}
+   */
+  #IsValidTarget(caster, target) {
+    if (caster.isHero()) {
+      return target.isEnemy() && target.alive;
+    } else {
+      return target.isHero() && target.alive;
+    }
   }
 
   /**
@@ -778,7 +821,7 @@ export class CastSpell extends AbstractInteraction {
    * @param {Point} worldPoint
    */
   #displayFailedSpell(worldPoint) {
-    addFadingAnimatedImage('failed-spell', {
+    addFadingImage(IMAGE_MANAGER.getSpriteBitmap('failed-spell.png'), {
       position: worldPoint,
       delaySecs: 0,
       lifetimeSecs: 1,
@@ -847,7 +890,7 @@ export class ConsumeFood extends AbstractInteraction {
       }
 
       const message =
-        foodType === 'POTION'
+        foodType === 'MEDICINE'
           ? i18n`MESSAGE IT'S A HEALTHY DRINK ${gainHp}`
           : i18n`MESSAGE IT'S HEALTHY ${gainHp}`;
       return UI.showOkDialog(message).then(() =>

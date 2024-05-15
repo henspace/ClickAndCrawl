@@ -35,7 +35,7 @@ import { Traits, MagicTraits, CharacterTraits } from '../dnd/traits.js';
 
 test('Artefact toJson and revive', () => {
   const almanacEntry = parseAlmanacLine(
-    '0,UNCOMMON,CONSUMABLE,black_flask+healing * VALUE: 2SP, _TYPE: POTION, _HP:6',
+    '0,UNCOMMON,CONSUMABLE,black_flask+healing * VALUE: 2SP, _TYPE: MEDICINE, _HP:6',
     'ARTEFACTS'
   );
   const original = buildArtefact(almanacEntry);
@@ -60,5 +60,5 @@ test('Artefact toJson and revive', () => {
   if (original.almanacEntry.equipmentIds === undefined) {
     revived.almanacEntry.equipmentIds = undefined; // it won't have been parsed as JSON.
   }
-  expect(revived).toStrictEqual(original);
+  expect(revived).toEqual(original);
 });

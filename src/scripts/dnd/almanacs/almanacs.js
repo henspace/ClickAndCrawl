@@ -43,7 +43,7 @@ const VERY_RARE_PERCENT = 1;
 /**
  * @enum {AlmanacRarityValue}
  */
-const AlmanacRarity = {
+export const AlmanacRarity = {
   COMMON: 'COMMON',
   UNCOMMON: 'UNCOMMON',
   RARE: 'RARE',
@@ -57,6 +57,7 @@ const AlmanacRarity = {
  * @property {string} rarity - COMMON, UNCOMMON, RARE, VERY RARE
  * @property {string} imageName
  * @property {string} description
+ * @property {string} identification
  * @property {string} typeId
  * @property {ArtefactType | ActorType} type
  * @property {string} equipmentIds - comma separated equipment list
@@ -64,6 +65,28 @@ const AlmanacRarity = {
  * @property {number} challengeRating - just used for searching the almanac
  */
 
+/**
+ * Convert a rarity to a percentage.
+ * @param {AlmanacRarityValue} rarity
+ * @returns {number}
+ */
+export function rarityToPercent(rarity) {
+  switch (rarity) {
+    case AlmanacRarity.RARE:
+      return RARE_PERCENT;
+    case AlmanacRarity.UNCOMMON:
+      return UNCOMMON_PERCENT;
+    case AlmanacRarity.VERY_RARE:
+      return VERY_RARE_PERCENT;
+    case AlmanacRarity.COMMON:
+    default:
+      return COMMON_PERCENT;
+  }
+}
+
+/**
+ * Encapsulation of an almanac
+ */
 class Almanac {
   /** @type {number} */
   static COMMON_CUTOFF =
@@ -298,7 +321,7 @@ class AlmanacLibrary {
    *
    * @param {string} key - almanac key
    * @param {*} type - entry type
-   * @returns {module:players/artefacts~ArtefactTypeValue | module:players/artefacts~ActorTypeValue }
+   * @returns {module:players/artefacts~ArtefactTypeValue | module:players/actors~ActorTypeValue }
    */
   getItemType(key, type) {
     switch (key) {
@@ -321,13 +344,14 @@ class AlmanacLibrary {
  */
 export function parseAlmanacLine(line, almanacKey) {
   const parts = line.match(
-    /^ *(\d+) *, *(\w+ ?\w+) *, *(\w*) *, *([\w+]*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
+    /^ *(\d+) *, *(\w+ ?\w+) *, *(\w+) *, *([\w+]*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
   );
   if (!parts) {
     LOG.error(`Invalid almanac entry ${line}`);
     return null;
   }
   const entry = {};
+  const traitsString = parts[6] ?? '';
   entry.minLevel = parseInt(parts[1]);
   entry.rarity = parts[2].toUpperCase();
   entry.typeId = parts[3];
@@ -337,8 +361,9 @@ export function parseAlmanacLine(line, almanacKey) {
   entry.name = derivedParts.name;
   entry.imageName = derivedParts.imageName;
   entry.description = derivedParts.description;
+  entry.unknownDescription = derivedParts.unknownDescription;
   entry.equipmentIds = csvToArray(parts[5]);
-  entry.traitsString = `_TYPE_ID:${entry.typeId},${parts[6]}`;
+  entry.traitsString = `_TYPE_ID:${entry.typeId},${traitsString}`;
   entry.challengeRating = extractCrValue(entry.traitsString);
   return entry;
 }

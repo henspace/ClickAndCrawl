@@ -39,7 +39,7 @@ export function createNameFromId(idMain = '?') {
   if (idMain.len < 2) {
     return idMain;
   }
-  const name = idMain.replace(/_/g, ' ');
+  const name = idMain.replace(/_pv$/i, '').replace(/_/g, ' ');
   const capitalisedName = name.charAt(0).toUpperCase() + name.substring(1);
   return MESSAGES.getText(capitalisedName);
 }
@@ -61,31 +61,24 @@ export function createDescriptionFromId(id) {
 }
 
 /**
- * Strip orientation information from an image name.
- * @param {*} fullName
- * @returns {string}
- */
-function stripViewInfo(fullName) {
-  if (fullName.endsWith('_pv')) {
-    return fullName.substring(0, fullName.length - 3);
-  }
-  return fullName;
-}
-
-/**
- * Takes an ID including its extension and creates name, imageName and description.
+ * Takes an ID including its extension and creates name, imageName, description.
+ * If needsIdentification is true the identification is also added.
  * @param {string} [id = '?']
- * @returns {{name:string, imageName:string, description:string}}
+ * @returns {{name:string, imageName:string, description:string, unknownDescription: string}}
  */
 export function derivePartsFromId(id = '?') {
   const parts = id.split('+');
-  const strippedName = stripViewInfo(parts[0]);
+  const needsIdentification = parts.length > 1;
+  const strippedName = parts[0];
   if (!id) {
     return {};
   }
   return {
     name: createNameFromId(strippedName),
     imageName: parts[0].toLowerCase(),
-    description: createDescriptionFromId(strippedName),
+    description: createDescriptionFromId(id),
+    unknownDescription: needsIdentification
+      ? createDescriptionFromId(strippedName)
+      : undefined,
   };
 }
