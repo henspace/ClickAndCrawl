@@ -57,7 +57,7 @@ import { VelocityAligner } from '../../utils/sprites/movers.js';
  * Specialist traits renderer
  */
 class TraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
-  /** @type {Actor} */
+  /** @type {module:players/actors.Actor} */
   actor;
   /**
    * The number of gauges is determined by the maximum length of the fill styles and
@@ -90,7 +90,7 @@ class TraitsRenderer extends spriteRenderers.MultiGaugeTileRenderer {
  * and alive property.
  */
 class ActorStateAnimator extends animation.KeyedAnimatedImages {
-  /** @type {Actor} */
+  /** @type {module:players/actors.Actor} */
   #actor;
 
   /** Number from eight point compass. */
@@ -250,7 +250,7 @@ function createArtefactHolderKeyFrames(imageName) {
  * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createActor(imageName, iconImageName, traits, almanacEntry) {
   const keyedAnimation = createStandardKeyFrames(imageName);
@@ -307,7 +307,7 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
  * @param {string} imageName - no extension
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createArtefactHolder(imageName, traits, almanacEntry) {
   const keyedAnimation = createArtefactHolderKeyFrames(imageName);
@@ -341,7 +341,7 @@ function createArtefactHolder(imageName, traits, almanacEntry) {
  * @param {string} iconImageName - without extension. Name of icon for dialogs.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createEnemy(imageName, iconImageName, traits, almanacEntry) {
   const actor = createActor(imageName, iconImageName, traits, almanacEntry);
@@ -360,7 +360,7 @@ function createEnemy(imageName, iconImageName, traits, almanacEntry) {
  * @param {string} iconImageName - without extension. Name of icon for dialogs.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createProp(imageName, iconImageName, traits, almanacEntry) {
   const actor = createActor(imageName, iconImageName, traits, almanacEntry);
@@ -374,7 +374,7 @@ function createProp(imageName, iconImageName, traits, almanacEntry) {
  * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createTrader(imageName, iconImageName, traits, actorType) {
   const actor = createActor(imageName, iconImageName, traits, actorType);
@@ -388,7 +388,7 @@ function createTrader(imageName, iconImageName, traits, actorType) {
  * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createObjective(imageName, iconImageName, traits, actorType) {
   const actor = createActor(imageName, iconImageName, traits, actorType);

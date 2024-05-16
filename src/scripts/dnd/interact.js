@@ -138,7 +138,7 @@ function applyDamage(attacker, defender, damage) {
 /** Dummy interaction that does nothing
  */
 export class AbstractInteraction {
-  /** Actor owning the interaction @type {Actor} */
+  /** Actor owning the interaction @type {module:players/actors.Actor} */
   owner;
 
   /**
@@ -721,7 +721,7 @@ export class CastSpell extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    if (this.owner.traits.get('ATTACK') === 'BLESS') {
+    if (this.owner.traits.get('MODE') === 'BLESS') {
       return this.#castOnSelf(enactor);
     }
     const tileMap = WORLD.getTileMap();
@@ -771,6 +771,10 @@ export class CastSpell extends AbstractInteraction {
    */
   #castOnSelf(caster) {
     if (!caster.isHero()) {
+      return;
+    }
+    if (!magic.canBless(caster.traits, caster.traits, this.owner.traits)) {
+      this.#displayFailedSpell(caster.position);
       return;
     }
     const hpGain = dndAction.getSpellHpGain(

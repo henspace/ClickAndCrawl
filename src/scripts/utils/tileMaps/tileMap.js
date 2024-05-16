@@ -78,7 +78,7 @@ export const TileRole = {
  * Tile class
  */
 export class Tile extends UiClickHandler {
-  /** @type {Sprite} */
+  /** @type {module:utils/sprites/sprites.Sprite} */
   sprite;
   /** @type {boolean} */
   obstacle;
@@ -92,7 +92,7 @@ export class Tile extends UiClickHandler {
   #role;
 
   /** Construct tile
-   * @param {Sprite} tileSprite;
+   * @param {module:utils/sprites/sprites.Sprite} tileSprite;
    * @param {Object} options;
    * @param {boolean} options.obstacle;
    * @param {!Point} options.gridPoint;
@@ -250,9 +250,9 @@ export class TileMap {
   #movementRoutes;
   /** @type {Point[]} */
   #movementGridPoints;
-  /** @type {Sprite} */
+  /** @type {module:utils/sprites/sprites.Sprite} */
   #movementTileHighlighter;
-  /** @type {Sprite} */
+  /** @type {module:utils/sprites/sprites.Sprite} */
   #reachableDoorTileHighlighter;
   /** @type {Tile[]} */
   #reachableDoorTileGridPoints;
@@ -270,9 +270,9 @@ export class TileMap {
   #heroRayTracer;
   /** @type {Point[]} */
   #interactTileGridPoints;
-  /** @type {Sprite} */
+  /** @type {module:utils/sprites/sprites.Sprite} */
   #interactTileHighlighter;
-  /** @type {Actor} */
+  /** @type {module:players/actors.Actor} */
   #heroActor;
 
   /**
@@ -672,7 +672,7 @@ export class TileMap {
   /**
    * Handle a tile click.
    * To be actioned a tile must be in the highlightedRoutes
-   * @param {Sprite} target - the sprite that was clicked. This prevents the need
+   * @param {module:utils/sprites/sprites.Sprite} target - the sprite that was clicked. This prevents the need
    * to use 'this' which may not be correct in the context.
    * @param {Point} point - the position in the world that was clicked
    * @param {module:utils/sprites/sprite~SpriteClickHandler} clickHandler

@@ -29,6 +29,7 @@
  */
 
 import { AbstractModifier } from './modifiers.js';
+import LOG from '../logging.js';
 
 class VariableSpeed {
   /** @type {number} */
@@ -283,6 +284,20 @@ export class PathFollower extends AbstractModifier {
     this.#index = 0;
     this.#targetPoint = options.path[0];
     this.#variableSpeed = new VariableSpeed(options.speed, options.linear);
+  }
+
+  /**
+   * Perform any cleanup if timeout occurs.
+   * Should be overridden if cleanup necessary. Default does nothing.
+   * @param {module:utils/sprites/sprite~Sprite} sprite
+   * @override
+   */
+  cleanUpOnTimeout(sprite) {
+    // move to the end of the path.
+    LOG.debug(`Transient path follower timed out. Moving to end of path.`);
+    const lastPoint = this.#path[this.#path.length - 1];
+    sprite.position.x = lastPoint.x;
+    sprite.position.y = lastPoint.y;
   }
 
   /**

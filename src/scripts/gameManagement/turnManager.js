@@ -87,7 +87,7 @@ let persistentGame = true;
  *
  */
 class ReplayableActorMover {
-  /** @type {Actor} */
+  /** @type {module:players/actors.Actor} */
   #actor;
   /** @type {AbstractModifier} */
   #modifier;

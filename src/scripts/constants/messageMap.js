@@ -166,6 +166,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION IRON_RATIONS',
     'Simple emergency rations. Crucial for resting between floors.',
   ],
+  ['DESCRIPTION KOBOLD', 'A small reptilian humanoid.'],
   [
     'DESCRIPTION LEATHER_ARMOUR',
     'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
@@ -234,10 +235,14 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION SILVER_COINS',
     'Silver coins, worn and tarnished but still of value.',
   ],
+  [
+    'DESCRIPTION SKELETON',
+    "A skeleton of someone who died here many years ago. It's intent on revenge.",
+  ],
   ['DESCRIPTION SLIME', 'A green sticky substance that seems to be growing.'],
   [
-    'DESCRIPTION SPARE_ME',
-    'An ancient cantrip that when performed restores a small amount of health.',
+    'DESCRIPTION HELP_THE_DYING',
+    'An ancient cantrip that when performed restores a small amount of health to the very injured.',
   ],
   ['DESCRIPTION SPIDER_PV', 'A giant spider with fangs dripping green venom.'],
   [
@@ -488,7 +493,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE TRADERS PROTECTED',
-    'Traders are protected from attack under the ancient law for the protection of travelling merchants, "Míriel roita ohtaril alamë."',
+    'Traders are protected from attack under the ancient law for the protection of travelling merchants.',
   ],
   [
     'MESSAGE TRAP ATTEMPT DISABLE',
@@ -525,6 +530,7 @@ const MESSAGE_MAP = new Map([
 
   // Miscellaneous words and phrases.
   ['AC (including armour)', 'AC (+armour): ${0}'],
+  ['ACTS ON CASTER', 'Acts on caster'],
   ['Backpack', 'Backpack'],
   ['Body', 'Body'],
   ['Cantrips', 'Cantrips'],
@@ -547,6 +553,7 @@ const MESSAGE_MAP = new Map([
   ['LEVEL UP', 'Level up to ${0}'],
   ['Name:', 'Name: ${0}'],
   ['Prepared spells', 'Prepared spells'],
+  ['Range:', 'Range: ${0-range}'],
   ['Ready magic', 'Ready magic'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],

@@ -55,7 +55,7 @@ export class NavigationButtons {
   /** @type {CameraDolly} */
   #cameraDolly;
 
-  /** @type {Actor} */
+  /** @type {module:players/actors.Actor} */
   #trackingButton;
 
   /** @type {module:utils/sprites/imageManager~SpriteBitmap} */

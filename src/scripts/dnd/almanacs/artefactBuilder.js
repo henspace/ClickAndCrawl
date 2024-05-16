@@ -59,7 +59,7 @@ function createArtefact(almanacEntry, detail) {
  * @param {module:dnd/almanacs/almanacActors~AlmanacEntry} almanacEntry
  * @param {module:dnd/traits.Traits} [initialTraits] - initial traits
  * almanac entry. Normally only required if restoring an artefact from saved values.
- * @returns {Artefact}
+ * @returns {module:players/artefacts.Artefact}
  */
 export function buildArtefact(almanacEntry, initialTraits) {
   let traits;
@@ -97,7 +97,7 @@ export function buildArtefact(almanacEntry, initialTraits) {
  * Build an artefact from its id.
  * @param {string} id
  * @param {string[]} [keys = 'MONEY] - the almanacs to search.
- * @returns {Artefact} null if not found
+ * @returns {module:players/artefacts.Artefact} null if not found
  */
 export function buildArtefactFromId(id, keys = ['MONEY']) {
   const artefactEntry = ALMANAC_LIBRARY.findById(id, keys);

@@ -27,7 +27,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { test, expect } from '@jest/globals';
-import { CharacterTraits, Traits } from './traits.js';
+import { CharacterTraits, MagicTraits, Traits } from './traits.js';
 import { getMinExpPointsForLevel } from './tables.js';
 import * as magic from './magic.js';
 
@@ -180,4 +180,40 @@ test('canCastingSpell creates casting power if non-existent', () => {
   magic.canCastSpell(casterTraits, spellTraits);
   const remainingPower = casterTraits.getInt('CASTING_POWER');
   expect(remainingPower).toBe(expectedFullPower);
+});
+
+test('canBless: default maxTargetHp', () => {
+  let maxTargetHp = 1; // default
+  let casterTraits = new CharacterTraits(''); // unused
+
+  let spellTraits = new MagicTraits('');
+  // target hp < maxTargetHp
+  let targetTraits = new CharacterTraits(`HP:${maxTargetHp - 1}`);
+  expect(magic.canBless(casterTraits, targetTraits, spellTraits)).toEqual(true);
+  // target hp == maxTargetHp
+  targetTraits = new CharacterTraits(`HP:${maxTargetHp}`);
+  expect(magic.canBless(casterTraits, targetTraits, spellTraits)).toEqual(true);
+  // target hp > maxTargetHp
+  targetTraits = new CharacterTraits(`HP:${maxTargetHp + 1}`);
+  expect(magic.canBless(casterTraits, targetTraits, spellTraits)).toEqual(
+    false
+  );
+});
+
+test('canBless: defined maxTargetHp', () => {
+  let maxTargetHp = 11; // default
+  let casterTraits = new CharacterTraits(''); // unused
+
+  let spellTraits = new MagicTraits(`MAX_TARGET_HP:${maxTargetHp}`);
+  // target hp < maxTargetHp
+  let targetTraits = new CharacterTraits(`HP:${maxTargetHp - 1}`);
+  expect(magic.canBless(casterTraits, targetTraits, spellTraits)).toEqual(true);
+  // target hp == maxTargetHp
+  targetTraits = new CharacterTraits(`HP:${maxTargetHp}`);
+  expect(magic.canBless(casterTraits, targetTraits, spellTraits)).toEqual(true);
+  // target hp > maxTargetHp
+  targetTraits = new CharacterTraits(`HP:${maxTargetHp + 1}`);
+  expect(magic.canBless(casterTraits, targetTraits, spellTraits)).toEqual(
+    false
+  );
 });

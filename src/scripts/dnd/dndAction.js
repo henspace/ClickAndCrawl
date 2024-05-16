@@ -131,7 +131,7 @@ export function getConsumptionBenefit(consumableTraits, consumerTraits) {
  * @returns {number}
  */
 export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
-  switch (spellTraits.get('ATTACK')) {
+  switch (spellTraits.get('MODE')) {
     case 'MELEE':
       return getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits);
     default:

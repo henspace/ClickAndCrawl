@@ -168,3 +168,24 @@ export function restoreCastingPower(casterTraits) {
   casterTraits.set('CASTING_POWER', maxPower);
   return maxPower;
 }
+
+/**
+ * Test if bless spell can be used. Bless spells can only be used
+ * when the target's HP are <= spellTraits MAX_TARGET_HP value.
+ * If MAX_TARGET_HP is not set, a value of 1 is used.
+ * @param {module:dnd/traits.CharacterTraits} casterTraitsUnused
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
+ * @param {module:dnd/traits.MagicTraits} spellTraits
+ * @returns {boolean}
+ */
+export function canBless(casterTraitsUnused, targetTraits, spellTraits) {
+  const maxTargetHp = spellTraits.getInt('MAX_TARGET_HP', 1);
+  const targetHp = targetTraits.getInt('HP');
+  if (targetHp > maxTargetHp) {
+    LOG.info(
+      `Targets's HP (${targetHp}) is above max target hp of ${maxTargetHp}. Spell failed.`
+    );
+    return false;
+  }
+  return targetHp <= maxTargetHp;
+}

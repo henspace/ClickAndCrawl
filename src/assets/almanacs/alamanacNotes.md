@@ -223,11 +223,12 @@ The following TYPE traits would not be proficient:
 
 There are a number of key traits for spells:
 
-- ATTACK: teh mechanics of the spell. This can be MAGIC, the default, MELEE, or BLESS. Bless spells are beneficial and are applied to oneself.
+- ATTACK: the mechanics of the spell. This can be MAGIC, the default, MELEE, or BLESS. Bless spells are beneficial and are applied to oneself.
 - DMG: the damage dice
 - DICE_PER_LEVEL: the number of damage dice per character level. This is a floating
 point value so fractional values will work.  Some spells are defined in the DnD 5e guide as increasing per spell level rather than per character level. As there are 20 character levels and 9 spell levels the spell level rate should be divided by two to give an approximate value for the DICE_PER_LEVEL.
 - MAX_TARGETS: the maximum number of creatures who can be affected by the spell.
+- MAX_TARGET_HP: the max number of remaining HP the target can have to apply a BLESS spell.
 -SAVE_BY: this defines which ability is used for saving tests. E.g. 
 SAVE_BY:DEX
 -DMG_SAVED: this give the proportion of damage applied if a save is successful. E.g. DMG_SAVED:0.5

@@ -75,9 +75,16 @@ export class AbstractModifier {
   }
 
   /**
+   * Perform any cleanup if timeout occurs.
+   * Should be overridden if cleanup necessary. Default does nothing.
+   * @param {module:utils/sprites/sprites.Sprite} sprite
+   */
+  cleanUpOnTimeout(spriteUnused) {}
+
+  /**
    * Apply the modifier as transient to a sprite.
    * @param {AbstractModifier} modifier
-   * @param {Sprite} sprite
+   * @param {module:utils/sprites/sprites.Sprite} sprite
    * @param {number} [timeoutSeconds = DEFAULT_TIMEOUT_SECS]
    * @returns {Promise} fulfils to null on completion;
    */
@@ -91,7 +98,7 @@ export class AbstractModifier {
 
   /**
    * Apply the modifier as continuous to a sprite.
-   * @param {Sprite} sprite
+   * @param {module:utils/sprites/sprites.Sprite} sprite
    */
   applyAsContinuousToSprite(sprite) {
     sprite.replaceBaseModifier(this);
@@ -100,7 +107,7 @@ export class AbstractModifier {
   /** Do the update modification. If a decoratedModifier has been set, this is then
    * called. If after calling update, the modifier is removed, it is removed from
    * the owning decoratedModifier. Its children are retained.
-   * @param {Sprite} sprite
+   * @param {module:utils/sprites/sprites.Sprite} sprite
    * @param {number} deltaSeconds - elapsed time since last update.
    * @returns {AbstractModifier} - the modifier required for the next update. This
    * normally returns itself. If null is return, this indicates that the modifier
@@ -119,8 +126,12 @@ export class AbstractModifier {
       );
     }
 
-    const nextModifier = this.doUpdate(sprite, deltaSeconds);
-    if (!nextModifier || this.#activeSeconds > this.#timeoutSeconds) {
+    let nextModifier = this.doUpdate(sprite, deltaSeconds);
+    if (this.#activeSeconds > this.#timeoutSeconds) {
+      this.cleanUpOnTimeout(sprite);
+      nextModifier = null; // end this
+    }
+    if (!nextModifier) {
       this.#resolve(null);
       return null;
     }
@@ -128,7 +139,7 @@ export class AbstractModifier {
   }
 
   /** Do the update modification for this modifier.
-   * @param {Sprite} sprite
+   * @param {module:utils/sprites/sprites.Sprite} sprite
    * @param {number} deltaSeconds - elapsed time since last update.
    * @returns {AbstractModifier} - the modifier for the next update.
    */

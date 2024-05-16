@@ -72,12 +72,12 @@ const ArtefactAction = {
 
 /**
  * @typedef {Object} ArtefactDialogOptions
- * @property {Actor} currentOwner - who currently owns the artefact.
- * @property {Actor} prospectiveOwner - who currently owns the artefact.
+ * @property {module:players/actors.Actor} currentOwner - who currently owns the artefact.
+ * @property {module:players/actors.Actor} prospectiveOwner - who currently owns the artefact.
  * @property {boolean} allowMagicUse - allow an item to be used.
  * @property {boolean} allowConsumption - allow an item to be consumed.
  * @property {boolean} allowSpellPrep - allow a spell to be prepared.
- * @property {Artefact} artefact - the item .
+ * @property {module:players/artefacts.Artefact} artefact - the item .
  * @property {StoreType} storeType
  * @property {ArtefactActionTypeValue} actionType
  * @param {function(noChain:boolean):Promise} refresh - function to call if storage changed.
@@ -868,21 +868,6 @@ function createSellArtefactDialogButtons(container, options) {
   } else {
     buyersFundsInGp = options.prospectiveOwner.storeManager.getPurseValue();
   }
-
-  // button labels shows action relative to the hero.
-  // i.e. although the action may be the trader selling
-  // an item, to the player this is viewed as buying.
-  let button;
-
-  const prospectiveStore =
-    options.prospectiveOwner.storeManager.findSuitableStore(options.artefact);
-  if (!prospectiveStore) {
-    container.appendChild(createFailedStorageGuidance(options));
-    if (!options.currentOwner.isTrader()) {
-      createSelfActionArtefactDialogButtons(container, options);
-    }
-    return;
-  }
   if (buyersFundsInGp < options.artefact.costInGp) {
     container.appendChild(
       createNoFundsGuidance(buyersFundsInGp, artefactCostInGp)
@@ -892,7 +877,20 @@ function createSellArtefactDialogButtons(container, options) {
     }
     return;
   }
-  button = new components.TextButtonControl({
+
+  // button labels shows action relative to the hero.
+  // i.e. although the action may be the trader selling
+  // an item, to the player this is viewed as buying.
+  const prospectiveStore =
+    options.prospectiveOwner.storeManager.findSuitableStore(options.artefact);
+  if (!prospectiveStore) {
+    container.appendChild(createFailedStorageGuidance(options));
+    if (!options.currentOwner.isTrader()) {
+      createSelfActionArtefactDialogButtons(container, options);
+    }
+    return;
+  }
+  let button = new components.TextButtonControl({
     label: options.currentOwner.isTrader()
       ? i18n`BUTTON BUY FOR GP ${options.artefact.costInGp.toFixed(2)}`
       : i18n`BUTTON SELL FOR GP ${options.artefact.sellBackPriceInGp.toFixed(
@@ -1182,12 +1180,16 @@ function createArtefactButtonLabel(options) {
     if (dice) {
       label = `${label} ${diceLabel}${dice}`;
     }
-    if (traits.get('ATTACK') !== 'BLESS') {
+    let rangeText;
+    if (traits.get('MODE') === 'BLESS') {
+      rangeText = i18n`ACTS ON CASTER`;
+    } else {
       const range = traits.get('RANGE');
       if (range) {
-        label = `${label} RANGE: ${range}`;
+        rangeText = i18n`Range: ${range}`;
       }
     }
+    label = `${label} ${rangeText}`;
   }
   if (
     options.showPrice ||

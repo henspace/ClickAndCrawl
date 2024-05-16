@@ -50,7 +50,7 @@ let visible = false;
  * @param {SpriteBitmap | AnimatedImage} image
  * @param {module:ui/interactions~UiClickCallback} callbackOn
  * @param {module:ui/interactions~UiClickCallback} callbackOff
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function addButton(image, callbackOn, callbackOff) {
   const actor = new Actor(
@@ -81,7 +81,7 @@ function addButton(image, callbackOn, callbackOff) {
  * @param {SpriteBitmap | AnimatedImage} image
  * @param {module:ui/interactions~UiClickCallback} callbackOn
  * @param {module:ui/interactions~UiClickCallback} callbackOff
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function addMomentaryButton(image, callbackOn, callbackOff) {
   const actor = new Actor(

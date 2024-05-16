@@ -9,5 +9,6 @@ On a scrap of vellum passed to you by the village elder, are some notes that pre
 - Resting between dungeon floors can restore some health. You need one meal (food and drink) for a short rest, and three meals for a long rest.
 - To use any spells you learn, you'll need to take a long rest so you can prepare them.
 - Cantrips are quick magic. If you learn any, you can use them straight away.
+- The little target icon at the bottom right of the map, autocentres the map on your hero. Drag the map to disable it; click it again to enable it.
 
 Good luck. You're going to need it.

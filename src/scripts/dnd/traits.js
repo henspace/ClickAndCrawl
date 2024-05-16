@@ -596,7 +596,7 @@ export class MagicTraits extends Traits {
     );
     let adjustedDice = dice.changeQtyOfDice(baseDice, extraDice);
     LOG.info(
-      `Spell cast: base damage dice = ${baseDice} raised to ${adjustedDice} for level.`
+      `Spell cast: base dice = ${baseDice} raised to ${adjustedDice} for level.`
     );
     return adjustedDice;
   }

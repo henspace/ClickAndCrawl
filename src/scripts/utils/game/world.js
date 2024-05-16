@@ -123,7 +123,7 @@ function removeArtefact(target) {
 
 /**
  * Add effect sprite
- * @param {Sprite} sprite
+ * @param {module:utils/sprites/sprites.Sprite} sprite
  */
 function addPassiveSprite(sprite) {
   passiveSprites.set(sprite, sprite);
@@ -131,7 +131,7 @@ function addPassiveSprite(sprite) {
 
 /**
  * Add effect sprite
- * @param {Sprite} sprite
+ * @param {module:utils/sprites/sprites.Sprite} sprite
  */
 function removePassiveSprite(sprite) {
   passiveSprites.delete(sprite);

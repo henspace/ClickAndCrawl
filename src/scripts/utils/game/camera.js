@@ -59,7 +59,7 @@ export class CameraDolly {
 
   /**
    * Create a camera dolly. This is a sprite that is designed to track a target.
-   * @param {Sprite} target
+   * @param {module:utils/sprites/sprites.Sprite} target
    * @param {number} speed
    * @param {number} proportionSeparated - max space between camera and target as proportion of minimum screen dimension.
    */

@@ -49,7 +49,7 @@ import LOG from '../utils/logging.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
-/** @type {Actor} */
+/** @type {module:players/actors.Actor} */
 let lastHero;
 
 /**
@@ -63,7 +63,7 @@ let lastHero;
  * Create the hero. If the scene definition doesn't have a hero definition, the
  * lastHero is used.
  * @param {SceneDefinition} sceneDefn
- * @returns {Actor}
+ * @returns {module:players/actors.Actor}
  */
 function createHero(sceneDefn) {
   if (sceneDefn.hero instanceof Actor) {
@@ -94,7 +94,7 @@ function createEnemies(sceneDefn) {
 /**
  * Create the objective.
  * @param {SceneDefinition} sceneDefn
- * @returns {Actor} null if not created.
+ * @returns {module:players/actors.Actor} null if not created.
  */
 function createObjective(sceneDefn) {
   return sceneDefn.objective ? buildActor(sceneDefn.objective) : null;
@@ -104,9 +104,9 @@ function createObjective(sceneDefn) {
  * The artefact is placed in a suitable actor such as a
  * pillar or as a hidden artefact.
  * @param {AlmanacEntry} almanacEntry
- * @param {Artefact} [preBuiltArtefact] if not provided, the artefact is built from the
+ * @param {module:players/artefacts.Artefact} [preBuiltArtefact] if not provided, the artefact is built from the
  * almanac entry.
- * @returns {Actor} actor containing the artefact
+ * @returns {module:players/actors.Actor} actor containing the artefact
  */
 function createFindableArtefact(almanacEntry, preBuiltArtefact) {
   let id;

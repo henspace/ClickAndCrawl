@@ -243,6 +243,9 @@
             <key type="filename">tiles/hud-fullscreen00.png</key>
             <key type="filename">tiles/hud-fullscreen01.png</key>
             <key type="filename">tiles/ice00.png</key>
+            <key type="filename">tiles/kobold-dead00.png</key>
+            <key type="filename">tiles/kobold-idle00.png</key>
+            <key type="filename">tiles/kobold-idle01.png</key>
             <key type="filename">tiles/leather_armour.png</key>
             <key type="filename">tiles/liquid_blue-idle00.png</key>
             <key type="filename">tiles/lock_pick.png</key>
@@ -313,6 +316,9 @@
             <key type="filename">tiles/shield.png</key>
             <key type="filename">tiles/shortsword.png</key>
             <key type="filename">tiles/silver_coins.png</key>
+            <key type="filename">tiles/skeleton-dead00.png</key>
+            <key type="filename">tiles/skeleton-idle00.png</key>
+            <key type="filename">tiles/skeleton-idle01.png</key>
             <key type="filename">tiles/skull.png</key>
             <key type="filename">tiles/slime-idle00.png</key>
             <key type="filename">tiles/spider_pv-dead00.png</key>
