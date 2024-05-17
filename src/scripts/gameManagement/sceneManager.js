@@ -266,9 +266,11 @@ function update(deltaSeconds) {
  * @param {number} dy
  */
 function panCameraBy(dx, dy) {
-  cameraDolly.panBy(dx, dy);
-  cameraDolly.setTrackingMethod(CameraTracking.OFF);
-  navigationButtons.setTrackingState(false);
+  if (cameraDolly) {
+    cameraDolly.panBy(dx, dy);
+    cameraDolly.setTrackingMethod(CameraTracking.OFF);
+    navigationButtons.setTrackingState(false);
+  }
 }
 
 /**
