@@ -126,6 +126,20 @@ test('getPoisonDamage: no DC set always gives damage', () => {
   );
 });
 
+test('getPoisonDamage: use DMG_POISON if set', () => {
+  const damage = 18;
+  const saveModifier = -40; // reduces rollDice(20) to -ve
+  const attackerTraits = new Traits(`DMG:1D1,DMG_POISON:${damage}D1`);
+  const targetTraits = new Traits('');
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => saveModifier
+  );
+  expect(dndAction.getPoisonDamage(attackerTraits, targetTraits)).toBe(damage);
+  expect(targetTraits.getNonMeleeSaveAbilityModifier.mock.calls).toHaveLength(
+    1
+  );
+});
+
 test('getPoisonDamage: savingThrow > difficulty gives 0 damage', () => {
   const damage = 18;
   const saveModifier = 15;
@@ -139,6 +153,29 @@ test('getPoisonDamage: savingThrow > difficulty gives 0 damage', () => {
     (traitsUnused) => saveModifier
   );
   expect(dndAction.getPoisonDamage(attackerTraits, targetTraits)).toBe(0);
+  expect(targetTraits.getNonMeleeSaveAbilityModifier.mock.calls).toHaveLength(
+    1
+  );
+});
+
+test('getPoisonDamage: savingThrow > difficulty gives proportion of damage', () => {
+  const damage = 18;
+  const saveModifier = 15;
+  const diceRoll = 10;
+  const dmgSaved = 0.6;
+  mockDice.rollDice.mockReturnValueOnce(diceRoll);
+  const savingThrow = diceRoll + saveModifier;
+  const difficulty = savingThrow - 1;
+  const attackerTraits = new Traits(
+    `DMG:${damage}D1, DC:${difficulty}, DMG_SAVED:${dmgSaved}`
+  );
+  const targetTraits = new Traits('');
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => saveModifier
+  );
+  expect(dndAction.getPoisonDamage(attackerTraits, targetTraits)).toBe(
+    Math.round(damage * dmgSaved)
+  );
   expect(targetTraits.getNonMeleeSaveAbilityModifier.mock.calls).toHaveLength(
     1
   );
@@ -449,6 +486,66 @@ test('getSpellDamage - proficient - saving throw > difficulty', () => {
   );
   expect(result).toBe(0);
 });
+
+///////////////////////////////////////////
+
+test('getSpellDamage - ranged - save failed', () => {
+  const damage = 20;
+  const difficulty = 11;
+  const attackerTraits = new CharacterTraits(
+    `ATTACK:RANGED, DMG:${damage}D1, DC:${difficulty}`
+  );
+
+  const targetSaveAbility = 'DEX';
+  const targetSaveAbilityValue = 20;
+  const targetSaveModifier = characteristicToModifier(targetSaveAbilityValue);
+  const targetTraits = new CharacterTraits(
+    `${targetSaveAbility}:${targetSaveAbilityValue}`
+  );
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => targetSaveModifier
+  );
+
+  const requiredDiceRoll = difficulty - targetSaveModifier - 1;
+  mockDice.rollDice.mockReturnValueOnce(requiredDiceRoll);
+
+  const result = dndAction.getSpellDamage(
+    attackerTraits,
+    targetTraits,
+    attackerTraits
+  );
+  expect(result).toBe(damage);
+});
+
+test('getSpellDamage - ranged - save succeeded', () => {
+  const damage = 20;
+  const difficulty = 11;
+  const attackerTraits = new CharacterTraits(
+    `ATTACK:RANGED, DMG:${damage}D1, DC:${difficulty}`
+  );
+
+  const targetSaveAbility = 'DEX';
+  const targetSaveAbilityValue = 20;
+  const targetSaveModifier = characteristicToModifier(targetSaveAbilityValue);
+  const targetTraits = new CharacterTraits(
+    `${targetSaveAbility}:${targetSaveAbilityValue}`
+  );
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => targetSaveModifier
+  );
+
+  const requiredDiceRoll = difficulty - targetSaveModifier;
+  mockDice.rollDice.mockReturnValueOnce(requiredDiceRoll);
+
+  const result = dndAction.getSpellDamage(
+    attackerTraits,
+    targetTraits,
+    attackerTraits
+  );
+  expect(result).toBe(0);
+});
+
+///////////////////////////////////////////
 
 test('take rest short with no CON modifier', () => {
   const actor = new Actor({}, ActorType.HERO);

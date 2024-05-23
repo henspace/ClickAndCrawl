@@ -274,14 +274,55 @@ export class Fight extends AbstractInteraction {
    * @returns {Promise} fulfils to the defender's HP.
    */
   #undertakeAllAttacks(attacker, defender) {
-    if (!attacker.isHero()) {
-      // Monsters can use poison attacks or magic if available.
-      if (attacker.attackMode === AttackMode.POISON) {
+    if (attacker.isHero()) {
+      return this.#undertakeAllMeleeAttacks(attacker, defender);
+    }
+    switch (attacker.attackMode) {
+      case AttackMode.COMBO:
+        return this.#undertakeComboAttacks(attacker, defender);
+      case AttackMode.POISON:
         return new Poison(attacker).enact(defender);
-      }
-      if (attacker.attackMode === AttackMode.MAGIC) {
+      case AttackMode.MAGIC:
+      case AttackMode.RANGED:
         return new CastSpell(attacker).react(attacker);
+      case AttackMode.COMBAT:
+      default:
+        return this.#undertakeCombatAttack(attacker, defender);
+    }
+  }
+
+  /**
+   * Undertake comb0 attack
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:players/actors.Actor} defender
+   * @returns {Promise} fulfils to the defender's HP.
+   */
+  #undertakeComboAttacks(attacker, defender) {
+    const currentHp = defender.traits.getInt('HP');
+    return this.#undertakeAllMeleeAttacks(attacker, defender).then((hp) => {
+      if (hp <= 0) {
+        return hp;
       }
+      if (attacker.traits.has('DMG_POISON')) {
+        // in combo, only poison if first attack hit.
+        if (hp < currentHp) {
+          return new Poison(attacker).enact(defender);
+        } else {
+          return Promise.resolve(hp);
+        }
+      } else {
+        return this.#undertakeAllMeleeAttacks(attacker, defender); // double attack
+      }
+    });
+  }
+  /**
+   * Undertake combat attack
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:players/actors.Actor} defender
+   * @returns {Promise} fulfils to the defender's HP.
+   */
+  #undertakeCombatAttack(attacker, defender) {
+    if (!attacker.isHero()) {
       // Monsters use a spell or cantrip if available.
       const storeManager = attacker.storeManager;
       let spell = storeManager.getStore(StoreType.PREPARED_SPELLS).getFirst();
@@ -320,7 +361,7 @@ export class Fight extends AbstractInteraction {
           position: defender.position,
           velocity: new Velocity(0, 0, 0),
         });
-        resolve();
+        resolve(defender.traits.getInt('HP', 0));
         return;
       }
       let hitSound = successfulAttacks > 1 ? 'DOUBLE PUNCH' : 'PUNCH';
@@ -687,7 +728,7 @@ export class Toxify extends AbstractInteraction {
 }
 
 /**
- * Class to handle casting a spell.
+ * Class to handle casting a spell. This is also used for ranged attacks.
  * @implements {ActorInteraction}
  */
 export class CastSpell extends AbstractInteraction {
@@ -729,6 +770,7 @@ export class CastSpell extends AbstractInteraction {
     const range = this.owner.traits.getValueInFeetInTiles('RANGE', 1);
     const maxTargets = this.owner.traits.getInt('MAX_TARGETS', 999);
     let hitTargets = 0;
+    let validTargets = 0;
     const affectedTiles = tileMap.getRadiatingUpAndDown(gridPoint, range);
     for (const tile of affectedTiles) {
       if (hitTargets >= maxTargets) {
@@ -740,21 +782,24 @@ export class CastSpell extends AbstractInteraction {
       );
       for (const occupant of descendingHp) {
         if (this.#IsValidTarget(enactor, occupant)) {
+          validTargets++;
           const damage = dndAction.getSpellDamage(
             enactor.traits,
             occupant.traits,
             this.owner.traits
           );
           if (damage > 0) {
-            hitTargets++;
             this.#displaySpell(tile.worldPoint);
+            hitTargets++;
             applyDamage(enactor, occupant, damage);
             occupant.traits.addTransientFxTraits(this.owner.traits);
+          } else {
+            this.#displayFailedSpell(tile.worldPoint);
           }
         }
       }
     }
-    if (hitTargets === 0) {
+    if (validTargets === 0) {
       this.#displayFailedSpell(enactor.position);
     }
     if (this.owner.artefactType === ArtefactType.SPELL) {
@@ -816,7 +861,7 @@ export class CastSpell extends AbstractInteraction {
     addFadingAnimatedImage(spellType.toLowerCase(), {
       position: worldPoint,
       delaySecs: 0,
-      lifetimeSecs: 1,
+      lifetimeSecs: 2,
     });
   }
 
@@ -828,7 +873,7 @@ export class CastSpell extends AbstractInteraction {
     addFadingImage(IMAGE_MANAGER.getSpriteBitmap('failed-spell.png'), {
       position: worldPoint,
       delaySecs: 0,
-      lifetimeSecs: 1,
+      lifetimeSecs: 2,
     });
   }
 }

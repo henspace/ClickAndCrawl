@@ -1,6 +1,21 @@
 # Almanacs
 
-The almanacs comprise a number of single line entries. 
+The almanacs comprise a number of single line entries. The possible almanacs are:
+- ARMOUR
+- ARTEFACTS
+- HEROES
+- KEYS
+- MAGIC
+- MONEY
+- ENEMIES
+- OBJECTIVES
+- PLANTS
+- TRADERS
+- TRAPS
+- WEAPONS
+
+For debugging, you can force a particular entry to be used by including it's id
+is the query string in the URL. E.g. ...?MONSTERS=wraith
 
 # Line format
 
@@ -11,11 +26,11 @@ Each entry is a single line of the form:
 Any line beginning with a # character is ignored. The elements are described below:
 
 - minLevel: Numeric. Minimum dungeon level at which the entry can appear.
-- rarity: string: Likelihood of appearance. Values are COMMON, UNCOMMON, RARE and VERY RARE.
+- rarity: string: Likelihood of appearance. Values are COMMON, UNCOMMON, RARE and VERY_RARE.
 - entry type: type of entry. More details are given below.
 - id: identifier for the entry. This is used for the image name. If you want to share
-an image, the id can be extended with a + character and a suffix. Only the characters
-before the + character will be used for the image name. 
+an image, the id can be extended with a + or ? character and a suffix. Only the characters
+before the + or ? character will be used for the image name. A question mark is used to define something that required identification.  
 - starting artefacts: square brackets containing a comma separated list of artefacts to start with. WEAPONS, ARTEFACTS, MAGIC and MONEY items are allowed.
 - traits: comma separated list of traits as key:value pairs.
 
@@ -28,20 +43,26 @@ The key traits depend on the almanac and are described in more detail below.
 The id is used as a unique identifier for the item. It is also used to form the 
 image name and the description. Sometimes you might want different almanac entries
 to use the same image but still have a unique almanac entry with
-different traits. This can be done by extending the id with a '+' followed by 
-additional text. The plus sign and following text will be removed when forming
-the image name but will be retained for id. So the following ids
-would finish up with the same image name:
+different traits. This can be done by extending the id with a '+', '?' or '/' character followed by 
+additional text. How the information is split depends on the separating character.
+
+- +: the plus character uses the text before the + for the image and description.
+The text following is just used to create a unique id for the entry.
+- ?: the question mark uses the text before the ? for the image. The full id is 
+used for the description and the text before the ? is used as the description if the hero
+cannot identify it.
+- /: the forward slash uses the text before the / just for the image. Everything else
+is taken after the /. The / is used to allow the same image to be used for multiple entries.
 
 - my_item
 - my_item+unique
 
-When extended like this, it is assumed that multiple items need to be identified 
-by the hero. Two description are extracted from the message map with the following
+When extended using a question mark, it is assumed that multiple items need to be identified 
+by the hero. Two descriptions are extracted from the message map with the following
 keys:
 
 - DESCRIPTION MY_ITEM: used if the item cannot be identified by the hero.
-- DESCRIPTION MY_ITEM+UNIQUE: used if the item has been identified by the hero.
+- DESCRIPTION MY_ITEM?UNIQUE: used if the item has been identified by the hero.
 
 ## Image names
 
@@ -66,6 +87,15 @@ provided.
 
 Artefacts are not animated.
 
+## Notes on artefact values
+Costs for healing potions are based on the potion of healing which costs 50 GP 
+for 2D4 + 2 healing. That's  50 GP for an average of 7 HP, or approximately
+7 GP per HP.
+
+For modifiers that apply to traits, note that a trait value gets divided
+by 2 when converting to a modifier. From the tables, proficiency bonuses go up 1 for
+every 4 levels. So changing a trait value by 2 is equivalent to the hero raising
+their level by 4.
 
 # Traits
 
@@ -93,11 +123,19 @@ The ENEMY type covers monsters and other actors that attack.
 
 ### ATTACK trait
 
-Monsters have an ATTACK trait which can be set to COMBAT, MAGIC or POISON.
+Monsters have an ATTACK trait which can be set to COMBAT, COMBO, MAGIC, RANGED or POISON.
+
+
 The interaction will always be a Fight but a melee or poison interaction will then be selected. If a monster has equipped spells, or cantrips, they will always be selected over a melee combat.
 
-If the attack mode is magic, the monster itself should
-have the spell traits. I.e. it is actually cast as the spell.
+A combo attack is two attacks. The attacks made depend on the available damage traits.
+
+- DMG: two melee attacks
+- DMG & DMG_POISON: melee followed by poison.
+
+
+If the attack mode is magic or ranged, the monster itself should
+have the spell traits. I.e. it is actually cast as the spell. A RANGED attack is treated the same as MAGIC but without use of the spell cast ability. The monster is treated as the spell.
 
 ### Use of magic
 
@@ -117,7 +155,7 @@ Consumables come in different types defined by the TYPE and SUBTYPE trait.
 - IDENTIFY_DC: if set, the item needs identification.The normal description is created from id as usual. The description for unknown as  it's message map key suffixed with _UNKNOWN.
 
 
-Some consumables, primarily plants, may not be known to the 
+Some consumables, primarily plants, may not be known to the hero.
 
 ### Type MEAL or DRINK
 
@@ -127,7 +165,9 @@ These can be used a part of a full meal (1 drink + 1 meal) as part of a rest.
 
 Poisons have additional attributes:
 - DMG: the damage inflicted when first applied.
-- DMG_PER_TURN: the damage inflicted on every turn until cured.
+- DMG_POISON: this overrides the DMG trait and is only needed for combo attacks where DMG can be used for the melee and DMG_POISON for the poison.
+- DMG_PER_TURN: the damage inflicted on every turn until cured. Curing occurs after a long rest.
+- DMG_SAVED: proportion of damage applied if saving throw successful. Defaults to 0.
 
 ### MEDICINE
 
@@ -177,7 +217,7 @@ A goal that the hero needs to reach.
 ## HERO: actor
 
 Heroes should not normally have traits describing the key abilities as these are
-created randomly. The following key traits should be included:
+created randomly. However, the following key traits should be included:
 
 - PROF: set of proficiencies. This is a set of proficiencies separated by ampersands. See below for more detail.
 - CLASS: the character's class.

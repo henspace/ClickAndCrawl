@@ -187,7 +187,7 @@ test('add: discard if existing is better', () => {
   ]);
 
   expect(leaderBoard.add({ name: 'alpha', hashCode: 444, score: 19 })).toEqual(
-    -1
+    2
   );
   expect(leaderBoard.getCurrentData()).toEqual([
     { name: 'beta', hashCode: 222, score: 100 },

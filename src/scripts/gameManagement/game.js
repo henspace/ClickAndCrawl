@@ -87,7 +87,12 @@ async function initialise(screenOptions) {
     )
     .then(() => assetLoaders.loadTextFromUrl(AssetUrls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
-    .then(() => loadAlmanacs(AssetUrls.ALMANAC_MAP))
+    .then(() =>
+      loadAlmanacs(
+        AssetUrls.ALMANAC_MAP,
+        new URLSearchParams(window.location.search)
+      )
+    )
     .then(() => {
       splashPopup.remove();
       return TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU);

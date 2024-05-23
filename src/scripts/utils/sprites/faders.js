@@ -55,7 +55,7 @@ export class TimeFader extends AbstractModifier {
     this.#easeInDuration = 0.3 * lifetimeSecs;
     const fadeOutDuration = lifetimeSecs - this.#easeInDuration;
     this.#deltaOpacityPerSec = 1 / Math.max(fadeOutDuration, 0.5);
-    this.#elapsedSecs = 0;
+    this.#elapsedSecs = -1; // only start counting after first update.
   }
 
   /**
@@ -66,7 +66,12 @@ export class TimeFader extends AbstractModifier {
    * @returns {AbstractModifier}
    */
   doUpdate(sprite, deltaSeconds) {
-    this.#elapsedSecs += deltaSeconds;
+    if (this.#elapsedSecs < 0) {
+      this.#elapsedSecs = 0; // only start on first update.
+    } else {
+      this.#elapsedSecs += deltaSeconds;
+    }
+
     if (this.#elapsedSecs > this.#delaySecs + this.#easeInDuration) {
       sprite.opacity = Math.max(
         0,

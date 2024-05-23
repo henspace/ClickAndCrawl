@@ -64,8 +64,10 @@ export const ActorType = {
 /** @enum{AttackModeValue} */
 export const AttackMode = {
   COMBAT: 'COMBAT',
+  COMBO: 'COMBO', // melee and poison.
   POISON: 'POISON',
   MAGIC: 'MAGIC',
+  RANGED: 'RANGED',
 };
 
 /**
@@ -166,7 +168,10 @@ export class Actor extends UiClickHandler {
     const shields = items.filter(
       (artefact) => artefact.artefactType === ArtefactType.SHIELD
     );
-    const magic = items.filter((artefact) => artefact.isMagic());
+    const magic = items.filter(
+      (artefact) =>
+        artefact.isMagic() || artefact.artefactType === ArtefactType.RING
+    );
     this.traits.utiliseAdditionalTraits({
       weapons: weapons.map((artefact) => artefact.traits),
       armour: armour.map((artefact) => artefact.traits),

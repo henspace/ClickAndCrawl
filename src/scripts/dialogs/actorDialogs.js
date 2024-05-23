@@ -29,13 +29,12 @@
 import UI, { DialogResponse } from '../utils/dom/ui.js';
 import * as components from '../utils/dom/components.js';
 import * as maths from '../utils/maths.js';
-import { i18n } from '../utils/messageManager.js';
+import { i18n, MESSAGES } from '../utils/messageManager.js';
 import { ArtefactType, StoreType } from '../players/artefacts.js';
 import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import { gpAsString } from '../utils/game/coins.js';
 import * as dndAction from '../dnd/dndAction.js';
 import LOG from '../utils/logging.js';
-import ANIMATION_STATE_MANAGER from '../gameManagement/animationState.js';
 import { sceneToFloor } from '../dnd/floorNumbering.js';
 
 /**
@@ -85,7 +84,14 @@ const ArtefactAction = {
  * circular loops.
  * @param {boolean} showPrice
  * @param {boolean} showDamage - add damage detail to button labels.
- * @param {function(actor:Actor,artefact:Artefact):Promise} customAction - custom action on artefact click.
+ * @param {string} delayedReaction - If true, clicking on the
+ * artefact will close the dialog and it will return a DelayedAction response.
+ */
+
+/**
+ * @typedef {Object} DelayedAction
+ * @property {function():Promise} invoke - function that can be called to instigate the
+ * delayed action.
  */
 
 /**
@@ -253,6 +259,7 @@ class InventoryContainerElement {
         storesToShow = [
           { label: i18n`Purse`, storeType: StoreType.PURSE },
           { label: i18n`Head`, storeType: StoreType.HEAD },
+          { label: i18n`Ring fingers`, storeType: StoreType.RING_FINGERS },
           { label: i18n`Body`, storeType: StoreType.BODY },
           { label: i18n`Hands`, storeType: StoreType.HANDS },
           { label: i18n`Feet`, storeType: StoreType.FEET },
@@ -327,10 +334,10 @@ class InventoryContainerElement {
     const label = createArtefactButtonLabel(options);
     let action;
     let closes;
-    if (options.customAction) {
-      action = () =>
-        options.customAction(options.currentOwner, options.artefact);
-      closes = DialogResponse.OK;
+    if (options.delayedReaction) {
+      closes = {
+        invoke: () => options.artefact.interaction.react(options.currentOwner),
+      };
     } else {
       action = async () => {
         await showArtefactDialog(options).then(() => options.refresh?.());
@@ -533,7 +540,7 @@ function showInventory(actor, options = {}) {
  * Show actor's inventory and allow casting of spells.
  * @param {module:players/actors.Actor} actor
  * @param {{allowMagicUse: boolean, limitation:InventoryLimitation}} [options = {}]
- * @returns {Promise}
+ * @returns {Promise<DelayedAction>}
  */
 function showCastSpells(actor) {
   const container = components.createElement('div', { className: 'inventory' });
@@ -544,14 +551,7 @@ function showCastSpells(actor) {
       prospectiveOwner: actor,
       allowMagicUse: true,
       showDamage: true,
-      customAction: (enactor, artefact) => {
-        ANIMATION_STATE_MANAGER.setAnimationState(true);
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            artefact.interaction.react(enactor).then(() => resolve());
-          });
-        });
-      },
+      delayedReaction: true,
     },
     {
       limitation: InventoryLimitation.READY_MAGIC,
@@ -953,7 +953,9 @@ function createPillageArtefactDialogButtons(container, options) {
  */
 function createNoFundsGuidance(availableGp, requiredGp) {
   let text;
-  text = i18n`MESSAGE INSUFFICIENT FUNDS ${requiredGp} ${availableGp}`;
+  text = i18n`MESSAGE INSUFFICIENT FUNDS ${requiredGp.toFixed(
+    2
+  )} ${availableGp.toFixed(2)}`;
 
   return components.createElement('p', { className: 'guidance', text: text });
 }
@@ -1110,6 +1112,9 @@ function createCorpseDescriptionElement(actor) {
  * @returns {Element}
  */
 function createTraitsList(actor, excludedKeys, includeGold) {
+  if (!actor.artefactType && !actor.alive) {
+    return createCorpseDescriptionElement(actor);
+  }
   const traitsList = document.createElement('ul');
 
   if (includeGold) {
@@ -1123,35 +1128,74 @@ function createTraitsList(actor, excludedKeys, includeGold) {
     }
   }
 
-  actor.traits?.getAllTraitsSorted().forEach((value, key) => {
-    if (actor.traits.hasEffective?.(key)) {
-      const effectiveValue = actor.traits.getEffectiveInt(key);
-      const baseValue = maths.safeParseInt(value);
-      if (effectiveValue !== baseValue) {
-        const diff = effectiveValue - baseValue;
-        value = `${effectiveValue} [${baseValue}${
-          diff < 0 ? '-' : '+'
-        }${diff}]`;
+  const readableArray = [];
+  actor.traits?.getAllTraits().forEach((value, key) => {
+    if (!excludedKeys.includes(key) && !key.startsWith('_')) {
+      if (actor.traits.hasEffective?.(key)) {
+        const effectiveValue = actor.traits.getEffectiveInt(key);
+        const baseValue = maths.safeParseInt(value);
+        if (effectiveValue !== baseValue) {
+          const diff = effectiveValue - baseValue;
+          value = `${effectiveValue} [${baseValue}${
+            diff < 0 ? '-' : '+'
+          }${diff}]`;
+        }
       }
-    }
-    if (value && value !== '0') {
-      const displayedValue = Array.isArray(value) ? value.join(', ') : value;
-      if (!excludedKeys.includes(key) && !key.startsWith('_')) {
-        const displayedKey = key?.replace('_', ' ');
-        const item = document.createElement('li');
-        const label = components.createElement('span', {
-          text: `${displayedKey}: `,
-        });
-        const content = components.createElement('span', {
-          text: displayedValue,
-        });
-        traitsList.appendChild(item);
-        item.appendChild(label);
-        item.appendChild(content);
-      }
+      readableArray.push([createReadableKey(key), createReadableValue(value)]);
     }
   });
+  readableArray.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  // actor.traits?.getAllTraitsSorted().forEach((value, key) => {
+  for (const traitEntry of readableArray) {
+    const key = traitEntry[0];
+    let value = traitEntry[1];
+
+    if (value && value !== '0') {
+      const displayedValue = Array.isArray(value) ? value.join(', ') : value;
+      const item = document.createElement('li');
+      const label = components.createElement('span', {
+        text: `${key}: `,
+      });
+      const content = components.createElement('span', {
+        text: displayedValue,
+      });
+      traitsList.appendChild(item);
+      item.appendChild(label);
+      item.appendChild(content);
+    }
+  }
   return traitsList;
+}
+
+/**
+ * Convert a traits key into a more human readable version.
+ * @param {string} key
+ * @returns {string}
+ */
+function createReadableKey(key) {
+  let revised = MESSAGES.getText(key);
+  if (revised === key) {
+    revised = key?.replace('_', ' ');
+  }
+  return revised.charAt(0).toUpperCase() + revised.substring(1).toLowerCase();
+}
+
+/**
+ * Convert a traits value into a more human readable version.
+ * @param {string} key
+ * @returns {string}
+ */
+function createReadableValue(value) {
+  if (/\d*\.?\d* *[CSGP]P/.test(value)) {
+    return value; // money
+  }
+  if (/\d+D\d+(?: *[+-]? *\d+)?/.test(value)) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry) => entry.toLowerCase());
+  }
+  return typeof value === 'string' ? value.toLowerCase() : value;
 }
 
 /**
@@ -1294,9 +1338,11 @@ export function showPillageDialog(pillager, victim) {
  * @param {boolean} options.allowConsumption - can artefacts be consumed.
  * @param {string} options.description - override the actor description
  * @param {string} options.okButtonLabel
+ * @returns {Promise<DelayedAction>}
  */
 export function showActorDetailsDialog(actor, options = {}) {
   const container = document.createElement('div');
+  let buttonRestElement;
   container.appendChild(
     components.createElement('span', {
       text: i18n`Dungeon floor: ${sceneToFloor(
@@ -1322,14 +1368,18 @@ export function showActorDetailsDialog(actor, options = {}) {
         showInventory(actor, {
           allowConsumption: options.allowConsumption,
           allowMagicUse: options.allowMagicUse,
-        }).then(() =>
+        }).then(() => {
           actorContainer.replaceChildren(
             createActorElement(actor, {
               hideTraits: true,
               description: options.description,
             })
-          )
-        ),
+          );
+          if (buttonRestElement && !actor.alive) {
+            container.removeChild(buttonRestElement);
+            buttonRestElement = undefined;
+          }
+        }),
     });
     container.appendChild(button.element);
     button = new components.TextButtonControl({
@@ -1359,6 +1409,7 @@ export function showActorDetailsDialog(actor, options = {}) {
           );
         },
       });
+      buttonRestElement = button.element;
       container.appendChild(button.element);
     }
 
@@ -1499,19 +1550,17 @@ function identifyArtefact(options) {
   if (!options.artefact?.unknown) {
     return Promise.resolve(true);
   }
+
   const tester = options.prospectiveOwner ?? options.currentOwner;
   const recognised = dndAction.canIdentify(
     tester.traits,
     options.artefact.traits
   );
-  if (!recognised) {
-    return UI.showChoiceDialog(
-      i18n`DIALOG TITLE UNKNOWN ITEM`,
-      i18n`MESSAGE FAILED TO IDENTIFY`
-    ).then(() => false);
-  } else {
+  if (recognised) {
     options.artefact.unknown = false;
-    return Promise.resolve(true);
+    return UI.showOkDialog(i18n`MESSAGE IDENTIFIED ITEM`).then(() => true);
+  } else {
+    return UI.showOkDialog(i18n`MESSAGE FAILED TO IDENTIFY`).then(() => false);
   }
 }
 /**
@@ -1521,9 +1570,10 @@ function identifyArtefact(options) {
  */
 export function showRestDialog(heroActor) {
   const messageContainer = components.createElement('div');
+  const nextFloor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel() + 1);
   messageContainer.appendChild(
     components.createElement('p', {
-      text: i18n`MESSAGE REST DIALOG`,
+      text: i18n`MESSAGE REST DIALOG ${nextFloor}`,
     })
   );
 
@@ -1531,6 +1581,6 @@ export function showRestDialog(heroActor) {
     allowConsumption: true,
     allowRest: true,
     description: messageContainer,
-    okButtonLabel: i18n`BUTTON TO NEXT FLOOR`,
+    okButtonLabel: i18n`BUTTON CONTINUE`,
   });
 }

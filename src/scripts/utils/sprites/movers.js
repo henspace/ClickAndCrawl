@@ -298,6 +298,8 @@ export class PathFollower extends AbstractModifier {
     const lastPoint = this.#path[this.#path.length - 1];
     sprite.position.x = lastPoint.x;
     sprite.position.y = lastPoint.y;
+    sprite.velocity.x = 0;
+    sprite.velocity.y = 0;
   }
 
   /**

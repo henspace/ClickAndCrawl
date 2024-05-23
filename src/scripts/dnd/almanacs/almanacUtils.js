@@ -67,18 +67,41 @@ export function createDescriptionFromId(id) {
  * @returns {{name:string, imageName:string, description:string, unknownDescription: string}}
  */
 export function derivePartsFromId(id = '?') {
-  const parts = id.split('+');
-  const needsIdentification = parts.length > 1;
-  const strippedName = parts[0];
-  if (!id) {
+  const parts = id.match(/^(\w+)([+?/])?(\w*)?$/);
+  if (!parts) {
     return {};
   }
+  let nameId;
+  let imageId = parts[1];
+  let descriptionId;
+  let unknownDescriptionId;
+  switch (parts[2]) {
+    case '?':
+      nameId = imageId;
+      descriptionId = id;
+      unknownDescriptionId = imageId;
+      break;
+    case '+':
+      nameId = imageId;
+      descriptionId = imageId;
+      unknownDescriptionId = undefined;
+      break;
+    case '/':
+      nameId = parts[3];
+      descriptionId = parts[3];
+      unknownDescriptionId = undefined;
+      break;
+    default:
+      nameId = id;
+      descriptionId = id;
+      unknownDescriptionId = undefined;
+  }
   return {
-    name: createNameFromId(strippedName),
-    imageName: parts[0].toLowerCase(),
-    description: createDescriptionFromId(id),
-    unknownDescription: needsIdentification
-      ? createDescriptionFromId(strippedName)
+    name: createNameFromId(nameId),
+    imageName: imageId.toLowerCase(),
+    description: createDescriptionFromId(descriptionId),
+    unknownDescription: unknownDescriptionId
+      ? createDescriptionFromId(unknownDescriptionId)
       : undefined,
   };
 }

@@ -146,6 +146,10 @@ class ReplayableActorMover {
    */
   moveInstantly() {
     this.#originalPosition = Position.copy(this.#actor.position);
+    const tilesToMove = this.#actor.getMaxTilesPerMove();
+    if (tilesToMove === 0) {
+      return;
+    }
     const actorGridPos = this.#tileMap.worldPointToGrid(this.#actor.position);
     const targetGridPos = this.#getTargetGridPoint(actorGridPos);
 
@@ -156,7 +160,7 @@ class ReplayableActorMover {
       let waypoints = this.#routeFinder.getDumbRouteNextTo(
         actorGridPos,
         targetGridPos,
-        this.#actor.getMaxTilesPerMove()
+        tilesToMove
       );
       if (waypoints.length > 0) {
         this.#modifier = new PathFollower(
@@ -384,7 +388,14 @@ class AtStart extends State {
           return UI.showOkDialog(i18n`MESSAGE DUNGEON INTRO CONTINUE ${name}`, {
             okButtonLabel: i18n`BUTTON ENTER DUNGEON`,
             className: 'wall',
-          }).then(() => actorDialogs.showRestDialog(heroActor));
+          })
+            .then(() => actorDialogs.showRestDialog(heroActor))
+            .then(() => {
+              if (!heroActor.alive) {
+                throw new Error('Actor died during rest.');
+              }
+              return;
+            });
         } else {
           const mdUrl = persistentGame
             ? AssetUrls.DUNGEON_WELCOME
@@ -407,7 +418,11 @@ class AtStart extends State {
           return;
         }
       })
-      .then(() => currentState.transitionTo(new HeroTurnIdle()));
+      .then(() => currentState.transitionTo(new HeroTurnIdle()))
+      .catch((error) => {
+        LOG.info(error.message);
+        currentState.transitionTo(new AtGameOver());
+      });
   }
 
   /**
@@ -459,18 +474,23 @@ class AtStart extends State {
 class AtGameOver extends State {
   async onEntry() {
     LOG.debug('Enter AtGameOver');
+    let leaderboardIndex = -1;
     if (persistentGame) {
-      saveGameState(heroActor);
+      leaderboardIndex = saveGameState(heroActor);
     }
-    addFadingText('YOU DIED!', {
+    const messageDefeat =
+      leaderboardIndex < 0
+        ? i18n`MESSAGE DEFEAT UNPLACED`
+        : i18n`MESSAGE DEFEAT`;
+    addFadingText(i18n`YOU DIED!`, {
       delaySecs: 1,
-      lifetimeSecs: 2,
+      lifetimeSecs: 3,
       position: heroActor.position,
       velocity: new Velocity(0, -100, 0),
     });
     await pause(2)
       .then(() =>
-        UI.showOkDialog(i18n`MESSAGE DEFEAT`, {
+        UI.showOkDialog(messageDefeat, {
           okButtonLabel: i18n`BUTTON TRY AGAIN`,
         })
       )
@@ -892,6 +912,11 @@ function startNextScene(currentState) {
   }
   return SCENE_MANAGER.unloadCurrentScene()
     .then(() => actorDialogs.showRestDialog(heroActor))
+    .then(() => {
+      if (!heroActor.alive) {
+        throw new Error('Actor died during rest.');
+      }
+    })
     .then(() => SCENE_MANAGER.switchToNextScene())
     .then((scene) => {
       heroActor.sprite.position =
@@ -905,7 +930,11 @@ function startNextScene(currentState) {
         return;
       }
     })
-    .then(() => currentState.transitionTo(new HeroTurnIdle()));
+    .then(() => currentState.transitionTo(new HeroTurnIdle()))
+    .catch((error) => {
+      LOG.info(error.message);
+      currentState.transitionTo(new AtGameOver());
+    });
 }
 
 /**
@@ -922,10 +951,17 @@ function showOccupantDetails(occupant) {
     return UI.showOkDialog(occupant.description);
   }
 
-  return actorDialogs.showActorDetailsDialog(occupant, {
-    allowConsumption: occupant.isHero(),
-    allowMagicUse: occupant.isHero(),
-  });
+  return actorDialogs
+    .showActorDetailsDialog(occupant, {
+      allowConsumption: occupant.isHero(),
+      allowMagicUse: occupant.isHero(),
+    })
+    .then((delayedAction) => {
+      if (delayedAction?.invoke) {
+        LOG.info('Invoke action.');
+        delayedAction.invoke();
+      }
+    });
 }
 
 /**

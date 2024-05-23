@@ -31,7 +31,7 @@
 import LOG from './logging.js';
 import * as maths from './maths.js';
 
-const MULTIDICE_REGEX = /(\d+)[dD](\d+)(?: *\+ *(\d+))?/;
+const MULTIDICE_REGEX = /(\d+)[dD](\d+)(?: *([+-]) *(\d+))?/;
 /**
  * Roll a dice
  * @param {number} [sides = 6] - number of sides on the dice
@@ -71,8 +71,9 @@ export function rollMultiDice(dice) {
   }
   let result = 0;
   for (let roll = 0; roll < details.qty; roll++) {
-    result += rollDice(parseInt(details.sides)) + details.offset;
+    result += rollDice(parseInt(details.sides));
   }
+  result += details.offset;
   return result;
 }
 
@@ -140,7 +141,11 @@ export function getDiceDetails(dice) {
   }
   const qty = parseInt(match[1]);
   const sides = parseInt(match[2]);
-  const offset = match[3] ? parseInt(match[3]) : 0;
+  const offsetSign = match[3];
+  let offset = match[4] ? parseInt(match[4]) : 0;
+  if (offsetSign === '-') {
+    offset = -offset;
+  }
 
   return {
     qty: qty,

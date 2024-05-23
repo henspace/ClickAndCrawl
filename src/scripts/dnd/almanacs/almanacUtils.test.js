@@ -37,13 +37,14 @@ beforeAll(() => {
       ['DESCRIPTION PLAIN_TEXT', 'message plain text'],
       ['DESCRIPTION PLAIN_TEXT_PV', 'message plain text pv'],
       [
-        'DESCRIPTION PLAIN_TEXT+EXTENSIONS',
+        'DESCRIPTION PLAIN_TEXT?EXTENSIONS',
         'message plain text plus extensions',
       ],
       [
-        'DESCRIPTION PLAIN_TEXT_PV+EXTENSIONS',
+        'DESCRIPTION PLAIN_TEXT_PV?EXTENSIONS',
         'message plain text pv plus extensions',
       ],
+      ['DESCRIPTION MAIN_INFO', 'message main info'],
     ])
   );
 });
@@ -70,8 +71,8 @@ test('derivePartsFromId: with orientation', () => {
   });
 });
 
-test('derivePartsFromId: with extended id', () => {
-  expect(utils.derivePartsFromId('Plain_text+extensions')).toEqual({
+test('derivePartsFromId: with extended id: needs identification', () => {
+  expect(utils.derivePartsFromId('Plain_text?extensions')).toEqual({
     name: 'Plain text',
     imageName: 'plain_text',
     description: 'message plain text plus extensions',
@@ -79,12 +80,47 @@ test('derivePartsFromId: with extended id', () => {
   });
 });
 
-test('derivePartsFromId: with orientation and extended id', () => {
+test('derivePartsFromId: with orientation and extended id: needs identification', () => {
+  expect(utils.derivePartsFromId('Plain_text_pv?extensions')).toEqual({
+    name: 'Plain text',
+    imageName: 'plain_text_pv',
+    description: 'message plain text pv plus extensions',
+    unknownDescription: 'message plain text pv',
+  });
+});
+
+test('derivePartsFromId: with extended id: no identification', () => {
+  expect(utils.derivePartsFromId('Plain_text+extensions')).toEqual({
+    name: 'Plain text',
+    imageName: 'plain_text',
+    description: 'message plain text',
+    unknownDescription: undefined,
+  });
+});
+
+test('derivePartsFromId: with orientation and extended id: no identification', () => {
   expect(utils.derivePartsFromId('Plain_text_pv+extensions')).toEqual({
     name: 'Plain text',
     imageName: 'plain_text_pv',
-    description: 'message plain text',
-    description: 'message plain text pv plus extensions',
-    unknownDescription: 'message plain text pv',
+    description: 'message plain text pv',
+    unknownDescription: undefined,
+  });
+});
+
+test('derivePartsFromId: with extended id: no identification, splitting definitions', () => {
+  expect(utils.derivePartsFromId('Just_image/main_info')).toEqual({
+    name: 'Main info',
+    imageName: 'just_image',
+    description: 'message main info',
+    unknownDescription: undefined,
+  });
+});
+
+test('derivePartsFromId: with orientation and extended id: no identification, splitting definitions', () => {
+  expect(utils.derivePartsFromId('Just_image_pv/main_info')).toEqual({
+    name: 'Main info',
+    imageName: 'just_image_pv',
+    description: 'message main info',
+    unknownDescription: undefined,
   });
 });

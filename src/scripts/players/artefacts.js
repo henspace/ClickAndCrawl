@@ -53,6 +53,12 @@ export const StoreType = {
   BACKPACK: { id: 'BACKPACK', space: 8, money: false, spacesExpand: true },
   WAGON: { id: 'WAGON', space: 8, money: false, spacesExpand: true },
   CANTRIPS: { id: 'CANTRIPS', space: 999, money: false, spacesExpand: true },
+  RING_FINGERS: {
+    id: 'RING_FINGERS',
+    space: 2,
+    money: false,
+    spacesExpand: false,
+  },
   SPELLS: {
     id: 'SPELLS',
     space: 9,
@@ -107,6 +113,10 @@ export const ArtefactType = {
   KEY: {
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
+  },
+  RING: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.RING_FINGERS },
   },
   SHIELD: {
     storageSpace: 1,
@@ -529,7 +539,7 @@ export class Artefact {
     if (this.artefactType === ArtefactType.COINS) {
       return this.costInGp;
     } else {
-      return Math.round(75 * this.costInGp) / 100;
+      return Math.round(50 * this.costInGp) / 100; // 50% from p62 SRD 5.1
     }
   }
 
@@ -854,7 +864,7 @@ export class ArtefactStoreManager {
   }
 
   /**
-   * Get all equipped artefacts. This excludes magic
+   * Get all equipped artefacts.
    * @returns {Artefact[]}
    */
   getAllEquippedArtefacts() {
@@ -863,6 +873,7 @@ export class ArtefactStoreManager {
       this.#stores.get(StoreType.HEAD),
       this.#stores.get(StoreType.BODY),
       this.#stores.get(StoreType.HANDS),
+      this.#stores.get(StoreType.RING_FINGERS),
       this.#stores.get(StoreType.FEET),
       this.#stores.get(StoreType.CANTRIPS),
       this.#stores.get(StoreType.PREPARED_SPELLS),

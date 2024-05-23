@@ -270,6 +270,46 @@ test('Traits.constructor _DMG', () => {
   expect(testTraits.get('_DMG')).toEqual(0);
 });
 
+test('Traits.constructor DMG_MELEE', () => {
+  let testTraits = new traits.Traits('DMG_MELEE:3D12');
+  expect(testTraits.get('DMG_MELEE')).toEqual('3D12');
+  testTraits = new traits.Traits('DMG_MELEE:3D12 + 27');
+  expect(testTraits.get('DMG_MELEE')).toEqual('3D12 + 27');
+  testTraits = new traits.Traits('DMG_MELEE:99');
+  expect(testTraits.get('DMG_MELEE')).toEqual(99);
+  testTraits = new traits.Traits('DMG_MELEE:INVALID');
+  expect(testTraits.get('DMG_MELEE')).toEqual(0);
+});
+
+test('Traits.constructor _DMG_MELEE', () => {
+  let testTraits = new traits.Traits('_DMG_MELEE:3D12');
+  expect(testTraits.get('_DMG_MELEE')).toEqual('3D12');
+  testTraits = new traits.Traits('_DMG_MELEE:99');
+  expect(testTraits.get('_DMG_MELEE')).toEqual(99);
+  testTraits = new traits.Traits('_DMG_MELEE:INVALID');
+  expect(testTraits.get('_DMG_MELEE')).toEqual(0);
+});
+
+test('Traits.constructor DMG_POISON', () => {
+  let testTraits = new traits.Traits('DMG_POISON:3D12');
+  expect(testTraits.get('DMG_POISON')).toEqual('3D12');
+  testTraits = new traits.Traits('DMG_POISON:3D12 + 27');
+  expect(testTraits.get('DMG_POISON')).toEqual('3D12 + 27');
+  testTraits = new traits.Traits('DMG_POISON:99');
+  expect(testTraits.get('DMG_POISON')).toEqual(99);
+  testTraits = new traits.Traits('DMG_POISON:INVALID');
+  expect(testTraits.get('DMG_POISON')).toEqual(0);
+});
+
+test('Traits.constructor _DMG_POISON', () => {
+  let testTraits = new traits.Traits('_DMG_POISON:3D12');
+  expect(testTraits.get('_DMG_POISON')).toEqual('3D12');
+  testTraits = new traits.Traits('_DMG_POISON:99');
+  expect(testTraits.get('_DMG_POISON')).toEqual(99);
+  testTraits = new traits.Traits('_DMG_POISON:INVALID');
+  expect(testTraits.get('_DMG_POISON')).toEqual(0);
+});
+
 test('Traits.constructor HP_GAIN', () => {
   let testTraits = new traits.Traits('HP_GAIN:3D12');
   expect(testTraits.get('HP_GAIN')).toEqual('3D12');
@@ -406,6 +446,17 @@ test('Traits.addInt', () => {
 
   testTraits.addInt('PROPC', 99);
   expect(testTraits.get('PROPC')).toEqual(99);
+});
+
+test('Traits.addInt clipped to zero', () => {
+  const testTraits = new traits.Traits('PROPA:30, PROPB:40 FEET, PROPC:NAN');
+  expect(testTraits.getInt('PROPA')).toEqual(30);
+
+  testTraits.addInt('PROPA', -1, true);
+  expect(testTraits.getInt('PROPA')).toEqual(29);
+
+  testTraits.addInt('PROPA', -100, true);
+  expect(testTraits.getInt('PROPA')).toEqual(0);
 });
 
 test('Traits.getValueInFeetInTiles', () => {
@@ -625,6 +676,19 @@ test('CharacterTraits.addTransientFxTraits', () => {
       baseTrait + traitA + traitB
     );
   });
+});
+
+test('CharacterTraits.addTransientFxTraits: clipped to 0', () => {
+  const characterTraits = new traits.CharacterTraits(new Map([['STR', 10]]));
+
+  const transientTraitsA = new traits.Traits('FX_STR: -4');
+
+  characterTraits.addTransientFxTraits(transientTraitsA);
+  expect(characterTraits.getEffectiveInt('STR')).toEqual(6);
+  characterTraits.addTransientFxTraits(transientTraitsA);
+  expect(characterTraits.getEffectiveInt('STR')).toEqual(2);
+  characterTraits.addTransientFxTraits(transientTraitsA);
+  expect(characterTraits.getEffectiveInt('STR')).toEqual(0);
 });
 
 test('CharacterTraits.clearTransientFxTraits', () => {

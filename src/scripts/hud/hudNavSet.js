@@ -34,6 +34,7 @@ import { LoopMethod } from '../utils/arrays/indexer.js';
 import { CameraTracking } from '../utils/game/camera.js';
 import { Point } from '../utils/geometry.js';
 import { showSettingsDialog } from '../dialogs/settingsDialog.js';
+import LOG from '../utils/logging.js';
 /**
  * @type {number}
  */
@@ -72,6 +73,12 @@ export class NavigationButtons {
     this.#cameraDolly = cameraDolly;
     this.#createButtonSet(gridSize, locationNav, false);
     this.#createSettingsButton(gridSize, locationFullscreen);
+    /* not required
+    this.#createFullscreenButton(gridSize, locationFullscreen, {
+      x: gridSize,
+      y: 0,
+    });
+    */
   }
 
   /**
@@ -94,6 +101,51 @@ export class NavigationButtons {
     const centre = this.#getLocationPoint(gridSize, location, 1);
     settingsButton.position.x = centre.x;
     settingsButton.position.y = centre.y;
+  }
+
+  /**
+   * Create the button to handle showing settings.
+   * @param {number} gridSize
+   * @param {NavigationLocation} location
+   * @param {Object} offset
+   * @param {number} offset.x
+   * @param {number} offset.y
+   *
+   */
+  #createFullscreenButton(gridSize, location, offset) {
+    const buttonImage = new AnimatedImage(
+      {
+        prefix: 'hud-fullscreen',
+        startIndex: 0,
+        padding: 2,
+        suffix: '.png',
+      },
+      { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
+    );
+
+    const fullscreenButton = HUD.addButton(
+      buttonImage,
+      () => {
+        document.body.requestFullscreen?.({ navigationUI: 'hide' });
+      },
+      () => {
+        document.exitFullscreen?.();
+      }
+    );
+
+    const centre = this.#getLocationPoint(gridSize, location, 1);
+    fullscreenButton.position.x = centre.x + offset.x;
+    fullscreenButton.position.y = centre.y + offset.y;
+
+    window.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        LOG.debug('Switched to fullscreen mode.');
+        buttonImage.setCurrentIndex(1);
+      } else {
+        LOG.debug('Exited fullscreen mode.');
+        buttonImage.setCurrentIndex(0);
+      }
+    });
   }
 
   /** Get centre point information

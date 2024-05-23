@@ -47,14 +47,14 @@ export const AlmanacRarity = {
   COMMON: 'COMMON',
   UNCOMMON: 'UNCOMMON',
   RARE: 'RARE',
-  VERY_RARE: 'VERY RARE',
+  VERY_RARE: 'VERY_RARE',
 };
 
 /**
  * @typedef {Object} AlmanacEntry
  * @property {number} minLevel
  * @property {string} id
- * @property {string} rarity - COMMON, UNCOMMON, RARE, VERY RARE
+ * @property {string} rarity - COMMON, UNCOMMON, RARE, VERY_RARE
  * @property {string} imageName
  * @property {string} description
  * @property {string} identification
@@ -344,7 +344,7 @@ class AlmanacLibrary {
  */
 export function parseAlmanacLine(line, almanacKey) {
   const parts = line.match(
-    /^ *(\d+) *, *(\w+ ?\w+) *, *(\w+) *, *([\w+]*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
+    /^ *(\d+) *, *(\w+ ?\w+) *, *(\w+) *, *([\w+?/]*) *(?:\[ *([\w, ]*?)])? *\*(.*)$/
   );
   if (!parts) {
     LOG.error(`Invalid almanac entry ${line}`);
@@ -422,15 +422,50 @@ function parseAlmanacText(text, key) {
 }
 
 /**
+ * Create debug almanac. Only entries with the required id are included.
+ * The minLevel is set to zero, the CR to zero, and the rarity to COMMON.
+ * @param {Almanac} almanac
+ * @param {string} id
+ * @returns {Almanac}
+ */
+function createDebugAlmanac(almanac, id) {
+  almanac = almanac.filter((entry) => entry.id === id);
+  const entries = [
+    almanac.common,
+    almanac.uncommon,
+    almanac.rare,
+    almanac.veryRare,
+  ];
+  for (const values of entries) {
+    values.forEach((value) => almanac.common.push(value));
+  }
+  almanac.common.forEach((entry) => {
+    entry.minLevel = 0;
+    entry.challengeRating = 0;
+    entry.traitsString = entry.traitsString.replace(/CR *: *\d*\.?\d+/, 'CR:0');
+  });
+  return almanac;
+}
+
+/**
  * Create the actor almanac
  * @param {Map<string, URL>} urls
+ * @param {URLSearchParams} searchParams - passed in URL. Contains key, values
+ * to limit almanac entries. If set, only values with an ID matching the corresponding search
+ * parameter will be added. It will also have its level set to 0, CR set to zero and rarity
+ * set to COMMON to ensure it appears. This is only used for test purposes.
  * @returns {Promise} fulfils to undefined when complete
  */
-export function loadAlmanacs(urlMap) {
+export function loadAlmanacs(urlMap, searchParams) {
   const promises = [];
   urlMap.forEach((url, key) => {
     const promise = assetLoaders.loadTextFromUrl(url).then((text) => {
-      ALMANAC_LIBRARY.addAlmanac(key, parseAlmanacText(text, key));
+      const idFilter = searchParams.get(key);
+      let almanac = parseAlmanacText(text, key);
+      if (idFilter) {
+        almanac = createDebugAlmanac(almanac, idFilter);
+      }
+      ALMANAC_LIBRARY.addAlmanac(key, almanac);
     });
     promises.push(promise);
   });

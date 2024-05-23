@@ -146,7 +146,9 @@ export class AttackDetail {
       return this.#getUnarmedDamage();
     }
 
-    const damage = dice.rollMultiDice(this.damageDice) + this.abilityModifier;
+    const damage = Math.max(
+      dice.rollMultiDice(this.damageDice) + this.abilityModifier
+    );
     LOG.debug(
       `Damage: ${this.damageDice} + ability(${this.abilityModifier}) = ${damage}`
     );
@@ -274,10 +276,14 @@ export class Traits {
    * Add an integer value. Derived values are not recalculated.
    * @param {string} key
    * @param {number} value
+   * @param {boolean} clipToZero
    */
-  addInt(key, value) {
+  addInt(key, value, clipToZero = false) {
     const currentValue = this.getInt(key);
-    const newValue = maths.safeParseInt(value) + currentValue;
+    let newValue = maths.safeParseInt(value) + currentValue;
+    if (clipToZero && newValue < 0) {
+      newValue = 0;
+    }
     this._traits.set(key, newValue);
   }
 
@@ -366,6 +372,10 @@ export class Traits {
         return this.#setCostValueFromString(key, value);
       case 'DMG':
       case '_DMG':
+      case 'DMG_MELEE':
+      case '_DMG_MELEE':
+      case 'DMG_POISON':
+      case '_DMG_POISON':
       case 'HP_GAIN':
       case '_HP_GAIN':
         return this.#setIntOrDiceValueFromString(key, value);
@@ -890,7 +900,7 @@ export class CharacterTraits extends Traits {
       this._adjustForExperience();
       this._updateHitPoints();
       this._initialiseEffectiveTraits();
-      if (this._traits.get('TYPE_ID') === 'ENEMY') {
+      if (this.get('TYPE_ID') === 'ENEMY') {
         this._deriveValuesFromTraits();
       } else {
         this._utiliseTransientTraits();
@@ -909,13 +919,12 @@ export class CharacterTraits extends Traits {
   _deriveValuesFromTraits() {
     this._maxTileMovePerTurn = this.getValueInFeetInTiles('SPEED', 1);
     this._attacks = [];
-    const strength = this.getInt('STR', 1);
-    const abilityModifier = characteristicToModifier(strength);
+
     const attack = new AttackDetail({
       damageDice: this._traits.get('DMG'),
       weaponType: 'ALMANAC',
-      proficiencyBonus: this._traits.get('PB', 0),
-      abilityModifier: abilityModifier,
+      proficiencyBonus: this.getInt('PB', 0),
+      abilityModifier: 0,
       secondAttack: false,
     });
 
@@ -954,7 +963,7 @@ export class CharacterTraits extends Traits {
     CHAR_STATS_KEYS.forEach((key) => {
       const value = traits.getInt(CharacterTraits.toFxKey(key));
       if (value) {
-        this._effectiveTraits.addInt(key, value);
+        this._effectiveTraits.addInt(key, value, true); // clipped to zero
       }
     });
   }
@@ -1020,7 +1029,7 @@ export class CharacterTraits extends Traits {
         traits.getInt('STR', 0) > this.getEffectiveInt('STR')
       ) {
         this._maxTileMovePerTurn = Math.max(
-          1,
+          0,
           Traits.feetToTiles(baseSpeedInFeet - 10)
         );
         return;

@@ -66,7 +66,7 @@ export class Leaderboard {
       if (this.#sortFn(item, existingValue) < 0) {
         this.#values[existingIndex] = item;
       } else {
-        return -1; // This object already exists and the new version is not better.
+        return existingIndex; // This object already exists and the new version is not better.
       }
     } else {
       this.#values.push(item); // it's a new item.

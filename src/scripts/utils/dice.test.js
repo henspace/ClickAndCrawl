@@ -38,6 +38,12 @@ test('rollMultiDice', () => {
   testMultiDiceRoll('1D6', 1, 6);
   testMultiDiceRoll('3D20', 3, 60);
   testMultiDiceRoll('2D8 + 10', 12, 36);
+  expect(dice.rollMultiDice('6D1 + 30')).toEqual(36);
+  expect(dice.rollMultiDice('6D1 - 5')).toEqual(1);
+  expect(dice.rollMultiDice('6D1 -5')).toEqual(1);
+  expect(dice.rollMultiDice('6D1- 5')).toEqual(1);
+  expect(dice.rollMultiDice('6D1-5')).toEqual(1);
+  expect(dice.rollMultiDice('6D1 - 10')).toEqual(-4);
 });
 
 function testRoll(sides) {

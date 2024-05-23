@@ -84,6 +84,7 @@ const HEADERS = {
   svg: [{ name: 'Content-Type', value: 'image/svg+xml' }],
   ttf: [{ name: 'Content-Type', value: 'font/ttf' }],
   txt: [{ name: 'Content-Type', value: 'text/plain' }],
+  webmanifest: [{ name: 'Content-Type', value: 'application/json' }],
   woff: [{ name: 'Content-Type', value: 'font/woff' }],
   woff2: [{ name: 'Content-Type', value: 'font/woff2' }],
 };

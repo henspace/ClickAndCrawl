@@ -31,6 +31,7 @@ import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
 import { characteristicToModifier, AttackDetail } from './traits.js';
 import * as magic from './magic.js';
+import { AttackMode } from '../players/actors.js';
 
 /** @type number */
 export const MEALS_FOR_LONG_REST = 3;
@@ -73,9 +74,7 @@ export function getMeleeDamage(attack, targetTraits) {
   }
 
   const targetAc = targetTraits.getEffectiveInt('AC');
-  LOG.info(
-    `Attack: rolled ${attackRoll.roll}; value ${attackRoll.value} vs target AC ${targetAc}`
-  );
+  LOG.info(`Melee: attack roll ${attackRoll.value} vs target AC ${targetAc}`);
   if (attackRoll.value >= targetAc) {
     return attack.rollForDamage();
   }
@@ -83,13 +82,15 @@ export function getMeleeDamage(attack, targetTraits) {
 }
 
 /**
- * poison with saving throw.
+ * Poison with saving throw.
  * @param {module:dnd/traits.Traits} attackerTraits
  * @param {module:dnd/traits.CharacterTraits} targetTraits
  * @returns {number}
  */
 export function getPoisonDamage(attackerTraits, targetTraits) {
-  const damage = dice.rollMultiDice(attackerTraits.get('DMG', '1D4'));
+  const damageDice =
+    attackerTraits.get('DMG_POISON') ?? attackerTraits.get('DMG', '1D4');
+  const damage = dice.rollMultiDice(damageDice);
   const saveModifier =
     targetTraits.getNonMeleeSaveAbilityModifier(attackerTraits);
   const difficulty = attackerTraits.getInt('DC');
@@ -97,8 +98,13 @@ export function getPoisonDamage(attackerTraits, targetTraits) {
     LOG.error(`Poisoner ${attackerTraits.get('NAME')} has no DC set.`);
     return damage;
   }
-  if (dice.rollDice(20) + saveModifier >= difficulty) {
-    return 0;
+  const saveRoll = dice.rollDice(20);
+  LOG.info(
+    `Poison: save roll ${saveRoll} + modifier ${saveModifier} vs target DC ${difficulty}`
+  );
+  if (saveRoll + saveModifier >= difficulty) {
+    const factor = attackerTraits.getFloat('DMG_SAVED', 0);
+    return Math.round(factor * damage);
   } else {
     return damage;
   }
@@ -148,7 +154,10 @@ export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
  */
 function getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits) {
   const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
-  const spellCastAbilityValue = attackerTraits.getInt(spellCastAbility, 1);
+  const spellCastAbilityValue = attackerTraits.getEffectiveInt(
+    spellCastAbility,
+    1
+  );
   let damageDice;
   if (spellTraits.getDamageDiceWhenCastBy) {
     damageDice = spellTraits.getDamageDiceWhenCastBy(attackerTraits);
@@ -176,18 +185,26 @@ export function getSpellNormalDamage(
   targetTraits,
   spellTraits
 ) {
-  const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
-  const spellCastAbilityValue = attackerTraits.getInt(spellCastAbility, 1);
   const saveModifier = targetTraits.getNonMeleeSaveAbilityModifier(spellTraits);
+  let spellModifier = 0;
+  let attackLabel;
+  if (attackerTraits.get('ATTACK') === AttackMode.RANGED) {
+    attackLabel = 'Ranged attack';
+  } else {
+    attackLabel = 'Magic';
+    const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
+    const spellCastAbilityValue = attackerTraits.getInt(spellCastAbility, 1);
+    spellModifier =
+      attackerTraits.getCharacterPb(spellTraits) +
+      characteristicToModifier(spellCastAbilityValue);
+  }
+
   let difficulty = spellTraits.getInt('DC');
   if (difficulty === null || difficulty === undefined) {
-    LOG.error(`Magic ${attackerTraits.get('NAME')} has no DC set.`);
+    LOG.error(`${attackLabel} ${attackerTraits.get('NAME')} has no DC set.`);
     difficulty = 0;
   }
 
-  const spellModifier =
-    attackerTraits.getCharacterPb(spellTraits) +
-    characteristicToModifier(spellCastAbilityValue);
   const fullDifficulty = difficulty + spellModifier;
   let savingThrow = dice.rollDice(20) + saveModifier;
   let damageDice;
@@ -197,6 +214,9 @@ export function getSpellNormalDamage(
     damageDice = spellTraits.get('DMG', '1D4');
   }
   const damage = dice.rollMultiDice(damageDice);
+  LOG.info(
+    `${attackLabel}: saving throw ${savingThrow} vs target DC ${fullDifficulty}`
+  );
   if (savingThrow >= fullDifficulty) {
     const factor = spellTraits.getFloat('DMG_SAVED', 0);
     return Math.round(factor * damage);
@@ -416,7 +436,7 @@ export function canIdentify(identifierTraits, objectTraits) {
  * @returns {boolean}
  */
 export function canPerformTask(pickerTraits, task) {
-  const abilityValue = pickerTraits.getInt(task.ability, 1);
+  const abilityValue = pickerTraits.getEffectiveInt(task.ability, 1);
   const modifier = characteristicToModifier(abilityValue);
   const profBonus = task.proficiency
     ? pickerTraits.getCharacterPb(task.proficiency)

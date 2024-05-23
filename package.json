@@ -6,6 +6,7 @@
   "scripts": {
     "prebuild": "node ./tools/cleanDir.js ./build",
     "build": "parcel build --dist-dir build --public-url . ",
+    "notused-postbuild": "node ./tools/copyFiles.js src/notPackaged ./build",
     "serveBuild": "node ./tools/server/server.js ./build 8081",
     "start": "parcel src/index.html",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
@@ -24,6 +25,8 @@
   },
   "type": "module",
   "devDependencies": {
+    "@parcel/packager-raw-url": "^2.10.3",
+    "@parcel/transformer-webmanifest": "^2.10.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "jest": "^29.7.0",

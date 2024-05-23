@@ -52,8 +52,8 @@ const MESSAGE_MAP = new Map([
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
   ['BUTTON PILLAGE', 'Pillage'],
-  ['BUTTON PLAY ADVENTURE', 'Play adventure'],
-  ['BUTTON PLAY CASUAL', 'Play casual'],
+  ['BUTTON PLAY ADVENTURE', 'Start adventure'],
+  ['BUTTON PLAY CASUAL', 'Casual exploration'],
   ['BUTTON PRIVACY', 'Privacy'],
   ['BUTTON PREPARE SPELL', 'Prepare'],
   ['BUTTON REST', 'Rest'],
@@ -74,7 +74,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
   ['BUTTON TRY TO PICK', 'Pick lock'],
-  ['BUTTON TO NEXT FLOOR', 'To the next floor'],
+
   ['BUTTON USE', 'Use'],
 
   ['CONTROL EFFECTS VOLUME', 'Effect volume'],
@@ -86,21 +86,31 @@ const MESSAGE_MAP = new Map([
     'Casting this spell hurls acid over your enemies.',
   ],
   [
+    'DESCRIPTION AMBER',
+    'Precious fossilized tree resin, which is much sought after in these realms.',
+  ],
+  [
+    'DESCRIPTION ARCANE_ORB',
+    'Orb used by some users of magic to focus their spells.',
+  ],
+  ['DESCRIPTION AQUAMARINE', 'A precious crystal of rare beauty.'],
+  [
     'DESCRIPTION BARBARIAN1',
     'You are a barbarian ready to battle to the end of this dungeon in search of wealth and glory.',
   ],
+  ['DESCRIPTION BERSERKER', 'A hatred crazed berserker.'],
   [
     'DESCRIPTION BLACK_FLASK',
     'A black flask containing a clear, pungent liquid.',
   ],
   [
-    'DESCRIPTION BLACK_FLASK+SERPENT_VENOM',
+    'DESCRIPTION BLACK_FLASK?SERPENT_VENOM',
     'A black flask containing a clear, pungent liquid.',
   ],
   ['DESCRIPTION BLUE_FLASK', 'A blue flask containing a clear, aromatic oil.'],
   [
-    'DESCRIPTION BLUE_FLASK+LADY_OF_THE_MOON',
-    'A blue flask containing Lady of the Moon syrup.',
+    'DESCRIPTION BUGBEAR',
+    'A ferocious humanoid and evil creature bent on mayhem and carnage.',
   ],
   [
     'DESCRIPTION BURNING_HANDS',
@@ -125,8 +135,13 @@ const MESSAGE_MAP = new Map([
   ],
 
   ['DESCRIPTION COPPER_COINS', 'Old copper coins of low value.'],
+  [
+    'DESCRIPTION COPPER_DRAGON_WYRMLING',
+    'A very young copper dragon. Young, but capable of inflicting serious damage with its bite and claws.',
+  ],
   ['DESCRIPTION DAGGER', 'A short and very sharp piercing weapon.'],
-
+  ['DESCRIPTION DIAMOND', 'A valuable and rare crystal.'],
+  ['DESCRIPTION DRETCH', 'The lowest and least respected of all demons.'],
   [
     'DESCRIPTION ENGRAVED_PILLAR',
     'A large stone pillar covered with mystical engravings.',
@@ -140,6 +155,11 @@ const MESSAGE_MAP = new Map([
     'A giant fire beetle. Glowing gland radiate a fiery light across the dungeon.',
   ],
   ['DESCRIPTION FIRE_BOLT', 'Casting this spell hurls fire at your victims.'],
+  ['DESCRIPTION GARGOYLE', 'A chaotic evil gargoyle.'],
+  [
+    'DESCRIPTION GIANT_WASP_PV',
+    'A gigantic wasp making a deafening buzzing sound that echoes round the dungeon.',
+  ],
   [
     'DESCRIPTION GOBLIN',
     "Small humanoid creature.Treat with caution. They're small but vicious.",
@@ -150,6 +170,10 @@ const MESSAGE_MAP = new Map([
     'Gold coins stamped with the image of latter day kings and queens.',
   ],
   [
+    'DESCRIPTION GHOUL',
+    'An undead creature, living amongst the dead and dying.',
+  ],
+  [
     'DESCRIPTION HALF_PLATE_ARMOUR',
     'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
   ],
@@ -158,6 +182,10 @@ const MESSAGE_MAP = new Map([
     'A small, light axe. The blade is sharp and has been looked after with care.',
   ],
   ['DESCRIPTION HIDDEN_ARTEFACT', 'The ground appears to have been disturbed.'],
+  [
+    'DESCRIPTION HUNTING_TRAP',
+    'A old battered hunting trap designed for catching monsters and humans.',
+  ],
   [
     'DESCRIPTION INFLICT_WOUNDS',
     'Target any creature you can touch to inflict necrotic damage.',
@@ -171,13 +199,22 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION LEATHER_ARMOUR',
     'Simple armour comprising stiffened leather boiled in oil along with some more flexible sections.',
   ],
+  ['DESCRIPTION MEAT', 'A joint of some type of meat.'],
   [
-    'DESCRIPTION LIQUID_BLUE',
-    'A blue, viscous liquid covering the dungeon flagstones.',
+    'DESCRIPTION MEAT?HAM',
+    'A joint of meat which can be used as a meal while you rest between floors.',
   ],
   [
-    'DESCRIPTION LIQUID_BLUE+TOXIC_ACID',
-    'A blue, acidic liquid covering the dungeon flagstones.',
+    'DESCRIPTION MEAT?POISON_LIZARD',
+    'A hunk of meat from a dungeon lizard. This is toxic to humans.',
+  ],
+  [
+    'DESCRIPTION MEAT?ROTTING',
+    "A joint of meat, but it looks and smells like it is well past it's best.",
+  ],
+  [
+    'DESCRIPTION FETID_WATER',
+    'A fetid, murky film of liquid covering the dungeon flagstones.',
   ],
   ['DESCRIPTION LOCK_PICK', 'Set of lock picks.'],
   [
@@ -191,20 +228,25 @@ const MESSAGE_MAP = new Map([
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
 
   ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
+  [
+    'DESCRIPTION POTION_OF_HEALING',
+    "An aromatic potion, treasured for it's health restoration properties.",
+  ],
   ['DESCRIPTION PURPLE_PLANT', 'A small herb with a purple flower.'],
   [
     'DESCRIPTION QUARTERSTAFF',
     'A large quarterstaff capable of causing significant damage in the right hands.',
   ],
   [
-    'DESCRIPTION PURPLE_PLANT+HEDGEWORT',
+    'DESCRIPTION PURPLE_PLANT?HEDGEWORT',
     "Purple hedgewort. Renowned for it's health giving properties.",
   ],
   [
     'DESCRIPTION PLATE_ARMOUR',
     'Full plate armour with interlocking steel plates covering the entire body. A visored helmet, gauntlets, boots, and padding are included.',
   ],
-  ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum.'],
+  ['DESCRIPTION PLATINUM_COINS', 'Highly valued large platinum coins.'],
+  ['DESCRIPTION QUARTZ', 'A precious crystal.'],
   ['DESCRIPTION RAT_PV', 'A giant rat, diseased and vicious.'],
   [
     'DESCRIPTION RANGER1',
@@ -213,6 +255,31 @@ const MESSAGE_MAP = new Map([
   [
     'DESCRIPTION RING_MAIL_ARMOUR',
     'Leather armour reinforced with heavy steel rings sown into the material.',
+  ],
+  [
+    'DESCRIPTION RING_OF_CHARISMA',
+    'A magical ring that increases the charisma of the wearer.',
+  ],
+
+  [
+    'DESCRIPTION RING_OF_CONSTITUTION',
+    'A magical ring that increases the constitution of the wearer.',
+  ],
+  [
+    'DESCRIPTION RING_OF_DEXTERITY',
+    'A magical ring that increases the dexterity of the wearer.',
+  ],
+  [
+    'DESCRIPTION RING_OF_INTELLIGENCE',
+    'A magical ring that increases the intelligence of the wearer.',
+  ],
+  [
+    'DESCRIPTION RING_OF_STRENGTH',
+    'A magical ring that increases the strength of the wearer.',
+  ],
+  [
+    'DESCRIPTION RING_OF_WISDOM',
+    'A magical ring that increases the wisdom of the wearer.',
   ],
   [
     'DESCRIPTION ROGUE1',
@@ -226,6 +293,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION SCALE_MAIL_ARMOUR',
     'Leather coat and legging covered with overlapping steel scales.',
   ],
+  ['DESCRIPTION SHADOW', 'An undead shadow creature, hiding in the darkness.'],
   [
     'DESCRIPTION SHIELD',
     'A wooden shield, carried in one hand and offering some protection.',
@@ -250,9 +318,14 @@ const MESSAGE_MAP = new Map([
     "It's a trap. Sharp iron spikes shoot up from the ground.",
   ],
   [
+    'DESCRIPTION STIRGE',
+    'A blood-sucking cross between a giant mosquito and a blood curdling bat.',
+  ],
+  [
     'DESCRIPTION STUDDED_LEATHER_ARMOUR',
     'Tough and flexible leather armour with the addition of steel spikes and rivets.',
   ],
+  ['DESCRIPTION TIGER_EYE', 'A precious gemstone'],
   [
     'DESCRIPTION TOMB_OF_ELDER',
     'A large ancient shrine. It appears to be stone but with a magical gold lustre.',
@@ -273,6 +346,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION VEGETATION',
     'A patch of vegetation managing to grow between the cracks in the flagstones.',
   ],
+  ['DESCRIPTION VIOLET_FUNGUS', 'A moving fungus inflicting severe damage.'],
   [
     'DESCRIPTION WATERSKIN',
     'A leather drinking flask with fresh water. Crucial for resting between floors.',
@@ -289,6 +363,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION WRAITH',
     'An undead, neutral evil creature with a touch of death.',
   ],
+  ['DESCRIPTION ZOMBIE', 'An undead creature roaming the dungeon floors.'],
   ['DIALOG TITLE DEBUG LOG', 'Chronicles of Debug Loggerman'],
   ['DIALOG TITLE HALL OF FAME', 'Hall of Fame'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
@@ -302,7 +377,6 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE TRAP DISABLED', 'Trap disabled!'],
   ['DIALOG TITLE TRAP TRIGGERED SURVIVED', 'Trap triggered!'],
   ['DIALOG TITLE TRAP TRIGGERED INJURED', 'Trap triggered!'],
-  ['DIALOG TITLE UNKNOWN ITEM', 'Unidentified item'],
   ['MENU TITLE MAIN', 'Click and Crawl'],
   ['MENU TITLE GUIDES', 'Guides and information'],
   ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
@@ -332,11 +406,11 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE CONSUME BUT ALREADY FULL HP',
-    "Tastes good, but you're already in prime health. Perhaps you should've waited.",
+    "It tastes good, but you're already in prime health. Perhaps you should've waited.",
   ],
   [
     'MESSAGE CONSUME BUT NO HP GAIN',
-    'Tastes nice, but your health hasn`t improved.',
+    'It tastes nice, but your health doesn`t improve.',
   ],
   [
     'MESSAGE DEAD HERO HAS NO INVENTORY',
@@ -344,9 +418,12 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE DEFEAT',
-    'Despite your valiant efforts, you died. Your legend will live on.',
+    "Despite your valiant efforts, you die. Your legend will live on for now in the dungeon's hall of fame, and tonight the inns will be filled with songs of your heroism.",
   ],
-
+  [
+    'MESSAGE DEFEAT UNPLACED',
+    'Despite your valiant efforts, you die. You efforts will be forgotten and no bards will sing of your exploits.',
+  ],
   [
     'MESSAGE DUNGEON INTRO CONTINUE',
     'Welcome back, ${0}. The adventure continues. You recognise the familiar smell of death.',
@@ -362,7 +439,7 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE ENTRANCE STUCK',
     [
-      "The entrance is locked or jammed. You can't tell. Either way, you can't escape in that direction.",
+      "The entrance is locked or jammed. You can't tell which, but either way, you can't escape in that direction.",
       "You can't open the entrance. It seems locked or jammed. There's no way back.",
     ],
   ],
@@ -381,10 +458,14 @@ const MESSAGE_MAP = new Map([
     'To use a spell you need to prepare it. Preparation can only be done between dungeon floors after a long rest.',
   ],
   [
+    'MESSAGE FAILED TO IDENTIFY',
+    "You try to identify this item, but you're not sure exactly what it is. You might remember later.",
+  ],
+  [
     'MESSAGE FOUND HIDDEN ARTEFACT',
     [
-      'Good fortune smiles upon you. You found something.',
-      'You find something hidden in the ground.',
+      'Good fortune smiles upon you. You find something.',
+      'You find something that has been hidden or lost.',
       'Buried beneath the surface, you find something.',
     ],
   ],
@@ -392,7 +473,10 @@ const MESSAGE_MAP = new Map([
     'MESSAGE FOUND ENGRAVING',
     'You find strange words engraved on the cold stone surface.',
   ],
-  ['MESSAGE FOUND GENERIC', "It 's your lucky day. You' found something."],
+  [
+    'MESSAGE FOUND GENERIC',
+    "It 's your lucky day. You find something that appears to have been hidden for many years.",
+  ],
   [
     'MESSAGE GENERIC EPITAPH',
     'Here lies the corpse of one more defeated enemy.',
@@ -402,6 +486,11 @@ const MESSAGE_MAP = new Map([
     '${3-startDate}: ${0-name}; level ${1-level} ${2-class}; ${4-gold} GP; floor ${5-floor}',
   ],
   ['MESSAGE HERO EPITAPH FOR', 'Here lies the body of ${0}. Rest in peace.'],
+  [
+    'MESSAGE IDENTIFIED ITEM',
+    'It was unclear at first what this actually is, but using your skills, you manage to identify the item.',
+  ],
+
   [
     'MESSAGE INSUFFICIENT FUNDS',
     "You don't have enough funds to purchase this item. The item costs ${0}\u{00A0}GP but you only have ${1}\u{00A0}GP.",
@@ -443,7 +532,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE REST DIALOG',
-    "You are on a dark staircase leading deeper into the dungeon, but safe for now. If you have enough food or drink, you can rest to restore some health if necessary. If you don't need to recover, save your rations.",
+    "You're at the top of a dark staircase leading even deeper down to floor ${0-floor}. You're safe for now. If you have enough food or drink, you can rest to recuperate, but if you don't need to recover, save your rations.",
   ],
   [
     'MESSAGE REST LONG HP GAIN',
@@ -456,7 +545,7 @@ const MESSAGE_MAP = new Map([
     'MESSAGE SEARCH CORPSE OR MOVE',
     [
       'You have a choice. Do you want to search the body or climb on top?',
-      "You've found a corpse, but what should you do? Search for weapons and treasure or climb on top of the body?",
+      'You find a corpse, but what should you do? Search for weapons and treasure or climb on top of the body?',
     ],
   ],
   [
@@ -472,7 +561,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE SPELL ALREADY KNOWN',
-    "You've found a spell, but you already know this incantation.",
+    'You find a spell, but you already know this incantation.',
   ],
   [
     'MESSAGE STOLE GOLD',
@@ -501,7 +590,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE TRAP TRIGGERED SURVIVED',
-    'Despite the trap triggering, you luckily avoid any injury.',
+    'The trap triggers, but luckily you avoid any injury.',
   ],
   [
     'MESSAGE TRAP TRIGGERED INJURED',
@@ -512,21 +601,38 @@ const MESSAGE_MAP = new Map([
     'Taking great care you manage to disable the trap.',
   ],
   [
-    'MESSAGE FAILED TO IDENTIFY',
-    "You tried to identify this, but you're not sure exactly what it is. You might remember later.",
-  ],
-  [
     'MESSAGE YOU FAIL TO PICK THE LOCK',
     'This lock is tricky. Your attempt to pick it fails.',
   ],
   [
     'MESSAGE YOU PICK THE LOCK',
-    'Using your skill, you manage to pick the lock.',
+    'Using your skills, you manage to pick the lock.',
   ],
   [
     'MESSAGE WELCOME',
     'Welcome to the Click and Crawl old-school dungeon crawler. How far will you get?',
   ],
+
+  // Traits keys
+  ['STR', 'Strength'],
+  ['DEX', 'Dexterity'],
+  ['CON', 'Constitution'],
+  ['INT', 'Intelligence'],
+  ['WIS', 'Wisdom'],
+  ['CHA', 'Charisma'],
+
+  ['FX_STR', 'Strength change'],
+  ['FX_DEX', 'Dexterity change'],
+  ['FX_CON', 'Constitution change'],
+  ['FX_INT', 'Intelligence change'],
+  ['FX_WIS', 'Wisdom change'],
+  ['FX_CHA', 'Charisma change'],
+
+  ['AC', 'Armour class'],
+  ['DMG', 'Damage'],
+  ['DMG_PER_TURN', 'Damage per turn'],
+  ['DC', 'Difficulty'],
+  ['HP', 'Hit points'],
 
   // Miscellaneous words and phrases.
   ['AC (including armour)', 'AC (+armour): ${0}'],
@@ -555,8 +661,10 @@ const MESSAGE_MAP = new Map([
   ['Prepared spells', 'Prepared spells'],
   ['Range:', 'Range: ${0-range}'],
   ['Ready magic', 'Ready magic'],
+  ['Ring fingers', 'Ring fingers'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
+  ['YOU DIED!', 'YOU DIED!'],
 ]);
 
 export default MESSAGE_MAP;
