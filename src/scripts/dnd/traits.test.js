@@ -929,6 +929,48 @@ test('CharacterTraits.getAttacks Two weapon. First proficient', () => {
   }
 });
 
+test('CharacterTraits.getAttacks Two weapon. Weapons with attack bonus', () => {
+  // test with +ve and -ve ability modifiers
+  for (const strength of [3, 14]) {
+    const chrTraits = new traits.CharacterTraits(
+      `EXP:100000, STR:${strength}, PROF:SHARP`
+    );
+    const firstWeaponAttackBonus = 6;
+    const secondWeaponAttackBonus = 7;
+    const expectProfBonus = 4; // from page 56 of 5e
+    const expectAbilityMod = abilityToModifier(strength);
+    const expectedSecondAbilityMod =
+      expectAbilityMod < 0 ? expectAbilityMod : 0;
+    chrTraits.utiliseAdditionalTraits({
+      weapons: [
+        new traits.Traits(
+          `TYPE:LIGHT SIMPLE MELEE SHARP, DMG:5D6, ATTACK_BONUS:${firstWeaponAttackBonus}`
+        ),
+        new traits.Traits(
+          `TYPE:MELEE SIMPLE LIGHT, DMG:3D6, ATTACK_BONUS:${secondWeaponAttackBonus}`
+        ),
+      ],
+    });
+    const attacks = chrTraits.getAttacks();
+    expect(attacks).toHaveLength(2);
+    expect(attacks[0].unarmed).toBe(false);
+    expect(attacks[0].damageDice).toEqual('5D6');
+    expect(attacks[0].proficiencyBonus).toEqual(expectProfBonus);
+    expect(attacks[0].abilityModifier).toEqual(
+      expectAbilityMod + firstWeaponAttackBonus
+    );
+    expect(attacks[0].canUseTwoWeapons()).toEqual(true);
+
+    expect(attacks[1].unarmed).toBe(false);
+    expect(attacks[1].damageDice).toEqual('3D6');
+    expect(attacks[1].proficiencyBonus).toEqual(0);
+    expect(attacks[1].abilityModifier).toEqual(
+      expectedSecondAbilityMod + secondWeaponAttackBonus
+    );
+    expect(attacks[1].canUseTwoWeapons()).toEqual(true);
+  }
+});
+
 test('CharacterTraits: Rogue gets double proficiency bonus in attacks', () => {
   const strength = 14;
   const chrTraits = new traits.CharacterTraits(

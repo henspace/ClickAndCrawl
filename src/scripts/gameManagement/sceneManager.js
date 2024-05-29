@@ -266,7 +266,7 @@ function update(deltaSeconds) {
  * @param {number} dy
  */
 function panCameraBy(dx, dy) {
-  if (cameraDolly) {
+  if (cameraDolly && navigationButtons) {
     cameraDolly.panBy(dx, dy);
     cameraDolly.setTrackingMethod(CameraTracking.OFF);
     navigationButtons.setTrackingState(false);
@@ -290,6 +290,20 @@ function getCurrentSceneIntro() {
 }
 
 /**
+ * Set the dungeon challenge.
+ * @param {module:scriptReaders/autoSceneList~DungeonChallengeValue} challenge
+ */
+function setDungeonChallenge(challenge) {
+  if (sceneDefnList.setChallenge) {
+    sceneDefnList.setChallenge(challenge);
+  } else {
+    LOG.error(
+      'Attempt to setDungeonChallenge on list that does not support it.'
+    );
+  }
+}
+
+/**
  * SCENE_MANAGER Singleton.
  */
 const SCENE_MANAGER = {
@@ -299,6 +313,7 @@ const SCENE_MANAGER = {
   getCurrentSceneIntro: getCurrentSceneIntro,
   panCameraBy: panCameraBy,
   setCameraToTrack: setCameraToTrack,
+  setDungeonChallenge: setDungeonChallenge,
   setSceneList: setSceneList,
   switchToFirstScene: switchToFirstScene,
   switchToNextScene: switchToNextScene,

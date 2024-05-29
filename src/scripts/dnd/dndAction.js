@@ -280,7 +280,9 @@ export function canRest(nMeals, nDrinks, traits) {
   const shortRest = { possible: true, failure: RestFailure.NONE };
   const longRest = { possible: true, failure: RestFailure.NONE };
   const hitDice = traits.get('HIT_DICE', '0D6');
-  if (!hitDice || dice.maxRoll(hitDice) < 1) {
+  const availableDice =
+    dice.getDiceDetails(hitDice).qty - traits.getInt('SPENT_HIT_DICE');
+  if (availableDice < 1) {
     shortRest.possible = false;
     shortRest.failure = RestFailure.NEED_LONG_REST;
   } else if (nMeals < MEALS_FOR_SHORT_REST || nDrinks < DRINKS_FOR_SHORT_REST) {
@@ -311,42 +313,32 @@ export function takeRest(actor, length) {
     case 'SHORT':
       {
         const hitDice = actor.traits.get('HIT_DICE');
+        const spentHitDice = actor.traits.getInt('SPENT_HIT_DICE', 0);
         const hpMax = actor.traits.getInt('HP_MAX', currentHp);
         const constitutionModifier = actor.traits.getAsModifier('CON');
         const diceDetails = dice.getDiceDetails(hitDice);
-        if (diceDetails.qty > 0) {
-          diceDetails.qty--;
+        const availableHitDice = diceDetails.qty - spentHitDice;
+        if (availableHitDice > 0) {
           newHp =
             currentHp + dice.rollDice(diceDetails.sides) + constitutionModifier; // just roll one.
           newHp = Math.min(newHp, hpMax);
           actor.traits.set('HP', newHp);
-          actor.traits.set(
-            'HIT_DICE',
-            dice.getDiceDetailsAsString(diceDetails)
-          );
+          actor.traits.set('SPENT_HIT_DICE', spentHitDice + 1);
         }
       }
       break;
     case 'LONG':
       {
-        const maxNumberOfHitDice = actor.traits.getCharacterLevel();
-        const currentHitDice = actor.traits.get('HIT_DICE');
-        const currentDiceDetails = dice.getDiceDetails(currentHitDice);
-        const recoveredHitDice = Math.max(
-          1,
-          Math.ceil(0.5 * currentDiceDetails.qty)
-        );
-        currentDiceDetails.qty = Math.min(
-          maxNumberOfHitDice,
-          currentDiceDetails.qty + recoveredHitDice
-        );
-        actor.traits.set(
-          'HIT_DICE',
-          dice.getDiceDetailsAsString(currentDiceDetails)
-        );
+        const hitDice = actor.traits.get('HIT_DICE');
+        const diceDetails = dice.getDiceDetails(hitDice);
+        const recoveredHitDice = Math.max(1, Math.ceil(0.5 * diceDetails.qty));
+        let spentDice =
+          actor.traits.getInt('SPENT_HIT_DICE', 0) - recoveredHitDice;
+        spentDice = Math.max(0, spentDice);
+        actor.traits.set('SPENT_HIT_DICE', spentDice);
+
         newHp = actor.traits.getInt('HP_MAX', currentHp);
         actor.traits.set('HP', newHp);
-        actor.toxify.cure();
         magic.restoreCastingPower(actor.traits);
       }
       break;

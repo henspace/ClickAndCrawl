@@ -48,6 +48,7 @@ import { parseAlmanacLine } from '../dnd/almanacs/almanacs.js';
 export const StoreType = {
   HEAD: { id: 'HEAD', space: 1, money: false, spacesExpand: false },
   BODY: { id: 'BODY', space: 1, money: false, spacesExpand: false },
+  WAIST: { id: 'WAIST', space: 1, money: false, spacesExpand: false },
   HANDS: { id: 'HANDS', space: 2, money: false, spacesExpand: false },
   FEET: { id: 'FEET', space: 2, money: false, spacesExpand: false },
   BACKPACK: { id: 'BACKPACK', space: 8, money: false, spacesExpand: true },
@@ -92,6 +93,10 @@ export const ArtefactType = {
   ARMOUR: {
     storageSpace: 1,
     storeType: { stash: StoreType.WAGON, equip: StoreType.BODY },
+  },
+  BELT: {
+    storageSpace: 1,
+    storeType: { stash: StoreType.BACKPACK, equip: StoreType.WAIST },
   },
   CANTRIP: {
     storageSpace: 1,
@@ -872,6 +877,7 @@ export class ArtefactStoreManager {
     const stores = [
       this.#stores.get(StoreType.HEAD),
       this.#stores.get(StoreType.BODY),
+      this.#stores.get(StoreType.WAIST),
       this.#stores.get(StoreType.HANDS),
       this.#stores.get(StoreType.RING_FINGERS),
       this.#stores.get(StoreType.FEET),

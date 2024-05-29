@@ -2,5 +2,8 @@
 0,COMMON,WEAPON,dagger * VALUE:2GP, DMG:1d4, TYPE: simple melee finesse light thrown weapon
 0,COMMON,WEAPON,shortsword * VALUE:10GP , DMG:1D6, TYPE: martial melee light weapon shortsword
 0,COMMON,WEAPON,handaxe * VALUE:5GP, DMG:1D6, TYPE: simple melee light thrown weapon
-0,COMMON,WEAPON,warhammer * VALUE:15GP,DMG:1D8, TYPE:martial melee weapon
 0,COMMON,WEAPON,quarterstaff * VALUE:2SP,DMG:1D6, TYPE:versatile quarterstaff
+
+0,UNCOMMON,WEAPON,warhammer * VALUE:15GP,DMG:1D8, TYPE:martial melee weapon
+
+0,RARE,WEAPON,enchanted_battle_axe * VALUE:1000GP,DMG:1D8, TYPE:martial melee weapon, ATTACK_BONUS:1

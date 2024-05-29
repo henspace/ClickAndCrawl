@@ -163,9 +163,10 @@ function showOkDialog(message, options = {}) {
  * @param {string} title
  * @param {string | Element} message
  * @param {string[]} choices - labels for buttons.
+ * @param {string} className - class name for the dialog.
  * @returns {number} index of selected button.
  */
-function showChoiceDialog(title, message, choices) {
+function showChoiceDialog(title, message, choices, className) {
   const container = document.createElement('div');
   container.appendChild(createMessageElement(message, title));
   const actionButtons = [];
@@ -180,6 +181,7 @@ function showChoiceDialog(title, message, choices) {
     preamble: title,
     actionButtons: actionButtons,
     row: true,
+    className: className,
   });
 }
 
@@ -226,7 +228,7 @@ function showElementOkDialog(
 /** Create a controls dialog.
  * @param {string | Element} mainContent -message or element to show..
  * @param {Object} options
- * @param {Object} options.title - title 
+ * @param {Object} options.title - title
  * @param {string | Element} options.preamble - text placed before content..
  * @param {BaseControl[]} options.actionButtons
  * @param {boolean} options.row - if true, controls are in a row rather than the

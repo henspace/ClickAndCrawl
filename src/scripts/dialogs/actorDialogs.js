@@ -259,9 +259,10 @@ class InventoryContainerElement {
         storesToShow = [
           { label: i18n`Purse`, storeType: StoreType.PURSE },
           { label: i18n`Head`, storeType: StoreType.HEAD },
-          { label: i18n`Ring fingers`, storeType: StoreType.RING_FINGERS },
           { label: i18n`Body`, storeType: StoreType.BODY },
+          { label: i18n`Waist`, storeType: StoreType.WAIST },
           { label: i18n`Hands`, storeType: StoreType.HANDS },
+          { label: i18n`Ring fingers`, storeType: StoreType.RING_FINGERS },
           { label: i18n`Feet`, storeType: StoreType.FEET },
           this.#getStashStoreInfo(),
         ];
@@ -1403,8 +1404,11 @@ export function showActorDetailsDialog(actor, options = {}) {
         label: i18n`BUTTON REST`,
         action: () => {
           return showRestActionDialog(actor).then(() =>
-            actorElement.replaceWith(
-              createActorElement(actor, { hideTraits: true })
+            actorContainer.replaceChildren(
+              createActorElement(actor, {
+                hideTraits: true,
+                description: options.description,
+              })
             )
           );
         },
@@ -1577,10 +1581,27 @@ export function showRestDialog(heroActor) {
     })
   );
 
-  return showActorDetailsDialog(heroActor, {
-    allowConsumption: true,
-    allowRest: true,
-    description: messageContainer,
-    okButtonLabel: i18n`BUTTON CONTINUE`,
-  });
+  return showToxinCuredIfRequired(heroActor).then(() =>
+    showActorDetailsDialog(heroActor, {
+      allowConsumption: true,
+      allowRest: true,
+      description: messageContainer,
+      okButtonLabel: i18n`BUTTON CONTINUE`,
+    })
+  );
+}
+
+/**
+ * Cure any toxic effects and show confirmation if required.
+ * @param {module:players/actors.Actor}
+ * @returns {Promise}
+ */
+function showToxinCuredIfRequired(actor) {
+  const toxin = actor.toxify;
+  if (toxin && toxin.isActive) {
+    toxin.cure();
+    return UI.showOkDialog(i18n`MESSAGE CURE TOXIN BETWEEN FLOORS`);
+  } else {
+    return Promise.resolve();
+  }
 }

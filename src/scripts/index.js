@@ -32,7 +32,57 @@ import './utils/polyfills/string.js';
 import LOG from './utils/logging.js';
 import GAME from './gameManagement/game.js';
 
+/**
+ * Class that allows testing of features that may fall over in unsupported
+ * browsers. As they generate a syntax error, this will not be caught.
+ * The static testSupportedFeatures method should be called before clearing the
+ * default HTML.
+ */
+class FeatureSupportTest {
+  #privateMember;
+  arrowFunction;
+
+  constructor() {
+    this.#privateMember = ['one', 'two', 'three'];
+    this.arrowFunction = (data) => `[${data}]`;
+  }
+  /**
+   * Getter
+   * @returns {string}
+   */
+  get privateMember() {
+    return this.#privateMember;
+  }
+
+  /**
+   * @param {string} value
+   */
+  set privateMember(value) {
+    this.#privateMember = value;
+  }
+
+  /**
+   * Code that uses modern features that may not be supported by the browser.
+   * @returns {string} test message
+   */
+  #test() {
+    const arr = [this.#privateMember, 'two', 'three'];
+    const copy = [...arr].map((entry) => this.arrowFunction(entry));
+    return copy.join(', ');
+  }
+
+  /**
+   * @param {string} text
+   */
+  static testSupportedFeatures(text) {
+    const tester = new FeatureSupportTest();
+    tester.privateMember = text; // setter
+    const result = tester.#test();
+    LOG.debug(result);
+  }
+}
 window.addEventListener('load', () => {
+  FeatureSupportTest.testSupportedFeatures('one');
   const DESIGN_WIDTH = 800;
   const DESIGN_HEIGHT = 600;
   try {

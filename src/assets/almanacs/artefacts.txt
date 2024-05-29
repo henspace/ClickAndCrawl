@@ -12,6 +12,9 @@
 1,VERY_RARE,CONSUMABLE,potion_of_healing+very_rare * VALUE:112GP, TYPE: MEDICINE, HP:16
 
 1,COMMON,GENERIC,hunting_trap * VALUE:5GP
+1,COMMON,GENERIC,orc_skull * VALUE:1SP
+1,UNCOMMON,GENERIC,lute * VALUE:35GP
+5,UNCOMMON,GENERIC,poisoners_kit * VALUE:50GP
 
 1,UNCOMMON,GENERIC,lock_pick * VALUE: 5GP
 
@@ -26,7 +29,7 @@
 
 4,RARE,RING,ring_of_strength * VALUE:1000GP,FX_STR:2
 4,RARE,RING,ring_of_dexterity * VALUE:1000GP,FX_DEX:2
-4,RARE,RING,ring_of_constitution * VALUE:1000GP,FX_CON:2
+4,RARE,RING,ring_of_constitution * VALUE:1000CP,FX_CON:2
 4,RARE,RING,ring_of_intelligence * VALUE:1000GP,FX_INT:2
 4,RARE,RING,ring_of_wisdom * VALUE:1000GP,FX_WIS:2
 4,RARE,RING,ring_of_charisma * VALUE:1000GP,FX_CHA:2
@@ -38,6 +41,8 @@
 4,VERY_RARE,RING,ring_of_wisdom+rare * VALUE:5000GP,FX_WIS:4
 4,VERY_RARE,RING,ring_of_charisma+rare * VALUE:5000GP,FX_CHA:4
 
+5,RARE,BELT,belt_of_strength * VALUE:5000GP, FX_STR:6
+5,VERY_RARE,BELT,belt_of_strength+rare * VALUE:8000GP, FX_STR:8
 
 
 

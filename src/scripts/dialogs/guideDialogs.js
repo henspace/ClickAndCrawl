@@ -33,7 +33,7 @@ import { createElement, TextButtonControl } from '../utils/dom/components.js';
 import { i18n } from '../utils/messageManager.js';
 import UI from '../utils/dom/ui.js';
 import { AssetUrls } from '../../assets/assets.js';
-import LOG from '../utils/logging.js';
+import { VERSION } from '../constants/autoVersion.js';
 
 /**
  * Show the guide dialog. This is the portal to all help information.
@@ -78,11 +78,16 @@ export function showMarkdownDialog(url, options = {}) {
       text = i18n`MESSAGE CANNOT LOAD URL ${url.toString()}`;
     }
 
+    html = html
+      .replace(/\$\{VERSION\}/g, `${VERSION.build} ${VERSION.date}`)
+      .replace(/\$\{COPYRIGHT\}/g, `${VERSION.copyright}`);
+
     const container = createElement('div', {
       className: 'parsed-markdown',
       text: text,
       html: html,
     });
+
     return UI.showControlsDialog(container, {
       actionButtons: options.actionButtons,
       row: true,

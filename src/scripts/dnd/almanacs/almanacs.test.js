@@ -30,10 +30,78 @@
 import { test, expect } from '@jest/globals';
 import * as almanacs from './almanacs.js';
 
-test('rarityToPercent', () => {
-  expect(almanacs.rarityToPercent(almanacs.AlmanacRarity.COMMON)).toEqual(80);
-  expect(almanacs.rarityToPercent(almanacs.AlmanacRarity.UNCOMMON)).toEqual(25);
-  expect(almanacs.rarityToPercent(almanacs.AlmanacRarity.RARE)).toEqual(5);
-  expect(almanacs.rarityToPercent(almanacs.AlmanacRarity.VERY_RARE)).toEqual(1);
-  expect(almanacs.rarityToPercent('')).toEqual(80);
+test('getRandomEntry distribution', () => {
+  const almanac = new almanacs.Almanac();
+  almanac.common.push('common');
+  almanac.uncommon.push('uncommon');
+  almanac.rare.push('rare');
+  almanac.veryRare.push('veryRare');
+  const nEntries = 10000;
+  let nCommon = 0;
+  let nUncommon = 0;
+  let nRare = 0;
+  let nVeryRare = 0;
+  for (let n = 0; n < nEntries; n++) {
+    const entry = almanac.getRandomEntry();
+    switch (entry) {
+      case 'common':
+        nCommon++;
+        break;
+      case 'uncommon':
+        nUncommon++;
+        break;
+      case 'rare':
+        nRare++;
+        break;
+      case 'veryRare':
+        nVeryRare++;
+        break;
+    }
+  }
+  const total = nCommon + nUncommon + nRare + nVeryRare;
+  expect(total).toEqual(nEntries);
+  const proportionCommon = nCommon / total;
+  const proportionUncommon = nUncommon / total;
+  const proportionRare = nRare / total;
+  const proportionVeryRare = nVeryRare / total;
+  expect(proportionCommon).toBeCloseTo(0.8, 1);
+  expect(proportionUncommon).toBeCloseTo(0.15, 1);
+  expect(proportionRare).toBeCloseTo(0.04, 1);
+  expect(proportionVeryRare).toBeCloseTo(0.01, 2);
+});
+
+test('getRandomUncommonEntry fallback', () => {
+  const almanac = new almanacs.Almanac();
+  almanac.common.push('common');
+  expect(almanac.getRandomUncommonEntry()).toEqual('common');
+
+  almanac.uncommon.push('uncommon');
+  expect(almanac.getRandomUncommonEntry()).toEqual('uncommon');
+});
+
+test('getRandomRareEntry fallback', () => {
+  const almanac = new almanacs.Almanac();
+  almanac.common.push('common');
+  expect(almanac.getRandomRareEntry()).toEqual('common');
+
+  almanac.uncommon.push('uncommon');
+  expect(almanac.getRandomRareEntry()).toEqual('uncommon');
+
+  almanac.rare.push('rare');
+  expect(almanac.getRandomRareEntry()).toEqual('rare');
+});
+
+test('getRandomVeryRareEntry fallback', () => {
+  const almanac = new almanacs.Almanac();
+  almanac.common.push('common');
+  expect(almanac.getRandomVeryRareEntry()).toEqual('common');
+
+  almanac.uncommon.push('uncommon');
+  expect(almanac.getRandomVeryRareEntry()).toEqual('uncommon');
+
+  almanac.rare.push('rare');
+  expect(almanac.getRandomVeryRareEntry()).toEqual('rare');
+
+  almanac.veryRare.push('veryRare');
+  expect(almanac.getRandomVeryRareEntry()).toEqual('veryRare');
 });

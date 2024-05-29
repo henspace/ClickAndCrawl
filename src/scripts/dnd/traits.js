@@ -768,27 +768,30 @@ export class CharacterTraits extends Traits {
    * This is calculated as the maximum hit dice roll + the constitution modifier.
    */
   _updateHitPoints() {
-    const alreadyHasHp = this._traits.has('HP');
-    const alreadyHasHpMax = this._traits.has('HP_MAX');
+    const alreadyHasHp = this.has('HP');
+    const alreadyHasHpMax = this.has('HP_MAX');
     const hitDice = this.get('HIT_DICE');
     if (alreadyHasHp && alreadyHasHpMax && !hitDice) {
       return;
     }
 
     if (hitDice) {
-      const con = this.getInt('CON', 0);
+      if (!this.has('SPENT_HIT_DICE')) {
+        this._traits.set('SPENT_HIT_DICE', 0); // act directly on traits or refresh derived can be called again.
+      }
+      const con = this.getInt('CON', 0); // use standard constitution and do not include transients.
       const conMod = characteristicToModifier(con);
       const maxRoll = dice.maxRoll(hitDice);
       const averageDiceRoll = Math.ceil((maxRoll + 1) / 2);
       const hpMax =
         maxRoll + conMod + (this._level - 1) * (averageDiceRoll + conMod);
-      this.set('HP_MAX', hpMax);
+      this._traits.set('HP_MAX', hpMax);
 
       if (!alreadyHasHp) {
-        this.set('HP', dice.maxRoll(hitDice) + conMod);
+        this._traits.set('HP', dice.maxRoll(hitDice) + conMod);
       }
     } else if (alreadyHasHp) {
-      this.set('HP_MAX', this.get('HP'));
+      this._traits.set('HP_MAX', this.get('HP'));
     }
   }
 
@@ -1059,36 +1062,40 @@ export class CharacterTraits extends Traits {
     let weaponType;
     let damageDice;
     let proficient;
+    let attackBonus;
     if (weaponsTraits.length === 0) {
       damageDice = '';
       weaponType = 'UNARMED';
       proficient = true;
+      attackBonus = 0;
     } else {
       damageDice = weaponsTraits[0].get('DMG', '1D1') ?? '1D1';
       weaponType = weaponsTraits[0].get('TYPE') ?? '';
       proficient = this.isProficient(weaponsTraits[0]);
+      attackBonus = weaponsTraits[0].getInt('ATTACK_BONUS', 0);
     }
 
     firstAttack = new AttackDetail({
       damageDice: damageDice,
       weaponType: weaponType,
       proficiencyBonus: proficient ? effectivePb : 0,
-      abilityModifier: abilityModifier,
+      abilityModifier: abilityModifier + attackBonus,
     });
 
     let secondAttack;
     if (weaponsTraits.length > 1) {
+      attackBonus = weaponsTraits[1].getInt('ATTACK_BONUS', 0);
       secondAttack = new AttackDetail({
         damageDice: weaponsTraits[1].get('DMG', '1D1') ?? '1D1',
         weaponType: weaponsTraits[1].get('TYPE') ?? '',
         proficiencyBonus: this.isProficient(weaponsTraits[1]) ? effectivePb : 0,
-        abilityModifier: abilityModifier,
+        abilityModifier: abilityModifier + attackBonus,
       });
     }
     if (secondAttack?.canUseTwoWeapons() && firstAttack.canUseTwoWeapons()) {
       this._attacks.push(firstAttack);
-      if (secondAttack.abilityModifier > 0) {
-        secondAttack.abilityModifier = 0;
+      if (abilityModifier > 0) {
+        secondAttack.abilityModifier -= abilityModifier; // still leave in place attackBonus
       }
       this._attacks.push(secondAttack);
     } else if (

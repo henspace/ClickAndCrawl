@@ -26,7 +26,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+import LOG from './logging.js';
 /**
  * Sound manager
  */
@@ -54,6 +54,7 @@ class SoundManager {
    * @param {string} path - path to music
    */
   loadAndPlayMusic(path) {
+    LOG.debug(`Loading music ${path}`);
     if (this.#music) {
       throw new Error('Only one music track currently supported.');
     }
@@ -75,23 +76,17 @@ class SoundManager {
   /**
    * Load the audio sounds.
    * @param {Map<string, string>} audioPaths
-   * @returns {Promise} fulfils to undefined when all sounds are ready.
+   * @returns {Promise} fulfils to undefined
    */
   loadEffects(audioPaths) {
-    const promises = [];
+    LOG.debug(`Loading sound effects.`);
     audioPaths.forEach((path, key) => {
-      const promise = new Promise((resolve) => {
-        const audio = this.#createAudioIfNotNull(path);
-        if (audio) {
-          audio.addEventListener('canplay', (eventUnused) => {
-            this.#effects.set(key, audio);
-            resolve();
-          });
-        }
-      });
-      promises.push(promise);
+      const audio = this.#createAudioIfNotNull(path);
+      if (audio) {
+        this.#effects.set(key, audio);
+      }
     });
-    return Promise.all(promises);
+    return Promise.resolve();
   }
 
   /**
@@ -108,7 +103,7 @@ class SoundManager {
    */
   playEffect(key) {
     const effect = this.#effects.get(key);
-    if (effect) {
+    if (effect && effect.readyState >= 3) {
       effect.volume = this.#effectsVolume;
       effect.play();
     }

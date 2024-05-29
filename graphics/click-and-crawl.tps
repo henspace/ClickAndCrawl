@@ -273,6 +273,7 @@
             <key type="filename">tiles/kobold-idle01.png</key>
             <key type="filename">tiles/leather_armour.png</key>
             <key type="filename">tiles/lock_pick.png</key>
+            <key type="filename">tiles/lute.png</key>
             <key type="filename">tiles/magic00.png</key>
             <key type="filename">tiles/manhole_cover-dead00.png</key>
             <key type="filename">tiles/manhole_cover-idle00.png</key>
@@ -280,13 +281,18 @@
             <key type="filename">tiles/miss.png</key>
             <key type="filename">tiles/noxious_gas-idle00.png</key>
             <key type="filename">tiles/noxious_gas-idle01.png</key>
+            <key type="filename">tiles/ogre-dead00.png</key>
+            <key type="filename">tiles/ogre-idle00.png</key>
+            <key type="filename">tiles/ogre-idle01.png</key>
             <key type="filename">tiles/orc-dead00.png</key>
             <key type="filename">tiles/orc-idle00.png</key>
             <key type="filename">tiles/orc-idle01.png</key>
             <key type="filename">tiles/orc-walk-w00.png</key>
+            <key type="filename">tiles/orc_skull.png</key>
             <key type="filename">tiles/padded_armour.png</key>
             <key type="filename">tiles/plate_armour.png</key>
             <key type="filename">tiles/platinum_coins.png</key>
+            <key type="filename">tiles/poisoners_kit.png</key>
             <key type="filename">tiles/poleaxe.png</key>
             <key type="filename">tiles/potion_of_healing.png</key>
             <key type="filename">tiles/purple_plant.png</key>
@@ -418,6 +424,9 @@
             <key type="filename">tiles/wall2-HI.png</key>
             <key type="filename">tiles/wall2-T.png</key>
             <key type="filename">tiles/warhammer.png</key>
+            <key type="filename">tiles/wight-dead00.png</key>
+            <key type="filename">tiles/wight-idle00.png</key>
+            <key type="filename">tiles/wight-idle01.png</key>
             <key type="filename">tiles/wizard1-dead00.png</key>
             <key type="filename">tiles/wizard1-idle00.png</key>
             <key type="filename">tiles/wizard1-idle01.png</key>
@@ -497,6 +506,7 @@
             <key type="filename">tiles/cleric1-walk-w01.png</key>
             <key type="filename">tiles/cleric1-walk-w02.png</key>
             <key type="filename">tiles/cleric1-walk-w03.png</key>
+            <key type="filename">tiles/enchanted_battle_axe.png</key>
             <key type="filename">tiles/green_flask.png</key>
             <key type="filename">tiles/quarterstaff.png</key>
             <key type="filename">tiles/rat-idle01.png</key>
@@ -518,6 +528,25 @@
                 <rect>12,12,25,24</rect>
                 <key>scale9Paddings</key>
                 <rect>12,12,25,24</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">tiles/belt_of_strength.png</key>
+            <key type="filename">tiles/handaxe.png</key>
+            <key type="filename">tiles/iron_rations.png</key>
+            <key type="filename">tiles/rat-walk-w00.png</key>
+            <key type="filename">tiles/waterskin.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>12,12,25,25</rect>
+                <key>scale9Paddings</key>
+                <rect>12,12,25,25</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
@@ -552,24 +581,6 @@
                 <rect>12,12,24,25</rect>
                 <key>scale9Paddings</key>
                 <rect>12,12,24,25</rect>
-                <key>scale9FromFile</key>
-                <false/>
-            </struct>
-            <key type="filename">tiles/handaxe.png</key>
-            <key type="filename">tiles/iron_rations.png</key>
-            <key type="filename">tiles/rat-walk-w00.png</key>
-            <key type="filename">tiles/waterskin.png</key>
-            <struct type="IndividualSpriteSettings">
-                <key>pivotPoint</key>
-                <point_f>0.5,0.5</point_f>
-                <key>spriteScale</key>
-                <double>1</double>
-                <key>scale9Enabled</key>
-                <false/>
-                <key>scale9Borders</key>
-                <rect>12,12,25,25</rect>
-                <key>scale9Paddings</key>
-                <rect>12,12,25,25</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>

@@ -49,13 +49,22 @@ let spriteMap = new Map();
  * @returns {Promise} fulfils to @type {Image}.
  */
 function loadImage(srcUrl) {
+  LOG.debug(`Loading image ${srcUrl}`);
+  let resolved = false;
   return new Promise((resolve) => {
     const image = new Image();
     image.addEventListener('load', () => {
       LOG.debug(`Image ${srcUrl} loaded.`);
-      resolve(image);
+      if (!resolved) {
+        resolve(image);
+      }
     });
     image.src = srcUrl;
+    if (image.complete) {
+      LOG.debug(`Image ${srcUrl} already loaded; possibly cached.`);
+      resolved = true; // event handler shouldn't fire but just in case :)
+      resolve(image);
+    }
   });
 }
 
@@ -77,6 +86,7 @@ function loadImages(srcUrls) {
  * @returns {Promise} fulfils to array of sprite map keys
  */
 function loadSpriteMap(spriteMapDef, textureUrl) {
+  LOG.debug(`Loading sprite map.`);
   return loadImage(textureUrl).then((image) =>
     buildSpriteMap(spriteMapDef, image)
   );

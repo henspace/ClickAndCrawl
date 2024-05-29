@@ -170,7 +170,10 @@ export class Actor extends UiClickHandler {
     );
     const magic = items.filter(
       (artefact) =>
-        artefact.isMagic() || artefact.artefactType === ArtefactType.RING
+        artefact.isMagic() ||
+        artefact.artefactType === ArtefactType.RING ||
+        artefact.artefactType === ArtefactType.BELT ||
+        artefact.artefactType === ArtefactType.HEAD_GEAR
     );
     this.traits.utiliseAdditionalTraits({
       weapons: weapons.map((artefact) => artefact.traits),

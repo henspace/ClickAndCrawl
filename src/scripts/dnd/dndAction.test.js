@@ -551,10 +551,11 @@ test('take rest short with no CON modifier', () => {
   const actor = new Actor({}, ActorType.HERO);
   let hp = 10;
   let hpMax = 30;
+  let oldHitDice = '3D6';
   actor.traits = new CharacterTraits('EXP:14000, CON:10'); // gives level 6 based on p56 of DnD5e
   actor.traits.set('HP', hp);
   actor.traits.set('HP_MAX', hpMax);
-  actor.traits.set('HIT_DICE', '3D6');
+  actor.traits.set('HIT_DICE', `${oldHitDice}`);
   const result = dndAction.takeRest(actor, 'SHORT');
   expect(result.oldHp).toBe(hp);
   expect(result.newHp).toBeGreaterThan(hp);
@@ -562,19 +563,20 @@ test('take rest short with no CON modifier', () => {
   const newHp = actor.traits.getInt('HP');
   const newHitDice = actor.traits.get('HIT_DICE');
   expect(newHp).toEqual(result.newHp);
-  expect(newHitDice).toBe('2D6');
+  expect(newHitDice).toEqual(oldHitDice);
+  expect(actor.traits.getInt('SPENT_HIT_DICE')).toBe(1);
 });
 
 test('take rest short with CON modifier', () => {
   const actor = new Actor({}, ActorType.HERO);
   let hp = 10;
-
   let hpMax = 30;
+  let oldHitDice = '3D6';
   actor.traits = new CharacterTraits('EXP:14000, CON:16'); // gives level 6 based on p56 of DnD5e
   const conModifier = actor.traits.getAsModifier('CON');
   actor.traits.set('HP', hp);
   actor.traits.set('HP_MAX', hpMax);
-  actor.traits.set('HIT_DICE', '3D6');
+  actor.traits.set('HIT_DICE', `${oldHitDice}`);
   const result = dndAction.takeRest(actor, 'SHORT');
   expect(result.oldHp).toBe(hp);
   expect(result.newHp).toBeGreaterThan(hp + conModifier);
@@ -583,7 +585,8 @@ test('take rest short with CON modifier', () => {
   const newHp = actor.traits.getInt('HP');
   const newHitDice = actor.traits.get('HIT_DICE');
   expect(newHp).toEqual(result.newHp);
-  expect(newHitDice).toBe('2D6');
+  expect(newHitDice).toBe(oldHitDice);
+  expect(actor.traits.getInt('SPENT_HIT_DICE')).toBe(1);
 });
 
 test('take rest short insufficient dice', () => {
@@ -591,12 +594,15 @@ test('take rest short insufficient dice', () => {
   let hp = 10;
   let level = 6;
   let hpMax = 30;
+  let oldHitDice = '3D6';
+  let spentDice = 3;
   actor.traits = new CharacterTraits('EXP:14000, CON:16'); // gives level 6 based on p56 of DnD5e
   actor.traits._level = level;
   actor.traits.set('CON', 16);
   actor.traits.set('HP', hp);
   actor.traits.set('HP_MAX', hpMax);
-  actor.traits.set('HIT_DICE', '0D6');
+  actor.traits.set('HIT_DICE', `${oldHitDice}`);
+  actor.traits.set('SPENT_HIT_DICE', spentDice);
   const result = dndAction.takeRest(actor, 'SHORT');
   expect(result.oldHp).toBe(hp);
   expect(result.newHp).toBe(hp);
@@ -604,17 +610,19 @@ test('take rest short insufficient dice', () => {
   const newHp = actor.traits.getInt('HP');
   const newHitDice = actor.traits.get('HIT_DICE');
   expect(newHp).toBe(result.newHp);
-  expect(newHitDice).toBe('0D6');
+  expect(newHitDice).toBe(oldHitDice);
+  expect(actor.traits.getInt('SPENT_HIT_DICE')).toBe(spentDice);
 });
 
 test('take rest does not exceed HP_MAX', () => {
   const actor = new Actor({}, ActorType.HERO);
   let hp = 12;
   let hpMax = 12;
+  let oldHitDice = '3D6';
   actor.traits = new CharacterTraits('EXP:14000, CON:10'); // gives level 6 based on p56 of DnD5e
   actor.traits.set('HP', hp);
   actor.traits.set('HP_MAX', hpMax);
-  actor.traits.set('HIT_DICE', '3D6');
+  actor.traits.set('HIT_DICE', `${oldHitDice}`);
   const result = dndAction.takeRest(actor, 'SHORT');
   expect(result.oldHp).toBe(hp);
   expect(result.newHp).toBe(hpMax);
@@ -622,26 +630,8 @@ test('take rest does not exceed HP_MAX', () => {
   const newHp = actor.traits.getInt('HP');
   const newHitDice = actor.traits.get('HIT_DICE');
   expect(newHp).toBe(hpMax);
-  expect(newHitDice).toBe('2D6');
-});
-
-test('takeRest long rest calls cure', () => {
-  const actor = new Actor({}, ActorType.HERO);
-  const mockCure = jest.fn(() => console.log('cure'));
-  actor.toxify = {
-    cure: mockCure,
-  };
-
-  let hp = 5;
-  let hpMax = 12;
-  const currentHitDice = '6D20';
-  actor.traits = new CharacterTraits('EXP:355000, CON:10'); // gives level 20 based on p56 of DnD5e
-  actor.traits.set('HP', hp);
-  actor.traits.set('HP_MAX', hpMax);
-  actor.traits.set('HIT_DICE', currentHitDice);
-
-  dndAction.takeRest(actor, 'LONG');
-  expect(mockCure.mock.calls).toHaveLength(1);
+  expect(newHitDice).toBe(oldHitDice);
+  expect(actor.traits.getInt('SPENT_HIT_DICE')).toBe(1);
 });
 
 test('takeRest short does not restore casting power but long does', () => {
@@ -661,7 +651,25 @@ test('takeRest short does not restore casting power but long does', () => {
   expect(actor.traits.getInt('CASTING_POWER')).toBe(expectedPower);
 });
 
-test('takeRest long incrementing by half current hit dice', () => {
+test('takeRest short increments spent dice', () => {
+  const actor = new Actor({}, ActorType.HERO);
+  let hp = 12;
+  const maxHitDice = 6;
+  const spentHitDice = 0;
+  actor.traits = new CharacterTraits('EXP:14000, CON:10'); // gives level 6 based on p56 of DnD5e
+  actor.traits.set('HP', hp);
+  actor.traits.set('HIT_DICE', `${maxHitDice}D20`);
+  actor.traits.set('SPENT_HIT_DICE', `${spentHitDice}`);
+
+  for (let rest = 0; rest <= maxHitDice + 2; rest++) {
+    expect(actor.traits.getInt('SPENT_HIT_DICE')).toBe(
+      Math.min(rest, maxHitDice)
+    );
+    dndAction.takeRest(actor, 'SHORT');
+  }
+});
+
+test('takeRest long incrementing by half normal number of  hit dice', () => {
   const actor = new Actor({}, ActorType.HERO);
   const mockCure = jest.fn(() => console.log('cure'));
   actor.toxify = {
@@ -670,12 +678,15 @@ test('takeRest long incrementing by half current hit dice', () => {
 
   let hp = 5;
   let hpMax = 12;
-  const currentHitDice = '6D20';
-  const expectedHitDicePostRest = '9D20';
+  const numberOfHitDice = 10;
+  const currentHitDice = `${numberOfHitDice}D20`;
+  const spentDice = 9;
+  const expectedSpentDiceAfterLongRest = spentDice - numberOfHitDice / 2;
   actor.traits = new CharacterTraits('EXP:355000, CON:10'); // gives level 20 based on p56 of DnD5e
   actor.traits.set('HP', hp);
   actor.traits.set('HP_MAX', hpMax);
   actor.traits.set('HIT_DICE', currentHitDice);
+  actor.traits.set('SPENT_HIT_DICE', spentDice);
 
   const result = dndAction.takeRest(actor, 'LONG');
   expect(result.oldHp).toBe(hp);
@@ -683,7 +694,10 @@ test('takeRest long incrementing by half current hit dice', () => {
   const newHp = actor.traits.getInt('HP');
   const newHitDice = actor.traits.get('HIT_DICE');
   expect(newHp).toBe(hpMax);
-  expect(newHitDice).toBe(expectedHitDicePostRest);
+  expect(newHitDice).toBe(currentHitDice);
+  expect(actor.traits.getInt('SPENT_HIT_DICE')).toEqual(
+    expectedSpentDiceAfterLongRest
+  );
 });
 
 test('takeRest long incrementing hit dice up to normal max.', () => {
@@ -696,11 +710,13 @@ test('takeRest long incrementing hit dice up to normal max.', () => {
   let hp = 5;
   let hpMax = 12;
   const currentHitDice = '14D20';
-  const expectedHitDicePostRest = '16D20';
+  const spentDice = 1;
+  const expectedSpentDiceAfterLongRest = 0;
   actor.traits = new CharacterTraits('EXP:195000, CON:10'); // gives level 16 based on p56 of DnD5e
   actor.traits.set('HP', hp);
   actor.traits.set('HP_MAX', hpMax);
   actor.traits.set('HIT_DICE', currentHitDice);
+  actor.traits.set('SPENT_HIT_DICE', spentDice);
 
   const result = dndAction.takeRest(actor, 'LONG');
   expect(result.oldHp).toBe(hp);
@@ -708,12 +724,19 @@ test('takeRest long incrementing hit dice up to normal max.', () => {
   const newHp = actor.traits.getInt('HP');
   const newHitDice = actor.traits.get('HIT_DICE');
   expect(newHp).toBe(hpMax);
-  expect(newHitDice).toBe(expectedHitDicePostRest);
+  expect(newHitDice).toBe(currentHitDice);
+  expect(actor.traits.getInt('SPENT_HIT_DICE')).toBe(
+    expectedSpentDiceAfterLongRest
+  );
 });
 
 test('canRest short rest possible', () => {
   expect(
-    dndAction.canRest(1, 1, new CharacterTraits('HIT_DICE:1D6'))
+    dndAction.canRest(
+      1,
+      1,
+      new CharacterTraits('HIT_DICE:6D6, SPENT_HIT_DICE:5')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: true,
@@ -728,7 +751,11 @@ test('canRest short rest possible', () => {
 
 test('canRest short rest no hit dice', () => {
   expect(
-    dndAction.canRest(1, 1, new CharacterTraits('HIT_DICE:0D6'))
+    dndAction.canRest(
+      1,
+      1,
+      new CharacterTraits('HIT_DICE:6D6, SPENT_HIT_DICE:6')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: false,
@@ -755,7 +782,11 @@ test('canRest short rest no hit dice', () => {
 
 test('canRest short rest no rations', () => {
   expect(
-    dndAction.canRest(0, 1, new CharacterTraits('HIT_DICE:1D6'))
+    dndAction.canRest(
+      0,
+      1,
+      new CharacterTraits('HIT_DICE:1D6, SPENT_HIT_DICE:0')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: false,
@@ -767,7 +798,11 @@ test('canRest short rest no rations', () => {
     },
   });
   expect(
-    dndAction.canRest(1, 0, new CharacterTraits('HIT_DICE:1D6'))
+    dndAction.canRest(
+      1,
+      0,
+      new CharacterTraits('HIT_DICE:1D6, SPENT_HIT_DICE:0')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: false,
@@ -782,7 +817,11 @@ test('canRest short rest no rations', () => {
 
 test('canRest short success but no long rest', () => {
   expect(
-    dndAction.canRest(2, 2, new CharacterTraits('HIT_DICE:1D6'))
+    dndAction.canRest(
+      2,
+      2,
+      new CharacterTraits('HIT_DICE:1D6, SPENT_HIT_DICE:0')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: true,
@@ -797,7 +836,11 @@ test('canRest short success but no long rest', () => {
 
 test('canRest short failure but long rest sucess', () => {
   expect(
-    dndAction.canRest(3, 3, new CharacterTraits('HIT_DICE:0D6'))
+    dndAction.canRest(
+      3,
+      3,
+      new CharacterTraits('HIT_DICE:3D6, SPENT_HIT_DICE:3')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: false,
@@ -812,7 +855,11 @@ test('canRest short failure but long rest sucess', () => {
 
 test('canRest short and long rest success', () => {
   expect(
-    dndAction.canRest(3, 3, new CharacterTraits('HIT_DICE:1D6'))
+    dndAction.canRest(
+      3,
+      3,
+      new CharacterTraits('HIT_DICE:1D6, SPENT_HIT_DICE:0')
+    )
   ).toStrictEqual({
     shortRest: {
       possible: true,

@@ -55,6 +55,8 @@ import { AssetUrls } from '../../assets/assets.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import { TextButtonControl } from '../utils/dom/components.js';
 import { showUnpickExitDialog } from '../dialogs/openExitDialogs.js';
+import { showRunPuzzle } from '../dialogs/runeQuestionDialog.js';
+import { DungeonChallenge } from '../scriptReaders/autoSceneList.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -912,6 +914,15 @@ function startNextScene(currentState) {
   }
   return SCENE_MANAGER.unloadCurrentScene()
     .then(() => actorDialogs.showRestDialog(heroActor))
+    .then(() => showRunPuzzle(SCENE_MANAGER.getCurrentSceneLevel()))
+    .then((solved) => {
+      if (solved) {
+        SCENE_MANAGER.setDungeonChallenge(DungeonChallenge.EASY);
+      } else {
+        SCENE_MANAGER.setDungeonChallenge(DungeonChallenge.MEDIUM);
+      }
+      return;
+    })
     .then(() => {
       if (!heroActor.alive) {
         throw new Error('Actor died during rest.');

@@ -3,14 +3,18 @@
   "version": "1.0.0",
   "description": "An old school casual dungeon crawler.",
   "source": "src/index.html",
+  "browserslist": [
+    "defaults"
+  ],
   "scripts": {
-    "prebuild": "node ./tools/cleanDir.js ./build",
+    "prebuild": "node ./tools/cleanDir.js ./build && node ./tools/createVersion.js ./package.json ./src/scripts/constants/autoVersion.js",
     "build": "parcel build --dist-dir build --public-url . ",
-    "notused-postbuild": "node ./tools/copyFiles.js src/notPackaged ./build",
+    "postbuild": "node ./tools/copyFiles.js src/notPackaged ./build",
     "serveBuild": "node ./tools/server/server.js ./build 8081",
     "start": "parcel src/index.html",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
-    "doc": "jsdoc -c jsdoc.json"
+    "doc": "jsdoc -c jsdoc.json",
+    "autoversion": "node ./tools/createVersion.js ./package.json ./src/scripts/constants/autoVersion.js"
   },
   "keywords": [
     "game",

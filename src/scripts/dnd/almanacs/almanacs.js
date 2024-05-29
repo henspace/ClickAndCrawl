@@ -33,11 +33,11 @@ import { strToActorType } from '../../players/actors.js';
 import { strToArtefactType } from '../../players/artefacts.js';
 import * as maths from '../../utils/maths.js';
 
-/** Likelihoods of finding items */
-const COMMON_PERCENT = 80;
-const UNCOMMON_PERCENT = 25;
-const RARE_PERCENT = 5;
-const VERY_RARE_PERCENT = 1;
+/** Cutoff points according to rarity. Scale is 0 to 1 so these given the proportion */
+const COMMON_CUTOFF = 0.8;
+const UNCOMMON_CUTOFF = 0.95;
+const RARE_CUTOFF = 0.99;
+//const VERY_RARE_CUTOFF = 1;
 
 /** @typedef {string} AlmanacRarityValue */
 /**
@@ -66,42 +66,9 @@ export const AlmanacRarity = {
  */
 
 /**
- * Convert a rarity to a percentage.
- * @param {AlmanacRarityValue} rarity
- * @returns {number}
- */
-export function rarityToPercent(rarity) {
-  switch (rarity) {
-    case AlmanacRarity.RARE:
-      return RARE_PERCENT;
-    case AlmanacRarity.UNCOMMON:
-      return UNCOMMON_PERCENT;
-    case AlmanacRarity.VERY_RARE:
-      return VERY_RARE_PERCENT;
-    case AlmanacRarity.COMMON:
-    default:
-      return COMMON_PERCENT;
-  }
-}
-
-/**
  * Encapsulation of an almanac
  */
-class Almanac {
-  /** @type {number} */
-  static COMMON_CUTOFF =
-    COMMON_PERCENT /
-    (COMMON_PERCENT + UNCOMMON_PERCENT + RARE_PERCENT + VERY_RARE_PERCENT);
-  /** @type {number} */
-  static UNCOMMON_CUTOFF =
-    (COMMON_PERCENT + UNCOMMON_PERCENT) /
-    (COMMON_PERCENT + UNCOMMON_PERCENT + RARE_PERCENT + VERY_RARE_PERCENT);
-  /** @type {number} */
-  static RARE_CUTOFF =
-    (COMMON_PERCENT + UNCOMMON_PERCENT + RARE_PERCENT) /
-    (COMMON_PERCENT + UNCOMMON_PERCENT + RARE_PERCENT + VERY_RARE_PERCENT);
-  /** @type {number} */
-  static VERY_RARE_CUTOFF = 1;
+export class Almanac {
   /** @type {AlmanacEntry[]} */
   common;
   /** @type {AlmanacEntry[]} */
@@ -176,11 +143,11 @@ class Almanac {
    */
   getRandomEntry() {
     const cutoff = Math.random();
-    if (cutoff < Almanac.COMMON_CUTOFF) {
+    if (cutoff < COMMON_CUTOFF) {
       return this.getRandomCommonEntry();
-    } else if (cutoff < Almanac.UNCOMMON_CUTOFF) {
+    } else if (cutoff < UNCOMMON_CUTOFF) {
       return this.getRandomUncommonEntry();
-    } else if (cutoff < Almanac.RARE_CUTOFF) {
+    } else if (cutoff < RARE_CUTOFF) {
       return this.getRandomRareEntry();
     } else {
       return this.getRandomVeryRareEntry();
@@ -457,6 +424,7 @@ function createDebugAlmanac(almanac, id) {
  * @returns {Promise} fulfils to undefined when complete
  */
 export function loadAlmanacs(urlMap, searchParams) {
+  LOG.debug(`Loading almanacs.`);
   const promises = [];
   urlMap.forEach((url, key) => {
     const promise = assetLoaders.loadTextFromUrl(url).then((text) => {

@@ -51,7 +51,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON MAGIC', 'Magic'],
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
-  ['BUTTON PILLAGE', 'Pillage'],
+  ['BUTTON PILLAGE', 'Stash'],
   ['BUTTON PLAY ADVENTURE', 'Start adventure'],
   ['BUTTON PLAY CASUAL', 'Casual exploration'],
   ['BUTTON PRIVACY', 'Privacy'],
@@ -69,7 +69,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON STEAL', 'Steal'],
   ['BUTTON TRAP DISABLE', 'Try to disable'],
   ['BUTTON TRAP LEAVE', 'Leave it alone'],
-  ['BUTTON TAKE ARTEFACT', 'Take'],
+  ['BUTTON TAKE ARTEFACT', 'Stash'],
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
@@ -98,7 +98,11 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION BARBARIAN1',
     'You are a barbarian ready to battle to the end of this dungeon in search of wealth and glory.',
   ],
-  ['DESCRIPTION BERSERKER', 'A hatred crazed berserker.'],
+  [
+    'DESCRIPTION BELT_OF_STRENGTH',
+    'A rare belt, originally crafted by dwarves and significantly increasing the strength of the wearer.',
+  ],
+  ['DESCRIPTION BERSERKER', 'A hate crazed berserker.'],
   [
     'DESCRIPTION BLACK_FLASK',
     'A black flask containing a clear, pungent liquid.',
@@ -142,6 +146,10 @@ const MESSAGE_MAP = new Map([
   ['DESCRIPTION DAGGER', 'A short and very sharp piercing weapon.'],
   ['DESCRIPTION DIAMOND', 'A valuable and rare crystal.'],
   ['DESCRIPTION DRETCH', 'The lowest and least respected of all demons.'],
+  [
+    'DESCRIPTION ENCHANTED_BATTLE_AXE',
+    'An enchanted axe increasing the power of your attacks.',
+  ],
   [
     'DESCRIPTION ENGRAVED_PILLAR',
     'A large stone pillar covered with mystical engravings.',
@@ -217,6 +225,7 @@ const MESSAGE_MAP = new Map([
     'A fetid, murky film of liquid covering the dungeon flagstones.',
   ],
   ['DESCRIPTION LOCK_PICK', 'Set of lock picks.'],
+  ['DESCRIPTION LUTE', 'A beautiful lute in remarkable condition.'],
   [
     'DESCRIPTION MANHOLE_COVER',
     'A small manhole cover set into the dungeon floor.',
@@ -225,9 +234,14 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION NOXIOUS_GAS',
     'A cloud of foul smelling gas. Poisonous and strength sapping',
   ],
+  ['DESCRIPTION OGRE', 'A large and incredibly strong ogre.'],
   ['DESCRIPTION ORC', 'A monstrous creature with an intense hatred of humans.'],
-
+  ['DESCRIPTION ORC_SKULL', 'An old and slightly cracked skull from a orc.'],
   ['DESCRIPTION PADDED_ARMOUR', 'Simple quilted layers of cloth and batting.'],
+  [
+    'DESCRIPTION POISONERS_KIT',
+    'A kit of vials of poisons and other toxic materials.',
+  ],
   [
     'DESCRIPTION POTION_OF_HEALING',
     "An aromatic potion, treasured for it's health restoration properties.",
@@ -356,6 +370,10 @@ const MESSAGE_MAP = new Map([
     'A bludgeoning, versatile iron hammer favoured by many clerics.',
   ],
   [
+    'DESCRIPTION WIGHT',
+    'A wight, reanimated from the corpse of a rogue fighter whose rotting body was raised by evil necromancy.',
+  ],
+  [
     'DESCRIPTION WIZARD1',
     'You a wizard determined to find your way to the final level of this dungeon using your control of magical chaos.',
   ],
@@ -371,6 +389,7 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
+  ['DIALOG TITLE RUNE PUZZLE', 'Where next?'],
   ['DIALOG TITLE SETTINGS', 'Adjust settings'],
   ['DIALOG TITLE TRADE', 'Buy and sell with trader'],
   ['DIALOG TITLE TRAP DETECTED', 'Trap detected!'],
@@ -382,15 +401,15 @@ const MESSAGE_MAP = new Map([
   ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
   [
     'MESSAGE CANNOT REST SHORT NEED LONG REST',
-    "You've had too many short rests. You need a long one first.",
+    "You've had too many short rests. You need to take a long rest first.",
   ],
   [
     'MESSAGE CANNOT REST SHORT NEED RATIONS',
-    "You don't have enough rations for a short rest.",
+    "You don't have enough food or drink for a short rest. One meal and one drink are required to enjoy a short rest.",
   ],
   [
     'MESSAGE CANNOT REST LONG NEED RATIONS',
-    "You don't have enough rations for a long rest.",
+    "You don't have enough food or drink for a long rest. Three meals and three drinks are required to enjoy a long rest.",
   ],
   [
     'MESSAGE CANNOT STASH',
@@ -411,6 +430,10 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE CONSUME BUT NO HP GAIN',
     'It tastes nice, but your health doesn`t improve.',
+  ],
+  [
+    'MESSAGE CURE TOXIN BETWEEN FLOORS',
+    'You use the safety of the stairs between floors to clean off and extract poisons that have been slowly destroying your health.',
   ],
   [
     'MESSAGE DEAD HERO HAS NO INVENTORY',
@@ -532,7 +555,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE REST DIALOG',
-    "You're at the top of a dark staircase leading even deeper down to floor ${0-floor}. You're safe for now. If you have enough food or drink, you can rest to recuperate, but if you don't need to recover, save your rations.",
+    "You're at the top of a dark staircase leading even deeper down to floor ${0-floor}. You're safe for now. If you have enough food and drink, you can rest to recuperate, but if you don't need to recover, save your rations.",
   ],
   [
     'MESSAGE REST LONG HP GAIN',
@@ -558,6 +581,14 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE SEARCH OR MOVE',
     'You have a choice. Do you want to search this tile or move onto it?',
+  ],
+  [
+    'MESSAGE RUNES ON WALL',
+    "At the bottom of the stairs there are two doors. There's an ancient inscription on wall.",
+  ],
+  [
+    'MESSAGE RUNES OVER DOORS',
+    'Above each door is a shorter inscription carved into the arch. You need to choose your path.',
   ],
   [
     'MESSAGE SPELL ALREADY KNOWN',
@@ -664,6 +695,7 @@ const MESSAGE_MAP = new Map([
   ['Ring fingers', 'Ring fingers'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
+  ['Waist', 'Waist'],
   ['YOU DIED!', 'YOU DIED!'],
 ]);
 

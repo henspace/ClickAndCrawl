@@ -109,6 +109,7 @@ function setOptions(options) {
     LOG.debug('No game element so assuming running as Jest test. No ui');
     return;
   }
+  gameElement.replaceChildren();
   fonts.initialise(options.width);
   canvas = document.createElement('canvas');
   canvas.id = 'game-canvas';
@@ -125,6 +126,7 @@ function setOptions(options) {
   minScale = options.minScale;
   sizingMethod = options.sizingMethod;
   canvasAlpha = options.alpha;
+  setVhCssVariable();
   sizeScreen();
   syncDomFonts();
 }
@@ -224,6 +226,15 @@ function sizeScreen() {
 function syncDomFonts() {
   const rootFontSize = fonts.getRootFontSize() * scale;
   document.documentElement.style.fontSize = `${rootFontSize}px`;
+}
+
+/**
+ * Set the vh variable in the CSS. This allows for browsers that include the address bar
+ * in the vh calculation.
+ */
+function setVhCssVariable() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
 
 /**

@@ -94,6 +94,7 @@ async function initialise(screenOptions) {
       )
     )
     .then(() => {
+      LOG.debug('All assets loaded. Trigger main menu.');
       splashPopup.remove();
       return TURN_MANAGER.triggerEvent(TURN_MANAGER.EventId.MAIN_MENU);
     })
