@@ -93,12 +93,14 @@ test('saveGameState', () => {
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
   const gold = 10;
+  const goldSent = 1200;
   const almanacEntry = parseAlmanacLine(
     `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
     'HEROES'
   );
   const hero = buildActor(almanacEntry);
   hero.storeManager.addToPurse(gold);
+  hero.traits.set('GOLD_SENT', goldSent);
   SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(hero);
   const leaderboard = gameSaver.getLeaderboard();
@@ -108,10 +110,10 @@ test('saveGameState', () => {
     name: hero.traits.get('NAME'),
     class: hero.traits.get('CLASS'),
     gold: gold,
+    goldSent: goldSent,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
-    score: Math.floor(100 * gold * characterLevel),
     completed: false,
   });
 });
@@ -121,12 +123,14 @@ test('saveGameState: completed', () => {
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
   const gold = 10;
+  const goldSent = 5000;
   const almanacEntry = parseAlmanacLine(
     `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
     'HEROES'
   );
   const hero = buildActor(almanacEntry);
   hero.storeManager.addToPurse(gold);
+  hero.traits.set('GOLD_SENT', goldSent);
   SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
   gameSaver.saveGameState(hero, true);
   const leaderboard = gameSaver.getLeaderboard();
@@ -136,10 +140,10 @@ test('saveGameState: completed', () => {
     name: hero.traits.get('NAME'),
     class: hero.traits.get('CLASS'),
     gold: gold,
+    goldSent: goldSent,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
-    score: Math.floor(100 * gold * characterLevel),
     completed: true,
   });
 });
@@ -157,7 +161,8 @@ test('saveGameState adds if better', () => {
   for (let n = 0; n <= 12; n++) {
     const hero = buildActor(almanacEntry);
     (hero.adventureStartTime = 1000 + n), hero.traits.set('NAME', `NAME${n}`);
-    hero.storeManager.addToPurse(100 + n);
+    hero.storeManager.addToPurse(100 - n);
+    hero.traits.set('GOLD_SENT', 100 + n);
     SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
     gameSaver.saveGameState(hero);
   }
@@ -169,22 +174,22 @@ test('saveGameState adds if better', () => {
     adventureStartTime: 1012,
     name: 'NAME12',
     class: 'FIGHTER',
-    gold: 112,
+    gold: 100 - 12,
+    goldSent: 100 + 12,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
-    score: Math.floor(100 * 112 * characterLevel),
     completed: false,
   });
   expect(leaderboardData[9]).toEqual({
     adventureStartTime: 1003,
     name: 'NAME3',
     class: 'FIGHTER',
-    gold: 103,
+    gold: 100 - 3,
+    goldSent: 100 + 3,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),
-    score: Math.floor(100 * 103 * characterLevel),
     completed: false,
   });
 });

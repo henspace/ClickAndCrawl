@@ -559,12 +559,7 @@ class HeroTurnIdle extends State {
                 detail.filter !== ClickEventFilter.MOVE_OR_INTERACT_TILE,
             });
           }
-          if (
-            detail.occupant?.isObjective() &&
-            filter === ClickEventFilter.INTERACT_TILE
-          ) {
-            await endGameObjectiveFound();
-          } else if (heroActor.traits.get('HP', 0) === 0) {
+          if (heroActor.traits.get('HP', 0) === 0) {
             await this.transitionTo(new AtGameOver());
           } else {
             await this.transitionTo(new ComputerTurnIdle());
@@ -638,12 +633,7 @@ class HeroTurnInteracting extends State {
             });
           }
 
-          if (
-            detail.occupant?.isObjective() &&
-            filter === ClickEventFilter.INTERACT_TILE
-          ) {
-            await endGameObjectiveFound();
-          } else if (heroActor.traits.get('HP', 0) === 0) {
+          if (heroActor.traits.get('HP', 0) === 0) {
             await this.transitionTo(new AtGameOver());
           } else {
             await this.#transitionToComputerTurn();
@@ -890,16 +880,6 @@ function interact(point) {
 }
 
 /**
- * End the game because the objective was found.
- */
-function endGameObjectiveFound() {
-  heroActor.traits.clearTransientFxTraits();
-  if (persistentGame) {
-    saveGameState(heroActor, true);
-  }
-  return currentState.transitionTo(new AtGameCompleted());
-}
-/**
  * Start next scene.
  * @param {State} currentState
  * @returns {Promise} fulfils to undefined.
@@ -1009,11 +989,23 @@ function disambiguateFilter(filter, occupant) {
       }
     }
 
-    return UI.showChoiceDialog(
-      i18n`DIALOG TITLE CHOICES`,
-      i18n`MESSAGE SEARCH OR MOVE`,
-      [i18n`BUTTON CLIMB OVER`, i18n`BUTTON SEARCH`]
-    ).then((choice) => {
+    let message;
+    let moveLabel;
+    let interactLabel;
+    if (occupant.isPortal()) {
+      message = i18n`MESSAGE USE PORTAL OR MOVE`;
+      moveLabel = i18n`BUTTON MOVE`;
+      interactLabel = i18n`BUTTON USE`;
+    } else {
+      message = i18n`MESSAGE SEARCH OR MOVE`;
+      moveLabel = i18n`BUTTON MOVE`;
+      interactLabel = i18n`BUTTON SEARCH`;
+    }
+
+    return UI.showChoiceDialog(i18n`DIALOG TITLE CHOICES`, message, [
+      moveLabel,
+      interactLabel,
+    ]).then((choice) => {
       if (choice === 0) {
         return ClickEventFilter.MOVEMENT_TILE;
       } else {

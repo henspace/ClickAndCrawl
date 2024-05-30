@@ -55,7 +55,7 @@ export const ActorType = {
   HIDDEN_ARTEFACT: 3,
   TRADER: 4,
   PROP: 5,
-  OBJECTIVE: 6,
+  PORTAL: 6,
 };
 
 /**
@@ -322,11 +322,11 @@ export class Actor extends UiClickHandler {
   }
 
   /**
-   * Is this an objective
+   * Is this a portal
    * @returns {boolean}
    */
-  isObjective() {
-    return this?.type === ActorType.OBJECTIVE;
+  isPortal() {
+    return this?.type === ActorType.PORTAL;
   }
 
   /**
@@ -365,7 +365,7 @@ export class Actor extends UiClickHandler {
    * @returns {boolean}
    */
   isPassableByActor(otherActor) {
-    if (otherActor.isHero() && this.isHiddenArtefact()) {
+    if (otherActor.isHero() && (this.isHiddenArtefact() || this.isPortal())) {
       return true;
     } else {
       return (!this.alive && !this.isProp()) || !this.obstacle;
@@ -378,7 +378,9 @@ export class Actor extends UiClickHandler {
    * @returns {boolean}
    */
   canShareLocationWithActor(otherActor) {
-    if (this.isOrganic()) {
+    if (this.isPortal()) {
+      return otherActor.isHero();
+    } else if (this.isOrganic()) {
       return !otherActor.isOrganic() && !otherActor.isTrader(); // don't kill off traders.
     } else if (this.isHiddenArtefact()) {
       return otherActor.isHero();

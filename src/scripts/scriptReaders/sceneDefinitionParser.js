@@ -92,12 +92,12 @@ function createEnemies(sceneDefn) {
 }
 
 /**
- * Create the objective.
+ * Create the portal.
  * @param {SceneDefinition} sceneDefn
  * @returns {module:players/actors.Actor} null if not created.
  */
-function createObjective(sceneDefn) {
-  return sceneDefn.objective ? buildActor(sceneDefn.objective) : null;
+function createPortal(sceneDefn) {
+  return sceneDefn.portal ? buildActor(sceneDefn.portal) : null;
 }
 
 /** Create an artefact that is located in the dungeon.
@@ -233,23 +233,22 @@ class ParsedScene extends AbstractScene {
     );
     WORLD.setTileMap(tileMap);
 
-    let objective = createObjective(this.#sceneDefn);
-    if (objective) {
+    let portal = createPortal(this.#sceneDefn);
+    if (portal) {
       const freeTile = tileMap.getRandomFreeGroundTile();
       if (freeTile) {
-        objective.position = freeTile.worldPoint;
-        WORLD.addArtefact(objective);
+        portal.position = freeTile.worldPoint;
+        WORLD.addArtefact(portal);
       } else {
-        LOG.debug('No free tiles for objective.');
-        objective = null;
+        LOG.debug('No free tiles for portal.');
+        portal = null;
       }
     }
 
     const exitKeyAlmanacEntry = ALMANAC_LIBRARY.getRandomEntry('KEYS');
     const exitKeyArtefact =
-      objective || rollDice(6) > 3 ? buildArtefact(exitKeyAlmanacEntry) : null;
-    // Note: don't add a key to find if this level has the objective as that is the way out.
-    let keysToAdd = !objective && exitKeyArtefact ? 1 : 0;
+      rollDice(6) > 3 ? buildArtefact(exitKeyAlmanacEntry) : null;
+    let keysToAdd = exitKeyArtefact ? 1 : 0;
 
     const pooledArtefactAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
       ['ARTEFACTS', 'ARMOUR', 'WEAPONS'],

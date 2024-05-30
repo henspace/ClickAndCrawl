@@ -294,7 +294,7 @@ class AlmanacLibrary {
     switch (key) {
       case 'HEROES':
       case 'ENEMIES':
-      case 'OBJECTIVES':
+      case 'PORTALS':
       case 'TRADERS':
         return strToActorType(type);
       default:

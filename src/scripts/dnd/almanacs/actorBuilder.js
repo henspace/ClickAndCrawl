@@ -31,14 +31,14 @@ import { Sprite } from '../../utils/sprites/sprite.js';
 import { Actor, ActorType, MoveType } from '../../players/actors.js';
 import * as spriteRenderers from '../../utils/sprites/spriteRenderers.js';
 import * as animation from '../../utils/sprites/animation.js';
-import { Position } from '../../utils/geometry.js';
+import { Position, Velocity } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
 import { Colours } from '../../constants/canvasStyles.js';
 import {
   Fight,
   Trade,
   FindArtefact,
-  FindObjective,
+  FindPortal,
   Poison,
   Toxify,
 } from '../interact.js';
@@ -52,7 +52,7 @@ import LOG from '../../utils/logging.js';
 import IMAGE_MANAGER from '../../utils/sprites/imageManager.js';
 import { getRandomFullName } from '../../utils/nameGenerator.js';
 import * as magic from '../magic.js';
-import { VelocityAligner } from '../../utils/sprites/movers.js';
+import { VelocityAligner, VelocityMover } from '../../utils/sprites/movers.js';
 /**
  * Specialist traits renderer
  */
@@ -260,7 +260,10 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
   );
   let renderers;
   let traitsRenderer;
-  if (traits.get('MOVE') !== MoveType.ORGANIC) {
+  if (
+    almanacEntry.typeId !== 'PORTAL' &&
+    traits.get('MOVE') !== MoveType.ORGANIC
+  ) {
     traitsRenderer = new TraitsRenderer(SCREEN.getContext2D(), {
       tileSize: GameConstants.TILE_SIZE - 2,
       fillStyles: [Colours.HP_GAUGE],
@@ -298,6 +301,8 @@ function createActor(imageName, iconImageName, traits, almanacEntry) {
   const planView = /\w+_pv/.test(imageName);
   if (planView) {
     actor.sprite.replaceBaseModifier(VelocityAligner.createUprightAligner());
+  } else if (almanacEntry.typeId === 'PORTAL') {
+    actor.sprite.replaceBaseModifier(new VelocityMover());
   }
   return actor;
 }
@@ -383,16 +388,17 @@ function createTrader(imageName, iconImageName, traits, actorType) {
 }
 
 /**
- * Create objective
+ * Create portal
  * @param {string} imageName - without extension
  * @param {string} iconImageName - alternative image used for dialogs. Falls back to imageName. png extension automatically added.
  * @param {module:dnd/traits~Traits} traits
  * @param {module:dnd/almanacs/almanacs~AlmanacEntry} almanacEntry
  * @returns {module:players/actors.Actor}
  */
-function createObjective(imageName, iconImageName, traits, actorType) {
+function createPortal(imageName, iconImageName, traits, actorType) {
   const actor = createActor(imageName, iconImageName, traits, actorType);
-  actor.interaction = new FindObjective(actor);
+  actor.interaction = new FindPortal(actor);
+  actor.velocity = new Velocity(0, 0, 3);
   return actor;
 }
 
@@ -450,13 +456,8 @@ export function buildActor(almanacEntry, initialTraits) {
       }
       actor.toxify = new Toxify();
       break;
-    case ActorType.OBJECTIVE:
-      actor = createObjective(
-        almanacEntry.imageName,
-        null,
-        traits,
-        almanacEntry
-      );
+    case ActorType.PORTAL:
+      actor = createPortal(almanacEntry.imageName, null, traits, almanacEntry);
       break;
     case ActorType.TRADER:
       actor = createTrader(almanacEntry.imageName, null, traits, almanacEntry);

@@ -8,7 +8,7 @@ The almanacs comprise a number of single line entries. The possible almanacs are
 - MAGIC
 - MONEY
 - ENEMIES
-- OBJECTIVES
+- PORTALS
 - PLANTS
 - TRADERS
 - TRAPS
@@ -209,10 +209,9 @@ Traders are normally provided with the following traits.
 - DC: how hard it is to steal.
 
 
-## OBJECTIVE
+## PORTAL
 
-A goal that the hero needs to reach.
-
+A portal through which gold can be sent back to land.
 
 ## HERO: actor
 

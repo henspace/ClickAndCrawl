@@ -162,7 +162,7 @@ class AutoSceneList {
     this.#addTraders();
     this.#addArtefacts();
     this.#addMap();
-    this.#addObjective();
+    this.#addPortal();
   }
 
   /**
@@ -256,15 +256,15 @@ class AutoSceneList {
   }
 
   /**
-   * Add an objective to the scene
+   * Add an portal to the scene
    */
-  #addObjective() {
+  #addPortal() {
     const almanacEntry = ALMANAC_LIBRARY.getRandomEntry(
-      'OBJECTIVES',
+      'PORTALS',
       (entry) => entry.minLevel <= this.#index
     );
     if (almanacEntry) {
-      this.#sceneDefn.objective = almanacEntry;
+      this.#sceneDefn.portal = almanacEntry;
     }
   }
 

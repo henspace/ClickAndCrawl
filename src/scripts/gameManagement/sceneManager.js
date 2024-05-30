@@ -95,7 +95,7 @@ export class SceneDefinition {
   /** @type {string[]} */
   mapDesign;
   /** @type {ActorDefn[]} */
-  objective;
+  portal;
   /**
    * Construct an empty scene
    */

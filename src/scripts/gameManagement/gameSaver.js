@@ -49,6 +49,7 @@ const LEADERBOARD_DATA_KEY = 'LEADERBOARD_DATA';
  * @property {number} adventureStartTime
  * @property {string} name
  * @property {number} gold
+ * @property {number} goldSent
  * @property {number} exp
  * @property {number} characterLevel
  * @property {number} dungeonFloor
@@ -66,10 +67,10 @@ function createAdventureResult(hero, completed) {
     name: 'unknown',
     class: 'unknown',
     gold: 0,
+    goldSent: 0,
     exp: 0,
     characterLevel: 0,
     dungeonFloor: 0,
-    score: 0,
     completed: false,
   };
   if (hero) {
@@ -77,10 +78,10 @@ function createAdventureResult(hero, completed) {
     result.name = hero.traits.get('NAME');
     result.class = hero.traits.get('CLASS');
     result.gold = hero.storeManager.getPurseValue();
+    result.goldSent = hero.traits.getInt('GOLD_SENT', 0);
     result.exp = hero.traits.getInt('EXP', 0);
     result.characterLevel = hero.traits.getCharacterLevel();
     result.dungeonFloor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel());
-    result.score = Math.floor(100 * result.gold * result.characterLevel);
     result.completed = completed;
   }
   return result;
@@ -94,7 +95,7 @@ export function getLeaderboard() {
   const data = PERSISTENT_DATA.get(LEADERBOARD_DATA_KEY);
   return new Leaderboard(data, {
     maxLength: DEFAULT_LEADERBOARD_LEN,
-    sortFn: (a, b) => (a.score > b.score ? -1 : 1),
+    sortFn: (a, b) => (a.goldSent > b.goldSent ? -1 : 1),
     equalFn: (a, b) =>
       a.adventureStartTime === b.adventureStartTime && a.name === b.name,
   });

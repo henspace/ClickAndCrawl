@@ -43,7 +43,7 @@ function formHallOfFameEntry(adventure) {
     .toISOString()
     .split('T')[0];
   const chrClass = adventure.class?.toLowerCase() ?? '';
-  return i18n`MESSAGE HALL OF FAME ENTRY ${adventure.name} ${adventure.characterLevel} ${chrClass} ${startDate} ${adventure.gold} ${adventure.dungeonFloor}`;
+  return i18n`MESSAGE HALL OF FAME ENTRY ${adventure.name} ${adventure.characterLevel} ${chrClass} ${startDate} ${adventure.goldSent} ${adventure.dungeonFloor}`;
 }
 /**
  * Show a dialog with the best adventure results which are picked

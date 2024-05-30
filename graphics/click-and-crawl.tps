@@ -250,6 +250,8 @@
             <key type="filename">tiles/goblin-idle00.png</key>
             <key type="filename">tiles/goblin-idle01.png</key>
             <key type="filename">tiles/gold_coins.png</key>
+            <key type="filename">tiles/gold_portal-dead00.png</key>
+            <key type="filename">tiles/gold_portal-idle00.png</key>
             <key type="filename">tiles/half_plate_armour.png</key>
             <key type="filename">tiles/helmet.png</key>
             <key type="filename">tiles/hidden_artefact-dead00.png</key>
@@ -373,7 +375,6 @@
             <key type="filename">tiles/stirge-idle01.png</key>
             <key type="filename">tiles/studded_leather_armour.png</key>
             <key type="filename">tiles/tiger_eye.png</key>
-            <key type="filename">tiles/tomb_of_elder.png</key>
             <key type="filename">tiles/trapdoor-dead00.png</key>
             <key type="filename">tiles/trapdoor-idle00.png</key>
             <key type="filename">tiles/ui-checkbox00.png</key>
@@ -553,7 +554,6 @@
             <key type="filename">tiles/blood-splat-twice.png</key>
             <key type="filename">tiles/blood-splat.png</key>
             <key type="filename">tiles/failed-spell.png</key>
-            <key type="filename">tiles/portal.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>

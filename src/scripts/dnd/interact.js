@@ -35,11 +35,7 @@ import {
 } from '../utils/effects/transient.js';
 import { Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
-import {
-  PathFollower,
-  VelocityMover,
-  moveActorToPosition,
-} from '../utils/sprites/movers.js';
+import { PathFollower, moveActorToPosition } from '../utils/sprites/movers.js';
 import { Point } from '../utils/geometry.js';
 import UI from '../utils/dom/ui.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
@@ -56,7 +52,7 @@ import * as traps from './trapCharacteristics.js';
 import * as trapDialogs from '../dialogs/trapDialogs.js';
 import { buildArtefactFromId } from './almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
-import { TimeFader } from '../utils/sprites/faders.js';
+import { showMoneyPortalDialog } from '../dialogs/moneyPortalDialog.js';
 
 /**
  * Apply poison damage to defender
@@ -1081,10 +1077,10 @@ export class TriggerTrap extends AbstractInteraction {
 }
 
 /**
- * Class to handle searching a corpse.
+ * Class to handle searching a portal.
  * @implements {ActorInteraction}
  */
-export class FindObjective extends AbstractInteraction {
+export class FindPortal extends AbstractInteraction {
   /**
    * Construct the interaction.
    * @param {module:players/actors.Actor} owner - parent actor.
@@ -1113,34 +1109,10 @@ export class FindObjective extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    return this.#displayPortal(enactor, this.owner);
-  }
-  /**
-   * Display portal
-   * @param {module:players/actors.Actor} enactor
-   * @param {module:players/actors.Actor} objective
-   * @returns {Promise}
-   */
-  #displayPortal(enactor, objective) {
-    const pathModifier = new PathFollower({
-      path: [objective.position],
-      speed: 5,
+    return showMoneyPortalDialog(enactor).then((sentGold) => {
+      if (sentGold) {
+        this.owner.alive = false; // dead in this context means the portal is open
+      }
     });
-    addFadingImage(IMAGE_MANAGER.getSpriteBitmap('portal.png'), {
-      delaySecs: 0,
-      lifetimeSecs: 6,
-      position: objective.position,
-      velocity: new Velocity(0, 0, 3),
-    });
-
-    new TimeFader(0, 3, new VelocityMover()).applyAsTransientToSprite(
-      enactor.sprite,
-      20
-    );
-
-    const fader = new TimeFader(0, 3, new VelocityMover());
-    return pathModifier
-      .applyAsTransientToSprite(enactor.sprite)
-      .then(() => fader.applyAsTransientToSprite(enactor.sprite));
   }
 }

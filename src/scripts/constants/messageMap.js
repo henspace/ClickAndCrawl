@@ -231,6 +231,10 @@ const MESSAGE_MAP = new Map([
     'A small manhole cover set into the dungeon floor.',
   ],
   [
+    'DESCRIPTION GOLD_PORTAL',
+    'A magical dwarven portal used for transporting gold and platinum back to the surface.',
+  ],
+  [
     'DESCRIPTION NOXIOUS_GAS',
     'A cloud of foul smelling gas. Poisonous and strength sapping',
   ],
@@ -386,6 +390,7 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE HALL OF FAME', 'Hall of Fame'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE LOCKED', 'Locked'],
+  ['DIALOG TITLE GOLD_PORTAL', 'Use the gold portal'],
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
@@ -506,7 +511,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE HALL OF FAME ENTRY',
-    '${3-startDate}: ${0-name}; level ${1-level} ${2-class}; ${4-gold} GP; floor ${5-floor}',
+    '${3-startDate}: ${0-name}; level ${1-level} ${2-class}; ${4-gold} GP sent; floor ${5-floor}',
   ],
   ['MESSAGE HERO EPITAPH FOR', 'Here lies the body of ${0}. Rest in peace.'],
   [
@@ -536,6 +541,18 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE MAKE SPACE IN EQUIP',
     "This is too big to store. Sell or discard what you're wearing so you can wear this.",
+  ],
+  [
+    'MESSAGE GOLD_PORTAL - EXPLAIN',
+    'This old dwarven gold portal can be used to transfer gold to help the desperate townsfolk who are struggling above ground. Choose how much gold you want to send.',
+  ],
+  [
+    'MESSAGE GOLD_PORTAL - EXPLAIN CLOSURE',
+    'You add ${0-gold}\u{00A0}GP to the portal. Dwarven portals remain open until they can no longer detect the presence of the opener. To prevent gold staying locked in the portal, you will need to exit the room to allow the portal to close.',
+  ],
+  [
+    'MESSAGE GOLD_PORTAL - INSUFFICIENT GOLD',
+    "You don't have enough gold for the portal. Copper and silver cannot be sent via the portal.",
   ],
   [
     'MESSAGE NEED LOCK PICK',
@@ -630,6 +647,10 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE TRAP DISABLED',
     'Taking great care you manage to disable the trap.',
+  ],
+  [
+    'MESSAGE USE PORTAL OR MOVE',
+    'You have a choice. Do you want to use this portal or move onto it?',
   ],
   [
     'MESSAGE YOU FAIL TO PICK THE LOCK',
