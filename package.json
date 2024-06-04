@@ -1,0 +1,41 @@
+{
+  "name": "ClickAndCrawl",
+  "version": "1.0.0",
+  "description": "An old school casual dungeon crawler.",
+  "source": "src/index.html",
+  "browserslist": [
+    "defaults"
+  ],
+  "scripts": {
+    "prebuild": "node ./tools/cleanDir.js ./build && node ./tools/createVersion.js ./package.json ./src/scripts/constants/autoVersion.js",
+    "build": "parcel build --dist-dir build --public-url . ",
+    "postbuild": "node ./tools/copyFiles.js src/notPackaged ./build",
+    "serveBuild": "node ./tools/server/server.js ./build 8081",
+    "start": "parcel src/index.html",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
+    "doc": "jsdoc -c jsdoc.json",
+    "autoversion": "node ./tools/createVersion.js ./package.json ./src/scripts/constants/autoVersion.js"
+  },
+  "keywords": [
+    "game",
+    "rpg",
+    "dungeon"
+  ],
+  "author": "Steve Butler",
+  "license": "MIT",
+  "private": true,
+  "jest": {
+    "testEnvironment": "jsdom"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@parcel/packager-raw-url": "^2.10.3",
+    "@parcel/transformer-webmanifest": "^2.10.3",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdoc": "^4.0.2",
+    "parcel": "^2.10.3"
+  }
+}

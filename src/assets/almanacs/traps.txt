@@ -1,0 +1,3 @@
+0,RARE,TRAP,spikes * SEVERITY: SETBACK, REWARD: platinum_coins
+5,RARE,TRAP,spikes * SEVERITY: DANGEROUS, REWARD: platinum_coins
+9,VERY_RARE,TRAP,spikes * SEVERITY: DEADLY, REWARD: platinum_coins

@@ -1,0 +1,1 @@
+0,COMMON,PORTAL,gold_portal *

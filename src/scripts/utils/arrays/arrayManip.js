@@ -1,0 +1,260 @@
+/**
+ * @file Various utilities for handling arrays
+ *
+ * @module utils/arrays/arrayManip
+ */
+/**
+ * License {@link https://opensource.org/license/mit/|MIT}
+ *
+ * Copyright 2024 Steve Butler
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the “Software”), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+ * @typedef Surrounds
+ * @property {*} centre - value at centre
+ * @property {*} tl - value to top left
+ * @property {*} above - value above
+ * @property {*} tr - value to top right
+ * @property {*} right - value to right
+ * @property {*} br - value to bottom right
+ * @property {*} below - value below
+ * @property {*} bl - value to bottom
+ * @property {*} left - value to left
+ */
+
+/**
+ * Get the surround values from a 2D matrix
+ * @param {Array.<Array.<*>>} matrix
+ * @param {number} rowIndex
+ * @param {number} columnIndex
+ * @returns {Surrounds}
+ */
+export function getSurrounds(matrix, rowIndex, columnIndex) {
+  return {
+    centre: matrix[rowIndex]?.[columnIndex],
+    tl: matrix[rowIndex - 1]?.[columnIndex - 1],
+    above: matrix[rowIndex - 1]?.[columnIndex],
+    tr: matrix[rowIndex - 1]?.[columnIndex + 1],
+    right: matrix[rowIndex]?.[columnIndex + 1],
+    br: matrix[rowIndex + 1]?.[columnIndex + 1],
+    below: matrix[rowIndex + 1]?.[columnIndex],
+    bl: matrix[rowIndex + 1]?.[columnIndex - 1],
+    left: matrix[rowIndex]?.[columnIndex - 1],
+  };
+}
+
+/**
+ * Get radiating cross from centre. Takes a 2D matrix and finds all cells
+ * that radiate horizontally and vertically from a point.
+ * @param {Array.<Array.<*>>} matrix
+ * @param {Object} options
+ * @param {number} options.rowIndex
+ * @param {number} options.columnIndex
+ * @param {number} [options.distance = 1] - distance from centre
+ * @param {function(member):boolean} options.filter - if provided, must be true otherwise
+ * radiation stops.
+ * @returns {Array.<*>}
+ */
+export function radiateCross(matrix, options) {
+  const centreX = options.columnIndex;
+  const centreY = options.rowIndex;
+  const result = [];
+  let lookNorth = true;
+  let lookEast = true;
+  let lookSouth = true;
+  let lookWest = true;
+  let offset = 1;
+  let member;
+  let distance = options.distance ?? 1;
+  while (distance-- > 0) {
+    if (lookWest) {
+      member = matrix[centreY][centreX - offset];
+      if (options.filter && !options.filter(member)) {
+        lookWest = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookEast) {
+      member = matrix[centreY][centreX + offset];
+      if (options.filter && !options.filter(member)) {
+        lookEast = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookNorth) {
+      member = matrix[centreY - offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookNorth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookSouth) {
+      member = matrix[centreY + offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookSouth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    offset++;
+  }
+  return result;
+}
+
+/**
+ * Get radiating cross from centre. Takes a 2D matrix and finds all cells
+ * that radiate horizontally and vertically from a point.
+ * @param {Array.<Array.<*>>} matrix
+ * @param {Object} options
+ * @param {number} options.rowIndex
+ * @param {number} options.columnIndex
+ * @param {number} [options.distance = 1] - distance from centre
+ * @param {function(member):boolean} options.filter - if provided, must be true otherwise
+ * radiation stops.
+ * @returns {Array.<*>}
+ */
+function radiateUpAndDown(matrix, options) {
+  const centreX = options.columnIndex;
+  const centreY = options.rowIndex;
+  const result = [];
+  let lookNorth = true;
+  let lookSouth = true;
+  let offset = 1;
+  let member;
+  let distance = options.distance ?? 1;
+  while (distance-- > 0) {
+    if (lookNorth) {
+      member = matrix[centreY - offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookNorth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookSouth) {
+      member = matrix[centreY + offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookSouth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    offset++;
+  }
+  return result;
+}
+
+/**
+ * Get radiating circle from centre. Takes a 2D matrix and finds all cells
+ * that radiate from a point.
+ * @param {Array.<Array.<*>>} matrix
+ * @param {Object} options
+ * @param {number} options.rowIndex
+ * @param {number} options.columnIndex
+ * @param {number} [options.distance = 1] - distance from centre
+ * @param {function(member):boolean} options.filter - if provided, must be true otherwise
+ * radiation stops.
+ * @returns {Array.<*>}
+ */
+export function radiate(matrix, options) {
+  const centreX = options.columnIndex;
+  const centreY = options.rowIndex;
+  const radius = options.distance ?? 1;
+  let result = [];
+
+  let lookEast = true;
+  let lookWest = true;
+  let member;
+  const radiusSquared = radius * radius;
+  const upDownOptions = {
+    rowIndex: centreY,
+    columnIndex: centreX,
+    distance: radius,
+    filter: options.filter,
+  };
+  result = result.concat(radiateUpAndDown(matrix, upDownOptions));
+  for (let offset = 1; offset <= radius; offset++) {
+    if (!lookWest && !lookEast) {
+      break;
+    }
+    if (lookWest) {
+      member = matrix[centreY][centreX - offset];
+      if (options.filter && !options.filter(member)) {
+        lookWest = false;
+      } else {
+        result.push(member);
+        const upDownOptions = {
+          rowIndex: centreY,
+          columnIndex: centreX - offset,
+          distance: Math.round(
+            Math.sqrt(radiusSquared - (offset - 0.5) * (offset - 0.5))
+          ),
+          filter: options.filter,
+        };
+        result = result.concat(radiateUpAndDown(matrix, upDownOptions));
+      }
+    }
+    if (lookEast) {
+      member = matrix[centreY][centreX + offset];
+      if (options.filter && !options.filter(member)) {
+        lookEast = false;
+      } else {
+        result.push(member);
+        const upDownOptions = {
+          rowIndex: centreY,
+          columnIndex: centreX + offset,
+          distance: Math.round(
+            Math.sqrt(radiusSquared - (offset - 0.5) * (offset - 0.5))
+          ),
+          filter: options.filter,
+        };
+        result = result.concat(radiateUpAndDown(matrix, upDownOptions));
+      }
+    }
+  }
+  return result;
+}
+/**
+ * Randomise an array.
+ * @param {Object[]} source - array to randomise. The original will be modified.
+ * @returns {Object[]} The source array which will have been randomised.
+ */
+export function randomise(source) {
+  let currentIndex = source.length;
+  let randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex > 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    // swap
+    [source[currentIndex], source[randomIndex]] = [
+      source[randomIndex],
+      source[currentIndex],
+    ];
+  }
+
+  return source;
+}

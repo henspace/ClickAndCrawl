@@ -1,0 +1,407 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+#browser-css-not-supported {
+  display: none;
+}
+
+@supports not ((display: flex) and (transform: translate(50%, 50%))) {
+  #stage {
+    display: none !important;
+  }
+  #browser-css-not-supported {
+    display: block !important;
+  }
+}
+
+@media screen {
+  .for-print-only {
+    display: none;
+  }
+}
+
+@font-face {
+  font-family: 'runes';
+  src: url('../assets/fonts/BabelStoneRunicElderFuthark.woff') format('woff');
+}
+
+:root {
+  --primary-base: #4f381b;
+  --primary-contrast: rgb(255, 255, 255);
+  --primary-highlight: #352c22;
+
+  --secondary-base: rgb(38, 38, 115);
+  --secondary-contrast: rgb(255, 255, 255);
+  --secondary-highlight: rgb(51, 51, 153);
+
+  --tertiary-base: rgb(115, 38, 38);
+  --tertiary-contrast: rgb(255, 255, 255);
+  --tertiary-highlight: rgb(153, 51, 51);
+
+  --background-base: rgb(242, 242, 242);
+  --background-contrast: rgb(0, 0, 0);
+  --background-highlight: rgb(217, 217, 217);
+
+  --error-base: rgb(134, 45, 45);
+  --error-contrast: rgb(255, 255, 255);
+  --error-highlight: rgb(204, 102, 102);
+
+  --window-base: rgb(0, 0, 0);
+  --window-contrast: rgb(255, 255, 255);
+  --window-highlight: rgb(230, 230, 230);
+
+  --splash-color: #81795d;
+
+  --padding-thickness: 0.25rem;
+  --font-base-size: 15px;
+  --line-thickness: max(2px, 0.2rem);
+  --outline-thickness: 2px;
+  --outline-offset: calc(0.5 * var(--outline-thickness));
+  --panel-border: solid var(--line-thickness);
+  --margin-thickness: calc(var(--outline-offset) + var(--line-thickness));
+  --vh: 1vh;
+}
+
+body {
+  background-color: var(--window-base);
+  color: var(--window-contrast);
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fondamento', cursive;
+  font-weight: 400;
+  font-style: normal;
+  font-size: calc(var(--font-base-size) + 0.00390625 * var(--design-width));
+  width: 100vw;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100svh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+a:link,
+a:visited,
+a:active {
+  color: var(--primary-contrast);
+}
+
+.runes,
+.rune-puzzle button {
+  font-family: 'runes';
+}
+
+.runes {
+  text-align: center;
+}
+
+#game-canvas {
+  position: absolute;
+}
+
+#game-content {
+  overflow: hidden;
+}
+
+.glass {
+  background-color: var(--window-base);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s;
+  width: 100vw;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100svh;
+}
+
+.glass-content {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  overflow: auto;
+}
+.glass-content.overflow {
+  justify-content: flex-start;
+}
+
+.glass.door {
+  background-image: url(../assets/images/dungeon-splash.jpg);
+}
+
+.glass.wall {
+  background-image: url(../assets/images/wall.jpg);
+}
+
+.glass.mask {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.glass-content > div {
+  background-color: var(--window-base);
+  border: 2px solid var(--window-contrast);
+  color: var(--window-contrast);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  padding: 0.5rem;
+  min-width: 70%;
+  max-width: 99%;
+  margin: 4px;
+}
+
+.glass-content .action-buttons-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.glass-content .action-buttons-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  justify-content: center;
+}
+
+.dialog-scroll-content {
+  max-height: 80vh;
+  max-height: calc(var(--vh, 1vh) * 80);
+  max-height: 80svh;
+  overflow-y: auto;
+}
+
+.dialog-title {
+  font-weight: bold;
+}
+
+.action-buttons-row button {
+  flex: 1;
+}
+
+.side-by-side {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+}
+
+.side-by-side > div {
+  flex: 1;
+}
+
+.side-by-side > div:nth-child(odd) {
+  border-right: solid var(--primary-highlight) 1px;
+  padding-right: 3px;
+}
+
+.store-contents {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 4px;
+}
+.store-contents button {
+  font-size: 0.85rem;
+}
+
+.stores p {
+  text-align: center;
+}
+
+.actor-id-card span {
+  margin-left: 1rem;
+  display: inline-block;
+}
+
+.actor-id-card span:nth-child(2) {
+  margin-left: 4px;
+}
+
+.actor-id-card canvas {
+  background-color: rgb(100, 100, 100);
+  border: solid 2px var(--window-contrast);
+}
+.store-contents button canvas {
+  border-radius: 50%;
+  background-color: #646463;
+  margin-right: 4px;
+  border: 2px solid white;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.2rem;
+}
+h3 {
+  font-size: 1.1rem;
+}
+
+label {
+  background-image: url(../assets/images/button-texture.jpg);
+  display: flex;
+  justify-content: space-between;
+  line-height: 48px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+button {
+  background-color: var(--primary-base);
+  background-image: url(../assets/images/button-texture.jpg);
+  color: var(--primary-contrast);
+  font-family: 'Fondamento', cursive;
+  font-size: 1rem;
+  text-align: center;
+}
+
+button:hover {
+  cursor: pointer;
+}
+button.uncastable {
+  text-decoration: line-through;
+}
+
+.glass-content label:nth-of-type(even) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-button {
+  display: flex;
+  align-content: center;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.close-button {
+  background-color: black;
+  color: white;
+  padding: 1 1 1 1;
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: center;
+}
+
+.close-button::before {
+  content: 'X';
+}
+
+.popup {
+  background-color: var(--window-base);
+  background-image: url(../assets/images/dungeon-splash.jpg);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s;
+  width: 100vw;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100svh;
+}
+
+.popup > div {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--splash-color);
+  border: none;
+  left: 0;
+  top: 50vh;
+  top: calc(var(--vh, 1vh) * 50);
+  top: 50svh;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  position: absolute;
+  width: 100vw;
+  text-align: center;
+  transform: translate(0%, -50%);
+  transition: opacity 1s;
+}
+
+.popup img {
+  max-width: 90vw;
+}
+
+.progress-indicator {
+  width: 1rem;
+  height: 1rem;
+  border: solid 2px var(--splash-color);
+  color: var(--splash-color);
+  position: relative;
+  animation-name: progress;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes progress {
+  from {
+    left: 25vw;
+  }
+  to {
+    left: 75vw;
+  }
+}
+
+.styled-checkbox {
+  display: inline-block;
+  line-height: 0px;
+}
+.styled-checkbox input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+.styled-checkbox input[type='checkbox'] ~ canvas.checked {
+  display: none;
+}
+.styled-checkbox input[type='checkbox']:checked ~ canvas.unchecked {
+  display: none;
+}
+.styled-checkbox input[type='checkbox']:checked ~ canvas.checked {
+  display: inline-block;
+}
+.styled-checkbox input[type='checkbox']:focus + canvas {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
+}
+
+.styled-range input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 144px;
+}
+.styled-range input[type='range']::-webkit-slider-runnable-track,
+.styled-range input[type='range']::-moz-range-track {
+  background: var(--primary-contrast);
+  border-radius: 0.25rem;
+  margin-right: 0px;
+  height: 0.5rem;
+}
+.styled-range input[type='range']::-webkit-slider-thumb,
+.styled-range input[type='range']::-moz-range-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--primary-highlight);
+  background-image: url(../assets/images/tile-texture.jpg);
+  width: 44px;
+  height: 44px;
+  margin-top: calc(0.5 * (0.5rem - 44px));
+  border: solid 2px var(--primary-contrast);
+  border-radius: 10px;
+}

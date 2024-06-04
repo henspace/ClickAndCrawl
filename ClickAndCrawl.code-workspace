@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "cSpell.words": ["Defns", "LTEE", "replayable", "reqd", "Reqs", "subkey"],
+    "cSpell.language": "en-GB,en",
+    "cSpell.dictionaryDefinitions": [],
+    "cSpell.ignoreWords": ["Replayable", "Replayer"]
+  }
+}
