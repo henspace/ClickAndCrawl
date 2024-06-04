@@ -43,7 +43,7 @@ const RUNES =
  * @param {number} currentSceneLevel
  * @returns {Promise<boolean>} fulfils to true if solved.
  */
-export function showRunPuzzle(currentSceneLevel) {
+export function showRunePuzzle(currentSceneLevel) {
   const options = createSequenceOptions(currentSceneLevel);
   const sequence = createSequence(options);
   const correct = sequence.next;

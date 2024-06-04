@@ -55,8 +55,9 @@ import { AssetUrls } from '../../assets/assets.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import { TextButtonControl } from '../utils/dom/components.js';
 import { showUnpickExitDialog } from '../dialogs/openExitDialogs.js';
-import { showRunPuzzle } from '../dialogs/runeQuestionDialog.js';
+import { showRunePuzzle } from '../dialogs/runeQuestionDialog.js';
 import { DungeonChallenge } from '../scriptReaders/autoSceneList.js';
+import SOUND_MANAGER from '../utils/soundManager.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -368,7 +369,8 @@ class WaitingToStart extends State {
  */
 class AtMainMenu extends State {
   onEntry() {
-    return showMainMenu().then(async (response) => {
+    const continuation = !!restoreGameState();
+    return showMainMenu(continuation).then(async (response) => {
       persistentGame = response !== 'PLAY CASUAL';
       await this.transitionTo(new AtStart());
       return;
@@ -392,11 +394,13 @@ class AtStart extends State {
             className: 'wall',
           })
             .then(() => actorDialogs.showRestDialog(heroActor))
-            .then(() => {
-              if (!heroActor.alive) {
-                throw new Error('Actor died during rest.');
+            .then((response) => {
+              if (response === 'MAIN MENU') {
+                return Promise.reject('MAIN_MENU');
               }
-              return;
+              if (!heroActor.alive) {
+                return Promise.reject('DEAD');
+              }
             });
         } else {
           const mdUrl = persistentGame
@@ -420,10 +424,15 @@ class AtStart extends State {
           return;
         }
       })
+      .then(() => SOUND_MANAGER.playEffect('DOOR_ENTER'))
       .then(() => currentState.transitionTo(new HeroTurnIdle()))
-      .catch((error) => {
-        LOG.info(error.message);
-        currentState.transitionTo(new AtGameOver());
+      .catch((rejection) => {
+        if (rejection === 'DEAD') {
+          LOG.info('Hero died during rest.');
+          currentState.transitionTo(new AtGameOver());
+        } else {
+          currentState.transitionTo(new AtMainMenu());
+        }
       });
   }
 
@@ -480,10 +489,7 @@ class AtGameOver extends State {
     if (persistentGame) {
       leaderboardIndex = saveGameState(heroActor);
     }
-    const messageDefeat =
-      leaderboardIndex < 0
-        ? i18n`MESSAGE DEFEAT UNPLACED`
-        : i18n`MESSAGE DEFEAT`;
+
     addFadingText(i18n`YOU DIED!`, {
       delaySecs: 1,
       lifetimeSecs: 3,
@@ -492,7 +498,7 @@ class AtGameOver extends State {
     });
     await pause(2)
       .then(() =>
-        UI.showOkDialog(messageDefeat, {
+        actorDialogs.showEpitaph(heroActor, leaderboardIndex, {
           okButtonLabel: i18n`BUTTON TRY AGAIN`,
         })
       )
@@ -885,7 +891,7 @@ function interact(point) {
  * @returns {Promise} fulfils to undefined.
  */
 function startNextScene(currentState) {
-  heroActor.traits.clearTransientFxTraits();
+  heroActor.traits.clearTransientFxTraitsAndProperties();
   if (persistentGame) {
     saveGameState(heroActor);
   }
@@ -894,20 +900,15 @@ function startNextScene(currentState) {
   }
   return SCENE_MANAGER.unloadCurrentScene()
     .then(() => actorDialogs.showRestDialog(heroActor))
-    .then(() => showRunPuzzle(SCENE_MANAGER.getCurrentSceneLevel()))
-    .then((solved) => {
-      if (solved) {
-        SCENE_MANAGER.setDungeonChallenge(DungeonChallenge.EASY);
-      } else {
-        SCENE_MANAGER.setDungeonChallenge(DungeonChallenge.MEDIUM);
+    .then((response) => {
+      if (response === 'MAIN MENU') {
+        return Promise.reject('MAIN_MENU');
       }
-      return;
-    })
-    .then(() => {
       if (!heroActor.alive) {
-        throw new Error('Actor died during rest.');
+        return Promise.reject('DEAD');
       }
     })
+    .then(() => randomlySelectDifficulty())
     .then(() => SCENE_MANAGER.switchToNextScene())
     .then((scene) => {
       heroActor.sprite.position =
@@ -921,13 +922,38 @@ function startNextScene(currentState) {
         return;
       }
     })
+    .then(() => SOUND_MANAGER.playEffect('DOOR_ENTER'))
     .then(() => currentState.transitionTo(new HeroTurnIdle()))
-    .catch((error) => {
-      LOG.info(error.message);
-      currentState.transitionTo(new AtGameOver());
+    .catch((rejection) => {
+      if (rejection === 'DEAD') {
+        LOG.info('Hero died during rest.');
+        currentState.transitionTo(new AtGameOver());
+      } else {
+        currentState.transitionTo(new AtMainMenu());
+      }
     });
 }
 
+/**
+ * Occasionally show a rune puzzle to set the next scene's difficulty.
+ * @returns {Promise} fulfils to undefined.
+ */
+function randomlySelectDifficulty() {
+  if (dice.rollDice(6) > 3) {
+    return Promise.resolve();
+  }
+  return showRunePuzzle(SCENE_MANAGER.getCurrentSceneLevel()).then((solved) => {
+    let message;
+    if (solved) {
+      SCENE_MANAGER.setDungeonChallenge(DungeonChallenge.EASY);
+      message = i18n`MESSAGE ROUTE CHOICE - EASY`;
+    } else {
+      SCENE_MANAGER.setDungeonChallenge(DungeonChallenge.MEDIUM);
+      message = i18n`MESSAGE ROUTE CHOICE - MEDIUM`;
+    }
+    return UI.showOkDialog(message);
+  });
+}
 /**
  * Show occupant details.
  * @param {module:players/actors.Actor} occupant
@@ -950,7 +976,7 @@ function showOccupantDetails(occupant) {
     .then((delayedAction) => {
       if (delayedAction?.invoke) {
         LOG.info('Invoke action.');
-        delayedAction.invoke();
+        return delayedAction.invoke();
       }
     });
 }
@@ -982,7 +1008,7 @@ function disambiguateFilter(filter, occupant) {
     if (occupant?.isHiddenArtefact()) {
       const storageDetails = occupant.storeManager.getFirstStorageDetails();
       const artefact = storageDetails?.artefact;
-      if (occupant.alive && artefact) {
+      if (occupant.alive && artefact && !occupant.discovered) {
         return ClickEventFilter.INTERACT_TILE;
       } else if (!occupant.alive && !artefact) {
         return ClickEventFilter.MOVEMENT_TILE;
@@ -1030,11 +1056,22 @@ function tryToUnlockExit() {
   if (exitKeyArtefact) {
     if (heroActor.storeManager.hasArtefact(exitKeyArtefact)) {
       heroActor.storeManager.discard(exitKeyArtefact);
-      return UI.showOkDialog(i18n`MESSAGE KEY UNLOCKS EXIT`).then(() => true);
+      return UI.showOkDialog(i18n`MESSAGE KEY UNLOCKS EXIT`).then(() => {
+        SOUND_MANAGER.playEffect('DOOR_EXIT');
+        return true;
+      });
     } else {
-      return showUnpickExitDialog(heroActor, exitKeyArtefact);
+      return showUnpickExitDialog(heroActor, exitKeyArtefact).then(
+        (success) => {
+          if (success) {
+            SOUND_MANAGER.playEffect('DOOR_EXIT');
+          }
+          return success;
+        }
+      );
     }
   } else {
+    SOUND_MANAGER.playEffect('DOOR_EXIT');
     return Promise.resolve(true);
   }
 }

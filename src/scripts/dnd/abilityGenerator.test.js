@@ -49,7 +49,7 @@ const EXPECTED_TRAIT_RANGE = [
 const EXPECTED_DEFAULT_RANGE = [8, 15];
 
 test('getClassAbilities FIGHTER', () => {
-  const expectedOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+  const expectedOrder = ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA'];
   for (let n = 0; n < 20; n++) {
     const abilities = generator.getClassAbilities('FIGHTER');
     expect(abilities.size).toBe(expectedOrder.length);

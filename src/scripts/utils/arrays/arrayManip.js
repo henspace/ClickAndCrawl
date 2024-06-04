@@ -72,9 +72,9 @@ export function getSurrounds(matrix, rowIndex, columnIndex) {
  * @param {number} [options.distance = 1] - distance from centre
  * @param {function(member):boolean} options.filter - if provided, must be true otherwise
  * radiation stops.
- * @returns {Surrounds}
+ * @returns {Array.<*>}
  */
-export function radiateUpAndDown(matrix, options) {
+export function radiateCross(matrix, options) {
   const centreX = options.columnIndex;
   const centreY = options.rowIndex;
   const result = [];
@@ -123,6 +123,119 @@ export function radiateUpAndDown(matrix, options) {
   return result;
 }
 
+/**
+ * Get radiating cross from centre. Takes a 2D matrix and finds all cells
+ * that radiate horizontally and vertically from a point.
+ * @param {Array.<Array.<*>>} matrix
+ * @param {Object} options
+ * @param {number} options.rowIndex
+ * @param {number} options.columnIndex
+ * @param {number} [options.distance = 1] - distance from centre
+ * @param {function(member):boolean} options.filter - if provided, must be true otherwise
+ * radiation stops.
+ * @returns {Array.<*>}
+ */
+function radiateUpAndDown(matrix, options) {
+  const centreX = options.columnIndex;
+  const centreY = options.rowIndex;
+  const result = [];
+  let lookNorth = true;
+  let lookSouth = true;
+  let offset = 1;
+  let member;
+  let distance = options.distance ?? 1;
+  while (distance-- > 0) {
+    if (lookNorth) {
+      member = matrix[centreY - offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookNorth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    if (lookSouth) {
+      member = matrix[centreY + offset][centreX];
+      if (options.filter && !options.filter(member)) {
+        lookSouth = false;
+      } else {
+        result.push(member);
+      }
+    }
+    offset++;
+  }
+  return result;
+}
+
+/**
+ * Get radiating circle from centre. Takes a 2D matrix and finds all cells
+ * that radiate from a point.
+ * @param {Array.<Array.<*>>} matrix
+ * @param {Object} options
+ * @param {number} options.rowIndex
+ * @param {number} options.columnIndex
+ * @param {number} [options.distance = 1] - distance from centre
+ * @param {function(member):boolean} options.filter - if provided, must be true otherwise
+ * radiation stops.
+ * @returns {Array.<*>}
+ */
+export function radiate(matrix, options) {
+  const centreX = options.columnIndex;
+  const centreY = options.rowIndex;
+  const radius = options.distance ?? 1;
+  let result = [];
+
+  let lookEast = true;
+  let lookWest = true;
+  let member;
+  const radiusSquared = radius * radius;
+  const upDownOptions = {
+    rowIndex: centreY,
+    columnIndex: centreX,
+    distance: radius,
+    filter: options.filter,
+  };
+  result = result.concat(radiateUpAndDown(matrix, upDownOptions));
+  for (let offset = 1; offset <= radius; offset++) {
+    if (!lookWest && !lookEast) {
+      break;
+    }
+    if (lookWest) {
+      member = matrix[centreY][centreX - offset];
+      if (options.filter && !options.filter(member)) {
+        lookWest = false;
+      } else {
+        result.push(member);
+        const upDownOptions = {
+          rowIndex: centreY,
+          columnIndex: centreX - offset,
+          distance: Math.round(
+            Math.sqrt(radiusSquared - (offset - 0.5) * (offset - 0.5))
+          ),
+          filter: options.filter,
+        };
+        result = result.concat(radiateUpAndDown(matrix, upDownOptions));
+      }
+    }
+    if (lookEast) {
+      member = matrix[centreY][centreX + offset];
+      if (options.filter && !options.filter(member)) {
+        lookEast = false;
+      } else {
+        result.push(member);
+        const upDownOptions = {
+          rowIndex: centreY,
+          columnIndex: centreX + offset,
+          distance: Math.round(
+            Math.sqrt(radiusSquared - (offset - 0.5) * (offset - 0.5))
+          ),
+          filter: options.filter,
+        };
+        result = result.concat(radiateUpAndDown(matrix, upDownOptions));
+      }
+    }
+  }
+  return result;
+}
 /**
  * Randomise an array.
  * @param {Object[]} source - array to randomise. The original will be modified.

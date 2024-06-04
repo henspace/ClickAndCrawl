@@ -53,6 +53,7 @@ import { loadAlmanacs } from '../dnd/almanacs/almanacs.js';
 import { AssetUrls, SpriteSheet } from '../../assets/assets.js';
 import ANIMATION_STATE_MANAGER from './animationState.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
+import { setFullscreenState } from '../utils/fullscreen.js';
 
 /**
  * Tile size to use throughout the game
@@ -78,7 +79,7 @@ async function initialise(screenOptions) {
     okButtonLabel: i18n`BUTTON START`,
     className: 'door',
   })
-    .then(() => goFullscreenIfRequired())
+    .then(() => setFullscreenState(PERSISTENT_DATA.get('START_IN_FULLSCREEN')))
     .then(() => SOUND_MANAGER.loadAndPlayMusic(AssetUrls.MUSIC))
     .then(() => SOUND_MANAGER.loadEffects(AssetUrls.SOUND_EFFECTS_MAP))
 
@@ -87,12 +88,7 @@ async function initialise(screenOptions) {
     )
     .then(() => assetLoaders.loadTextFromUrl(AssetUrls.DUNGEON_SCRIPT))
     .then((script) => SCENE_MANAGER.setSceneList(createAutoSceneList(script)))
-    .then(() =>
-      loadAlmanacs(
-        AssetUrls.ALMANAC_MAP,
-        new URLSearchParams(window.location.search)
-      )
-    )
+    .then(() => loadAlmanacs(AssetUrls.ALMANAC_MAP))
     .then(() => {
       LOG.debug('All assets loaded. Trigger main menu.');
       splashPopup.remove();
@@ -109,15 +105,6 @@ async function initialise(screenOptions) {
     });
 }
 
-/**
- * Go fullscreen if configured to start in fullscreen
- */
-function goFullscreenIfRequired() {
-  const element = document.body;
-  if (element.requestFullscreen && PERSISTENT_DATA.get('START_IN_FULLSCREEN')) {
-    element.requestFullscreen({ navigationUI: 'hide' });
-  }
-}
 /**
  * Set up the listeners.
  */

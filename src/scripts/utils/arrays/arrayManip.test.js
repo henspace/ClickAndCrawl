@@ -29,7 +29,7 @@
  */
 
 import { test, expect } from '@jest/globals';
-import { getSurrounds } from './arrayManip.js';
+import { getSurrounds, radiate } from './arrayManip.js';
 
 test('Test surrounds', () => {
   const matrix = [
@@ -49,4 +49,87 @@ test('Test surrounds', () => {
   expect(surrounds.below).toBe('K');
   expect(surrounds.bl).toBe('J');
   expect(surrounds.left).toBe('F');
+});
+
+test('Test radiate: radius 1', () => {
+  const matrix = [
+    ['A', 'B', 'C', 'D', 'E'],
+    ['F', 'G', 'H', 'I', 'J'],
+    ['K', 'L', 'M', 'N', 'O'],
+    ['P', 'Q', 'R', 'S', 'T'],
+    ['U', 'V', 'W', 'X', 'Y'],
+  ];
+
+  let result = radiate(matrix, {
+    columnIndex: 2,
+    rowIndex: 2,
+    distance: 1,
+  });
+  const expectedMatrix = [
+    ['G', 'H', 'I'],
+    ['L', 'N'],
+    ['Q', 'R', 'S'],
+  ];
+  const expectedEntries = expectedMatrix.flat();
+  expect(result).toHaveLength(expectedEntries.length);
+  for (const expected of expectedEntries) {
+    expect(result).toContain(expected);
+  }
+});
+
+test('Test radiate: radius 2', () => {
+  const matrix = [
+    ['A', 'B', 'C', 'D', 'E'],
+    ['F', 'G', 'H', 'I', 'J'],
+    ['K', 'L', 'M', 'N', 'O'],
+    ['P', 'Q', 'R', 'S', 'T'],
+    ['U', 'V', 'W', 'X', 'Y'],
+  ];
+
+  let result = radiate(matrix, {
+    columnIndex: 2,
+    rowIndex: 2,
+    distance: 2,
+  });
+  const expectedMatrix = [
+    ['B', 'C', 'D'],
+    ['F', 'G', 'H', 'I', 'J'],
+    ['K', 'L', 'N', 'O'],
+    ['P', 'Q', 'R', 'S', 'T'],
+    ['V', 'W', 'X'],
+  ];
+  const expectedEntries = expectedMatrix.flat();
+  expect(result).toHaveLength(expectedEntries.length);
+  for (const expected of expectedEntries) {
+    expect(result).toContain(expected);
+  }
+});
+
+test('Test radiate: radius 2 and filter', () => {
+  const matrix = [
+    ['A', 'B', 'C', 'D', 'E'],
+    ['F', 'G', 'H', 'I', 'J'],
+    ['K', 'L', 'M', 'N', 'O'],
+    ['P', 'Q', 'R', 'S', 'T'],
+    ['U', 'V', 'W', 'X', 'Y'],
+  ];
+
+  let result = radiate(matrix, {
+    columnIndex: 2,
+    rowIndex: 2,
+    distance: 2,
+    filter: (entry) => entry !== 'H' && entry !== 'S' && entry !== 'F',
+  });
+  const expectedMatrix = [
+    ['B', 'D'],
+    ['G', 'I', 'J'],
+    ['K', 'L', 'N', 'O'],
+    ['P', 'Q', 'R', 'T'],
+    ['V', 'W'],
+  ];
+  const expectedEntries = expectedMatrix.flat();
+  expect(result).toHaveLength(expectedEntries.length);
+  for (const expected of expectedEntries) {
+    expect(result).toContain(expected);
+  }
 });

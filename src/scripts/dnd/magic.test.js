@@ -69,6 +69,13 @@ test('getSpellPower', () => {
   expect(magic.getSpellPower(new Traits('LEVEL:9'))).toBe(6);
 });
 
+test('characterLevelToSpellLevel', () => {
+  expect(magic.characterLevelToSpellLevel(1)).toEqual(1);
+  expect(magic.characterLevelToSpellLevel(5)).toEqual(3);
+  expect(magic.characterLevelToSpellLevel(17)).toEqual(9);
+  expect(magic.characterLevelToSpellLevel(20)).toEqual(9);
+});
+
 test('useCastingPower', () => {
   for (let level = 1; level <= 9; level++) {
     const spellTraits = new Traits(`LEVEL:${level}`);
@@ -183,7 +190,7 @@ test('canCastingSpell creates casting power if non-existent', () => {
 });
 
 test('canBless: default maxTargetHp', () => {
-  let maxTargetHp = 1; // default
+  let maxTargetHp = 999; // default
   let casterTraits = new CharacterTraits(''); // unused
 
   let spellTraits = new MagicTraits('');

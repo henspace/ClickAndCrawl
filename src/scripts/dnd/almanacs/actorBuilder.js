@@ -31,7 +31,7 @@ import { Sprite } from '../../utils/sprites/sprite.js';
 import { Actor, ActorType, MoveType } from '../../players/actors.js';
 import * as spriteRenderers from '../../utils/sprites/spriteRenderers.js';
 import * as animation from '../../utils/sprites/animation.js';
-import { Position, Velocity } from '../../utils/geometry.js';
+import { Position } from '../../utils/geometry.js';
 import SCREEN from '../../utils/game/screen.js';
 import { Colours } from '../../constants/canvasStyles.js';
 import {
@@ -398,7 +398,6 @@ function createTrader(imageName, iconImageName, traits, actorType) {
 function createPortal(imageName, iconImageName, traits, actorType) {
   const actor = createActor(imageName, iconImageName, traits, actorType);
   actor.interaction = new FindPortal(actor);
-  actor.velocity = new Velocity(0, 0, 3);
   return actor;
 }
 

@@ -26,7 +26,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-import { jest, test, expect } from '@jest/globals';
+import { beforeEach, jest, test, expect } from '@jest/globals';
 import * as mockedDice from '../utils/dice.mockable.js';
 
 jest.unstable_mockModule('../utils/dice.js', () => {
@@ -35,6 +35,11 @@ jest.unstable_mockModule('../utils/dice.js', () => {
     ...mockedDice,
     rollDice: jest.fn((sides) => mockedDice.rollDice(sides)),
   };
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockDice.rollDice(6);
 });
 
 const mockDice = await import('../utils/dice.js');
@@ -545,6 +550,142 @@ test('getSpellDamage - ranged - save succeeded', () => {
   expect(result).toBe(0);
 });
 
+// Undead
+test('getSpellDamage - undead immunity - save failed but target not undead', () => {
+  const isProficient = true;
+  const exp = 125000;
+  const profBonus = isProficient
+    ? getLevelAndProfBonusFromExp(exp).profBonus
+    : 0;
+  const attackerAbility = 'ANO';
+  const attackerAbilityValue = 16;
+  const attackerAbilityModifier =
+    characteristicToModifier(attackerAbilityValue);
+
+  const attackerTraits = new CharacterTraits(
+    `SPELL_CAST:${attackerAbility}, ${attackerAbility}:${attackerAbilityValue},PROF:SPELL,EXP:${exp}`
+  );
+
+  const targetSaveAbility = 'DEX';
+  const targetSaveAbilityValue = 20;
+  const targetSaveModifier = characteristicToModifier(targetSaveAbilityValue);
+  const targetTraits = new CharacterTraits(
+    `${targetSaveAbility}:${targetSaveAbilityValue}`
+  );
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => targetSaveModifier
+  );
+
+  const spellDifficulty = 14;
+  const spellTraits = new Traits(
+    `DC:${spellDifficulty},TYPE:${
+      isProficient ? 'SPELL' : 'NOTHING'
+    },UNDEAD_IMMUNE:YES`
+  );
+  const spellDamage = 48;
+  spellTraits.getDamageDiceWhenCastBy = () => `${spellDamage}D1`;
+
+  const fullDifficulty = spellDifficulty + profBonus + attackerAbilityModifier;
+  const requiredDiceRoll = fullDifficulty - targetSaveModifier - 1;
+  mockDice.rollDice.mockReturnValueOnce(requiredDiceRoll);
+
+  const result = dndAction.getSpellDamage(
+    attackerTraits,
+    targetTraits,
+    spellTraits
+  );
+  expect(result).toBe(spellDamage);
+});
+
+test('getSpellDamage - undead immunity - save failed, target undead but spell has no undead immunity', () => {
+  const isProficient = true;
+  const exp = 125000;
+  const profBonus = isProficient
+    ? getLevelAndProfBonusFromExp(exp).profBonus
+    : 0;
+  const attackerAbility = 'ANO';
+  const attackerAbilityValue = 16;
+  const attackerAbilityModifier =
+    characteristicToModifier(attackerAbilityValue);
+
+  const attackerTraits = new CharacterTraits(
+    `SPELL_CAST:${attackerAbility}, ${attackerAbility}:${attackerAbilityValue},PROF:SPELL,EXP:${exp}`
+  );
+
+  const targetSaveAbility = 'DEX';
+  const targetSaveAbilityValue = 20;
+  const targetSaveModifier = characteristicToModifier(targetSaveAbilityValue);
+  const targetTraits = new CharacterTraits(
+    `${targetSaveAbility}:${targetSaveAbilityValue}, UNDEAD:YES`
+  );
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => targetSaveModifier
+  );
+
+  const spellDifficulty = 14;
+  const spellTraits = new Traits(
+    `DC:${spellDifficulty},TYPE:${isProficient ? 'SPELL' : 'NOTHING'}`
+  );
+  const spellDamage = 48;
+  spellTraits.getDamageDiceWhenCastBy = () => `${spellDamage}D1`;
+
+  const fullDifficulty = spellDifficulty + profBonus + attackerAbilityModifier;
+  const requiredDiceRoll = fullDifficulty - targetSaveModifier - 1;
+  mockDice.rollDice.mockReturnValueOnce(requiredDiceRoll);
+
+  const result = dndAction.getSpellDamage(
+    attackerTraits,
+    targetTraits,
+    spellTraits
+  );
+  expect(result).toBe(spellDamage);
+});
+
+test('getSpellDamage - undead immunity - save failed, target undead and spell has undead immunity', () => {
+  const isProficient = true;
+  const exp = 125000;
+  const profBonus = isProficient
+    ? getLevelAndProfBonusFromExp(exp).profBonus
+    : 0;
+  const attackerAbility = 'ANO';
+  const attackerAbilityValue = 16;
+  const attackerAbilityModifier =
+    characteristicToModifier(attackerAbilityValue);
+
+  const attackerTraits = new CharacterTraits(
+    `SPELL_CAST:${attackerAbility}, ${attackerAbility}:${attackerAbilityValue},PROF:SPELL,EXP:${exp}`
+  );
+
+  const targetSaveAbility = 'DEX';
+  const targetSaveAbilityValue = 20;
+  const targetSaveModifier = characteristicToModifier(targetSaveAbilityValue);
+  const targetTraits = new CharacterTraits(
+    `${targetSaveAbility}:${targetSaveAbilityValue}, UNDEAD:YES`
+  );
+  targetTraits.getNonMeleeSaveAbilityModifier = jest.fn(
+    (traitsUnused) => targetSaveModifier
+  );
+
+  const spellDifficulty = 14;
+  const spellTraits = new Traits(
+    `DC:${spellDifficulty},TYPE:${
+      isProficient ? 'SPELL' : 'NOTHING'
+    }, UNDEAD_IMMUNE:YES`
+  );
+  const spellDamage = 48;
+  spellTraits.getDamageDiceWhenCastBy = () => `${spellDamage}D1`;
+
+  const fullDifficulty = spellDifficulty + profBonus + attackerAbilityModifier;
+  const requiredDiceRoll = fullDifficulty - targetSaveModifier - 1;
+  mockDice.rollDice.mockReturnValueOnce(requiredDiceRoll);
+
+  const result = dndAction.getSpellDamage(
+    attackerTraits,
+    targetTraits,
+    spellTraits
+  );
+  expect(result).toBe(0);
+});
 ///////////////////////////////////////////
 
 test('take rest short with no CON modifier', () => {
@@ -667,6 +808,28 @@ test('takeRest short increments spent dice', () => {
     );
     dndAction.takeRest(actor, 'SHORT');
   }
+});
+
+test('takeRest short cures toxins', () => {
+  const actor = new Actor({}, ActorType.HERO);
+  actor.traits = new CharacterTraits('EXP:14000, CON:10'); // gives level 6 based on p56 of DnD5e
+  const mockCure = jest.fn(() => true);
+  actor.toxify = {
+    cure: mockCure,
+  };
+  dndAction.takeRest(actor, 'SHORT');
+  expect(mockCure).toBeCalled();
+});
+
+test('takeRest long cures toxins', () => {
+  const actor = new Actor({}, ActorType.HERO);
+  actor.traits = new CharacterTraits('EXP:14000, CON:10'); // gives level 6 based on p56 of DnD5e
+  const mockCure = jest.fn(() => true);
+  actor.toxify = {
+    cure: mockCure,
+  };
+  dndAction.takeRest(actor, 'LONG');
+  expect(mockCure).toBeCalled();
 });
 
 test('takeRest long incrementing by half normal number of  hit dice', () => {

@@ -34,6 +34,7 @@ import PERSISTENT_DATA from '../utils/persistentData.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import { i18n, MESSAGES } from '../utils/messageManager.js';
 import { showLogDialog } from './logDialog.js';
+import { setFullscreenState } from '../utils/fullscreen.js';
 
 /** Settings */
 const SETTINGS = [
@@ -69,7 +70,7 @@ const SETTINGS = [
   },
   {
     id: 'START_IN_FULLSCREEN',
-    labelKey: 'CONTROL START IN FULLSCREEN',
+    labelKey: 'CONTROL RUN FULLSCREEN',
     defValue: false,
     controlType: ControlType.CHECKBOX,
     persistent: true,
@@ -85,8 +86,32 @@ const SETTINGS = [
     action: () => showLogDialog(),
     onChange: null,
   },
+  {
+    id: 'CLEAR_MEMORY',
+    labelKey: 'BUTTON DELETE MEMORY',
+    defValue: true,
+    controlType: ControlType.TEXT_BUTTON,
+    persistent: false,
+    action: () => deleteMemory(),
+    onChange: null,
+  },
 ];
 
+/**
+ * Delete memory. Confirmation is required.
+ */
+function deleteMemory() {
+  return UI.showChoiceDialog(
+    i18n`DIALOG TITLE DELETE MEMORY`,
+    i18n`MESSAGE CONFIRM DELETE MEMORY`,
+    [i18n`BUTTON DELETE`, i18n`BUTTON CANCEL`]
+  ).then((choice) => {
+    if (choice === 0) {
+      PERSISTENT_DATA.clearAll();
+      return UI.showOkDialog(i18n`MESSAGE MEMORY DELETED`);
+    }
+  });
+}
 /**
  * Display the settings dialog. This retrieves the current settings from local
  * storage and allows modifications. Changes are saved immediately.
@@ -99,7 +124,7 @@ export function showSettingsDialog() {
   return UI.showControlsDialog(i18n`DIALOG TITLE SETTINGS`, {
     actionButtons: controls,
     className: 'door',
-  });
+  }).then(() => setFullscreenState(PERSISTENT_DATA.get('START_IN_FULLSCREEN')));
 }
 
 /**

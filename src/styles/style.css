@@ -227,7 +227,13 @@ a:active {
 
 .actor-id-card canvas {
   background-color: rgb(100, 100, 100);
-  border: solid 1px var(--window-contrast);
+  border: solid 2px var(--window-contrast);
+}
+.store-contents button canvas {
+  border-radius: 50%;
+  background-color: #646463;
+  margin-right: 4px;
+  border: 2px solid white;
 }
 
 h1 {
@@ -245,6 +251,8 @@ label {
   display: flex;
   justify-content: space-between;
   line-height: 48px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 button {
   background-color: var(--primary-base);
@@ -257,6 +265,9 @@ button {
 
 button:hover {
   cursor: pointer;
+}
+button.uncastable {
+  text-decoration: line-through;
 }
 
 .glass-content label:nth-of-type(even) {

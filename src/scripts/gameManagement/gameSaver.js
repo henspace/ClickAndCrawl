@@ -137,7 +137,7 @@ export function saveGameState(hero, completed = false) {
 /** Restore the game state.
  * The state is only restored if the hero is alive.
  *
- * @returns {{hero: Actor, sceneLevel: number, completed: boolean}} - undefined if failure
+ * @returns {{hero: Actor, sceneLevel: number}} - undefined if failure
  */
 export function restoreGameState() {
   const gameState = PERSISTENT_DATA.get('GAME_STATE', null, revive);

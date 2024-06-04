@@ -28,9 +28,7 @@ Any line beginning with a # character is ignored. The elements are described bel
 - minLevel: Numeric. Minimum dungeon level at which the entry can appear.
 - rarity: string: Likelihood of appearance. Values are COMMON, UNCOMMON, RARE and VERY_RARE.
 - entry type: type of entry. More details are given below.
-- id: identifier for the entry. This is used for the image name. If you want to share
-an image, the id can be extended with a + or ? character and a suffix. Only the characters
-before the + or ? character will be used for the image name. A question mark is used to define something that required identification.  
+- id: identifier for the entry. This is used as a unique id and is also used to create the image name and description. See the ID section for details.
 - starting artefacts: square brackets containing a comma separated list of artefacts to start with. WEAPONS, ARTEFACTS, MAGIC and MONEY items are allowed.
 - traits: comma separated list of traits as key:value pairs.
 
@@ -38,31 +36,39 @@ A the key value for a trait can be preceded by an underscore to prevent it being
 
 The key traits depend on the almanac and are described in more detail below.
 
-## id
+## ID
 
 The id is used as a unique identifier for the item. It is also used to form the 
-image name and the description. Sometimes you might want different almanac entries
+image name, item name, and the description. Sometimes you might want different almanac entries
 to use the same image but still have a unique almanac entry with
 different traits. This can be done by extending the id with a '+', '?' or '/' character followed by 
 additional text. How the information is split depends on the separating character.
 
-- +: the plus character uses the text before the + for the image and description.
-The text following is just used to create a unique id for the entry.
-- ?: the question mark uses the text before the ? for the image. The full id is 
-used for the description and the text before the ? is used as the description if the hero
-cannot identify it.
-- /: the forward slash uses the text before the / just for the image. Everything else
-is taken after the /. The / is used to allow the same image to be used for multiple entries.
+The following list shows how these different character affect the derivation of
+the item.
 
 - my_item
-- my_item+unique
+    - id: *my_item* 
+    - item name: *My item*
+    - image name: *my_item*
+    - description: looked up from  *DESCRIPTION MY_ITEM*
+- my_item+extra
+    - id: *my_item+extra* 
+    - item name: *My item*
+    - image name: *my_item*
+    - description: looked up from  *DESCRIPTION MY_ITEM*
+- my_item?extra
+    - id: *my_item+extra* 
+    - item name: *My item*
+    - image name: *my_item*
+    - description: looked up from  *DESCRIPTION MY_ITEM?EXTRA*
+    - description if not identified: looked up from  *DESCRIPTION MY_ITEM*
+- my_item/extra
+    - id: *my_item/extra* 
+    - item name: *Extra*
+    - image name: *my_item*
+    - description: *DESCRIPTION EXTRA*
 
-When extended using a question mark, it is assumed that multiple items need to be identified 
-by the hero. Two descriptions are extracted from the message map with the following
-keys:
-
-- DESCRIPTION MY_ITEM: used if the item cannot be identified by the hero.
-- DESCRIPTION MY_ITEM?UNIQUE: used if the item has been identified by the hero.
 
 ## Image names
 
@@ -150,7 +156,7 @@ Unused
 
 Consumables come in different types defined by the TYPE and SUBTYPE trait.
 
-- TYPE: set to MEAL, DRINK, MEDICINE or POISON
+- TYPE: set to MEAL, DRINK, MEDICINE,POISON or DRUG
 - SUBTYPE: used for checking proficiencies. Also used for hidden artefacts. Typically set to PLANT.
 - IDENTIFY_DC: if set, the item needs identification.The normal description is created from id as usual. The description for unknown as  it's message map key suffixed with _UNKNOWN.
 
@@ -160,6 +166,9 @@ Some consumables, primarily plants, may not be known to the hero.
 ### Type MEAL or DRINK
 
 These can be used a part of a full meal (1 drink + 1 meal) as part of a rest.
+
+### Type DRUGS
+Drugs have FX traits. Unlike poisons, the effects are always applied. 
 
 ### Type POISON
 
@@ -266,6 +275,7 @@ There are a number of key traits for spells:
 - DMG: the damage dice
 - DICE_PER_LEVEL: the number of damage dice per character level. This is a floating
 point value so fractional values will work.  Some spells are defined in the DnD 5e guide as increasing per spell level rather than per character level. As there are 20 character levels and 9 spell levels the spell level rate should be divided by two to give an approximate value for the DICE_PER_LEVEL.
+- INDISCRIMINATE: boolean. If set to YES, the trader will also be killed by this.
 - MAX_TARGETS: the maximum number of creatures who can be affected by the spell.
 - MAX_TARGET_HP: the max number of remaining HP the target can have to apply a BLESS spell.
 -SAVE_BY: this defines which ability is used for saving tests. E.g. 

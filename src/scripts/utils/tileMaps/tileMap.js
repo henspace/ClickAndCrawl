@@ -37,7 +37,7 @@ import {
 import { Point, Rectangle } from '../geometry.js';
 import { UiClickHandler } from '../ui/interactions.js';
 import { randomise } from '../arrays/arrayManip.js';
-import { getSurrounds, radiateUpAndDown } from '../arrays/arrayManip.js';
+import { getSurrounds, radiateCross, radiate } from '../arrays/arrayManip.js';
 import SCREEN from '../game/screen.js';
 import { RayTracer } from './pathFinder.js';
 import { Colours } from '../../constants/canvasStyles.js';
@@ -837,13 +837,53 @@ export class TileMap {
    * @param {number} [distance = 1] - in tiles.
    * @returns {Tiles[]}
    */
-  getRadiatingUpAndDown(gridPoint, distance = 1) {
-    return radiateUpAndDown(this.#tiles, {
+  getRadiatingCross(gridPoint, distance = 1) {
+    return radiateCross(this.#tiles, {
       rowIndex: gridPoint.y,
       columnIndex: gridPoint.x,
       distance: distance,
       filter: (tile) => tile.role === TileRole.GROUND,
     });
+  }
+
+  /**
+   * Get tiles radiating from a point.
+   * @param {Point} gridPoint
+   * @param {number} [distance = 1] - in tiles.
+   * @returns {Tiles[]}
+   */
+  getRadiating(gridPoint, distance = 1) {
+    return radiate(this.#tiles, {
+      rowIndex: gridPoint.y,
+      columnIndex: gridPoint.x,
+      distance: distance,
+      filter: (tile) => tile.role === TileRole.GROUND,
+    });
+  }
+
+  /** Get radial visible tiles around the hero
+   * @param {number} rangeInTiles
+   * @returns {Tile[]}
+   */
+  getRadiatingVisibleTiles(rangeInTiles) {
+    const tiles = [];
+    const centrePoint = this.worldPointToGrid(this.#heroActor.position);
+    const minX = Math.max(0, centrePoint.x - rangeInTiles);
+    const minY = Math.max(0, centrePoint.y - rangeInTiles);
+    const maxX = centrePoint.x + rangeInTiles;
+    const maxY = centrePoint.y + rangeInTiles;
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        const gridPoint = new Point(x, y);
+        if (!gridPoint.coincident(centrePoint)) {
+          const tile = this.getTileAtGridPoint(gridPoint);
+          if (this.canHeroSeeGridPoint(gridPoint) && tile.isSeeThrough()) {
+            tiles.push(tile);
+          }
+        }
+      }
+    }
+    return tiles;
   }
 
   /**

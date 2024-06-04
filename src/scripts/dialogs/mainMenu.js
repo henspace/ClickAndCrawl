@@ -38,11 +38,14 @@ import { showGuideDialog } from './guideDialogs.js';
 /**
  * Display the main menu. All actions are controlled by the main menu except play
  * which results in the menu resolving.
+ * @param {boolean} continuation - continue an adventure
  * @returns {Promise} fulfils to undefined if play selected.
  */
-export function showMainMenu() {
+export function showMainMenu(continuation) {
   const playAdventure = new BitmapButtonControl({
-    leftLabel: i18n`BUTTON PLAY ADVENTURE`,
+    leftLabel: continuation
+      ? i18n`BUTTON CONTINUE ADVENTURE`
+      : i18n`BUTTON PLAY ADVENTURE`,
     imageName: 'ui-play00.png',
     internalLabel: true,
     closes: 'PLAY ADVENTURE',

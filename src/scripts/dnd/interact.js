@@ -50,9 +50,14 @@ import { Toxin } from './toxins.js';
 import * as magic from './magic.js';
 import * as traps from './trapCharacteristics.js';
 import * as trapDialogs from '../dialogs/trapDialogs.js';
-import { buildArtefactFromId } from './almanacs/artefactBuilder.js';
+import {
+  buildArtefact,
+  buildArtefactFromId,
+} from './almanacs/artefactBuilder.js';
 import * as maths from '../utils/maths.js';
 import { showMoneyPortalDialog } from '../dialogs/moneyPortalDialog.js';
+import { ALMANAC_LIBRARY } from './almanacs/almanacs.js';
+import { pause } from '../utils/timers.js';
 
 /**
  * Apply poison damage to defender
@@ -64,7 +69,7 @@ import { showMoneyPortalDialog } from '../dialogs/moneyPortalDialog.js';
 function applyPoisonDamage(poison, victim, damage) {
   SOUND_MANAGER.playEffect('POISONED');
   if (damage > 0) {
-    LOG.debug(`Poison applied`);
+    LOG.info('Poisoned');
     addFadingImage(IMAGE_MANAGER.getSpriteBitmap('skull.png'), {
       delaySecs: 0,
       lifetimeSecs: 1,
@@ -80,7 +85,7 @@ function applyPoisonDamage(poison, victim, damage) {
       position: victim.position,
       velocity: new Velocity(0, 0, 0),
     });
-    LOG.debug(`Poison resisted.`);
+    LOG.info(`Poison resisted.`);
   }
 }
 /**
@@ -99,12 +104,14 @@ function applyDamage(attacker, defender, damage) {
   ) {
     return 0;
   }
+  const defenderName = defender.traits.get('NAME');
+  LOG.info(`Damage ${damage} on ${defenderName}`);
   let defenderHP = defender.traits.get('HP', 0);
   defenderHP = Math.max(0, defenderHP - damage);
   defender.traits.set('HP', defenderHP);
   if (defenderHP === 0) {
     SOUND_MANAGER.playEffect(defender.traits.get('SOUND', 'DIE'));
-    LOG.info('Killed actor.');
+    LOG.info(`Killed ${defenderName}`);
     defender.interaction = new InteractWithCorpse(defender);
     defender.alive = false;
     if (attacker?.isHero?.()) {
@@ -116,6 +123,7 @@ function applyDamage(attacker, defender, damage) {
         text = `+${change.exp.now - change.exp.was} EXP`;
       }
       if (text) {
+        LOG.info(text);
         displayRisingText(
           text,
           attacker.position,
@@ -549,6 +557,7 @@ export class FindArtefact extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
+    this.owner.discovered = true;
     this.owner.alive = false;
     const storageDetails = this.owner.storeManager.getFirstStorageDetails();
 
@@ -573,15 +582,21 @@ export class FindArtefact extends AbstractInteraction {
       ) {
         return UI.showOkDialog(i18n`MESSAGE CANNOT UNDERSTAND MAGIC`);
       }
-      return actorDialogs.showArtefactDialog({
-        preamble: this.#createDiscoveryMessage(artefact),
-        currentOwner: this.owner,
-        prospectiveOwner: enactor,
-        storeType: storageDetails.store.storeType,
-        artefact: artefact,
-        actionType: actorDialogs.ArtefactActionType.FIND,
-        hideTraits: artefact.isMagic(),
-      });
+      return actorDialogs
+        .showArtefactDialog({
+          preamble: this.#createDiscoveryMessage(artefact),
+          currentOwner: this.owner,
+          prospectiveOwner: enactor,
+          storeType: storageDetails.store.storeType,
+          artefact: artefact,
+          actionType: actorDialogs.ArtefactActionType.FIND,
+          hideTraits: artefact.isMagic(),
+        })
+        .then(() => {
+          if (this.owner.storeManager.getFirstStorageDetails()) {
+            this.owner.alive = true; // still something to find.
+          }
+        });
     } else {
       return UI.showOkDialog(i18n`MESSAGE NOTHING MORE TO DISCOVER`);
     }
@@ -634,6 +649,9 @@ export class Poison extends AbstractInteraction {
    * @returns {Promise}
    */
   enact(reactor) {
+    if (this.#isImmune(reactor)) {
+      return Promise.resolve();
+    }
     const damage = dndAction.getPoisonDamage(this.owner.traits, reactor.traits);
     applyPoisonDamage(this.owner, reactor, damage);
     if (damage) {
@@ -641,6 +659,19 @@ export class Poison extends AbstractInteraction {
     }
     reactor.traits.addTransientFxTraits(this.owner.traits);
     return Promise.resolve();
+  }
+
+  /** Check if the actor is immune.
+   * @return {boolean} true if immune.
+   */
+  #isImmune(reactor) {
+    if (this.owner.isOrganic?.() && reactor.traits.transientProperties?.hover) {
+      LOG.info(
+        `${reactor.traits.get('NAME')} hovering so immune from organic attack.`
+      );
+      return true;
+    }
+    return false;
   }
 }
 
@@ -758,16 +789,56 @@ export class CastSpell extends AbstractInteraction {
    * @returns {Promise}
    */
   async react(enactor) {
-    if (this.owner.traits.get('MODE') === 'BLESS') {
-      return this.#castOnSelf(enactor);
+    let retValue;
+    SOUND_MANAGER.playEffect('SPELL_CHANT');
+
+    switch (this.owner.traits.get('MODE')) {
+      case 'BLESS':
+        retValue = this.#enactBless(enactor);
+        break;
+      case 'CONJURE MEAL':
+        retValue = this.#enactConjureMeal(enactor);
+        break;
+      case 'DETECT POISON':
+        retValue = this.#enactDetectPoison(enactor);
+        break;
+      case 'FIND TRAPS':
+        retValue = this.#enactFindTraps(enactor);
+        break;
+      case 'HOVER':
+        retValue = this.#enactHover(enactor);
+        break;
+      case 'VAMPIRIC MELEE':
+        retValue = this.#enactVampiricTouch(enactor);
+        break;
+      default:
+        retValue = this.#enactMagic(enactor);
+        break;
     }
+    if (this.owner.artefactType === ArtefactType.SPELL) {
+      magic.useCastingPower(enactor.traits, this.owner.traits);
+    }
+    return retValue;
+  }
+
+  /**
+   * Cast a standard magic spell
+   * @param {module:players/actors.Actor} caster
+   * @returns {Promise<number>} total damage inflicted.
+   */
+  #enactMagic(enactor) {
     const tileMap = WORLD.getTileMap();
     const gridPoint = tileMap.worldPointToGrid(enactor.position);
     const range = this.owner.traits.getValueInFeetInTiles('RANGE', 1);
     const maxTargets = this.owner.traits.getInt('MAX_TARGETS', 999);
+    let totalDamage = 0;
     let hitTargets = 0;
     let validTargets = 0;
-    const affectedTiles = tileMap.getRadiatingUpAndDown(gridPoint, range);
+    const radial = this.owner.traits.get('DIRECTION') === 'RADIAL';
+    const indiscriminate = this.owner.traits.get('INDISCRIMINATE');
+    const affectedTiles = radial
+      ? tileMap.getRadiatingVisibleTiles(range)
+      : tileMap.getRadiatingCross(gridPoint, range);
     for (const tile of affectedTiles) {
       if (hitTargets >= maxTargets) {
         break;
@@ -777,7 +848,7 @@ export class CastSpell extends AbstractInteraction {
         (a, b) => b.traits.getInt('HP') - a.traits.getInt('HP')
       );
       for (const occupant of descendingHp) {
-        if (this.#IsValidTarget(enactor, occupant)) {
+        if (this.#IsValidTarget(enactor, occupant, indiscriminate)) {
           validTargets++;
           const damage = dndAction.getSpellDamage(
             enactor.traits,
@@ -785,6 +856,7 @@ export class CastSpell extends AbstractInteraction {
             this.owner.traits
           );
           if (damage > 0) {
+            totalDamage += damage;
             this.#displaySpell(tile.worldPoint);
             hitTargets++;
             applyDamage(enactor, occupant, damage);
@@ -798,10 +870,48 @@ export class CastSpell extends AbstractInteraction {
     if (validTargets === 0) {
       this.#displayFailedSpell(enactor.position);
     }
-    if (this.owner.artefactType === ArtefactType.SPELL) {
-      magic.useCastingPower(this.enactor.traits, this.owner.traits);
+    return pause(1.5).then(() => {
+      return totalDamage;
+    }); // pause to allow visuals and spell chant.
+  }
+
+  /**
+   * Cast a spell to find traps. The exact location is not shown but a warning is placed.
+   * @param {module:players/actors.Actor} enactor
+   * @returns {Promise<undefined>}
+   */
+  #enactFindTraps(enactor) {
+    const tileMap = WORLD.getTileMap();
+    const gridPoint = tileMap.worldPointToGrid(enactor.position);
+    const range = this.owner.traits.getValueInFeetInTiles('RANGE', 1);
+    const radial = this.owner.traits.get('DIRECTION') === 'RADIAL';
+    const searchedTiles = radial
+      ? tileMap.getRadiatingVisibleTiles(range)
+      : tileMap.getRadiatingCross(gridPoint, range);
+    let foundTrap = false;
+    for (const tile of searchedTiles) {
+      if (foundTrap) {
+        break;
+      }
+      const occupants = tile.getOccupants().values();
+      for (const occupant of occupants) {
+        if (occupant.isHiddenArtefact?.()) {
+          const storageDetails = occupant.storeManager.getFirstStorageDetails();
+          let artefact = storageDetails?.artefact;
+          if (artefact?.isTrap()) {
+            foundTrap = true;
+            break;
+          }
+        }
+      }
     }
-    return Promise.resolve();
+    for (const tile of searchedTiles) {
+      if (foundTrap) {
+        this.#displaySpell(tile.worldPoint);
+      } else {
+        this.#displayFailedSpell(tile.worldPoint);
+      }
+    }
   }
 
   /**
@@ -810,7 +920,7 @@ export class CastSpell extends AbstractInteraction {
    * @param {module:players/actors.Actor} caster
    * @returns {Promise<undefined>}
    */
-  #castOnSelf(caster) {
+  #enactBless(caster) {
     if (!caster.isHero()) {
       return;
     }
@@ -824,6 +934,16 @@ export class CastSpell extends AbstractInteraction {
       this.owner.traits
     );
     this.#displaySpell(caster.position);
+    this.#applyAndShowHpGain(caster, hpGain);
+    caster.traits.addTransientFxTraits(this.owner.traits);
+    return Promise.resolve();
+  }
+
+  /** Apply and show gain for caster.
+   * @param {module:players/actors.Actor} caster
+   * @param {number} hpGain
+   */
+  #applyAndShowHpGain(caster, hpGain) {
     if (hpGain > 0) {
       caster.traits.addInt('HP', hpGain);
       displayRisingText(
@@ -832,17 +952,113 @@ export class CastSpell extends AbstractInteraction {
         Colours.HP_TRANSIENT_TEXT_HERO
       );
     }
-    return Promise.resolve();
   }
+
+  /**
+   * Cast a standard magic spell
+   * @param {module:players/actors.Actor} caster
+   * @returns {Promise<undefined>}
+   */
+  #enactConjureMeal(enactor) {
+    const almanac = ALMANAC_LIBRARY.getAlmanac('ARTEFACTS');
+    const foodEntry = almanac.find((entry) => entry.id === 'iron_rations');
+    const waterEntry = almanac.find((entry) => entry.id === 'waterskin');
+    let itemsStashed = 0;
+    const maxMeals = 3;
+    for (let meals = 0; meals < maxMeals; meals++) {
+      const food = buildArtefact(foodEntry);
+      if (!enactor.storeManager.stash(food, { direct: true })) {
+        break;
+      }
+      itemsStashed++;
+      const water = buildArtefact(waterEntry);
+      if (!enactor.storeManager.stash(water, { direct: true })) {
+        break;
+      }
+      itemsStashed++;
+    }
+    if (itemsStashed === 0) {
+      return UI.showOkDialog(
+        i18n`MESSAGE NO SPACE FOR CONJURED FOOD AND WATER`
+      );
+    } else if (itemsStashed < maxMeals * 2) {
+      return UI.showOkDialog(
+        i18n`MESSAGE NO SPACE FOR ALL CONJURED FOOD AND WATER`
+      );
+    } else {
+      return UI.showOkDialog(i18n`MESSAGE CONJURED FOOD AND WATER`);
+    }
+  }
+
+  /**
+   * Detect poison of any items in the users backpack.
+   * @param {module:players/actors.Actor} caster
+   * @returns {Promise<undefined>}
+   */
+  #enactDetectPoison(enactor) {
+    const backpackContents = enactor.storeManager
+      .getStore(StoreType.BACKPACK)
+      .values();
+    let identifiedItem = false;
+    backpackContents.forEach((artefact) => {
+      if (artefact.unknown) {
+        identifiedItem = true;
+        artefact.unknown = false;
+      }
+    });
+    if (identifiedItem) {
+      return UI.showOkDialog(i18n`MESSAGE DETECT POISON SUCCESS`);
+    } else {
+      return UI.showOkDialog(i18n`MESSAGE DETECT POISON FAILURE`);
+    }
+  }
+
+  /**
+   * Enact a vampiric touch.
+   * This is a melee attack followed by a self-cure.
+   * @param {module:players/actors.Actor} enactor
+   * @returns {Promise<undefined>}
+   */
+  #enactVampiricTouch(enactor) {
+    this.#enactMagic(enactor).then((damage) => {
+      if (damage > 0) {
+        const hpGain = Math.round(damage / 2);
+        const currentHp = enactor.traits.getInt('HP');
+        const hpMax = enactor.traits.getInt('HP_MAX');
+        const appliedGain = Math.min(hpMax - currentHp, hpGain);
+        LOG.info(
+          `Vampiric touch convert ${damage} damage to ${appliedGain} HP.`
+        );
+        this.#applyAndShowHpGain(enactor, appliedGain);
+      }
+    });
+  }
+
+  /**
+   * Apply transient hover
+   * @param {module:players/actors.Actor} enactor
+   * @returns {Promise<undefined>}
+   */
+  #enactHover(enactor) {
+    if (enactor.traits.transientProperties) {
+      enactor.traits.transientProperties.hover = true;
+      this.#displaySpell(enactor.position);
+    }
+  }
+
   /**
    * Test if this is a valid target.
    * @param {module:dnd/players.Actor} caster
    * @param {module:dnd/players.Actor} target
+   * @param {boolean} includeTrader
    * @returns {boolean}
    */
-  #IsValidTarget(caster, target) {
+  #IsValidTarget(caster, target, includeTrader) {
     if (caster.isHero()) {
-      return target.isEnemy() && target.alive;
+      const possibleTarget = includeTrader
+        ? target.isEnemy() || target.isTrader()
+        : target.isEnemy();
+      return possibleTarget && target.alive;
     } else {
       return target.isHero() && target.alive;
     }
@@ -909,6 +1125,10 @@ export class ConsumeFood extends AbstractInteraction {
   async react(enactor) {
     const traits = this.owner.traits;
     const foodType = traits.get('TYPE');
+    if (foodType === 'DRUG') {
+      enactor.traits.addTransientFxTraits(this.owner.traits);
+      return UI.showOkDialog(i18n`MESSAGE FX TRAITS APPLIED`);
+    }
     if (foodType === 'POISON') {
       const damage = dndAction.getPoisonDamage(
         this.owner.traits,
@@ -1032,15 +1252,15 @@ export class TriggerTrap extends AbstractInteraction {
       SOUND_MANAGER.playEffect('TRIGGER TRAP');
       if (damage <= 0) {
         addFadingImage(IMAGE_MANAGER.getSpriteBitmap('miss.png'), {
-          delaySecs: 1,
-          lifetimeSecs: 3,
+          delaySecs: 0,
+          lifetimeSecs: 1,
           position: enactor.position,
           velocity: new Velocity(0, 0, 0),
         });
       } else {
         addFadingImage(IMAGE_MANAGER.getSpriteBitmap('blood-splat.png'), {
-          delaySecs: 1,
-          lifetimeSecs: 3,
+          delaySecs: 0,
+          lifetimeSecs: 1,
           position: enactor.position,
           velocity: new Velocity(0, 0, 0),
         });
@@ -1111,7 +1331,11 @@ export class FindPortal extends AbstractInteraction {
   async react(enactor) {
     return showMoneyPortalDialog(enactor).then((sentGold) => {
       if (sentGold) {
-        this.owner.alive = false; // dead in this context means the portal is open
+        SOUND_MANAGER.playEffect('PORTAL');
+        if (this.owner.alive) {
+          this.owner.velocity = new Velocity(0, 0, 3);
+          this.owner.alive = false; // dead in this context means the portal is open
+        }
       }
     });
   }

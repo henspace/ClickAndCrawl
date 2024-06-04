@@ -36,6 +36,7 @@ import { gpAsString } from '../utils/game/coins.js';
 import * as dndAction from '../dnd/dndAction.js';
 import LOG from '../utils/logging.js';
 import { sceneToFloor } from '../dnd/floorNumbering.js';
+import { canCastSpell } from '../dnd/magic.js';
 
 /**
  * @typedef {number} ArtefactActionTypeValue
@@ -311,19 +312,50 @@ class InventoryContainerElement {
     container.appendChild(contentsElement);
 
     [...contents]
-      .sort((a, b) => a.id < b.id)
+      .sort((a, b) => (a.id < b.id ? -1 : 1))
       .forEach((artefact) => {
         const options = { ...this.#options };
         options.refresh = this.refresh.bind(this);
         options.storeType = storeType;
         options.artefact = artefact;
-        const button = this.#createArtefactButtonControl(options);
+        let button;
+        if (
+          artefact.artefactType === ArtefactType.SPELL &&
+          options.allowMagicUse &&
+          !canCastSpell(options.currentOwner.traits, artefact.traits)
+        ) {
+          button = this.#createUncastableSpellButtonControl(options);
+        } else {
+          button = this.#createArtefactButtonControl(options);
+        }
         if (button.closes !== null && button.closes !== undefined) {
           this.#actionButtons.push(button);
         }
         contentsElement.appendChild(button.element);
       });
     return container;
+  }
+
+  /**
+   * Create an artefact button. If a custom action is set, the button is a closer.
+   * Otherwise it just pops up a dialog giving details about the artefact.
+   * @param {ArtefactDialogOptions} options
+   * @returns {components.BitmapButtonControl}
+   */
+  #createUncastableSpellButtonControl(options) {
+    const label = createArtefactButtonLabel(options);
+    let action;
+    action = async () => {
+      await UI.showOkDialog(i18n`MESSAGE NO CASTING POWER LEFT`);
+    };
+
+    const control = new components.BitmapButtonControl({
+      rightLabel: label,
+      imageName: options.artefact.iconImageName,
+      action: action,
+    });
+    control.element.classList.add('uncastable');
+    return control;
   }
   /**
    * Create an artefact button. If a custom action is set, the button is a closer.
@@ -450,7 +482,7 @@ function showRestActionDialog(actor) {
       const result = dndAction.takeRest(actor, 'LONG');
       return showPrepareSpellsDialog(actor).then(() =>
         UI.showOkDialog(
-          `MESSAGE REST LONG HP GAIN ${result.newHp - result.oldHp}`
+          i18n`MESSAGE REST LONG HP GAIN ${result.newHp - result.oldHp}`
         )
       );
     }
@@ -1031,14 +1063,15 @@ function createIdCard(actor) {
       })
     );
   }
-  if (actor.traits.getCharacterLevel) {
+
+  const characterClass = actor.traits.get('CLASS', '').toLowerCase();
+  if (actor.traits.getCharacterLevel && characterClass) {
     idCard.appendChild(
       components.createElement('span', {
-        text: i18n`CHARACTER LEVEL: ${actor.traits.getCharacterLevel()}`,
+        text: i18n`CHARACTER LEVEL: ${actor.traits.getCharacterLevel()} ${characterClass}`,
       })
     );
   }
-
   return idCard;
 }
 /**
@@ -1187,16 +1220,20 @@ function createReadableKey(key) {
  * @returns {string}
  */
 function createReadableValue(value) {
+  // money as is
   if (/\d*\.?\d* *[CSGP]P/.test(value)) {
     return value; // money
   }
+  // dice roll
   if (/\d+D\d+(?: *[+-]? *\d+)?/.test(value)) {
     return value;
   }
   if (Array.isArray(value)) {
-    return value.map((entry) => entry.toLowerCase());
+    return value.map((entry) => MESSAGES.getText(entry).toLowerCase());
   }
-  return typeof value === 'string' ? value.toLowerCase() : value;
+  return typeof value === 'string'
+    ? MESSAGES.getText(value).toLowerCase()
+    : value;
 }
 
 /**
@@ -1215,7 +1252,7 @@ function createArtefactButtonLabel(options) {
       dice = traits.getHpGainDiceWhenCastBy
         ? traits.getHpGainDiceWhenCastBy(options.currentOwner.traits)
         : traits.get('HP_GAIN');
-    } else {
+    } else if (traits.has('DMG')) {
       diceLabel = 'DMG: ';
       dice = traits.getDamageDiceWhenCastBy
         ? traits.getDamageDiceWhenCastBy(options.currentOwner.traits)
@@ -1223,18 +1260,17 @@ function createArtefactButtonLabel(options) {
     }
 
     if (dice) {
-      label = `${label} ${diceLabel}${dice}`;
+      label = `${label}; ${diceLabel}${dice}`;
     }
     let rangeText;
-    if (traits.get('MODE') === 'BLESS') {
+    const range = traits.get('RANGE', '0');
+    if (maths.safeParseInt(range, 0) === 0) {
       rangeText = i18n`ACTS ON CASTER`;
-    } else {
-      const range = traits.get('RANGE');
-      if (range) {
-        rangeText = i18n`Range: ${range}`;
-      }
+    } else if (range) {
+      rangeText = i18n`Range: ${range}`;
     }
-    label = `${label} ${rangeText}`;
+
+    label = `${label}; ${rangeText}`;
   }
   if (
     options.showPrice ||
@@ -1339,7 +1375,8 @@ export function showPillageDialog(pillager, victim) {
  * @param {boolean} options.allowConsumption - can artefacts be consumed.
  * @param {string} options.description - override the actor description
  * @param {string} options.okButtonLabel
- * @returns {Promise<DelayedAction>}
+ * @param {BaseControl[]} options.additionalControls
+ * @returns {Promise<DelayedAction| *>}
  */
 export function showActorDetailsDialog(actor, options = {}) {
   const container = document.createElement('div');
@@ -1433,6 +1470,12 @@ export function showActorDetailsDialog(actor, options = {}) {
     button.closes = DialogResponse.CANCEL;
     actionButtons.push(button);
   }
+  if (options.additionalControls) {
+    actionButtons = actionButtons || [];
+    for (const control of options.additionalControls) {
+      actionButtons.push(control);
+    }
+  }
 
   return UI.showControlsDialog(container, {
     okButtonLabel: options.okButtonLabel,
@@ -1442,7 +1485,7 @@ export function showActorDetailsDialog(actor, options = {}) {
       case 'CAST SPELL':
         return showCastSpells(actor);
       default:
-        return Promise.resolve();
+        return Promise.resolve(closes);
     }
   });
 }
@@ -1570,9 +1613,10 @@ function identifyArtefact(options) {
 /**
  * Show the rest dialog for the hero
  * @param {module:players/actors.Actor} actor} heroActor
- * @returns {Promise} fulfils to null;
+ * @param {boolean} allowMainMenu - add another button to go to main menu.
+ * @returns {Promise<string>} fulfils to 'MAIN MENU' if return to main menu selected;
  */
-export function showRestDialog(heroActor) {
+export function showRestDialog(heroActor, allowMainMenu = false) {
   const messageContainer = components.createElement('div');
   const nextFloor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel() + 1);
   messageContainer.appendChild(
@@ -1580,28 +1624,65 @@ export function showRestDialog(heroActor) {
       text: i18n`MESSAGE REST DIALOG ${nextFloor}`,
     })
   );
+  let additionalControls;
+  if (allowMainMenu) {
+    const mainMenuButton = new components.TextButtonControl({
+      label: i18n`BUTTON MAIN MENU`,
+    });
+    mainMenuButton.closes = 'MAIN MENU';
+    const continueButton = new components.TextButtonControl({
+      label: i18n`BUTTON CONTINUE`,
+    });
+    continueButton.closes = 'CONTINUE';
+    additionalControls = [mainMenuButton, continueButton];
+  }
 
-  return showToxinCuredIfRequired(heroActor).then(() =>
-    showActorDetailsDialog(heroActor, {
-      allowConsumption: true,
-      allowRest: true,
-      description: messageContainer,
-      okButtonLabel: i18n`BUTTON CONTINUE`,
-    })
-  );
+  return showActorDetailsDialog(heroActor, {
+    allowConsumption: true,
+    allowRest: true,
+    description: messageContainer,
+    okButtonLabel: i18n`BUTTON CONTINUE`,
+    additionalControls: additionalControls,
+  });
 }
 
 /**
- * Cure any toxic effects and show confirmation if required.
- * @param {module:players/actors.Actor}
+ * Show epitaph
+ * @param {module:player/actors.Actor} hero
+ * @param {number} leaderboardIndex
+ * @param {Object} options
+ * @param {string} options.description - override the actor description
+ * @param {string} options.okButtonLabel
  * @returns {Promise}
  */
-function showToxinCuredIfRequired(actor) {
-  const toxin = actor.toxify;
-  if (toxin && toxin.isActive) {
-    toxin.cure();
-    return UI.showOkDialog(i18n`MESSAGE CURE TOXIN BETWEEN FLOORS`);
-  } else {
-    return Promise.resolve();
-  }
+export function showEpitaph(hero, leaderboardIndex, options) {
+  const container = document.createElement('div');
+
+  const heroContainer = components.createElement('div', {
+    className: 'actor-container',
+  });
+  container.appendChild(heroContainer);
+  heroContainer.appendChild(
+    createActorElement(hero, {
+      hideTraits: true,
+      description: options.description,
+    })
+  );
+
+  const floor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel());
+
+  const goldSent = hero.traits.getInt('GOLD_SENT', 0);
+  container.appendChild(
+    components.createElement('p', {
+      text: i18n`MESSAGE ACHIEVEMENTS ${floor} ${goldSent}`,
+    })
+  );
+  const messageDefeat =
+    leaderboardIndex < 0 ? i18n`MESSAGE DEFEAT UNPLACED` : i18n`MESSAGE DEFEAT`;
+  container.appendChild(
+    components.createElement('p', {
+      text: messageDefeat,
+    })
+  );
+  return UI.showControlsDialog(container, options);
 }

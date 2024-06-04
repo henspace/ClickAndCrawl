@@ -52,7 +52,7 @@ export function showMoneyPortalDialog(actor) {
   const transfers = [0];
   for (const percent of [25, 50, 75, 100]) {
     const transferValue = Math.round((gold * percent) / 100);
-    if (transferValue > 1) {
+    if (transferValue > 0) {
       labels.push(`${percent}%`);
       transfers.push(transferValue);
     }

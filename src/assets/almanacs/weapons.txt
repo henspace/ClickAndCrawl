@@ -4,6 +4,10 @@
 0,COMMON,WEAPON,handaxe * VALUE:5GP, DMG:1D6, TYPE: simple melee light thrown weapon
 0,COMMON,WEAPON,quarterstaff * VALUE:2SP,DMG:1D6, TYPE:versatile quarterstaff
 
-0,UNCOMMON,WEAPON,warhammer * VALUE:15GP,DMG:1D8, TYPE:martial melee weapon
+2,UNCOMMON,WEAPON,warhammer * VALUE:15GP,DMG:1D8, TYPE:martial melee weapon
+2,UNCOMMON,WEAPON,flail * VALUE:10GP,DMG:1D8, TYPE:martial melee weapon
+3,UNCOMMON,TWO_HANDED_WEAPON,greataxe * VALUE:30GP,DMG:1D12, TYPE:martial melee weapon heavy
+3,UNCOMMON,TWO_HANDED_WEAPON,greatsword * VALUE:50GP,DMG:2D6, TYPE:martial melee weapon heavy
 
-0,RARE,WEAPON,enchanted_battle_axe * VALUE:1000GP,DMG:1D8, TYPE:martial melee weapon, ATTACK_BONUS:1
+5,RARE,WEAPON,enchanted_battle_axe * VALUE:1000GP,DMG:1D8, TYPE:martial melee weapon, ATTACK_BONUS:1
+

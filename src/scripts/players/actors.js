@@ -116,6 +116,8 @@ export class Actor extends UiClickHandler {
   toxify;
   /** @type {boolean} */
   alive;
+  /** Flag used for actors that have a hidden artefact to be discovered. @type {boolean} */
+  discovered;
   /** True if actor is disengaging from a fight. @type {boolean} */
   disengaging;
   /** @type {string} */
@@ -141,6 +143,7 @@ export class Actor extends UiClickHandler {
     this.sprite.obstacle = true;
     this.#frozen = false;
     this.alive = true;
+    this.discovered = false;
     this.disengaging = false;
     this.type = type;
     this.storeManager = new ArtefactStoreManager(
@@ -170,7 +173,6 @@ export class Actor extends UiClickHandler {
     );
     const magic = items.filter(
       (artefact) =>
-        artefact.isMagic() ||
         artefact.artefactType === ArtefactType.RING ||
         artefact.artefactType === ArtefactType.BELT ||
         artefact.artefactType === ArtefactType.HEAD_GEAR
@@ -444,6 +446,7 @@ export class Actor extends UiClickHandler {
       data: {
         adventureStartTime: this.adventureStartTime,
         alive: this.alive,
+        discovered: this.discovered,
         almanacEntry: this.almanacEntry,
         traits: this.traits,
         inventory: inventory,
@@ -462,6 +465,7 @@ export class Actor extends UiClickHandler {
     const actor = builder(data.almanacEntry, data.traits);
     actor.adventureStartTime = data.adventureStartTime;
     actor.alive = data.alive;
+    actor.discovered = data.discovered;
     actor.toxify = new Toxify(data.toxin);
     for (const item of data.inventory) {
       const store = actor.storeManager.getStoreByTypeId(item.storeTypeId);

@@ -137,8 +137,13 @@ export function getConsumptionBenefit(consumableTraits, consumerTraits) {
  * @returns {number}
  */
 export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
+  if (targetTraits.get('UNDEAD') && spellTraits.get('UNDEAD_IMMUNE')) {
+    LOG.info(`Spell does not work on the undead.`);
+    return 0;
+  }
   switch (spellTraits.get('MODE')) {
     case 'MELEE':
+    case 'VAMPIRIC MELEE':
       return getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits);
     default:
       return getSpellNormalDamage(attackerTraits, targetTraits, spellTraits);
@@ -325,6 +330,7 @@ export function takeRest(actor, length) {
           actor.traits.set('HP', newHp);
           actor.traits.set('SPENT_HIT_DICE', spentHitDice + 1);
         }
+        actor.toxify?.cure();
       }
       break;
     case 'LONG':
@@ -340,6 +346,7 @@ export function takeRest(actor, length) {
         newHp = actor.traits.getInt('HP_MAX', currentHp);
         actor.traits.set('HP', newHp);
         magic.restoreCastingPower(actor.traits);
+        actor.toxify?.cure();
       }
       break;
     default:

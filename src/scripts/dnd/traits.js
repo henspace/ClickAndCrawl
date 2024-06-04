@@ -37,6 +37,7 @@ import {
   getAttackModifiers,
 } from './abilityGenerator.js';
 import { Difficulty } from './dndAction.js';
+import * as magic from './magic.js';
 
 import LOG from '../utils/logging.js';
 
@@ -601,9 +602,17 @@ export class MagicTraits extends Traits {
    */
   #getAdjustedDiceWhenCastBy(baseDice, actorTraits) {
     const extraDicePerLevel = this.getFloat('DICE_PER_LEVEL', 0);
-    const extraDice = Math.floor(
-      (actorTraits.getCharacterLevel() - 1) * extraDicePerLevel
-    );
+    const baseLevel = this.getInt('LEVEL', 0);
+    const characterLevel = actorTraits.getCharacterLevel();
+    let currentLevel;
+    if (baseLevel === 0) {
+      currentLevel = Math.min(17, characterLevel);
+    } else {
+      currentLevel = magic.characterLevelToSpellLevel(characterLevel);
+    }
+
+    const levelChange = Math.max(currentLevel - baseLevel, 0);
+    const extraDice = Math.floor(levelChange * extraDicePerLevel);
     let adjustedDice = dice.changeQtyOfDice(baseDice, extraDice);
     LOG.info(
       `Spell cast: base dice = ${baseDice} raised to ${adjustedDice} for level.`
@@ -657,6 +666,9 @@ export class CharacterTraits extends Traits {
   /** @type {Traits} */
   _effectiveTraits;
 
+  /** @type {Object} */
+  transientProperties;
+
   /** Amount movement is reduced in tiles */
   _maxTileMovePerTurn;
 
@@ -671,6 +683,7 @@ export class CharacterTraits extends Traits {
     this._proficiencyBonus = 0;
     this.#setInitialAbilityScores();
     this._transientFxTraits = [];
+    this.transientProperties = {};
     this._allowRefreshDerived = true;
     this._refreshDerivedValues();
   }
@@ -744,8 +757,9 @@ export class CharacterTraits extends Traits {
   /**
    * Clear transient traits.
    */
-  clearTransientFxTraits() {
+  clearTransientFxTraitsAndProperties() {
     this._transientFxTraits = [];
+    this.transientProperties = {};
     this._refreshDerivedValues();
   }
 

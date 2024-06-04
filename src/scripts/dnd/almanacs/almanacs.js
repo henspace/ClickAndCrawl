@@ -225,7 +225,7 @@ class AlmanacLibrary {
   getAlmanac(key) {
     const result = this.#almanacs.get(key);
     if (!result) {
-      LOG`Attempt to get non-existent almanac ${key}`;
+      LOG.error(`Attempt to get non-existent almanac ${key}`);
     }
     return result;
   }
@@ -389,50 +389,16 @@ function parseAlmanacText(text, key) {
 }
 
 /**
- * Create debug almanac. Only entries with the required id are included.
- * The minLevel is set to zero, the CR to zero, and the rarity to COMMON.
- * @param {Almanac} almanac
- * @param {string} id
- * @returns {Almanac}
- */
-function createDebugAlmanac(almanac, id) {
-  almanac = almanac.filter((entry) => entry.id === id);
-  const entries = [
-    almanac.common,
-    almanac.uncommon,
-    almanac.rare,
-    almanac.veryRare,
-  ];
-  for (const values of entries) {
-    values.forEach((value) => almanac.common.push(value));
-  }
-  almanac.common.forEach((entry) => {
-    entry.minLevel = 0;
-    entry.challengeRating = 0;
-    entry.traitsString = entry.traitsString.replace(/CR *: *\d*\.?\d+/, 'CR:0');
-  });
-  return almanac;
-}
-
-/**
  * Create the actor almanac
  * @param {Map<string, URL>} urls
- * @param {URLSearchParams} searchParams - passed in URL. Contains key, values
- * to limit almanac entries. If set, only values with an ID matching the corresponding search
- * parameter will be added. It will also have its level set to 0, CR set to zero and rarity
- * set to COMMON to ensure it appears. This is only used for test purposes.
  * @returns {Promise} fulfils to undefined when complete
  */
-export function loadAlmanacs(urlMap, searchParams) {
+export function loadAlmanacs(urlMap) {
   LOG.debug(`Loading almanacs.`);
   const promises = [];
   urlMap.forEach((url, key) => {
     const promise = assetLoaders.loadTextFromUrl(url).then((text) => {
-      const idFilter = searchParams.get(key);
-      let almanac = parseAlmanacText(text, key);
-      if (idFilter) {
-        almanac = createDebugAlmanac(almanac, idFilter);
-      }
+      const almanac = parseAlmanacText(text, key);
       ALMANAC_LIBRARY.addAlmanac(key, almanac);
     });
     promises.push(promise);

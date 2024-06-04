@@ -74,6 +74,18 @@ export function getSpellPower(spellTraits) {
   const level = spellTraits.getInt('LEVEL', 1);
   return Math.round(1 + (5 * (level - 1)) / 8);
 }
+
+/**
+ * Convert a character level to its equivalent spell level.
+ * This is a simplified magic system. From 5e, magic users hit spell level 9
+ * by character level 17. Available spell levels are interpolated from 1 to 9
+ * across character levels 1 to 17.
+ * @param {number} characterLevel 1 to 20
+ * @returns {number} spell level 1 to 9
+ */
+export function characterLevelToSpellLevel(characterLevel) {
+  return Math.min(Math.round(1 + (8 * (characterLevel - 1)) / 16), 9);
+}
 /**
  * This is a simplified magic system. From 5e, magic users hit spell level 9
  * by character level 17. Available spell levels are interpolated from 1 to 9
@@ -86,7 +98,7 @@ export function canActorLearnMagic(actorTraits, magicTraits) {
   // check level
   const actorLevel = actorTraits.getCharacterLevel();
   const spellLevel = magicTraits.getInt('LEVEL', 0);
-  const maxSpellLevel = 1 + (8 * (actorLevel - 1)) / 16;
+  const maxSpellLevel = characterLevelToSpellLevel(actorLevel);
 
   if (spellLevel > maxSpellLevel) {
     LOG.info(
@@ -146,7 +158,7 @@ export function useCastingPower(casterTraits, spellTraits) {
 }
 
 /**
- * Tes if actor has enough power to cast a spell.
+ * Test if actor has enough power to cast a spell.
  * @param {module:dnd/Traits.Traits} casterTraits
  * @param {module:dnd/Traits.Traits} spellTraits
  * @returns {boolean}
@@ -172,14 +184,14 @@ export function restoreCastingPower(casterTraits) {
 /**
  * Test if bless spell can be used. Bless spells can only be used
  * when the target's HP are <= spellTraits MAX_TARGET_HP value.
- * If MAX_TARGET_HP is not set, a value of 1 is used.
+ * If MAX_TARGET_HP is not set, a value of 999 is used.
  * @param {module:dnd/traits.CharacterTraits} casterTraitsUnused
  * @param {module:dnd/traits.CharacterTraits} targetTraits
  * @param {module:dnd/traits.MagicTraits} spellTraits
  * @returns {boolean}
  */
 export function canBless(casterTraitsUnused, targetTraits, spellTraits) {
-  const maxTargetHp = spellTraits.getInt('MAX_TARGET_HP', 1);
+  const maxTargetHp = spellTraits.getInt('MAX_TARGET_HP', 999);
   const targetHp = targetTraits.getInt('HP');
   if (targetHp > maxTargetHp) {
     LOG.info(
@@ -187,5 +199,5 @@ export function canBless(casterTraitsUnused, targetTraits, spellTraits) {
     );
     return false;
   }
-  return targetHp <= maxTargetHp;
+  return true;
 }

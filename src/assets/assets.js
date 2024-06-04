@@ -77,8 +77,25 @@ export const AssetUrls = {
       new URL('./audio/squeal-thing-103111.mp3', import.meta.url),
     ],
     [
+      'DIE_MONSTER_UNDEAD',
+      new URL('./audio/zombie-6851_derived.mp3', import.meta.url),
+    ],
+    [
       'TRIGGER TRAP',
       new URL('./audio/metal-blade-slice-32-195321.mp3', import.meta.url),
+    ],
+    ['SPELL_CHANT', new URL('./audio/spell_chant.mp3', import.meta.url)],
+    [
+      'DOOR_EXIT',
+      new URL('./audio/door-43633_trimmed_exit.mp3', import.meta.url),
+    ],
+    [
+      'DOOR_ENTER',
+      new URL('./audio/door-43633_trimmed_enter.mp3', import.meta.url),
+    ],
+    [
+      'PORTAL',
+      new URL('./audio/sci-fi-portal-83746-trimmed.mp3', import.meta.url),
     ],
   ]),
   SPLASH_IMAGE: new URL('./images/click-and-crawl.png', import.meta.url),

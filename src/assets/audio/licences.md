@@ -22,3 +22,9 @@ metal-blade-slice-32-195321.mp3 by [https://pixabay.com/users/floraphonic-389280
 pig-oink-47167.mp3 [https://pixabay.com/sound-effects/pig-oink-47167/] by Pixabay via Pixabay
 
 squeal-thing-103111.mp3 [https://pixabay.com/sound-effects/squeal-thing-103111/] by Pixabay via Pixabay
+
+zombie-6851_derived.mp3 based on [https://pixabay.com/sound-effects/search/zombie/] by Pixabay via Pixabay
+
+door-43633_trimmed.mp3 based on [https://pixabay.com/sound-effects/door-43633/] by Pixabay via Pixabay
+
+sci-fi-portal-83746-trimmed.mp3 based on [https://pixabay.com/sound-effects/sci-fi-portal-83746/] by Pixabay via Pixabay

@@ -31,6 +31,7 @@ import * as traits from './traits.js';
 import * as tables from './tables.js';
 import * as dice from '../utils/dice.js';
 import * as abilityGenerator from './abilityGenerator.js';
+import * as magic from './magic.js';
 
 const TEST_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
@@ -537,13 +538,16 @@ test('MagicTraits.getDamageDiceWhenCastBy', () => {
   const actorTraits = new traits.CharacterTraits('EXP:48000'); // gives level 9 based on p56 of DnD5e
   const characterLevel = actorTraits.getCharacterLevel();
   expect(characterLevel).toBe(9);
+  const characterSpellLevel = magic.characterLevelToSpellLevel(characterLevel);
+  const spellLevel = characterSpellLevel - 2;
   const baseDiceCount = 3;
   const diceSides = 8;
   const dicePerLevel = 2.5;
   const expectedDiceCount =
-    Math.floor((characterLevel - 1) * dicePerLevel) + baseDiceCount;
+    Math.floor((characterSpellLevel - spellLevel) * dicePerLevel) +
+    baseDiceCount;
   const magicTraits = new traits.MagicTraits(
-    `DMG:${baseDiceCount}D${diceSides}, DICE_PER_LEVEL:${dicePerLevel}`
+    `LEVEL:${spellLevel}, DMG:${baseDiceCount}D${diceSides}, DICE_PER_LEVEL:${dicePerLevel}`
   );
 
   expect(magicTraits.getDamageDiceWhenCastBy(actorTraits)).toEqual(
@@ -691,7 +695,7 @@ test('CharacterTraits.addTransientFxTraits: clipped to 0', () => {
   expect(characterTraits.getEffectiveInt('STR')).toEqual(0);
 });
 
-test('CharacterTraits.clearTransientFxTraits', () => {
+test('CharacterTraits.clearTransientFxTraitsAndProperties', () => {
   const characterTraits = new traits.CharacterTraits(
     new Map([
       ['STR', 10],
@@ -715,18 +719,21 @@ test('CharacterTraits.clearTransientFxTraits', () => {
   );
 
   characterTraits.addTransientFxTraits(transientTraits);
+  characterTraits.transientProperties = { test: true };
   TEST_KEYS.forEach((key, index) => {
     const baseTrait = 10 + index;
     const fxTrait = 20 + index;
     expect(characterTraits.getInt(key)).toBe(baseTrait);
     expect(characterTraits.getEffectiveInt(key)).toBe(baseTrait + fxTrait);
   });
-  characterTraits.clearTransientFxTraits();
+  expect(characterTraits.transientProperties).toEqual({ test: true });
+  characterTraits.clearTransientFxTraitsAndProperties();
   TEST_KEYS.forEach((key, index) => {
     const baseTrait = 10 + index;
     expect(characterTraits.getInt(key)).toBe(baseTrait);
     expect(characterTraits.getEffectiveInt(key)).toBe(baseTrait);
   });
+  expect(characterTraits.transientProperties).toStrictEqual({});
 });
 
 test('CharacterTraits.toFxKey', () => {
@@ -1186,10 +1193,14 @@ test('CharacterTraits.isProficient: passed string', () => {
 
 /* Magic Traits */
 test('getDamageDiceWhenCastBy: no extra dice per level', () => {
-  const exp = 125000;
   const diceCount = 4;
   const diceSides = 8;
-  const magicTraits = new traits.MagicTraits(`DMG:${diceCount}D${diceSides}`);
+  const spellLevel = 6;
+  const characterLevel = 6;
+  const exp = tables.getMinExpPointsForLevel(characterLevel);
+  const magicTraits = new traits.MagicTraits(
+    `LEVEL:${spellLevel},DMG:${diceCount}D${diceSides}`
+  );
   let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
   const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
   const diceDetails = dice.getDiceDetails(result);
@@ -1202,20 +1213,73 @@ test('getDamageDiceWhenCastBy: no extra dice per level', () => {
 
 /* Magic Traits */
 test('getDamageDiceWhenCastBy: extra dice per level', () => {
-  const exp = 125000;
   const diceCount = 4;
   const diceSides = 8;
   const extraDicePerLevel = 3;
-  const level = tables.getLevelAndProfBonusFromExp(exp).level;
+
+  const characterLevel = 8;
+  const characterSpellLevel = magic.characterLevelToSpellLevel(characterLevel);
+  const spellLevel = characterSpellLevel - 2;
+
+  const exp = tables.getMinExpPointsForLevel(characterLevel);
+
   const magicTraits = new traits.MagicTraits(
-    `DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+    `LEVEL:${spellLevel},DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
   );
   let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
   const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
   const diceDetails = dice.getDiceDetails(result);
   expect(diceDetails).toStrictEqual({
     offset: 0,
-    qty: diceCount + (level - 1) * extraDicePerLevel,
+    qty: diceCount + (characterSpellLevel - spellLevel) * extraDicePerLevel,
+    sides: diceSides,
+  });
+  expect(diceDetails.qty).toBeGreaterThan(diceCount);
+});
+
+test('getDamageDiceWhenCastBy: extra dice per level for cantrip', () => {
+  const diceCount = 4;
+  const diceSides = 8;
+  const extraDicePerLevel = 3;
+
+  const characterLevel = 15;
+  const spellLevel = 0;
+
+  const exp = tables.getMinExpPointsForLevel(characterLevel);
+
+  const magicTraits = new traits.MagicTraits(
+    `LEVEL:${spellLevel},DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+  );
+  let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
+  const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
+  const diceDetails = dice.getDiceDetails(result);
+  expect(diceDetails).toStrictEqual({
+    offset: 0,
+    qty: diceCount + (characterLevel - spellLevel) * extraDicePerLevel,
+    sides: diceSides,
+  });
+  expect(diceDetails.qty).toBeGreaterThan(diceCount);
+});
+
+test('getDamageDiceWhenCastBy: extra dice per level for cantrip clipped to 17', () => {
+  const diceCount = 4;
+  const diceSides = 8;
+  const extraDicePerLevel = 3;
+
+  const characterLevel = 20;
+  const spellLevel = 0;
+
+  const exp = tables.getMinExpPointsForLevel(characterLevel);
+
+  const magicTraits = new traits.MagicTraits(
+    `LEVEL:${spellLevel},DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+  );
+  let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
+  const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
+  const diceDetails = dice.getDiceDetails(result);
+  expect(diceDetails).toStrictEqual({
+    offset: 0,
+    qty: diceCount + (17 - spellLevel) * extraDicePerLevel,
     sides: diceSides,
   });
   expect(diceDetails.qty).toBeGreaterThan(diceCount);
@@ -1223,40 +1287,48 @@ test('getDamageDiceWhenCastBy: extra dice per level', () => {
 
 /* Magic Traits */
 test('getDamageDiceWhenCastBy: fractional extra dice per level', () => {
-  const exp = 200000;
   const diceCount = 4;
   const diceSides = 8;
-  const extraDicePerLevel = 0.5;
-  const level = tables.getLevelAndProfBonusFromExp(exp).level;
+  const extraDicePerLevel = 0.6;
+  const characterLevel = 8;
+  const characterSpellLevel = magic.characterLevelToSpellLevel(characterLevel);
+  const spellLevel = characterSpellLevel - 2;
+  const exp = tables.getMinExpPointsForLevel(characterLevel);
+
   const magicTraits = new traits.MagicTraits(
-    `DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+    `LEVEL:${spellLevel},DMG:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
   );
   let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
   const result = magicTraits.getDamageDiceWhenCastBy(actorTraits);
   const diceDetails = dice.getDiceDetails(result);
   expect(diceDetails).toStrictEqual({
     offset: 0,
-    qty: diceCount + Math.floor((level - 1) * extraDicePerLevel),
+    qty:
+      diceCount +
+      Math.floor((characterSpellLevel - spellLevel) * extraDicePerLevel),
     sides: diceSides,
   });
   expect(diceDetails.qty).toBeGreaterThan(diceCount);
 });
 
 test('getHpGainDiceWhenCastBy: extra dice per level', () => {
-  const exp = 125000;
   const diceCount = 4;
   const diceSides = 8;
   const extraDicePerLevel = 3;
-  const level = tables.getLevelAndProfBonusFromExp(exp).level;
+  const characterLevel = 8;
+  const characterSpellLevel = magic.characterLevelToSpellLevel(characterLevel);
+  const spellLevel = characterSpellLevel - 2;
+  const exp = tables.getMinExpPointsForLevel(characterLevel);
+
   const magicTraits = new traits.MagicTraits(
-    `HP_GAIN:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
+    `LEVEL:${spellLevel},HP_GAIN:${diceCount}D${diceSides}, DICE_PER_LEVEL:${extraDicePerLevel}`
   );
-  let actorTraits = new traits.CharacterTraits(`EXP:${exp}`);
+  let actorTraits = new traits.CharacterTraits(`DMG:3D8, EXP:${exp}`);
   const result = magicTraits.getHpGainDiceWhenCastBy(actorTraits);
   const diceDetails = dice.getDiceDetails(result);
   expect(diceDetails).toStrictEqual({
     offset: 0,
-    qty: diceCount + (level - 1) * extraDicePerLevel,
+    qty: diceCount + (characterSpellLevel - spellLevel) * extraDicePerLevel,
     sides: diceSides,
   });
   expect(diceDetails.qty).toBeGreaterThan(diceCount);

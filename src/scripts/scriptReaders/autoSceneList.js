@@ -35,7 +35,12 @@ import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
 import { i18n } from '../utils/messageManager.js';
 import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { sceneToFloor } from '../dnd/floorNumbering.js';
-import * as tables from '../dnd/tables.js';
+
+import * as dice from '../utils/dice.js';
+import {
+  createDebugHero,
+  createDebugEnemyEntry,
+} from '../dnd/almanacs/debugBuilder.js';
 
 /** @type {module:players/actors~Actor} */
 let heroActor;
@@ -55,8 +60,9 @@ let heroActor;
  * @enum {DungeonChallengeValue}
  */
 export const DungeonChallenge = {
-  EASY: 0.2,
-  MEDIUM: 0.25,
+  INSIGNIFICANT: 1 / 64,
+  EASY: 3 / 16,
+  MEDIUM: 1 / 4,
 };
 
 /**
@@ -162,7 +168,10 @@ class AutoSceneList {
     this.#addTraders();
     this.#addArtefacts();
     this.#addMap();
-    this.#addPortal();
+    if (dice.rollDice(20) > 13) {
+      LOG.info('Adding a portal.');
+      this.#addPortal();
+    }
   }
 
   /**
@@ -178,6 +187,9 @@ class AutoSceneList {
    */
   #setHero() {
     if (!heroActor) {
+      heroActor = createDebugHero();
+    }
+    if (!heroActor) {
       const almanacEntry = ALMANAC_LIBRARY.getRandomEntry('HEROES');
       if (!almanacEntry) {
         LOG.fatal(new Error(`Could not find hero in almanacs.`));
@@ -192,36 +204,43 @@ class AutoSceneList {
    * @param {DungeonChallengeValue} [challenge = DungeonChallenge.MEDIUM]
    */
   #addEnemies(challenge = DungeonChallenge.MEDIUM) {
-    const heroLevel = heroActor?.traits.getCharacterLevel() ?? 1;
-    const advancementExp =
-      tables.getMinExpPointsForLevel(heroLevel + 1) -
-      tables.getMinExpPointsForLevel(heroLevel);
-    LOG.info(
-      `${advancementExp} exp required to move to next level from level ${heroLevel}.`
-    );
-    const maxExpOnOffer = Math.ceil(advancementExp / 4); // assuming we advance every 5 scenes.
-
+    const debugEnemy = createDebugEnemyEntry();
+    if (debugEnemy) {
+      this.#sceneDefn.enemies.push(debugEnemy);
+      return;
+    }
+    const maxEnemyCr = getMaxEnemyCr(challenge);
     let maxEnemies;
+    let maxTotalChallenge;
     switch (challenge) {
       case DungeonChallenge.EASY:
         maxEnemies = 6;
+        maxTotalChallenge = maxEnemyCr;
         break;
       case DungeonChallenge.MEDIUM:
       default:
         maxEnemies = 8;
+        maxTotalChallenge = maxEnemyCr * 1.25;
         break;
     }
 
     const enemyPoolAlmanac = createEnemyPoolAlmanac(challenge, this.#index);
-    let totalExp = 0;
+    let totalChallenge = 0;
     let totalEnemies = 0;
-    while (totalExp < maxExpOnOffer && totalEnemies < maxEnemies) {
+    while (totalChallenge < maxTotalChallenge && totalEnemies < maxEnemies) {
       const enemy = enemyPoolAlmanac.getRandomEntry();
-      totalExp += tables.getXpFromCr(enemy.challengeRating);
+      totalChallenge += Math.max(
+        enemy.challengeRating,
+        DungeonChallenge.INSIGNIFICANT
+      );
       totalEnemies++;
       this.#sceneDefn.enemies.push(enemy);
     }
-    LOG.info(`Scene offers ${totalExp} exp from ${totalEnemies} enemies.`);
+    LOG.info(
+      `Scene challenge rating ${totalChallenge.toFixed(
+        3
+      )} from ${totalEnemies} enemies.`
+    );
   }
 
   /**

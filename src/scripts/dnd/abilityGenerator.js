@@ -54,8 +54,8 @@ const DEFAULT_RANGE = [8, 15];
 const CLASS_TRAIT_ORDER = new Map([
   ['BARBARIAN', ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA']],
   ['CLERIC', ['WIS', 'CON', 'STR', 'CHA', 'INT', 'DEX']],
-  ['FIGHTER', ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']],
-  ['RANGER', ['STR', 'DEX', 'INT', 'CHA', 'CON', 'WIS']],
+  ['FIGHTER', ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA']],
+  ['RANGER', ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']],
   ['ROGUE', ['DEX', 'INT', 'CHA', 'STR', 'CON', 'WIS']],
   ['WIZARD', ['INT', 'WIS', 'STR', 'CON', 'DEX', 'CHA']],
   ['DEFAULT', ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA']],
