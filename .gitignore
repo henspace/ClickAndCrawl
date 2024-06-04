@@ -1,3 +1,10 @@
+# references
+references
+
+#vscode
+.vscode
+*.code-workspace
+
 # Logs
 logs
 *.log
