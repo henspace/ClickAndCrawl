@@ -43,7 +43,7 @@ import { buildActor } from '../dnd/almanacs/actorBuilder.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
 import { rollDice } from '../utils/dice.js';
-import { ArtefactType } from '../players/artefacts.js';
+import { ArtefactType, artefactTypesEqual } from '../players/artefacts.js';
 import * as almanacUtils from '../dnd/almanacs/almanacUtils.js';
 import LOG from '../utils/logging.js';
 
@@ -112,15 +112,15 @@ function createFindableArtefact(almanacEntry, preBuiltArtefact) {
   let id;
   let type;
   if (
-    almanacEntry.type === ArtefactType.CONSUMABLE &&
+    artefactTypesEqual(almanacEntry.type, ArtefactType.CONSUMABLE) &&
     /SUBTYPE *: *VEGETATION/i.test(almanacEntry.traitsString)
   ) {
     id = 'vegetation';
     type = ActorType.HIDDEN_ARTEFACT;
   } else {
-    switch (almanacEntry.type) {
-      case ArtefactType.SPELL:
-      case ArtefactType.CANTRIP:
+    switch (almanacEntry.type.id) {
+      case ArtefactType.SPELL.id:
+      case ArtefactType.CANTRIP.id:
         id = 'engraved_pillar';
         type = ActorType.PROP;
         break;

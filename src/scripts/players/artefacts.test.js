@@ -28,10 +28,36 @@
  */
 
 import { test, expect } from '@jest/globals';
-import { Artefact } from './artefacts.js';
+import {
+  Artefact,
+  ArtefactType,
+  artefactTypesEqual,
+  createArtefactType,
+} from './artefacts.js';
 import { buildArtefact } from '../dnd/almanacs/artefactBuilder.js';
 import { parseAlmanacLine } from '../dnd/almanacs/almanacs.js';
 import { Traits, MagicTraits, CharacterTraits } from '../dnd/traits.js';
+
+test('createArtefactType', () => {
+  expect.assertions(14 * 2);
+  for (const key in ArtefactType) {
+    console.log(`Test ArtefactType ${key}`);
+    const artefactType = ArtefactType[key];
+    expect(artefactType.id).toEqual(key.toLowerCase());
+    expect(createArtefactType(artefactType.id)).toBe(artefactType);
+  }
+});
+
+test('artefactTypesEqual', () => {
+  expect(artefactTypesEqual(ArtefactType.ARMOUR, ArtefactType.BELT)).toBe(
+    false
+  );
+  expect(artefactTypesEqual(ArtefactType.ARMOUR, ArtefactType.ARMOUR)).toBe(
+    true
+  );
+  expect(artefactTypesEqual(null, ArtefactType.ARMOUR)).toBe(false);
+  expect(artefactTypesEqual(ArtefactType.ARMOUR, null)).toBe(false);
+});
 
 test('Artefact toJson and revive', () => {
   const almanacEntry = parseAlmanacLine(

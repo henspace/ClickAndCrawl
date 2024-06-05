@@ -3,7 +3,7 @@ within its dank, dark walls. The only way you can really learn about the dangers
 
 On a scrap of vellum passed to you by the village elder are some notes that previous explorers have passed on to their successors.
 
-- Click on people and objects. To interact you must be next to them. That means to their north, south, east or west -- not diagonally.
+- Click on people and objects. To interact you must be next to them. That means to their north, south, east or west &mdash; not diagonally.
 - To manage your own inventory or cast spells, click on yourself.
 - The more gold you send back to the townsfolk via the gold portals, the greater your reputation.
 - Resting between dungeon floors can restore some health and remove the ongoing effects of poisons. You need one meal (food and drink) for a short rest, and three meals for a long rest.

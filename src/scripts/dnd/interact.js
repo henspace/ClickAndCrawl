@@ -43,7 +43,11 @@ import * as actorDialogs from '../dialogs/actorDialogs.js';
 import { i18n } from '../utils/messageManager.js';
 import * as dndAction from './dndAction.js';
 import { ActorType, AttackMode } from '../players/actors.js';
-import { ArtefactType, StoreType } from '../players/artefacts.js';
+import {
+  ArtefactType,
+  StoreType,
+  artefactTypesEqual,
+} from '../players/artefacts.js';
 import WORLD from '../utils/game/world.js';
 import { Colours } from '../constants/canvasStyles.js';
 import { Toxin } from './toxins.js';
@@ -815,7 +819,7 @@ export class CastSpell extends AbstractInteraction {
         retValue = this.#enactMagic(enactor);
         break;
     }
-    if (this.owner.artefactType === ArtefactType.SPELL) {
+    if (artefactTypesEqual(this.owner.artefactType, ArtefactType.SPELL)) {
       magic.useCastingPower(enactor.traits, this.owner.traits);
     }
     return retValue;

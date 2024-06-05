@@ -82,10 +82,8 @@ test('Actor toJson and revive', () => {
   /* Remove items that should not be compared. */
   revived.interaction = undefined;
   original.interaction = undefined;
+  original.almanacEntry.equipmentIds = []; // Restored actor always has equipment ids empty.
 
-  if (original.almanacEntry.equipmentIds === undefined) {
-    revived.almanacEntry.equipmentIds = undefined; // it won't have been parsed as JSON.
-  }
   expect(revived.adventureStartTime).toEqual(original.adventureStartTime);
   expect(revived).toEqual(original);
   expect(original.toxify.getToxin().getChangeInHpThisTurn()).toBe(-312);

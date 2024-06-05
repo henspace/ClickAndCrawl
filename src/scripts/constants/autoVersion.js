@@ -3,7 +3,7 @@
  * Automatically created version file. Do not edit!
  */
 export const VERSION = {
-  build: '1.0.0[seap1q]',
-  date:'2024-05-30',
+  build: '1.0.0[sem6xp]',
+  date:'2024-06-05',
   copyright: '© 2024 Steve Butler'
 }

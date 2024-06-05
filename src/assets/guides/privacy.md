@@ -17,6 +17,8 @@ The following data are stored using your browser's [localStorage](https://develo
 
 + Settings for the application
 + Adventure progress
-+ Best adventure summary
++ Hall of fame; this only holds your adventures and is not shared anywhere.
 
 No cookies are used by the application.
+
+You can delete the stored data from the **Settings** options.

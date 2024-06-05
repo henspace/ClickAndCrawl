@@ -63,12 +63,12 @@ class SoundManager {
       this.#music.addEventListener('canplay', (eventUnused) => {
         this.#music.volume = this.#musicVolume;
         this.#music.loop = true;
-        this.#music.play();
+        this.#playMusic();
         window.addEventListener('blur', () => {
           this.#music.pause();
         });
         window.addEventListener('focus', () => {
-          this.#music.play();
+          this.#playMusic();
         });
       });
     }
@@ -102,6 +102,9 @@ class SoundManager {
    * Play an effect.
    */
   playEffect(key) {
+    if (this.#effectsVolume <= 0.001) {
+      return;
+    }
     const effect = this.#effects.get(key);
     if (effect && effect.readyState >= 3) {
       effect.volume = this.#effectsVolume;
@@ -114,9 +117,32 @@ class SoundManager {
    * @param {number} percent
    */
   setMusicVolumePercent(percent) {
+    const currentVolume = this.#musicVolume;
     this.#musicVolume = percent / 100;
     if (this.#music) {
       this.#music.volume = this.#musicVolume;
+      if (currentVolume < 0.001 && this.#musicVolume >= 0.001) {
+        LOG.info('Restarted playing music because of volume change.');
+        this.#music.play();
+      } else if (this.#musicVolume < 0.001) {
+        LOG.info('Paused playing music because of low volume.');
+        this.#music.pause();
+      }
+    }
+  }
+
+  /**
+   * Play music if volume high enough
+   */
+  #playMusic() {
+    if (!this.#music) {
+      return;
+    }
+    if (this.#musicVolume >= 0.001) {
+      LOG.info('Restarted playing music.');
+      this.#music.play();
+    } else {
+      LOG.info('Volume too low to start playing music.');
     }
   }
 

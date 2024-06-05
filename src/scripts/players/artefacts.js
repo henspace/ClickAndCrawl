@@ -41,6 +41,8 @@ import { parseAlmanacLine } from '../dnd/almanacs/almanacs.js';
  * @property {boolean} spacesExpand - if true every artefact takes one space.
  */
 
+/** @type {number} */
+const UNKNOWN_ARTEFACT_COST_GP = 0.08;
 /**
  * Enumeration of store types.
  * @enum {StoreTypeValue}
@@ -91,59 +93,94 @@ export const StoreType = {
  */
 export const ArtefactType = {
   ARMOUR: {
+    id: 'armour',
     storageSpace: 1,
     storeType: { stash: StoreType.WAGON, equip: StoreType.BODY },
   },
   BELT: {
+    id: 'belt',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.WAIST },
   },
   CANTRIP: {
+    id: 'cantrip',
     storageSpace: 1,
     storeType: { stash: null, equip: StoreType.CANTRIPS },
   },
-  COINS: { storageSpace: 0, storeType: { stash: StoreType.PURSE } },
+  COINS: {
+    id: 'coins',
+    storageSpace: 0,
+    storeType: { stash: StoreType.PURSE },
+  },
   CONSUMABLE: {
+    id: 'consumable',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
   GENERIC: {
+    id: 'generic',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
   HEAD_GEAR: {
+    id: 'head_gear',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HEAD },
   },
   KEY: {
+    id: 'key',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
   RING: {
+    id: 'ring',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.RING_FINGERS },
   },
   SHIELD: {
+    id: 'shield',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
   SPELL: {
+    id: 'spell',
     storageSpace: 1,
     storeType: { stash: StoreType.SPELLS, equip: StoreType.PREPARED_SPELLS },
   },
   TRAP: {
+    id: 'trap',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK },
   },
   TWO_HANDED_WEAPON: {
+    id: 'two_handed_weapon',
     storageSpace: 2,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
   WEAPON: {
+    id: 'weapon',
     storageSpace: 1,
     storeType: { stash: StoreType.BACKPACK, equip: StoreType.HANDS },
   },
 };
+
+/**
+ * Create artefactType from id.
+ * @param {string} id
+ * @returns {ArtefactType}
+ */
+export function createArtefactType(id) {
+  return ArtefactType[id.toUpperCase()];
+}
+/**
+ * Compare two artefact types
+ * @param {ArtefactType} itemA
+ * @param {ArtefactType} itemB
+ * @returns {boolean}
+ */
+export function artefactTypesEqual(itemA, itemB) {
+  return itemA?.id === itemB?.id;
+}
 
 /**
  * Convert a string to an ArtefactType
@@ -501,6 +538,7 @@ export class Artefact {
   almanacEntry;
   /** @type {boolean} */
   unknown;
+
   /**
    * Create artefact.
    * @param {AlmanacEntry} almanacEntry
@@ -532,6 +570,9 @@ export class Artefact {
    * @returns {number}
    */
   get costInGp() {
+    if (this.unknown) {
+      return UNKNOWN_ARTEFACT_COST_GP;
+    }
     const coinDefn = this.traits?.get('VALUE');
     return coins.getValueInGp(coinDefn);
   }
@@ -541,10 +582,11 @@ export class Artefact {
    * @returns {number}
    */
   get sellBackPriceInGp() {
-    if (this.artefactType === ArtefactType.COINS) {
+    if (artefactTypesEqual(this.artefactType, ArtefactType.COINS)) {
       return this.costInGp;
     } else {
-      return Math.round(50 * this.costInGp) / 100; // 50% from p62 SRD 5.1
+      const cost = this.unknown ? UNKNOWN_ARTEFACT_COST_GP : this.costInGp;
+      return Math.round(50 * cost) / 100; // 50% from p62 SRD 5.1
     }
   }
 
@@ -635,8 +677,8 @@ export class Artefact {
    */
   isMagic() {
     return (
-      this.artefactType === ArtefactType.SPELL ||
-      this.artefactType === ArtefactType.CANTRIP
+      artefactTypesEqual(this.artefactType, ArtefactType.SPELL) ||
+      artefactTypesEqual(this.artefactType, ArtefactType.CANTRIP)
     );
   }
 
@@ -645,7 +687,7 @@ export class Artefact {
    * @returns {boolean}
    */
   isTrap() {
-    return this.artefactType === ArtefactType.TRAP;
+    return artefactTypesEqual(this.artefactType, ArtefactType.TRAP);
   }
 
   /**
@@ -660,7 +702,7 @@ export class Artefact {
    * @returns {boolean}
    */
   isConsumable() {
-    return this.artefactType === ArtefactType.CONSUMABLE;
+    return artefactTypesEqual(this.artefactType, ArtefactType.CONSUMABLE);
   }
 
   /**
@@ -685,6 +727,7 @@ export class Artefact {
    * @returns {Artefact}
    */
   static revive(data, builder) {
+    data.almanacEntry.type = createArtefactType(data.almanacEntry.type.id);
     const artefact = builder(data.almanacEntry, data.traits);
     artefact.unknown = data.unknown;
     return artefact;

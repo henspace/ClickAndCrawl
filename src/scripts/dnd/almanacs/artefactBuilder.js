@@ -27,7 +27,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Artefact, ArtefactType } from '../../players/artefacts.js';
+import {
+  Artefact,
+  ArtefactType,
+  artefactTypesEqual,
+} from '../../players/artefacts.js';
 import { CastSpell, ConsumeFood, TriggerTrap } from '../interact.js';
 import { Traits, MagicTraits } from '../traits.js';
 import LOG from '../../utils/logging.js';
@@ -64,10 +68,10 @@ function createArtefact(almanacEntry, detail) {
 export function buildArtefact(almanacEntry, initialTraits) {
   let traits;
   let imageName;
-  if (almanacEntry.type === ArtefactType.SPELL) {
+  if (artefactTypesEqual(almanacEntry.type, ArtefactType.SPELL)) {
     traits = initialTraits ?? new MagicTraits(almanacEntry.traitsString);
     imageName = 'spell';
-  } else if (almanacEntry.type === ArtefactType.CANTRIP) {
+  } else if (artefactTypesEqual(almanacEntry.type, ArtefactType.CANTRIP)) {
     traits = initialTraits ?? new MagicTraits(almanacEntry.traitsString);
     imageName = 'cantrip';
   } else {

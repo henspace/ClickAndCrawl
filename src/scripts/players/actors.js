@@ -31,7 +31,11 @@
 
 import { AbstractInteraction, Toxify } from '../dnd/interact.js';
 import { UiClickHandler } from '../utils/ui/interactions.js';
-import { ArtefactStoreManager, ArtefactType } from './artefacts.js';
+import {
+  ArtefactStoreManager,
+  ArtefactType,
+  artefactTypesEqual,
+} from './artefacts.js';
 import * as dice from '../utils/dice.js';
 import LOG from '../utils/logging.js';
 
@@ -162,20 +166,23 @@ export class Actor extends UiClickHandler {
     const items = this.storeManager.getAllEquippedArtefacts();
     const weapons = items.filter(
       (artefact) =>
-        artefact.artefactType === ArtefactType.WEAPON ||
-        artefact.artefactType === ArtefactType.TWO_HANDED_WEAPON
+        artefactTypesEqual(artefact.artefactType, ArtefactType.WEAPON) ||
+        artefactTypesEqual(
+          artefact.artefactType,
+          ArtefactType.TWO_HANDED_WEAPON
+        )
     );
-    const armour = items.filter(
-      (artefact) => artefact.artefactType === ArtefactType.ARMOUR
+    const armour = items.filter((artefact) =>
+      artefactTypesEqual(artefact.artefactType, ArtefactType.ARMOUR)
     );
-    const shields = items.filter(
-      (artefact) => artefact.artefactType === ArtefactType.SHIELD
+    const shields = items.filter((artefact) =>
+      artefactTypesEqual(artefact.artefactType, ArtefactType.SHIELD)
     );
     const magic = items.filter(
       (artefact) =>
-        artefact.artefactType === ArtefactType.RING ||
-        artefact.artefactType === ArtefactType.BELT ||
-        artefact.artefactType === ArtefactType.HEAD_GEAR
+        artefactTypesEqual(artefact.artefactType, ArtefactType.RING) ||
+        artefactTypesEqual(artefact.artefactType, ArtefactType.BELT) ||
+        artefactTypesEqual(artefact.artefactType, ArtefactType.HEAD_GEAR)
     );
     this.traits.utiliseAdditionalTraits({
       weapons: weapons.map((artefact) => artefact.traits),
@@ -462,6 +469,7 @@ export class Actor extends UiClickHandler {
    * @returns {Actor}
    */
   static revive(data, builder) {
+    data.almanacEntry.equipmentIds = []; // remove so we don't reequip
     const actor = builder(data.almanacEntry, data.traits);
     actor.adventureStartTime = data.adventureStartTime;
     actor.alive = data.alive;

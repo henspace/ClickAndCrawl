@@ -30,13 +30,18 @@ import UI, { DialogResponse } from '../utils/dom/ui.js';
 import * as components from '../utils/dom/components.js';
 import * as maths from '../utils/maths.js';
 import { i18n, MESSAGES } from '../utils/messageManager.js';
-import { ArtefactType, StoreType } from '../players/artefacts.js';
+import {
+  ArtefactType,
+  StoreType,
+  artefactTypesEqual,
+} from '../players/artefacts.js';
 import SCENE_MANAGER from '../gameManagement/sceneManager.js';
 import { gpAsString } from '../utils/game/coins.js';
 import * as dndAction from '../dnd/dndAction.js';
 import LOG from '../utils/logging.js';
 import { sceneToFloor } from '../dnd/floorNumbering.js';
 import { canCastSpell } from '../dnd/magic.js';
+import { useIdCheck } from '../gameManagement/identifyLimiter.js';
 
 /**
  * @typedef {number} ArtefactActionTypeValue
@@ -320,7 +325,7 @@ class InventoryContainerElement {
         options.artefact = artefact;
         let button;
         if (
-          artefact.artefactType === ArtefactType.SPELL &&
+          artefactTypesEqual(artefact.artefactType, ArtefactType.SPELL) &&
           options.allowMagicUse &&
           !canCastSpell(options.currentOwner.traits, artefact.traits)
         ) {
@@ -407,7 +412,7 @@ function showRestActionDialog(actor) {
   const meals = [];
   const drinks = [];
   store.values().forEach((item) => {
-    if (item.artefactType === ArtefactType.CONSUMABLE) {
+    if (artefactTypesEqual(item.artefactType, ArtefactType.CONSUMABLE)) {
       const type = item.traits.get('TYPE');
       if (type === 'MEAL') {
         meals.push(item);
@@ -677,22 +682,22 @@ function createFindArtefactDialogButtons(container, options) {
  * @returns {module:utils/dom/components~BaseControlElement}
  */
 function createSelfActionArtefactDialogButtons(container, options) {
-  if (options.artefact.artefactType === ArtefactType.COINS) {
+  if (artefactTypesEqual(options.artefact.artefactType, ArtefactType.COINS)) {
     return;
   }
   let actionButtons = [];
 
-  switch (options.artefact.artefactType) {
-    case ArtefactType.SPELL:
+  switch (options.artefact.artefactType?.id) {
+    case ArtefactType.SPELL.id:
       actionButtons = createSpellButtons(options);
       break;
-    case ArtefactType.CANTRIP:
+    case ArtefactType.CANTRIP.id:
       actionButtons = createCantripButtons(options);
       break;
-    case ArtefactType.CONSUMABLE:
+    case ArtefactType.CONSUMABLE.id:
       actionButtons = createConsumeButtons(options);
       break;
-    case ArtefactType.KEY:
+    case ArtefactType.KEY.id:
       actionButtons = createKeyButtons(options);
       break;
     default:
@@ -873,11 +878,11 @@ function createStandardArtefactButtons(options) {
  * @returns {string}
  */
 function getLabelForUse(artefact) {
-  switch (artefact.artefactType) {
-    case ArtefactType.CONSUMABLE:
+  switch (artefact.artefactType.id) {
+    case ArtefactType.CONSUMABLE.id:
       return i18n`BUTTON CONSUME`;
-    case ArtefactType.SPELL:
-    case ArtefactType.CANTRIP:
+    case ArtefactType.SPELL.id:
+    case ArtefactType.CANTRIP.id:
       return i18n`BUTTON CAST SPELL`;
     default:
       return i18n`BUTTON USE`;
@@ -890,7 +895,7 @@ function getLabelForUse(artefact) {
  * @returns {module:utils/dom/components~BaseControlElement}
  */
 function createSellArtefactDialogButtons(container, options) {
-  if (options.artefact.artefactType === ArtefactType.COINS) {
+  if (artefactTypesEqual(options.artefact.artefactType, ArtefactType.COINS)) {
     return;
   }
   const actionButtons = [];
@@ -1163,6 +1168,10 @@ function createTraitsList(actor, excludedKeys, includeGold) {
   }
 
   const readableArray = [];
+  const remainingRestsTrait = createRemainingShortRestTrait(actor);
+  if (remainingRestsTrait) {
+    readableArray.push(remainingRestsTrait);
+  }
   actor.traits?.getAllTraits().forEach((value, key) => {
     if (!excludedKeys.includes(key) && !key.startsWith('_')) {
       if (actor.traits.hasEffective?.(key)) {
@@ -1179,7 +1188,6 @@ function createTraitsList(actor, excludedKeys, includeGold) {
     }
   });
   readableArray.sort((a, b) => (a[0] < b[0] ? -1 : 1));
-  // actor.traits?.getAllTraitsSorted().forEach((value, key) => {
   for (const traitEntry of readableArray) {
     const key = traitEntry[0];
     let value = traitEntry[1];
@@ -1202,6 +1210,22 @@ function createTraitsList(actor, excludedKeys, includeGold) {
 }
 
 /**
+ * Create a remaining short rest trait for adding to the traits list. This is
+ * just a more user friendly version of the SPENT_HIT_DICE value;
+ * @param {module:players/actors~Actor|module:players/artefacts~Artefact} actor
+ * @returns {<key:string, value: number>} null if not applicable.
+ */
+function createRemainingShortRestTrait(actor) {
+  if (!actor.isHero?.()) {
+    return null;
+  }
+  const remainingDice = dndAction.getNumberOfRemainingHitDice(actor.traits);
+  return [
+    createReadableKey('SHORT_RESTS_REMAINING'),
+    remainingDice === 0 ? i18n`zero` : remainingDice,
+  ];
+}
+/**
  * Convert a traits key into a more human readable version.
  * @param {string} key
  * @returns {string}
@@ -1209,7 +1233,7 @@ function createTraitsList(actor, excludedKeys, includeGold) {
 function createReadableKey(key) {
   let revised = MESSAGES.getText(key);
   if (revised === key) {
-    revised = key?.replace('_', ' ');
+    revised = key?.replace(/_/g, ' ');
   }
   return revised.charAt(0).toUpperCase() + revised.substring(1).toLowerCase();
 }
@@ -1274,7 +1298,7 @@ function createArtefactButtonLabel(options) {
   }
   if (
     options.showPrice ||
-    options.artefact.artefactType === ArtefactType.COINS
+    artefactTypesEqual(options.artefact.artefactType, ArtefactType.COINS)
   ) {
     const price = options.currentOwner.isTrader()
       ? options.artefact.costInGp
@@ -1535,7 +1559,7 @@ export function showArtefactDialog(options) {
             const store = destStoreManager.findSuitableStore(artefact);
             store.add(artefact);
           }
-          if (artefact.artefactType === ArtefactType.SPELL) {
+          if (artefactTypesEqual(artefact.artefactType, ArtefactType.SPELL)) {
             return UI.showOkDialog(i18n`MESSAGE EXPLAIN SPELL NEEDS REST`);
           }
           break;
@@ -1596,6 +1620,8 @@ export function showArtefactDialog(options) {
 function identifyArtefact(options) {
   if (!options.artefact?.unknown) {
     return Promise.resolve(true);
+  } else if (!useIdCheck()) {
+    return Promise.resolve(false); // need to wait till next turn
   }
 
   const tester = options.prospectiveOwner ?? options.currentOwner;

@@ -10,9 +10,7 @@ animals to waste and die. The people's only hope of salvation is to raise an arm
 mercenaries and monster-hunters who can rid the kingdom from Fallensword's undead
 minions. But armies cost money and your fellow townsfolk have none!
 
-Legends tell that the ancient dwarven dungeon on the outskirts of the town holds vast riches and gold, but also fearsome creatures and dangers. Originally built by the dwarves of the Black Dragon
-Mountains, the dungeon allegedly contains gold portals for transferring the dwarves' minings
-up to the surface.
+Legends tell that the ancient dwarven dungeon on the outskirts of the town holds vast riches and gold, but is also home to fearsome monsters from other worlds. Originally built by the dwarves of the Black Dragon Mountains, the dungeon allegedly contains gold portals for transferring the dwarves' minings up to the surface.
 
 You have agreed to enter the dungeon and send back, via these portals, as much
 gold as you can to help your fellow townsfolk raise an army and free the Three

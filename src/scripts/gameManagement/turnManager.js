@@ -58,6 +58,7 @@ import { showUnpickExitDialog } from '../dialogs/openExitDialogs.js';
 import { showRunePuzzle } from '../dialogs/runeQuestionDialog.js';
 import { DungeonChallenge } from '../scriptReaders/autoSceneList.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
+import * as idLimiter from './identifyLimiter.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -796,6 +797,7 @@ class ComputerTurnInteracting extends State {
  * @returns {Promise}
  */
 function prepareHeroTurn() {
+  idLimiter.allowIdCheck();
   heroActor.disengaging = false;
   const tileMap = WORLD.getTileMap();
   const routes = new RouteFinder(tileMap, heroActor).getAllRoutesFrom(
@@ -1009,9 +1011,9 @@ function disambiguateFilter(filter, occupant) {
       const storageDetails = occupant.storeManager.getFirstStorageDetails();
       const artefact = storageDetails?.artefact;
       if (occupant.alive && artefact && !occupant.discovered) {
-        return ClickEventFilter.INTERACT_TILE;
+        return Promise.resolve(ClickEventFilter.INTERACT_TILE);
       } else if (!occupant.alive && !artefact) {
-        return ClickEventFilter.MOVEMENT_TILE;
+        return Promise.resolve(ClickEventFilter.MOVEMENT_TILE);
       }
     }
 

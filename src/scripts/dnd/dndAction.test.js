@@ -688,6 +688,30 @@ test('getSpellDamage - undead immunity - save failed, target undead and spell ha
 });
 ///////////////////////////////////////////
 
+test('getNumberOfRemainingHitDice', () => {
+  expect(dndAction.getNumberOfRemainingHitDice(new Traits('NAME:TEST'))).toBe(
+    0
+  );
+  expect(
+    dndAction.getNumberOfRemainingHitDice(new Traits('HIT_DICE:5D6'))
+  ).toBe(5);
+  expect(
+    dndAction.getNumberOfRemainingHitDice(
+      new Traits('HIT_DICE:3D6,SPENT_HIT_DICE:0')
+    )
+  ).toBe(3);
+  expect(
+    dndAction.getNumberOfRemainingHitDice(
+      new Traits('HIT_DICE:10D6,SPENT_HIT_DICE:6')
+    )
+  ).toBe(4);
+  expect(
+    dndAction.getNumberOfRemainingHitDice(
+      new Traits('HIT_DICE:7D6+30,SPENT_HIT_DICE:4')
+    )
+  ).toBe(3);
+});
+
 test('take rest short with no CON modifier', () => {
   const actor = new Actor({}, ActorType.HERO);
   let hp = 10;

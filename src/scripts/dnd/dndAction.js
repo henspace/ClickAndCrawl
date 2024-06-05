@@ -264,6 +264,16 @@ export const RestFailure = {
   NEED_LONG_REST: 'need long rest',
   NEED_MORE_RATIONS: 'need more rations',
 };
+
+/**
+ * Get the number of hit dice remaining.
+ * @param {Traits} traits - actor's traits.
+ * @returns {number}
+ */
+export function getNumberOfRemainingHitDice(traits) {
+  const hitDice = traits.get('HIT_DICE', '0D6');
+  return dice.getDiceDetails(hitDice).qty - traits.getInt('SPENT_HIT_DICE');
+}
 /**
  * @typedef {Object} RestDetails
  * @property {boolean} possible
@@ -284,9 +294,7 @@ export const RestFailure = {
 export function canRest(nMeals, nDrinks, traits) {
   const shortRest = { possible: true, failure: RestFailure.NONE };
   const longRest = { possible: true, failure: RestFailure.NONE };
-  const hitDice = traits.get('HIT_DICE', '0D6');
-  const availableDice =
-    dice.getDiceDetails(hitDice).qty - traits.getInt('SPENT_HIT_DICE');
+  const availableDice = getNumberOfRemainingHitDice(traits);
   if (availableDice < 1) {
     shortRest.possible = false;
     shortRest.failure = RestFailure.NEED_LONG_REST;

@@ -66,7 +66,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON SEARCH', 'Search'],
   ['BUTTON SELL FOR GP', 'Sell for ${0}\u{00A0}GP'],
   ['BUTTON SETTINGS', 'Settings'],
-  ['BUTTON SHOW DEBUG LOG', 'The chronicles of Debug Loggerman'],
+  ['BUTTON SHOW DEBUG LOG', 'The chronicles of DeBuggle Logitall'],
   ['BUTTON START', "Let's get started."],
   ['BUTTON STASH', 'Stash'],
   ['BUTTON STEAL', 'Steal'],
@@ -853,6 +853,11 @@ const MESSAGE_MAP = new Map([
   ['DC', 'Difficulty'],
   ['HP', 'Hit points'],
 
+  [
+    'TRIGGERS',
+    'Content warning: this game is generally suitable for ages 12 and up and contains violence towards fantasy characters, horror sequences and death.',
+  ],
+
   // Miscellaneous words and phrases.
   ['AC', 'armour class'],
   ['AC (including armour)', 'AC (+armour): ${0}'],
@@ -888,12 +893,14 @@ const MESSAGE_MAP = new Map([
   ['Range:', 'Range: ${0-range}'],
   ['Ready magic', 'Ready magic'],
   ['Ring fingers', 'Ring fingers'],
+  ['SHORT_RESTS_REMAINING', 'Short rests remaining'],
   ['STR', 'strength'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
   ['Waist', 'Waist'],
   ['WIS', 'wisdom'],
   ['YOU DIED!', 'YOU DIED!'],
+  ['zero', 'zero'],
 ]);
 
 export default MESSAGE_MAP;

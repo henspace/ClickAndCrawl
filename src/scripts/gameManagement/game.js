@@ -54,6 +54,7 @@ import { AssetUrls, SpriteSheet } from '../../assets/assets.js';
 import ANIMATION_STATE_MANAGER from './animationState.js';
 import PERSISTENT_DATA from '../utils/persistentData.js';
 import { setFullscreenState } from '../utils/fullscreen.js';
+import { createElement } from '../utils/dom/components.js';
 
 /**
  * Tile size to use throughout the game
@@ -75,7 +76,7 @@ async function initialise(screenOptions) {
   checkEmojis(SCREEN.getContext2D());
   setupListeners();
   initialiseSettings();
-  UI.showOkDialog(i18n`MESSAGE WELCOME`, {
+  UI.showControlsDialog(createWelcomeElement(), {
     okButtonLabel: i18n`BUTTON START`,
     className: 'door',
   })
@@ -216,6 +217,16 @@ function showFps(fps) {
   );
 }
 
+/**
+ * Create welcome element including content warnings
+ */
+function createWelcomeElement() {
+  const container = document.createElement('div');
+  container.appendChild(createElement('p', { text: i18n`MESSAGE WELCOME` }));
+  container.appendChild(createElement('p', { text: i18n`TRIGGERS` }));
+
+  return container;
+}
 /**
  * Create the splash screen element.
  * @returns {ELement}
