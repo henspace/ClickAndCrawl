@@ -3,8 +3,8 @@ Version ${VERSION}
 
 ${COPYRIGHT} [henspace.com](https://henspace.com)
 
-Click and Crawl is an old-school dungeon crawler. Although following a lot of
-the conventions of the SRD 5.1 are adopted, some game play has been simplified
+Click and Crawl is an old-school dungeon crawler. Although a lot of
+the standard DnD conventions are adopted, some game play has been simplified
 to make it more suitable for a quick, casual adventure.
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
