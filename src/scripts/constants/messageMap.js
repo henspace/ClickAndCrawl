@@ -894,7 +894,7 @@ const MESSAGE_MAP = new Map([
 
   [
     'TRIGGERS',
-    'Content warning: this game is generally suitable for ages 12 and up and contains violence towards fantasy characters, horror atmospherics, and the death of characters.',
+    'Content warning: this game is intended for ages 16 and up and contains violence towards fantasy characters, mild horror atmospherics, comic book blood effects, and death of characters.',
   ],
 
   // Miscellaneous words and phrases.
