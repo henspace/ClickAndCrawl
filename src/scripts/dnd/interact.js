@@ -62,6 +62,7 @@ import * as maths from '../utils/maths.js';
 import { showMoneyPortalDialog } from '../dialogs/moneyPortalDialog.js';
 import { ALMANAC_LIBRARY } from './almanacs/almanacs.js';
 import { pause } from '../utils/timers.js';
+import { createElement } from '../utils/dom/components.js';
 
 /**
  * Apply poison damage to defender
@@ -1129,8 +1130,9 @@ export class ConsumeFood extends AbstractInteraction {
   async react(enactor) {
     const traits = this.owner.traits;
     const foodType = traits.get('TYPE');
-    if (foodType === 'DRUG') {
+    if (foodType === 'POTION') {
       enactor.traits.addTransientFxTraits(this.owner.traits);
+      this.#addTransientActions(enactor);
       return UI.showOkDialog(i18n`MESSAGE FX TRAITS APPLIED`);
     }
     if (foodType === 'POISON') {
@@ -1150,21 +1152,54 @@ export class ConsumeFood extends AbstractInteraction {
         this.owner.traits,
         enactor.traits
       );
+
       const gainHp = gainDetail.newHp - gainDetail.oldHp;
+      let hpMessage;
       if (gainDetail.shortFall <= 0) {
-        return UI.showOkDialog(i18n`MESSAGE CONSUME BUT ALREADY FULL HP`);
+        hpMessage = i18n`MESSAGE CONSUME BUT ALREADY FULL HP`;
+      } else if (gainHp === 0) {
+        hpMessage = i18n`MESSAGE CONSUME BUT NO HP GAIN`;
+      } else {
+        hpMessage =
+          foodType === 'MEDICINE'
+            ? i18n`MESSAGE IT'S A HEALTHY DRINK ${gainHp}`
+            : i18n`MESSAGE IT'S HEALTHY ${gainHp}`;
       }
-      if (gainHp === 0) {
-        return UI.showOkDialog(i18n`MESSAGE CONSUME BUT NO HP GAIN`);
+      const container = createElement('div');
+      container.appendChild(createElement('p', { text: hpMessage }));
+      if (gainDetail.detoxify) {
+        enactor.toxify?.cure();
+        container.appendChild(
+          createElement('p', { text: i18n`MESSAGE CURED OF TOXINS` })
+        );
       }
 
-      const message =
-        foodType === 'MEDICINE'
-          ? i18n`MESSAGE IT'S A HEALTHY DRINK ${gainHp}`
-          : i18n`MESSAGE IT'S HEALTHY ${gainHp}`;
-      return UI.showOkDialog(message).then(() =>
+      return UI.showControlsDialog(container).then(() =>
         enactor.traits.set('HP', gainDetail.newHp)
       );
+    }
+  }
+  /**
+   * Add transient actions to the enactor.
+   * @param {module:players/actors.Actor} enactor
+   */
+  #addTransientActions(enactor) {
+    const action = this.owner.traits.get('ACTION');
+    if (!action) {
+      return;
+    }
+    if (!enactor.traits.transientProperties) {
+      LOG.error(
+        `Actor ${enactor.traits.get('NAME')} has no transientProperties.`
+      );
+      return;
+    }
+    switch (action) {
+      case 'HOVER':
+        enactor.traits.transientProperties.hover = true;
+        break;
+      default:
+        LOG.error(`Did not recognise action: ${action}.`);
     }
   }
 }

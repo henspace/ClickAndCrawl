@@ -31,7 +31,7 @@
 import './utils/polyfills/string.js';
 import LOG from './utils/logging.js';
 import GAME from './gameManagement/game.js';
-
+import PERSISTENT_DATA from './utils/persistentData.js';
 /**
  * Class that allows testing of features that may fall over in unsupported
  * browsers. As they generate a syntax error, this will not be caught.
@@ -81,15 +81,25 @@ class FeatureSupportTest {
     LOG.debug(result);
   }
 }
+
+/**
+ * Get the maximum scale allowed for the game.
+ * @returns {number}
+ */
+function getMaxScale() {
+  return PERSISTENT_DATA.get('DO_NOT_SCALE', false) ? 1 : 2.4;
+}
+
 window.addEventListener('load', () => {
   FeatureSupportTest.testSupportedFeatures('one');
   const DESIGN_WIDTH = 800;
   const DESIGN_HEIGHT = 600;
+
   try {
     GAME.initialise({
       width: DESIGN_WIDTH,
       height: DESIGN_HEIGHT,
-      maxScale: 2.4,
+      maxScale: getMaxScale(),
       minScale: 1,
       sizingMethod: 'COVER',
       alpha: false,

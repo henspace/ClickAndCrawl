@@ -236,6 +236,7 @@ test('getConsumptionBenefit - normal gain', () => {
     shortFall: maxHp - currentHp,
     oldHp: currentHp,
     newHp: currentHp + gainHp,
+    detoxify: false,
   });
 });
 
@@ -253,6 +254,25 @@ test('getConsumptionBenefit - gain clipped to max', () => {
     shortFall: maxHp - currentHp,
     oldHp: currentHp,
     newHp: maxHp,
+    detoxify: false,
+  });
+});
+
+test('getConsumptionBenefit - detoxify', () => {
+  const gainHp = 6;
+  const currentHp = 7;
+  const maxHp = 30;
+  const consumableTraits = new Traits(`HP:${gainHp}, DETOXIFY:yes`);
+  const consumerTraits = new Traits(`HP:${currentHp}, HP_MAX:${maxHp}`);
+  const result = dndAction.getConsumptionBenefit(
+    consumableTraits,
+    consumerTraits
+  );
+  expect(result).toStrictEqual({
+    shortFall: maxHp - currentHp,
+    oldHp: currentHp,
+    newHp: currentHp + gainHp,
+    detoxify: true,
   });
 });
 

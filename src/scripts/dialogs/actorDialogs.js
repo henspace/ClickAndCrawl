@@ -1172,6 +1172,10 @@ function createTraitsList(actor, excludedKeys, includeGold) {
   if (remainingRestsTrait) {
     readableArray.push(remainingRestsTrait);
   }
+  const transientPropertiesTrait = getTransientPropertiesTrait(actor);
+  if (transientPropertiesTrait) {
+    readableArray.push(transientPropertiesTrait);
+  }
   actor.traits?.getAllTraits().forEach((value, key) => {
     if (!excludedKeys.includes(key) && !key.startsWith('_')) {
       if (actor.traits.hasEffective?.(key)) {
@@ -1209,6 +1213,21 @@ function createTraitsList(actor, excludedKeys, includeGold) {
   return traitsList;
 }
 
+/**
+ * Create a trait representing any transient properties.
+ * @param {module:players/actors~Actor|module:players/artefacts~Artefact} actor
+ * @returns {<key:string, value: number>} null if not applicable.
+ */
+function getTransientPropertiesTrait(actor) {
+  if (!actor.traits.transientProperties) {
+    return null;
+  }
+  const readableProps = [];
+  for (const prop in actor.traits.transientProperties) {
+    readableProps.push(MESSAGES.getText(prop).toLowerCase());
+  }
+  return [createReadableKey('TRANSIENT'), readableProps.sort().join(', ')];
+}
 /**
  * Create a remaining short rest trait for adding to the traits list. This is
  * just a more user friendly version of the SPENT_HIT_DICE value;

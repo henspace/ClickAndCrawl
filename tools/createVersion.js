@@ -79,7 +79,7 @@ if (process.argv.length < 3) {
   const date = new Date();
   const buildCode = Math.round(date.getTime() / 1000).toString(36);
   await createVersionFile(destPath, {
-    version: `${packageDetails.version}[${buildCode}]`,
+    version: `${packageDetails.version}+${buildCode}`,
     date: date,
     author: packageDetails.author,
   });

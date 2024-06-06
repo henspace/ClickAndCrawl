@@ -207,6 +207,7 @@
             <key type="filename">tiles/dretch-dead00.png</key>
             <key type="filename">tiles/dretch-idle00.png</key>
             <key type="filename">tiles/dretch-idle01.png</key>
+            <key type="filename">tiles/enchanted_handaxe.png</key>
             <key type="filename">tiles/engraved_pillar-idle00.png</key>
             <key type="filename">tiles/fetid_water-idle00.png</key>
             <key type="filename">tiles/fighter1-dead00.png</key>
@@ -261,6 +262,7 @@
             <key type="filename">tiles/greatsword.png</key>
             <key type="filename">tiles/half_plate_armour.png</key>
             <key type="filename">tiles/helmet.png</key>
+            <key type="filename">tiles/helmet_of_ogre_power.png</key>
             <key type="filename">tiles/hidden_artefact-dead00.png</key>
             <key type="filename">tiles/hidden_artefact-idle00.png</key>
             <key type="filename">tiles/hud-arrow-down00.png</key>
@@ -334,6 +336,7 @@
             <key type="filename">tiles/rat_pv-dead00.png</key>
             <key type="filename">tiles/rat_pv-idle00.png</key>
             <key type="filename">tiles/rat_pv-idle01.png</key>
+            <key type="filename">tiles/restorative_ointment.png</key>
             <key type="filename">tiles/ring_mail_armour.png</key>
             <key type="filename">tiles/ring_of_charisma.png</key>
             <key type="filename">tiles/ring_of_constitution.png</key>
@@ -514,6 +517,7 @@
             <key type="filename">tiles/barbarian1-walk-w01.png</key>
             <key type="filename">tiles/barbarian1-walk-w02.png</key>
             <key type="filename">tiles/barbarian1-walk-w03.png</key>
+            <key type="filename">tiles/battleaxe.png</key>
             <key type="filename">tiles/blue_flask.png</key>
             <key type="filename">tiles/cleric1-dead00.png</key>
             <key type="filename">tiles/cleric1-idle00.png</key>
@@ -534,7 +538,7 @@
             <key type="filename">tiles/cleric1-walk-w01.png</key>
             <key type="filename">tiles/cleric1-walk-w02.png</key>
             <key type="filename">tiles/cleric1-walk-w03.png</key>
-            <key type="filename">tiles/enchanted_battle_axe.png</key>
+            <key type="filename">tiles/enchanted_battleaxe.png</key>
             <key type="filename">tiles/flail.png</key>
             <key type="filename">tiles/green_flask.png</key>
             <key type="filename">tiles/quarterstaff.png</key>
@@ -561,6 +565,7 @@
                 <false/>
             </struct>
             <key type="filename">tiles/belt_of_strength.png</key>
+            <key type="filename">tiles/enchanted_shortsword.png</key>
             <key type="filename">tiles/handaxe.png</key>
             <key type="filename">tiles/iron_rations.png</key>
             <key type="filename">tiles/rat-walk-w00.png</key>
@@ -596,6 +601,8 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tiles/enchanted_greataxe.png</key>
+            <key type="filename">tiles/enchanted_greatsword.png</key>
             <key type="filename">tiles/fire01.png</key>
             <key type="filename">tiles/spell.png</key>
             <struct type="IndividualSpriteSettings">

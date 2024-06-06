@@ -104,6 +104,7 @@ function setOptions(options) {
     return;
   }
 
+  LOG.debug(`Max canvas scaling set to ${options.maxScale}.`);
   gameElement = document?.getElementById('game-content');
   if (!gameElement) {
     LOG.debug('No game element so assuming running as Jest test. No ui');

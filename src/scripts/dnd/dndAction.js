@@ -114,7 +114,7 @@ export function getPoisonDamage(attackerTraits, targetTraits) {
  * Get consumption benefit in HP, clipped to HP max.
  * @param {module:dnd/traits.Traits} consumableTraits
  * @param {module:dnd/traits.Traits} consumerTraits
- * @returns {{shortFall:number, oldHp:number, newHp:number}}
+ * @returns {{shortFall:number, oldHp:number, newHp:number, detoxified: boolean}}
  */
 export function getConsumptionBenefit(consumableTraits, consumerTraits) {
   const gain = consumableTraits.getInt('HP', 0);
@@ -122,10 +122,12 @@ export function getConsumptionBenefit(consumableTraits, consumerTraits) {
   const maxHp = consumerTraits.getInt('HP_MAX', currentHp);
   const shortFall = maxHp - currentHp;
   const appliedGain = shortFall < 0 ? 0 : Math.min(shortFall, gain);
+
   return {
     shortFall: shortFall,
     oldHp: currentHp,
     newHp: currentHp + appliedGain,
+    detoxify: consumableTraits.get('DETOXIFY', false),
   };
 }
 

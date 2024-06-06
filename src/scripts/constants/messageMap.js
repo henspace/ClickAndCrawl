@@ -80,6 +80,7 @@ const MESSAGE_MAP = new Map([
 
   ['BUTTON USE', 'Use'],
 
+  ['CONTROL DO NOT SCALE', 'Maximum scale 1:1'],
   ['CONTROL EFFECTS VOLUME', 'Effects volume'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
   ['CONTROL SHOW QUICK TIPS', 'Show quick tips'],
@@ -109,6 +110,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION BARBARIAN1',
     'You are a barbarian ready to battle to the end of this dungeon in search of wealth and glory.',
   ],
+  ['DESCRIPTION BATTLEAXE', 'A mighty battleaxe.'],
   [
     'DESCRIPTION BELT_OF_STRENGTH',
     'A rare belt, originally crafted by dwarves and significantly increasing the strength of the wearer.',
@@ -119,8 +121,12 @@ const MESSAGE_MAP = new Map([
     'A black flask containing a clear, pungent liquid.',
   ],
   [
+    'DESCRIPTION BLACK_FLASK?POTION_OF_FLYING',
+    'A black flask containing a clear, pungent potion that allows the user to hover temporarily above the ground.',
+  ],
+  [
     'DESCRIPTION BLACK_FLASK?SERPENT_VENOM',
-    'A black flask containing a clear, pungent liquid.',
+    'A black flask containing a clear, pungent poison.',
   ],
   [
     'DESCRIPTION BLADE_BARRIER',
@@ -130,7 +136,6 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION BLIGHT',
     'You cause necromantic energy to flow over a creature, draining moisture and vitality from it. The spell does not work on the undead.',
   ],
-  ['DESCRIPTION BLUE_FLASK', 'A blue flask containing a clear, aromatic oil.'],
   [
     'DESCRIPTION BUGBEAR',
     'A ferocious humanoid and evil creature bent on mayhem and carnage.',
@@ -189,8 +194,24 @@ const MESSAGE_MAP = new Map([
     'You create a seismic disturbance causing an intense tremor to rip through the ground.',
   ],
   [
-    'DESCRIPTION ENCHANTED_BATTLE_AXE',
-    'An enchanted axe increasing the power of your attacks.',
+    'DESCRIPTION ENCHANTED_BATTLEAXE',
+    'A mighty battleaxe. This magical weapon increases the likelihood and severity of damage.',
+  ],
+  [
+    'DESCRIPTION ENCHANTED_GREATAXE',
+    'A heavy two-handed axe capable of inflicting severe wounds when in the right hands. This magical weapon increases the likelihood and severity of damage.',
+  ],
+  [
+    'DESCRIPTION ENCHANTED_GREATSWORD',
+    'A two-handed massive sword inflicting serious slashing damage. This magical weapon increases the likelihood and severity of damage.',
+  ],
+  [
+    'DESCRIPTION ENCHANTED_HANDAXE',
+    'A small, light axe. This magical weapon increases the likelihood and severity of damage.',
+  ],
+  [
+    'DESCRIPTION ENCHANTED_SHORTSWORD',
+    'A light and highly versatile sword. This magical weapon increases the likelihood and severity of damage.',
   ],
   [
     'DESCRIPTION ENGRAVED_PILLAR',
@@ -267,6 +288,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION GREATSWORD',
     'A two-handed massive sword inflicting serious slashing damage.',
   ],
+
   [
     'DESCRIPTION HALF_PLATE_ARMOUR',
     'Shaped metal plates covering most of the body. Simple greaves protect the legs.',
@@ -275,6 +297,12 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION HANDAXE',
     'A small, light axe. The blade is sharp and has been looked after with care.',
   ],
+  ['DESCRIPTION HELMET', 'A simple steel helmet'],
+  [
+    'DESCRIPTION HELMET_OF_OGRE_POWER',
+    'A magical steel helmet offering the normal protection of a steel helmet along with a massive increase in strength.',
+  ],
+
   ['DESCRIPTION HIDDEN_ARTEFACT', 'The ground appears to have been disturbed.'],
   [
     'DESCRIPTION HUNTING_TRAP',
@@ -379,6 +407,10 @@ const MESSAGE_MAP = new Map([
   [
     'DESCRIPTION RANGER1',
     'You are a ranger who is more at one with the forest. The dungeon is not your natural realm, but you are ready to take it on.',
+  ],
+  [
+    'DESCRIPTION RESTORATIVE_OINTMENT',
+    'An ointment that can be rubbed into the skin or eaten to improve health and neutralise any poisons.',
   ],
   [
     'DESCRIPTION RING_MAIL_ARMOUR',
@@ -584,6 +616,10 @@ const MESSAGE_MAP = new Map([
     'It tastes nice, but your health doesn`t improve.',
   ],
   [
+    'MESSAGE CURED OF TOXINS',
+    'Any poisons that may have been affecting you are now neutralised and cease to have any further effect.',
+  ],
+  [
     'MESSAGE DEAD HERO HAS NO INVENTORY',
     'Dead heroes have no use for material belongings. Your inventory is lost in the dungeon, perhaps to be rediscovered by the next intrepid explorer.',
   ],
@@ -727,7 +763,10 @@ const MESSAGE_MAP = new Map([
     'MESSAGE NOTHING MORE TO DISCOVER',
     "There's nothing more for you to learn or discover here.",
   ],
-
+  [
+    'MESSAGE REQUIRES RESTART',
+    'Change will take place when the game is next reloaded.',
+  ],
   [
     'MESSAGE RESISTED POISON',
     "Yuk! It's poisonous, but you resist its toxic effects.",
@@ -855,7 +894,7 @@ const MESSAGE_MAP = new Map([
 
   [
     'TRIGGERS',
-    'Content warning: this game is generally suitable for ages 12 and up and contains violence towards fantasy characters, horror sequences and death.',
+    'Content warning: this game is generally suitable for ages 12 and up and contains violence towards fantasy characters, horror atmospherics, and the death of characters.',
   ],
 
   // Miscellaneous words and phrases.
@@ -880,6 +919,7 @@ const MESSAGE_MAP = new Map([
   ['GOLD PIECES', ' gold pieces'],
   ['Hands', 'Hands'],
   ['Head', 'Head'],
+  ['hover', 'hover'],
   ['(HP OUT OF VALUE)', '(HP:\u{00A0}${0}/${1})'],
   ['(HP VALUE)', '(HP:\u{00A0}${0})'],
   ['INT', 'intelligence'],
@@ -895,6 +935,7 @@ const MESSAGE_MAP = new Map([
   ['Ring fingers', 'Ring fingers'],
   ['SHORT_RESTS_REMAINING', 'Short rests remaining'],
   ['STR', 'strength'],
+  ['TRANSIENT', 'TRANSIENT'],
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
   ['Waist', 'Waist'],

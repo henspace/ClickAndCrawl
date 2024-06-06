@@ -156,7 +156,7 @@ Unused
 
 Consumables come in different types defined by the TYPE and SUBTYPE trait.
 
-- TYPE: set to MEAL, DRINK, MEDICINE,POISON or DRUG
+- TYPE: set to MEAL, DRINK, MEDICINE,POISON or POTION
 - SUBTYPE: used for checking proficiencies. Also used for hidden artefacts. Typically set to PLANT.
 - IDENTIFY_DC: if set, the item needs identification.The normal description is created from id as usual. The description for unknown as  it's message map key suffixed with _UNKNOWN.
 
@@ -167,8 +167,9 @@ Some consumables, primarily plants, may not be known to the hero.
 
 These can be used a part of a full meal (1 drink + 1 meal) as part of a rest.
 
-### Type DRUGS
-Drugs have FX traits. Unlike poisons, the effects are always applied. 
+### Type POTIONS
+POTIONs have FX traits. Unlike poisons, the effects are always applied. They can
+also have an ACTION trait which can be used to trigger an action in the code.
 
 ### Type POISON
 
@@ -295,3 +296,17 @@ Traps can be triggered by actors when interacting. The basic attributes are
  - GOLD: the number of gold coins provided by successfully disabling a trap. This is an integer.
 Traps always perform a melee attack. Magic traps are regarded as magic only for
 the purposes of detection. The spell always performs a melee attack.
+
+# WEAPONS
+
+Weapons utilise the following traits.
+
+Melee attacks create an AttackDetail object which works out rolls as follows:
+
+- attackRoll: D20 + abilityModifier + proficiencyBonus
+- damageRoll: damage dice roll + abilityModify
+
+The ability modifier is taken from the STR stat plus any ATTACK_BONUS.
+
+- DMG: damage dice
+- ATTACK_BONUS: extra value added to attack rolls.

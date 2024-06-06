@@ -172,8 +172,10 @@ export class Actor extends UiClickHandler {
           ArtefactType.TWO_HANDED_WEAPON
         )
     );
-    const armour = items.filter((artefact) =>
-      artefactTypesEqual(artefact.artefactType, ArtefactType.ARMOUR)
+    const armour = items.filter(
+      (artefact) =>
+        artefactTypesEqual(artefact.artefactType, ArtefactType.ARMOUR) ||
+        artefactTypesEqual(artefact.artefactType, ArtefactType.HEAD_GEAR)
     );
     const shields = items.filter((artefact) =>
       artefactTypesEqual(artefact.artefactType, ArtefactType.SHIELD)

@@ -78,6 +78,16 @@ const SETTINGS = [
     onChange: null,
   },
   {
+    id: 'DO_NOT_SCALE',
+    labelKey: 'CONTROL DO NOT SCALE',
+    defValue: false,
+    controlType: ControlType.CHECKBOX,
+    persistent: true,
+    action: null,
+    onChange: () => UI.showOkDialog(i18n`MESSAGE REQUIRES RESTART`),
+    doNotInitialise: true,
+  },
+  {
     id: 'SHOW_DEBUG_LOG',
     labelKey: 'BUTTON SHOW DEBUG LOG',
     defValue: true,
@@ -133,7 +143,7 @@ export function showSettingsDialog() {
 export function initialiseSettings() {
   SETTINGS.forEach((setting) => {
     setting.label = MESSAGES.getText(setting.labelKey);
-    if (setting.persistent && setting.onChange) {
+    if (setting.persistent && setting.onChange && !setting.doNotInitialise) {
       const value = PERSISTENT_DATA.get(setting.id, setting.defValue);
       setting.onChange(value);
     }

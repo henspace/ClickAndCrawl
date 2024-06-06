@@ -13,9 +13,9 @@ To interact, just click on the object or monster.
 
 Tip: some objects might be hidden, but they will be highlighted if you are in a position to interact with them.
 
-Explore the dungeon, do what you need to do, find the exit and move on to the next floor.
+Explore the dungeon, do what you need to do, find the exit, and then move on to the next floor.
 
-+ If you click **Start&nbsp;adventure** or **Continue&nbsp;adventure** your progress is saved when you complete a room, and if you send back more gold than previous explorers, your adventure will be recorded in the **Hall of Fame**.
-+ If you click **Casual&nbsp;exploration**, nothing is saved &mdash; no progress and no best adventure.
++ If you click **Start&nbsp;adventure** or **Continue&nbsp;adventure**, your progress is saved when you complete a room, and if you send back more gold than previous explorers, your adventure will be recorded in the **Hall of Fame**.
++ If you click **Casual&nbsp;exploration**, nothing is saved! Your progress is lost, and there is no chance to make it into the **Hall of Fame**.
 
 A few more tips are in the **Help** guide, but the best way to learn is to get in there and start exploring.
