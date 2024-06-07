@@ -254,7 +254,7 @@ function setVhCssVariable() {
  */
 function resize() {
   sizeScreen();
-  syncDomFonts();
+  //syncDomFonts();
 }
 /**
  * @typedef {Object} screenDetails

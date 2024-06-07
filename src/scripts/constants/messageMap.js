@@ -82,6 +82,7 @@ const MESSAGE_MAP = new Map([
 
   ['CONTROL DO NOT SCALE', 'Maximum scale 1:1'],
   ['CONTROL EFFECTS VOLUME', 'Effects volume'],
+  ['CONTROL UI FONT SCALE', 'UI font scale'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
   ['CONTROL SHOW QUICK TIPS', 'Show quick tips'],
   ['CONTROL RUN FULLSCREEN', 'Run fullscreen'],
