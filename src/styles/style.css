@@ -74,15 +74,9 @@ body {
   font-weight: 400;
   font-style: normal;
   font-size: calc(var(--font-base-size) + 0.00390625 * var(--design-width));
-  width: 100vw;
-  height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
-  height: 100svh;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  width: 100%;
-  height: 100%;
 }
 a:link,
 a:visited,
@@ -105,6 +99,11 @@ a:active {
 
 #game-content {
   overflow: hidden;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100svh;
 }
 
 .glass {
