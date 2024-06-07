@@ -57,9 +57,9 @@ const H1_FONT_SCALE = 2.0;
 const H2_FONT_SCALE = 1.5;
 const H3_FONT_SCALE = 1.2;
 
-const NORMAL_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
-const HEADING_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
-const EMOJI_SPRITE_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
+const NORMAL_FONT = "'Fondamento', cursive"; // cspell:disable-line
+const HEADING_FONT = "'Fondamento', cursive"; // cspell:disable-line
+const EMOJI_SPRITE_FONT = "'Fondamento', cursive"; // cspell:disable-line
 
 /**
  * @typedef {Object} TextInfo

@@ -35,3 +35,15 @@ test('sceneToFloor', () => {
   expect(floorNumbering.sceneToFloor(1)).toBe('B1');
   expect(floorNumbering.sceneToFloor(10)).toBe('B10');
 });
+
+test('floorToScene', () => {
+  expect(floorNumbering.floorToScene('1')).toBe(0);
+  expect(floorNumbering.floorToScene('B1')).toBe(1);
+  expect(floorNumbering.floorToScene('B2')).toBe(2);
+  expect(floorNumbering.floorToScene('B1234')).toBe(1234);
+  for (let scene = 0; scene < 99; scene++) {
+    expect(
+      floorNumbering.floorToScene(floorNumbering.sceneToFloor(scene))
+    ).toBe(scene);
+  }
+});

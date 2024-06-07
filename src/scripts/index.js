@@ -28,11 +28,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import { VERSION } from './generatedFiles/version.js';
 import './utils/polyfills/string.js';
 import LOG from './utils/logging.js';
 import GAME from './gameManagement/game.js';
 import PERSISTENT_DATA from './utils/persistentData.js';
-import { VERSION } from './constants/autoVersion.js';
+
 /**
  * Class that allows testing of features that may fall over in unsupported
  * browsers. As they generate a syntax error, this will not be caught.
