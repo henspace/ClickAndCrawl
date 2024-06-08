@@ -56,46 +56,55 @@ export const AssetUrls = {
   ),
   HELP_MD: new URL('./guides/help.md', import.meta.url),
   MUSIC: new URL(
-    './audio/do-alto-do-trono-da-desolacao-trimmed.mp3', // cspell:disable-line
+    './audio/do-alto-do-trono-da-desolacao-trimmed_mono.mp3', // cspell:disable-line
     import.meta.url
   ),
   PRIVACY_MD: new URL('./guides/privacy.md', import.meta.url),
   STARTUP_TIPS_MD: new URL('./guides/startupTips.md', import.meta.url),
   QUICK_START_MD: new URL('./guides/quickStart.md', import.meta.url),
   SOUND_EFFECTS_MAP: new Map([
-    ['PUNCH', new URL('./audio/punch-trimmed.mp3', import.meta.url)],
+    ['PUNCH', new URL('./audio/punch-trimmed_mono.mp3', import.meta.url)],
     [
       'DOUBLE PUNCH',
-      new URL('./audio/punch-trimmed-double.mp3', import.meta.url),
+      new URL('./audio/punch-trimmed-double_mono.mp3', import.meta.url),
     ],
-    ['MISS', new URL('./audio/long-medium-swish-trimmed.mp3', import.meta.url)],
-    ['POISONED', new URL('./audio/bubbling-trimmed.mp3', import.meta.url)],
-    ['DIE', new URL('./audio/male-hurt-sound-trimmed.mp3', import.meta.url)],
-    ['DIE_MONSTER', new URL('./audio/pig-oink-47167.mp3', import.meta.url)],
+    [
+      'MISS',
+      new URL('./audio/long-medium-swish-trimmed_mono.mp3', import.meta.url),
+    ],
+    ['POISONED', new URL('./audio/bubbling-trimmed_mono.mp3', import.meta.url)],
+    [
+      'DIE',
+      new URL('./audio/male-hurt-sound-trimmed_mono.mp3', import.meta.url),
+    ],
+    [
+      'DIE_MONSTER',
+      new URL('./audio/pig-oink-47167_mono.mp3', import.meta.url),
+    ],
     [
       'DIE_MONSTER_SMALL',
-      new URL('./audio/squeal-thing-103111.mp3', import.meta.url),
+      new URL('./audio/squeal-thing-103111_mono.mp3', import.meta.url),
     ],
     [
       'DIE_MONSTER_UNDEAD',
-      new URL('./audio/zombie-6851_derived.mp3', import.meta.url),
+      new URL('./audio/zombie-6851_derived_mono.mp3', import.meta.url),
     ],
     [
       'TRIGGER TRAP',
-      new URL('./audio/metal-blade-slice-32-195321.mp3', import.meta.url),
+      new URL('./audio/metal-blade-slice-32-195321_mono.mp3', import.meta.url),
     ],
-    ['SPELL_CHANT', new URL('./audio/spell_chant.mp3', import.meta.url)],
+    ['SPELL_CHANT', new URL('./audio/spell_chant_mono.mp3', import.meta.url)],
     [
       'DOOR_EXIT',
-      new URL('./audio/door-43633_trimmed_exit.mp3', import.meta.url),
+      new URL('./audio/door-43633_trimmed_exit_mono.mp3', import.meta.url),
     ],
     [
       'DOOR_ENTER',
-      new URL('./audio/door-43633_trimmed_enter.mp3', import.meta.url),
+      new URL('./audio/door-43633_trimmed_enter_mono.mp3', import.meta.url),
     ],
     [
       'PORTAL',
-      new URL('./audio/sci-fi-portal-83746-trimmed.mp3', import.meta.url),
+      new URL('./audio/sci-fi-portal-83746-trimmed_mono.mp3', import.meta.url),
     ],
   ]),
   SPLASH_IMAGE: new URL('./images/click-and-crawl.png', import.meta.url),

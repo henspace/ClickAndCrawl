@@ -8,9 +8,10 @@
   ],
   "scripts": {
     "createVersion": "node ./tools/createVersion.js ./package.json ./src/scripts/generatedFiles/version.js",
-    "prebuild": "node ./tools/cleanDir.js ./build && npm run createVersion",
-    "build": "parcel build --dist-dir build --public-url . ",
-    "serveBuild": "node ./tools/server/server.js ./build 8081",
+    "prebuild": "npm run createVersion && node ./tools/cleanDir.js ./buildDebug && node ./tools/cleanDir.js ./buildProd",
+    "build": "parcel build --dist-dir buildDebug --public-url . && parcel build --no-source-maps --dist-dir buildProd --public-url . ",
+    "serveBuildDebug": "node ./tools/server/server.js ./buildDebug 8081",
+    "serveBuildProd": "node ./tools/server/server.js ./buildProd 8081",
     "start": "parcel src/index.html",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
     "doc": "jsdoc -c jsdoc.json"
