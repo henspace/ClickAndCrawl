@@ -381,6 +381,68 @@ test('saveGameState adds to bottom if better: same gold less deep level', () => 
   });
 });
 
+test('saveGameState inserts if better: more gold sent', () => {
+  const sceneLevel = 12;
+  const characterLevel = 6;
+  const exp = getMinExpPointsForLevel(characterLevel);
+
+  const almanacEntry = parseAlmanacLine(
+    `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
+    'HEROES'
+  );
+  let hero;
+  // fill the leaderboard.
+  for (let n = 0; n < 6; n++) {
+    hero = buildActor(almanacEntry);
+    hero.adventureStartTime = 1000 + n;
+    hero.traits.set('NAME', `NAME${n}`);
+    hero.storeManager.addToPurse(100 - n * 10);
+    hero.traits.set('GOLD_SENT', 100 - n * 10);
+    SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
+    gameSaver.saveGameState(hero);
+  }
+
+  const leaderboard = gameSaver.getLeaderboard();
+  let leaderboardData = leaderboard.getCurrentData();
+
+  const insertionIndex = 3;
+  expect(leaderboardData).toHaveLength(6);
+  expect(leaderboardData[insertionIndex]).toEqual({
+    adventureStartTime: 1000 + insertionIndex,
+    name: `NAME${insertionIndex}`,
+    class: 'FIGHTER',
+    gold: 100 - insertionIndex * 10,
+    goldSent: 100 - insertionIndex * 10,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
+    completed: false,
+  });
+
+  hero = buildActor(almanacEntry);
+  hero.adventureStartTime = 9999;
+  hero.traits.set('NAME', `NAME9999`);
+  hero.storeManager.addToPurse(9999);
+  hero.traits.set('GOLD_SENT', 100 - insertionIndex * 10 + 5);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
+  gameSaver.saveGameState(hero);
+
+  leaderboardData = leaderboard.getCurrentData();
+
+  expect(leaderboardData).toHaveLength(7);
+  expect(leaderboardData[insertionIndex]).toEqual({
+    adventureStartTime: 9999,
+    name: `NAME9999`,
+    class: 'FIGHTER',
+    gold: 9999,
+    goldSent: 100 - insertionIndex * 10 + 5,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
+    completed: false,
+  });
+});
+
 test('restoreGameState retrieves actor and scene level', () => {
   const sceneLevel = 12;
   const characterLevel = 6;

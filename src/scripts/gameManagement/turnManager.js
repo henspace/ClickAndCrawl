@@ -369,13 +369,47 @@ class WaitingToStart extends State {
  * At main Menu
  */
 class AtMainMenu extends State {
-  onEntry() {
+  async onEntry() {
     const continuation = !!restoreGameState();
-    return showMainMenu(continuation).then(async (response) => {
-      persistentGame = response !== 'PLAY CASUAL';
-      await this.transitionTo(new AtStart());
-      return;
-    });
+    let action = await this.#waitForSelectedGame(continuation);
+    persistentGame = action !== 'PLAY CASUAL';
+    await this.transitionTo(new AtStart());
+  }
+
+  /**
+   * Wait for game to start.
+   * @param {boolean} continuation - continue an adventure
+   * @returns {Promise<string>} fulfils to 'PLAY CASUAL' or 'PLAY ADVENTURE'
+   */
+  async #waitForSelectedGame(continuation) {
+    let done = false;
+    let action;
+    while (!done) {
+      action = await showMainMenu(continuation).then((response) =>
+        this.#confirmGameStart(response)
+      );
+      if (action) {
+        done = true;
+      }
+    }
+    return Promise.resolve(action);
+  }
+
+  /**
+   * Check whether game should start.
+   * User is only asked for casual games.
+   * @param {string} action - 'PLAY START' or 'PLAY CASUAL'
+   * @returns {string} original action or null if user does not want to play.
+   */
+  #confirmGameStart(action) {
+    if (action !== 'PLAY CASUAL') {
+      return action;
+    }
+    return UI.showChoiceDialog(
+      i18n`DIALOG TITLE CASUAL GAME WARNING`,
+      i18n`MESSAGE CASUAL GAME WARNING`,
+      [i18n`BUTTON ENTER DUNGEON`, i18n`BUTTON CANCEL`]
+    ).then((response) => (response === 0 ? action : null));
   }
 }
 /**

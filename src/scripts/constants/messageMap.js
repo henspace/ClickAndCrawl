@@ -553,12 +553,14 @@ const MESSAGE_MAP = new Map([
     'An undead, neutral evil creature with a touch of death.',
   ],
   ['DESCRIPTION ZOMBIE', 'An undead creature roaming the dungeon floors.'],
+  ['DIALOG TITLE CASUAL GAME WARNING', 'WARNING! CASUAL EXPLORATION'],
   ['DIALOG TITLE DEBUG LOG', 'Chronicles of Debug Loggerman'],
   ['DIALOG TITLE DELETE MEMORY', 'DELETE MEMORY!'],
   ['DIALOG TITLE HALL OF FAME', 'Hall of Fame'],
   ['DIALOG TITLE CHOICES', 'Decisions, decisions'],
   ['DIALOG TITLE LOCKED', 'Locked'],
   ['DIALOG TITLE GOLD_PORTAL', 'Use the gold portal'],
+
   ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
@@ -599,6 +601,10 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE CANNOT UNDERSTAND MAGIC',
     "There is strange magic written here, but it's beyond your comprehension.",
+  ],
+  [
+    'MESSAGE CASUAL GAME WARNING',
+    'You are about to embark on a casual exploration. The townsfolk know nothing of this. Your progress WILL NOT BE SAVED and you cannot enter the Hall of Fame.',
   ],
   [
     'MESSAGE CONFIRM DELETE MEMORY',
@@ -643,10 +649,6 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE DUNGEON INTRO CONTINUE',
     'Welcome back, ${0}. The adventure continues. You recognise the familiar smell of death.',
-  ],
-  [
-    'MESSAGE DUNGEON INTRO CASUAL',
-    'You enter the dungeon for a quick exploration and to check on what dangers might exist before starting a full adventure. You progress will not be saved and any achievements will be lost.',
   ],
   [
     'MESSAGE ENTER FLOOR',
