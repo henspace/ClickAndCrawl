@@ -285,6 +285,9 @@
             <key type="filename">tiles/leather_armour.png</key>
             <key type="filename">tiles/lichen.png</key>
             <key type="filename">tiles/lightning00.png</key>
+            <key type="filename">tiles/lizard_pv-dead00.png</key>
+            <key type="filename">tiles/lizard_pv-idle00.png</key>
+            <key type="filename">tiles/lizard_pv-idle01.png</key>
             <key type="filename">tiles/lock_pick.png</key>
             <key type="filename">tiles/lute.png</key>
             <key type="filename">tiles/magic00.png</key>

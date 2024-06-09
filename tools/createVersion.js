@@ -83,5 +83,6 @@ if (process.argv.length < 3) {
     date: date,
     author: packageDetails.author,
   });
+  console.log(`Version ${packageDetails.version}; build code ${buildCode}`);
   console.log(`Created ${destPath}`);
 }

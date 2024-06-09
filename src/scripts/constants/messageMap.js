@@ -344,6 +344,10 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION LIGHTNING_BOLT',
     "You create a stroke of lightning that shoots out from you hitting all creatures in it's path.",
   ],
+  [
+    'DESCRIPTION LIZARD_PV',
+    'A red and blue lizard, more dangerous than it looks.',
+  ],
   ['DESCRIPTION LOCK_PICK', 'Set of lock picks.'],
   ['DESCRIPTION LUTE', 'A beautiful lute in remarkable condition.'],
   [

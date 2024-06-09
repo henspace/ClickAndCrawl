@@ -3,8 +3,9 @@ within its dank, dark walls. The only way you can really learn about the dangers
 
 On a scrap of vellum passed to you by the village elder are some notes that previous explorers have passed on to their successors.
 
-- Click on people and objects. To interact you must be next to them. That means to their north, south, east or west &mdash; not diagonally.
-- To manage your own inventory or cast spells, click on yourself.
+- Click on the highlighted tiles to move there.
+- To fight monsters, click ones that are next to you. That means to your immediate north, south, east or west &mdash; not diagonally.
+- To manage your own inventory or cast spells, click on yourself. Remember, many spells act over large distances.
 - The more gold you send back to the townsfolk via the gold portals, the greater your reputation.
 - Resting between dungeon floors can restore some health and remove the ongoing effects of poisons. You need one meal (food and drink) for a short rest, and three meals for a long rest.
 - To use any spells you learn, you need to take a long rest so you can prepare them.
