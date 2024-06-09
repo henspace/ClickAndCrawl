@@ -16,7 +16,10 @@ lerna-debug.log*
 
 #build files
 build
+buildDebug
+buildProd
 dist
+graphics/itch.io_assets/output
 
 # jsdoc
 docs

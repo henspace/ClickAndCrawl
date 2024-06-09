@@ -33,7 +33,7 @@ import { createElement, TextButtonControl } from '../utils/dom/components.js';
 import { i18n } from '../utils/messageManager.js';
 import UI from '../utils/dom/ui.js';
 import { AssetUrls } from '../../assets/assets.js';
-import { VERSION } from '../constants/autoVersion.js';
+import { VERSION } from '../generatedFiles/version.js';
 
 /**
  * Show the guide dialog. This is the portal to all help information.

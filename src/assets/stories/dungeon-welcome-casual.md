@@ -1,7 +1,11 @@
 # Beware all who enter here.
 
-You enter the dungeon for a quick exploration to allow you to 
-assess what dangers might be present before you start a full adventure. In this reconnaissance mission, your progress will not be recorded in the dungeon's annals, and all achievements will be lost to history at the end.
+You secretly slip into the dungeon to see if the stories about what the crumbling
+walls contain are true. You haven't told anyone about this, so even if you manage
+to send back gold to the townsfolk via the dwarven portals, no one will know it
+was you. No one will sing about your exploits, no one will sing ballads about
+your heroism and no one will record your name in the Hall of Fame. You are
+destined to be forgotten.
 
 You're on the first floor of the dungeon. Water trickles down the
 walls to mix with fungus and slime that coat the stone floor.

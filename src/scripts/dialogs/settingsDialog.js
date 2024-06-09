@@ -35,6 +35,10 @@ import SOUND_MANAGER from '../utils/soundManager.js';
 import { i18n, MESSAGES } from '../utils/messageManager.js';
 import { showLogDialog } from './logDialog.js';
 import { setFullscreenState } from '../utils/fullscreen.js';
+import {
+  setCssBaseFontScale,
+  getDefaultFontScale,
+} from '../utils/text/fonts.js';
 
 /** Settings */
 const SETTINGS = [
@@ -58,6 +62,15 @@ const SETTINGS = [
       SOUND_MANAGER.setEffectsVolumePercent(value);
       SOUND_MANAGER.playEffect('PUNCH');
     },
+  },
+  {
+    id: 'FONT_SCALE',
+    labelKey: 'CONTROL UI FONT SCALE',
+    defValue: getDefaultFontScale() * 100,
+    controlType: ControlType.RANGE,
+    persistent: true,
+    action: null,
+    onChange: (value) => setCssBaseFontScale(value / 100),
   },
   {
     id: 'SHOW_QUICK_TIPS_AT_START',

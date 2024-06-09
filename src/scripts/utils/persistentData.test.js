@@ -58,7 +58,7 @@ test('Set with string', () => {
   const key = 'My key';
   const data = 'Test data';
   PERSISTENT_DATA.set(key, data);
-  const result = mockedStorage.getItem(key);
+  const result = mockedStorage.getItem(`ClickAndCrawl_${key}`);
   expect(result).toEqual(createCheckSummedStr(JSON.stringify(data)));
 });
 
@@ -66,7 +66,7 @@ test('Set with object', () => {
   const key = 'My key';
   const data = { first: 'item 1', second: 'item 2' };
   PERSISTENT_DATA.set(key, data);
-  const result = mockedStorage.getItem(key);
+  const result = mockedStorage.getItem(`ClickAndCrawl_${key}`);
   expect(result).toEqual(createCheckSummedStr(JSON.stringify(data)));
 });
 
@@ -84,7 +84,10 @@ test('Get successful with reviver', () => {
   const key = 'My key';
   const data = 'Just testing';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, createCheckSummedStr(JSON.stringify(data)));
+  mockedStorage.setItem(
+    `ClickAndCrawl_${key}`,
+    createCheckSummedStr(JSON.stringify(data))
+  );
   const result = PERSISTENT_DATA.get(
     key,
     null,
@@ -97,7 +100,10 @@ test('Get invalid key', () => {
   const key = 'My key';
   const data = 'Just testing';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, createCheckSummedStr(JSON.stringify(data)));
+  mockedStorage.setItem(
+    `ClickAndCrawl_${key}`,
+    createCheckSummedStr(JSON.stringify(data))
+  );
   const result = PERSISTENT_DATA.get('RANDOM KEY');
   expect(result).toBeUndefined();
 });
@@ -107,7 +113,10 @@ test('Get invalid key and default', () => {
   const data = 'Just testing';
   const defValue = 'My default';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, createCheckSummedStr(JSON.stringify(data)));
+  mockedStorage.setItem(
+    `ClickAndCrawl_${key}`,
+    createCheckSummedStr(JSON.stringify(data))
+  );
   const result = PERSISTENT_DATA.get('RANDOM KEY', defValue);
   expect(result).toBe(defValue);
 });
@@ -116,7 +125,7 @@ test('Get invalid format returns undefined', () => {
   const key = 'My key';
   const data = 'Just testing';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, JSON.stringify(data));
+  mockedStorage.setItem(`ClickAndCrawl_${key}`, JSON.stringify(data));
   const result = PERSISTENT_DATA.get(key);
   expect(result).toBeUndefined();
 });
@@ -126,7 +135,7 @@ test('Get invalid format returns default', () => {
   const data = 'Just testing';
   const defValue = 'My default';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, JSON.stringify(data));
+  mockedStorage.setItem(`ClickAndCrawl_${key}`, JSON.stringify(data));
   const result = PERSISTENT_DATA.get(key, defValue);
   expect(result).toBe(defValue);
 });
@@ -135,7 +144,10 @@ test('Get invalid checksum returns undefined', () => {
   const key = 'My key';
   const data = 'Just testing';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, '12345678*' + JSON.stringify(data));
+  mockedStorage.setItem(
+    `ClickAndCrawl_${key}`,
+    '12345678*' + JSON.stringify(data)
+  );
   const result = PERSISTENT_DATA.get(key);
   expect(result).toBeUndefined();
 });
@@ -145,7 +157,10 @@ test('Get invalid checksum returns default', () => {
   const data = 'Just testing';
   const defValue = 'My default';
   // don't use persistent.set as this will result in the read using the cache.
-  mockedStorage.setItem(key, '12345678*' + JSON.stringify(data));
+  mockedStorage.setItem(
+    `ClickAndCrawl_${key}`,
+    '12345678*' + JSON.stringify(data)
+  );
   const result = PERSISTENT_DATA.get(key, defValue);
   expect(result).toBe(defValue);
 });

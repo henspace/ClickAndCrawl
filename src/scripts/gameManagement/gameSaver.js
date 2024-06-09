@@ -36,7 +36,7 @@ import { Actor } from '../players/actors.js';
 import { Artefact } from '../players/artefacts.js';
 import { Traits, CharacterTraits, MagicTraits } from '../dnd/traits.js';
 import { Toxin } from '../dnd/toxins.js';
-import { sceneToFloor } from '../dnd/floorNumbering.js';
+import { sceneToFloor, floorToScene } from '../dnd/floorNumbering.js';
 import { Leaderboard } from '../utils/leaderBoard.js';
 
 /** @type {number} */
@@ -88,6 +88,26 @@ function createAdventureResult(hero, completed) {
 }
 
 /**
+ * Convert floor to a depth.
+ * Converts floors
+ */
+/** test to see if adventure a is better than b.
+ * @param {AdventureResult} first
+ * @param {AdventureResult} second
+ * @returns {boolean} true if adventure advA is better than advB
+ */
+export function adventureFirstBetterThanSecond(first, second) {
+  if (first.goldSent > second.goldSent) {
+    return true;
+  } else if (first.goldSent < second.goldSent) {
+    return false;
+  }
+
+  // gold equal so look at floor.
+  return floorToScene(first.dungeonFloor) > floorToScene(second.dungeonFloor);
+}
+
+/**
  * Get the leaderboard.
  * @returns {module:utils/Leaderboard.LeaderBoard}
  */
@@ -95,7 +115,7 @@ export function getLeaderboard() {
   const data = PERSISTENT_DATA.get(LEADERBOARD_DATA_KEY);
   return new Leaderboard(data, {
     maxLength: DEFAULT_LEADERBOARD_LEN,
-    sortFn: (a, b) => (a.goldSent > b.goldSent ? -1 : 1),
+    sortFn: (a, b) => (adventureFirstBetterThanSecond(a, b) ? -1 : 1),
     equalFn: (a, b) =>
       a.adventureStartTime === b.adventureStartTime && a.name === b.name,
   });

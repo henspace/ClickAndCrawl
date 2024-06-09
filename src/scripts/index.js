@@ -28,10 +28,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+import { VERSION } from './generatedFiles/version.js';
 import './utils/polyfills/string.js';
 import LOG from './utils/logging.js';
 import GAME from './gameManagement/game.js';
 import PERSISTENT_DATA from './utils/persistentData.js';
+
 /**
  * Class that allows testing of features that may fall over in unsupported
  * browsers. As they generate a syntax error, this will not be caught.
@@ -66,9 +68,9 @@ class FeatureSupportTest {
    * @returns {string} test message
    */
   #test() {
-    const arr = [this.#privateMember, 'two', 'three'];
+    const arr = [this.#privateMember, 'a', 's', 's'];
     const copy = [...arr].map((entry) => this.arrowFunction(entry));
-    return copy.join(', ');
+    return copy.join('');
   }
 
   /**
@@ -78,7 +80,7 @@ class FeatureSupportTest {
     const tester = new FeatureSupportTest();
     tester.privateMember = text; // setter
     const result = tester.#test();
-    LOG.debug(result);
+    LOG.debug(`Supported feature test: ${result}`);
   }
 }
 
@@ -90,8 +92,18 @@ function getMaxScale() {
   return PERSISTENT_DATA.get('DO_NOT_SCALE', false) ? 1 : 2.4;
 }
 
+/**
+ * Log browser information
+ */
+function logDebugInfo() {
+  LOG.info(`Version: ${VERSION.build} ${VERSION.date}`);
+  LOG.info(`Browser: ${navigator.userAgent}`);
+  LOG.info(`devicePixelRatio: ${window.devicePixelRatio}`);
+}
+
 window.addEventListener('load', () => {
-  FeatureSupportTest.testSupportedFeatures('one');
+  logDebugInfo();
+  FeatureSupportTest.testSupportedFeatures('p');
   const DESIGN_WIDTH = 800;
   const DESIGN_HEIGHT = 600;
 

@@ -38,6 +38,9 @@ import { simple32 } from './hashes.js';
 
 /** Encapsulate storage. */
 class PersistentData {
+  /** @type {string} */
+  #appCode = '';
+
   /** @type {Storage}   */
   #storage;
   /**
@@ -48,10 +51,21 @@ class PersistentData {
 
   /**
    * Create persistent data object.
+   * @param {string}  appCode - unique code for this app
    */
-  constructor() {
+  constructor(appCode) {
+    this.#appCode = appCode;
     this.#storage = localStorage;
     this.#cache = new Map();
+  }
+
+  /**
+   * Converts key to one unique to this app.
+   * @param {string} key
+   * @returns {string} appKey
+   */
+  toAppKey(key) {
+    return `${this.#appCode}_${key}`;
   }
   /**
    * Set value
@@ -59,6 +73,7 @@ class PersistentData {
    * @param {*} value
    */
   set(key, value) {
+    key = this.toAppKey(key);
     this.#cache.set(key, value);
     try {
       this.#storage.setItem(key, this.toChecksummed(JSON.stringify(value)));
@@ -75,6 +90,7 @@ class PersistentData {
    * @returns {*} stored data or default value if not present or unparsable.
    */
   get(key, defaultValue, reviver) {
+    key = this.toAppKey(key);
     if (this.#cache.has(key)) {
       return this.#cache.get(key);
     }
@@ -140,6 +156,6 @@ class PersistentData {
   }
 }
 
-const PERSISTENT_DATA = new PersistentData();
+const PERSISTENT_DATA = new PersistentData('ClickAndCrawl');
 
 export default PERSISTENT_DATA;

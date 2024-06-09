@@ -88,6 +88,90 @@ test('getLeaderboard', () => {
   expect(leaderBoard.getCurrentData()).toEqual(leaderboardData);
 });
 
+test('adventureFirstBetterThanSecond: same gold not deeper', () => {
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 100, dungeonFloor: '1' },
+      { goldSent: 100, dungeonFloor: '1' }
+    )
+  ).toBe(false);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 100, dungeonFloor: '1' },
+      { goldSent: 100, dungeonFloor: 'B1' }
+    )
+  ).toBe(false);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 100, dungeonFloor: 'B12' },
+      { goldSent: 100, dungeonFloor: 'B12' }
+    )
+  ).toBe(false);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 100, dungeonFloor: 'B9' },
+      { goldSent: 100, dungeonFloor: 'B12' }
+    )
+  ).toBe(false);
+});
+
+test('adventureFirstBetterThanSecond: same gold deeper depth', () => {
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 100, dungeonFloor: 'B1' },
+      { goldSent: 100, dungeonFloor: '1' }
+    )
+  ).toBe(true);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 100, dungeonFloor: 'B13' },
+      { goldSent: 100, dungeonFloor: 'B9' }
+    )
+  ).toBe(true);
+});
+
+test('adventureFirstBetterThanSecond: less gold any depth depth', () => {
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 10, dungeonFloor: 'B99' },
+      { goldSent: 100, dungeonFloor: '1' }
+    )
+  ).toBe(false);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 10, dungeonFloor: '1' },
+      { goldSent: 100, dungeonFloor: '1' }
+    )
+  ).toBe(false);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 10, dungeonFloor: '1' },
+      { goldSent: 100, dungeonFloor: 'B99' }
+    )
+  ).toBe(false);
+});
+
+test('adventureFirstBetterThanSecond: more gold any depth depth', () => {
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 110, dungeonFloor: 'B11' },
+      { goldSent: 100, dungeonFloor: '1' }
+    )
+  ).toBe(true);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 110, dungeonFloor: '1' },
+      { goldSent: 100, dungeonFloor: '1' }
+    )
+  ).toBe(true);
+  expect(
+    gameSaver.adventureFirstBetterThanSecond(
+      { goldSent: 110, dungeonFloor: '1' },
+      { goldSent: 100, dungeonFloor: 'B91' }
+    )
+  ).toBe(true);
+});
+
 test('saveGameState', () => {
   const sceneLevel = 12;
   const characterLevel = 6;
@@ -148,7 +232,7 @@ test('saveGameState: completed', () => {
   });
 });
 
-test('saveGameState adds if better', () => {
+test('saveGameState adds if better: more gold sent', () => {
   const sceneLevel = 12;
   const characterLevel = 6;
   const exp = getMinExpPointsForLevel(characterLevel);
@@ -187,6 +271,171 @@ test('saveGameState adds if better', () => {
     class: 'FIGHTER',
     gold: 100 - 3,
     goldSent: 100 + 3,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
+    completed: false,
+  });
+});
+
+test('saveGameState adds if better: same gold deeper level', () => {
+  const currentSceneLevel = 1;
+  const nextSceneLevel = 2;
+  const characterLevel = 6;
+  const exp = getMinExpPointsForLevel(characterLevel);
+
+  const almanacEntry = parseAlmanacLine(
+    `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
+    'HEROES'
+  );
+  // fill the leaderboard with one space at end.
+
+  let hero;
+  for (let n = 0; n < 9; n++) {
+    hero = buildActor(almanacEntry);
+    hero.adventureStartTime = 1000 + n;
+    hero.traits.set('NAME', `NAME${n}`);
+    hero.storeManager.addToPurse(100);
+    hero.traits.set('GOLD_SENT', 100);
+    SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(currentSceneLevel);
+    gameSaver.saveGameState(hero);
+  }
+
+  hero = buildActor(almanacEntry);
+  hero.adventureStartTime = 9999;
+  hero.traits.set('NAME', `NEW_HERO`);
+  hero.storeManager.addToPurse(100);
+  hero.traits.set('GOLD_SENT', 100);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(nextSceneLevel);
+  gameSaver.saveGameState(hero);
+  const leaderboard = gameSaver.getLeaderboard();
+  const leaderboardData = leaderboard.getCurrentData();
+  expect(leaderboardData).toHaveLength(10);
+  expect(leaderboardData[0]).toEqual({
+    adventureStartTime: 9999,
+    name: 'NEW_HERO',
+    class: 'FIGHTER',
+    gold: 100,
+    goldSent: 100,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(nextSceneLevel),
+    completed: false,
+  });
+});
+
+test('saveGameState adds to bottom if better: same gold less deep level', () => {
+  const currentSceneLevel = 5;
+  const nextSceneLevel = 1;
+  const characterLevel = 6;
+  const exp = getMinExpPointsForLevel(characterLevel);
+
+  const almanacEntry = parseAlmanacLine(
+    `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
+    'HEROES'
+  );
+  // fill the leaderboard with one space at end.
+
+  let hero;
+  for (let n = 0; n < 9; n++) {
+    hero = buildActor(almanacEntry);
+    hero.adventureStartTime = 1000 + n;
+    hero.traits.set('NAME', `NAME${n}`);
+    hero.storeManager.addToPurse(100);
+    hero.traits.set('GOLD_SENT', 100);
+    SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(currentSceneLevel);
+    gameSaver.saveGameState(hero);
+  }
+
+  hero = buildActor(almanacEntry);
+  hero.adventureStartTime = 9999;
+  hero.traits.set('NAME', `NEW_HERO`);
+  hero.storeManager.addToPurse(100);
+  hero.traits.set('GOLD_SENT', 100);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(nextSceneLevel);
+  gameSaver.saveGameState(hero);
+  const leaderboard = gameSaver.getLeaderboard();
+  const leaderboardData = leaderboard.getCurrentData();
+  expect(leaderboardData).toHaveLength(10);
+  expect(leaderboardData[0]).toEqual({
+    adventureStartTime: 1000,
+    name: 'NAME0',
+    class: 'FIGHTER',
+    gold: 100,
+    goldSent: 100,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(currentSceneLevel),
+    completed: false,
+  });
+  expect(leaderboardData[9]).toEqual({
+    adventureStartTime: 9999,
+    name: 'NEW_HERO',
+    class: 'FIGHTER',
+    gold: 100,
+    goldSent: 100,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(nextSceneLevel),
+    completed: false,
+  });
+});
+
+test('saveGameState inserts if better: more gold sent', () => {
+  const sceneLevel = 12;
+  const characterLevel = 6;
+  const exp = getMinExpPointsForLevel(characterLevel);
+
+  const almanacEntry = parseAlmanacLine(
+    `0,COMMON,HERO,fighter1 * CLASS:FIGHTER,HIT_DICE:1D12,EXP:${exp}`,
+    'HEROES'
+  );
+  let hero;
+  // fill the leaderboard.
+  for (let n = 0; n < 6; n++) {
+    hero = buildActor(almanacEntry);
+    hero.adventureStartTime = 1000 + n;
+    hero.traits.set('NAME', `NAME${n}`);
+    hero.storeManager.addToPurse(100 - n * 10);
+    hero.traits.set('GOLD_SENT', 100 - n * 10);
+    SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
+    gameSaver.saveGameState(hero);
+  }
+
+  const leaderboard = gameSaver.getLeaderboard();
+  let leaderboardData = leaderboard.getCurrentData();
+
+  const insertionIndex = 3;
+  expect(leaderboardData).toHaveLength(6);
+  expect(leaderboardData[insertionIndex]).toEqual({
+    adventureStartTime: 1000 + insertionIndex,
+    name: `NAME${insertionIndex}`,
+    class: 'FIGHTER',
+    gold: 100 - insertionIndex * 10,
+    goldSent: 100 - insertionIndex * 10,
+    exp: exp,
+    characterLevel: characterLevel,
+    dungeonFloor: sceneToFloor(sceneLevel),
+    completed: false,
+  });
+
+  hero = buildActor(almanacEntry);
+  hero.adventureStartTime = 9999;
+  hero.traits.set('NAME', `NAME9999`);
+  hero.storeManager.addToPurse(9999);
+  hero.traits.set('GOLD_SENT', 100 - insertionIndex * 10 + 5);
+  SCENE_MANAGER.getCurrentSceneLevel.mockReturnValueOnce(sceneLevel);
+  gameSaver.saveGameState(hero);
+
+  leaderboardData = leaderboard.getCurrentData();
+
+  expect(leaderboardData).toHaveLength(7);
+  expect(leaderboardData[insertionIndex]).toEqual({
+    adventureStartTime: 9999,
+    name: `NAME9999`,
+    class: 'FIGHTER',
+    gold: 9999,
+    goldSent: 100 - insertionIndex * 10 + 5,
     exp: exp,
     characterLevel: characterLevel,
     dungeonFloor: sceneToFloor(sceneLevel),

@@ -5,6 +5,16 @@ best to start a few adventures, die a bit, learn a bit, and then start a new
 adventure. If you really, really want extra guidance, there's a little more information
 below.
 
+## Disturbed ground
+
+Everything is visible, even if subtly. There's never any need to randomly click and search ... honest.
+
+## Disengaging
+
+When you are fighting an opponent, you can disengage from the fight. To disengage,
+just move away by two or less tiles. Your hero will back away, and the opponents
+you were fighting will not immediately follow you.
+
 ## Resting
 
 Resting is important and takes time. To represent the passage of time, the concept of meals is used. A meal comprises one drink and one food item.  A short rest uses one meal, and a long rest, which is equivalent to twenty-four hours, uses three. You will need to take a long rest after a certain number of short ones. The number depends on your hero's level.
@@ -32,7 +42,7 @@ You cannot select the target; this is done automatically.
 
 ## Monster movements
 
-Monsters will not walk over items such as manhole covers or disturbed ground, for example. You can use this to your advantage.
+Monsters will not walk over items such as manhole covers or disturbed ground, for example. They will also avoid corpses. You can use this to your advantage.
 
 ## Keys
 

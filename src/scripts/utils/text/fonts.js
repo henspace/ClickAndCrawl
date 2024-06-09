@@ -28,7 +28,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const baseSize = 15; // minimum pixel size
+const DEFAULT_FONT_BASE_PX = 15; // minimum pixel size
+
+const MIN_FONT_BASE_PX = 10;
+const MAX_FONT_BASE_PX = 25;
+
+/** @type {number} */
+let currentBasePx = DEFAULT_FONT_BASE_PX;
+
+/** @type {number} */
+let designWidth = 0;
+
+/**
+ * Get the default base size as a proportion of the acceptable range.
+ * @returns {number}
+ */
+export function getDefaultFontScale() {
+  return (
+    (DEFAULT_FONT_BASE_PX - MIN_FONT_BASE_PX) /
+    (MAX_FONT_BASE_PX - MIN_FONT_BASE_PX)
+  );
+}
 
 /*
  * These should be replicated in the CSS.
@@ -37,9 +57,9 @@ const H1_FONT_SCALE = 2.0;
 const H2_FONT_SCALE = 1.5;
 const H3_FONT_SCALE = 1.2;
 
-const NORMAL_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
-const HEADING_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
-const EMOJI_SPRITE_FONT = "'UnifrakturCook', cursive"; // cspell:disable-line
+const NORMAL_FONT = "'Fondamento', cursive"; // cspell:disable-line
+const HEADING_FONT = "'Fondamento', cursive"; // cspell:disable-line
+const EMOJI_SPRITE_FONT = "'Fondamento', cursive"; // cspell:disable-line
 
 /**
  * @typedef {Object} TextInfo
@@ -62,14 +82,23 @@ const textInfo = {
  * Sets up font sizes based on the design display width.
  * The actual normal font size is worked out using the CSS formula normally
  * based on the display width.
- * @param {number} designWidth
+ * @param {number} requiredDesignWidth
  */
-export function initialise(designWidth) {
-  textInfo.normal.size = baseSize + 0.390625 * (designWidth / 100);
+export function initialise(requiredDesignWidth) {
+  designWidth = requiredDesignWidth;
+  updateFontSizes();
+}
+
+/**
+ * Update font sizes. This adjusts fonts used in the game and in the UI.
+ */
+function updateFontSizes() {
+  textInfo.normal.size = currentBasePx + 0.390625 * (designWidth / 100);
   textInfo.h1.size = textInfo.normal.size * H1_FONT_SCALE;
   textInfo.h2.size = textInfo.normal.size * H2_FONT_SCALE;
   textInfo.h3.size = textInfo.normal.size * H3_FONT_SCALE;
   textInfo.emojiSprite.size = designWidth / 10;
+  document.documentElement.style.fontSize = `${textInfo.normal.size}px`;
 }
 
 /**
@@ -89,4 +118,15 @@ export function getCss(styleName) {
  */
 export function getRootFontSize() {
   return textInfo.normal.size;
+}
+
+/**
+ * Set the CSS base pixel size. This does not affect the canvas.
+ * The figure is passed as a proportion of the MIN to MAX range.
+ * @param {number} scale
+ */
+export function setCssBaseFontScale(scale) {
+  currentBasePx =
+    MIN_FONT_BASE_PX + (MAX_FONT_BASE_PX - MIN_FONT_BASE_PX) * scale;
+  updateFontSizes();
 }

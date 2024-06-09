@@ -83,12 +83,23 @@ window.addEventListener('resize', () => {
   }, 200);
 });
 
+/** Add listener for orientation change. */
+screen.orientation?.addEventListener('change', () => resize());
+
 /**
  * Get dimensions of the working area for the game.
  * @returns {module:utils/geometry~Dims2D}
  */
 function getDisplayDims() {
-  return { width: window.innerWidth, height: window.innerHeight };
+  const gameContent = document.getElementById('game-content');
+  LOG.info(`screen: ${screen.width} x ${screen.height}`);
+  LOG.info(`innerWidth/Height: ${window.innerWidth} x ${window.innerHeight}`);
+  LOG.info(`outerWidth/Height: ${window.outerWidth} x ${window.outerHeight}`);
+  LOG.info(
+    `game-content: ${gameContent.clientWidth} x ${gameContent.clientHeight}`
+  );
+
+  return { width: gameContent.clientWidth, height: gameContent.clientHeight };
 }
 /**
  * @param {Object} options - config options.
@@ -104,7 +115,7 @@ function setOptions(options) {
     return;
   }
 
-  LOG.debug(`Max canvas scaling set to ${options.maxScale}.`);
+  LOG.info(`Max canvas scaling set to ${options.maxScale}.`);
   gameElement = document?.getElementById('game-content');
   if (!gameElement) {
     LOG.debug('No game element so assuming running as Jest test. No ui');
@@ -127,9 +138,9 @@ function setOptions(options) {
   minScale = options.minScale;
   sizingMethod = options.sizingMethod;
   canvasAlpha = options.alpha;
-  setVhCssVariable();
+  //setVhCssVariable();
   sizeScreen();
-  syncDomFonts();
+  //syncDomFonts();
 }
 
 /**
@@ -211,12 +222,12 @@ function sizeScreen() {
     visibleCanvasWidth,
     visibleCanvasHeight
   );
-  LOG.debug(`Scale: ${scale}`);
-  LOG.debug(`Window: width: ${dims.width}, height: ${dims.height}`);
-  LOG.debug(
+  LOG.info(`Scale: ${scale}`);
+  LOG.info(`Window: width: ${dims.width}, height: ${dims.height}`);
+  LOG.info(
     `Display: left: ${left}, top: ${top}, width: ${displayedWidth}, height: ${displayedHeight}`
   );
-  LOG.debug(
+  LOG.info(
     `Visible canvas: left: ${visibleCanvasOffsetX}, top: ${visibleCanvasOffsetY}, width: ${visibleCanvasWidth}, height: ${visibleCanvasHeight}`
   );
 }
@@ -243,7 +254,7 @@ function setVhCssVariable() {
  */
 function resize() {
   sizeScreen();
-  syncDomFonts();
+  //syncDomFonts();
 }
 /**
  * @typedef {Object} screenDetails

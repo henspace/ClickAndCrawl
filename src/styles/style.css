@@ -56,7 +56,6 @@
   --splash-color: #81795d;
 
   --padding-thickness: 0.25rem;
-  --font-base-size: 15px;
   --line-thickness: max(2px, 0.2rem);
   --outline-thickness: 2px;
   --outline-offset: calc(0.5 * var(--outline-thickness));
@@ -65,24 +64,22 @@
   --vh: 1vh;
 }
 
+html {
+  font-family: 'Fondamento', cursive;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+}
+
 body {
   background-color: var(--window-base);
   color: var(--window-contrast);
   align-items: center;
+
   justify-content: center;
-  font-family: 'Fondamento', cursive;
-  font-weight: 400;
-  font-style: normal;
-  font-size: calc(var(--font-base-size) + 0.00390625 * var(--design-width));
-  width: 100vw;
-  height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
-  height: 100svh;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  width: 100%;
-  height: 100%;
 }
 a:link,
 a:visited,
@@ -105,6 +102,11 @@ a:active {
 
 #game-content {
   overflow: hidden;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100svh;
 }
 
 .glass {

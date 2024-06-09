@@ -37,3 +37,14 @@
 export function sceneToFloor(scene) {
   return scene === 0 ? '1' : `B${scene}`;
 }
+
+/**
+ * Convert a floor to a scene
+ * Scene levels go 0, 1, 2 ... etc.
+ * Floors adopt US numbering and go 1, B1, B2, B3 ... etc. for basement.
+ * @param {string} floor
+ * @returns {number} scene
+ */
+export function floorToScene(floor) {
+  return floor.startsWith('B') ? parseInt(floor.substring(1)) : 0;
+}
