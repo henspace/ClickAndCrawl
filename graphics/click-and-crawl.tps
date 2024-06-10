@@ -190,6 +190,8 @@
             <key type="filename">tiles/bull00.png</key>
             <key type="filename">tiles/cantrip.png</key>
             <key type="filename">tiles/chain_mail_armour.png</key>
+            <key type="filename">tiles/click00.png</key>
+            <key type="filename">tiles/click01.png</key>
             <key type="filename">tiles/club.png</key>
             <key type="filename">tiles/coins.png</key>
             <key type="filename">tiles/copper_coins.png</key>

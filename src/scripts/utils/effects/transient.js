@@ -112,19 +112,22 @@ export function addFadingAnimatedImage(imageRootName, options) {
  * @param {string} text
  * @param {Object} options
  * @param {string} options.color
+ * @param {string} options.background
  * @param {Point} options.position
  * @param {Velocity} options.velocity
  * @param {Acceleration} options.acceleration
  * @param {number} options.delaySecs
  * @param {number} options.lifetimeSecs
+ * @returns {module:utils/geometry~Dims2D} text bounds.
  */
 export function addFadingText(text, options) {
-  createFadingSprite(
-    new TextSpriteCanvasRenderer(SCREEN.getContext2D(), text, {
-      color: options.color,
-    }),
-    options
-  );
+  const renderer = new TextSpriteCanvasRenderer(SCREEN.getContext2D(), text, {
+    color: options.color,
+    background: options.background,
+  });
+  const dims = renderer.calculateRenderGeometry(text);
+  createFadingSprite(renderer, options);
+  return dims;
 }
 
 /**
@@ -132,9 +135,10 @@ export function addFadingText(text, options) {
  * @param {string} text
  * @param {module:utils/geometry~Position} position
  * @param {string} [color = 'white']
+ * @returns {module:utils/geometry~Dims2D} text bounds.
  */
 export function displayRisingText(text, position, color = 'white') {
-  addFadingText(text, {
+  return addFadingText(text, {
     color: color,
     delaySecs: 2,
     lifetimeSecs: 3,

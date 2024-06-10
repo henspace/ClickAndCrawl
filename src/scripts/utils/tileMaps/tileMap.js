@@ -305,8 +305,8 @@ export class TileMap {
     });
     this.#interactTileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
-        width: gridSize,
-        height: gridSize,
+        width: Math.floor(0.75 * gridSize),
+        height: Math.floor(0.75 * gridSize),
         fillStyle: Colours.INTERACT_HIGHLIGHT_FILL,
         strokeStyle: Colours.INTERACT_HIGHLIGHT_STROKE,
       }),
@@ -574,40 +574,57 @@ export class TileMap {
   /**
    * Set the highlighted routes.
    * @param {*} routes
+   * @param {Position} heroPosition
+   * @returns {Point} position of first move tile.
    */
-  setMovementRoutes(routes) {
+  setMovementRoutes(routes, heroPosition) {
+    let firstPoint;
     this.#movementRoutes = routes;
     if (routes) {
+      const heroPoint = this.worldPointToGrid(heroPosition);
       this.#movementGridPoints = new Map();
       this.#movementRoutes.forEach((gridPoints) =>
         gridPoints.forEach((gridPoint) => {
           this.#movementGridPoints.set(gridPoint, gridPoint);
+          if (!firstPoint && !heroPoint.coincident(gridPoint)) {
+            firstPoint = this.gridPointToWorldPoint(gridPoint);
+          }
         })
       );
     } else {
       this.#movementGridPoints = null;
     }
+    return firstPoint;
   }
 
   /**
    * Set interaction tiles
-   * @param {Actor[]} actors - actors where a reaction can take place.
+   * @param {Actor[]} actors - actors where a reaction can possibly take place.
+   * @returns {Point} position of first found tile. Null if none.
    */
   setInteractActors(actors) {
+    let firstPoint;
     this.#interactTileGridPoints = [];
     actors?.forEach((actor) => {
       if (actor.interaction.canReact()) {
         this.#interactTileGridPoints.push(
           this.worldPointToGrid(actor.position)
         );
+        if (!firstPoint) {
+          firstPoint = new Point(actor.position.x, actor.position.y);
+        }
       }
     });
+    return firstPoint;
   }
 
   /**
    * Recalculate the reachable doors.
+   * @param {module:utils/geometry.Position} position
+   * @returns {{entry: Point, exit:Point}} positions of entry and exit. Undefined if not found.
    */
   calcReachableDoors(heroPosition) {
+    const result = { entry: undefined, exit: undefined };
     this.#reachableDoorTileGridPoints = [];
     const surrounds = this.getSurroundingTiles(
       this.worldPointToGrid(heroPosition)
@@ -616,11 +633,14 @@ export class TileMap {
       (tile) => {
         if (tile.gridPoint.coincident(this.#exitTile.gridPoint)) {
           this.#reachableDoorTileGridPoints.push(tile.gridPoint);
+          result.exit = this.gridPointToWorldPoint(tile.gridPoint);
         } else if (tile.gridPoint.coincident(this.#entranceTile.gridPoint)) {
           this.#reachableDoorTileGridPoints.push(tile.gridPoint);
+          result.entry = this.gridPointToWorldPoint(tile.gridPoint);
         }
       }
     );
+    return result;
   }
 
   /**

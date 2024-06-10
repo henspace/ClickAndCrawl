@@ -45,8 +45,8 @@ export class TimeFader extends AbstractModifier {
 
   /**
    * Create fader.
-   * @param {number} delaySecs - default alignment.
-   * @param {number} lifetimeSecs - default alignment.
+   * @param {number} delaySecs - Time delay before fading.
+   * @param {number} lifetimeSecs - Fading duration.
    * @param {AbstractModifier} decoratedModifier
    */
   constructor(delaySecs, lifetimeSecs, decoratedModifier) {

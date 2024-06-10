@@ -39,6 +39,7 @@ import {
   setCssBaseFontScale,
   getDefaultFontScale,
 } from '../utils/text/fonts.js';
+import { TUTORIAL } from '../tutorial/tutorial.js';
 
 /** Settings */
 const SETTINGS = [
@@ -89,6 +90,22 @@ const SETTINGS = [
     persistent: true,
     action: null,
     onChange: null,
+  },
+  {
+    id: 'HIDE_TUTORIAL',
+    labelKey: 'CONTROL HIDE TUTORIAL',
+    defValue: false,
+    controlType: ControlType.CHECKBOX,
+    persistent: true,
+    action: null,
+    onChange: (value) => {
+      if (value) {
+        TUTORIAL.end();
+      } else {
+        TUTORIAL.start();
+      }
+      return Promise.resolve();
+    },
   },
   {
     id: 'DO_NOT_SCALE',

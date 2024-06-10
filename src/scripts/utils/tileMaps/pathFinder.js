@@ -234,7 +234,7 @@ export class RouteFinder {
    * Get all available routes as a Map of paths.
    * @param {Point} startingGridPoint - starting point
    * @param {*} maxMove - maximum number of moves allowed.
-   * @returns {Map<string, Point[]>}
+   * @returns {Routes}
    */
   getAllRoutesFrom(startingGridPoint, maxMove) {
     this.#routes = new Routes(this.#tileMap);

@@ -82,6 +82,7 @@ const MESSAGE_MAP = new Map([
 
   ['CONTROL DO NOT SCALE', 'Maximum scale 1:1'],
   ['CONTROL EFFECTS VOLUME', 'Effects volume'],
+  ['CONTROL HIDE TUTORIAL', 'Hide tutorial'],
   ['CONTROL UI FONT SCALE', 'UI font scale'],
   ['CONTROL MUSIC VOLUME', 'Music volume'],
   ['CONTROL SHOW QUICK TIPS', 'Show quick tips'],
@@ -661,8 +662,8 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE ENTRANCE STUCK',
     [
-      "The entrance is locked or jammed. You can't tell which, but either way, you can't escape in that direction.",
-      "You can't open the entrance. It seems locked or jammed. There's no way back.",
+      "The entrance is locked or jammed. You can't tell which, but either way, you can't escape in that direction. You need to find the exit.",
+      "You can't open the entrance. It seems locked or jammed. There's no way back. You need to find the exit.",
     ],
   ],
   [
@@ -903,6 +904,12 @@ const MESSAGE_MAP = new Map([
     'TRIGGERS',
     'Content warning: this game is intended for ages 16 and up and contains violence towards fantasy characters, mild horror atmospherics, comic book blood effects, and death of characters.',
   ],
+
+  ['TUTORIAL CLICK ENTRY', ''],
+  ['TUTORIAL CLICK EXIT', ''],
+  ['TUTORIAL CLICK HERO', ''],
+  ['TUTORIAL CLICK INTERACTION', ''],
+  ['TUTORIAL CLICK ROUTE', ''],
 
   // Miscellaneous words and phrases.
   ['AC', 'armour class'],

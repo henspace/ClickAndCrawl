@@ -59,7 +59,8 @@ import { showRunePuzzle } from '../dialogs/runeQuestionDialog.js';
 import { DungeonChallenge } from '../scriptReaders/autoSceneList.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import * as idLimiter from './identifyLimiter.js';
-
+import { Situation, TUTORIAL } from '../tutorial/tutorial.js';
+import * as presenters from '../tutorial/presenters.js';
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
  * if it will bother trying to reach the hero.
@@ -362,6 +363,10 @@ class WaitingToStart extends State {
     } else {
       return Promise.resolve();
     }
+  }
+
+  async onExit() {
+    TUTORIAL.setPresenter(presenters.showTutorialText);
   }
 }
 
@@ -830,7 +835,7 @@ class ComputerTurnInteracting extends State {
  * Prepare hero turn
  * @returns {Promise}
  */
-function prepareHeroTurn() {
+async function prepareHeroTurn() {
   idLimiter.allowIdCheck();
   heroActor.disengaging = false;
   const tileMap = WORLD.getTileMap();
@@ -838,10 +843,62 @@ function prepareHeroTurn() {
     tileMap.worldPointToGrid(heroActor.sprite.position),
     heroActor.getMaxTilesPerMove()
   );
-  tileMap.setMovementRoutes(routes);
-  tileMap.setInteractActors(tileMap.getParticipants(heroActor));
-  tileMap.calcReachableDoors(heroActor.position);
+  const routePoint = tileMap.setMovementRoutes(routes, heroActor.position);
+  const interactionPoint = tileMap.setInteractActors(
+    tileMap.getParticipants(heroActor)
+  );
+  const doorPoints = tileMap.calcReachableDoors(heroActor.position);
+  await showTutorial(
+    routePoint,
+    interactionPoint,
+    doorPoints.entry,
+    doorPoints.exit
+  );
   return Promise.resolve(null);
+}
+
+/**
+ * Show tutorial
+ * @param {Point} routePoint
+ * @param {Point} interactionPoint
+ * @param {Point} entryPoint
+ * @param {Point} exitPoint
+ * @returns {Promise} fulfils to undefined.
+ */
+async function showTutorial(
+  routePoint,
+  interactionPoint,
+  entryPoint,
+  exitPoint
+) {
+  if (entryPoint && TUTORIAL.willPresent(Situation.ENTRY)) {
+    await TUTORIAL.present(Situation.ENTRY, i18n`TUTORIAL CLICK ENTRY`, {
+      position: entryPoint,
+    });
+  } else if (interactionPoint && TUTORIAL.willPresent(Situation.INTERACTION)) {
+    await TUTORIAL.present(
+      Situation.INTERACTION,
+      i18n`TUTORIAL CLICK INTERACTION`,
+      {
+        position: interactionPoint,
+      }
+    );
+  } else if (routePoint && TUTORIAL.willPresent(Situation.MOVEMENT)) {
+    await TUTORIAL.present(Situation.MOVEMENT, i18n`TUTORIAL CLICK ROUTE`, {
+      position: routePoint,
+    });
+  } else if (TUTORIAL.willPresent(Situation.HERO)) {
+    await TUTORIAL.present(Situation.HERO, i18n`TUTORIAL CLICK HERO`, {
+      position: heroActor.position,
+    });
+  } else if (exitPoint && TUTORIAL.willPresent(Situation.EXIT)) {
+    await TUTORIAL.present(Situation.EXIT, i18n`TUTORIAL CLICK EXIT`, {
+      position: exitPoint,
+    });
+  }
+  if (TUTORIAL.isComplete()) {
+    PERSISTENT_DATA.set('HIDE_TUTORIAL', true);
+  }
 }
 
 /**
@@ -1041,6 +1098,9 @@ function triggerEvent(eventId, sprite, detail) {
  */
 function disambiguateFilter(filter, occupant) {
   if (filter === ClickEventFilter.MOVE_OR_INTERACT_TILE) {
+    /* 
+    // This code avoids asking question if the user has already taken an item
+    // but creates a less consistent UX
     if (occupant?.isHiddenArtefact()) {
       const storageDetails = occupant.storeManager.getFirstStorageDetails();
       const artefact = storageDetails?.artefact;
@@ -1050,7 +1110,7 @@ function disambiguateFilter(filter, occupant) {
         return Promise.resolve(ClickEventFilter.MOVEMENT_TILE);
       }
     }
-
+    */
     let message;
     let moveLabel;
     let interactLabel;

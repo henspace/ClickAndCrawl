@@ -192,6 +192,8 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
   text;
   /** @type {string} */
   color;
+  /** @type {string} */
+  background;
 
   /**
    * @param {CanvasRenderingContext2D} context
@@ -199,6 +201,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
    * @param {Object} options
    * @param {string} [options.styleName = 'normal']
    * @param {string} [options.color = 'white']
+   * @param {string} [options.background]
    */
   constructor(
     context,
@@ -209,18 +212,22 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
     this.text = text;
     this.color = options.color;
     this.#styleName = options.styleName;
+    this.background = options.background;
   }
 
   /**
    * Calculate the renderGeometry of the text.
    * @param {string} text
+   * @returns {module:utils/geometry~Dims2D}
    */
-  #calculateRenderGeometry(text) {
+  calculateRenderGeometry(text) {
     this._context.font = fonts.getCss(this.#styleName);
     const metrics = this._context.measureText(text);
+    const height =
+      metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
     this.#renderGeometry = {
       width: metrics.width,
-      height: metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent,
+      height: height,
       origin: {
         x: -0.5 * metrics.width,
         y:
@@ -229,6 +236,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
       },
     };
     this.#lastCalculatedText = text;
+    return { width: metrics.width, height: height };
   }
 
   /**
@@ -237,7 +245,7 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
    */
   _doRender(position) {
     if (this.text !== this.#lastCalculatedText) {
-      this.#calculateRenderGeometry(this.text);
+      this.calculateRenderGeometry(this.text);
     }
     const renderPosition = {
       x: position.x + this.#renderGeometry.origin.x,
@@ -245,16 +253,26 @@ export class TextSpriteCanvasRenderer extends SpriteCanvasRenderer {
       rotation: position.rotation,
     };
 
+    this._boundingBoxCanvas = renderGeometryToRect(
+      position,
+      this.#renderGeometry
+    );
+
+    if (this.background) {
+      this._context.fillStyle = this.background;
+      this._context.fillRect(
+        this._boundingBoxCanvas.x,
+        this._boundingBoxCanvas.y,
+        this._boundingBoxCanvas.width,
+        this._boundingBoxCanvas.height
+      );
+    }
+
     canvasText.writeText(
       this._context,
       this.#lastCalculatedText,
       renderPosition,
       { color: this.color, styleName: this.#styleName }
-    );
-
-    this._boundingBoxCanvas = renderGeometryToRect(
-      position,
-      this.#renderGeometry
     );
   }
 }
