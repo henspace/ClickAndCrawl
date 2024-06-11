@@ -59,7 +59,6 @@ export const AssetUrls = {
     './audio/do-alto-do-trono-da-desolacao-trimmed_mono.mp3', // cspell:disable-line
     import.meta.url
   ),
-  PRIVACY_MD: new URL('./guides/privacy.md', import.meta.url),
   STARTUP_TIPS_MD: new URL('./guides/startupTips.md', import.meta.url),
   QUICK_START_MD: new URL('./guides/quickStart.md', import.meta.url),
   SOUND_EFFECTS_MAP: new Map([
@@ -108,6 +107,13 @@ export const AssetUrls = {
     ],
   ]),
   SPLASH_IMAGE: new URL('./images/click-and-crawl.png', import.meta.url),
+  GUIDE_MOVE: new URL('./images/guide-move.jpg', import.meta.url),
+  GUIDE_ATTACK: new URL('./images/guide-attack.jpg', import.meta.url),
+  GUIDE_HERO: new URL('./images/guide-hero.jpg', import.meta.url),
+  GUIDE_CAST: new URL('./images/guide-cast.jpg', import.meta.url),
+  GUIDE_PORTAL: new URL('./images/guide-portal.jpg', import.meta.url),
+  GUIDE_DOOR: new URL('./images/guide-door.jpg', import.meta.url),
+  GUIDE_TARGET: new URL('./images/guide-target.png', import.meta.url),
 };
 
 /**

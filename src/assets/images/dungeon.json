@@ -485,7 +485,7 @@
 	"frame": {"x":231,"y":1600,"w":20,"h":20},
 	"rotated": false,
 	"trimmed": true,
-	"spriteSourceSize": {"x":23,"y":23,"w":20,"h":20},
+	"spriteSourceSize": {"x":26,"y":26,"w":20,"h":20},
 	"sourceSize": {"w":48,"h":48}
 },
 {
@@ -3055,6 +3055,6 @@
 	"format": "RGBA8888",
 	"size": {"w":494,"h":1625},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:3e2afd86482151127ca60591f176cb68:7cd1249e5ac9a96a9011655da55e7e15:9c0fba27a8a0c106083a8713f6c67b32$"
+	"smartupdate": "$TexturePacker:SmartUpdate:d73aba49793e87b5de98e316902c4fec:e5a88fbadba88071b28953091f16fba7:9c0fba27a8a0c106083a8713f6c67b32$"
 }
 }

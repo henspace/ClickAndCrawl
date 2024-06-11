@@ -250,7 +250,7 @@ class InventoryContainerElement {
         break;
       case InventoryLimitation.READY_MAGIC:
         storesToShow = [
-          { label: i18n`Ready magic`, storeType: StoreType.PREPARED_SPELLS },
+          { label: i18n`Ready spells`, storeType: StoreType.PREPARED_SPELLS },
           { label: i18n`Cantrips`, storeType: StoreType.CANTRIPS },
         ];
         break;

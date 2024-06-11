@@ -171,6 +171,7 @@ a:active {
 .glass-content .action-buttons-row {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 4px;
   justify-content: center;
 }
@@ -188,6 +189,7 @@ a:active {
 
 .action-buttons-row button {
   flex: 1;
+  padding: 0.1rem;
 }
 
 .side-by-side {
@@ -406,4 +408,9 @@ button.uncastable {
   margin-top: calc(0.5 * (0.5rem - 44px));
   border: solid 2px var(--primary-contrast);
   border-radius: 10px;
+}
+
+.parsed-markdown img {
+  display: block;
+  margin: auto;
 }

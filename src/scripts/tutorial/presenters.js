@@ -36,7 +36,7 @@ import { addFadingAnimatedImage } from '../utils/effects/transient.js';
 const WORDS_PER_SECOND = 110 / 60;
 
 /** @type {number} */
-const MIN_READING_SECONDS = 5;
+const MIN_READING_SECONDS = 4;
 
 /**
  * Get the time required to read a line of text.

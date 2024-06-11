@@ -305,8 +305,8 @@ export class TileMap {
     });
     this.#interactTileHighlighter = new Sprite({
       renderer: new RectSpriteCanvasRenderer(context, {
-        width: Math.floor(0.75 * gridSize),
-        height: Math.floor(0.75 * gridSize),
+        width: gridSize - 8,
+        height: gridSize - 8,
         fillStyle: Colours.INTERACT_HIGHLIGHT_FILL,
         strokeStyle: Colours.INTERACT_HIGHLIGHT_STROKE,
       }),

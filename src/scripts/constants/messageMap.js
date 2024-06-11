@@ -27,10 +27,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 const MESSAGE_MAP = new Map([
-  ['BUTTON ABOUT', 'About'],
+  ['BUTTON ABOUT AND PRIVACY', 'About & privacy'],
   ['BUTTON BUY FOR GP', 'Buy for ${0}\u{00A0}GP'],
   ['BUTTON CANCEL', 'Cancel'],
-  ['BUTTON CAST SPELL', 'Cast spell'],
+  ['BUTTON CAST SPELL', 'Cast spells & cantrips'],
   ['BUTTON DELETE MEMORY', 'Delete memory'],
   ['BUTTON CONSUME', 'Consume'],
   ['BUTTON CONTINUE', 'Continue'],
@@ -44,6 +44,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON ENTER DUNGEON', 'Enter if you dare'],
   ['BUTTON EQUIP', 'Equip'],
   ['BUTTON FORGET', 'Forget'],
+  ['BUTTON GETTING STARTED', 'Getting started'],
   ['BUTTON GUIDES', 'About and Help'],
   ['BUTTON HELP', 'Help'],
   ['BUTTON INVENTORY', 'Inventory'],
@@ -566,7 +567,7 @@ const MESSAGE_MAP = new Map([
   ['DIALOG TITLE LOCKED', 'Locked'],
   ['DIALOG TITLE GOLD_PORTAL', 'Use the gold portal'],
 
-  ['DIALOG TITLE PICK SPELL TO CAST', 'Pick spell to cast'],
+  ['DIALOG TITLE PICK SPELL TO CAST', 'Pick magic to cast'],
   ['DIALOG TITLE PILLAGE', 'Pillage corpse'],
   ['DIALOG TITLE PREPARE SPELLS', 'Prepare spells'],
   ['DIALOG TITLE RUNE PUZZLE', 'Where next?'],
@@ -945,7 +946,7 @@ const MESSAGE_MAP = new Map([
   ['PB', 'proficiency bonus'],
   ['Prepared spells', 'Prepared spells'],
   ['Range:', 'Range: ${0-range}'],
-  ['Ready magic', 'Ready magic'],
+  ['Ready spells', 'Ready spells'],
   ['Ring fingers', 'Ring fingers'],
   ['SHORT_RESTS_REMAINING', 'Short rests remaining'],
   ['STR', 'strength'],

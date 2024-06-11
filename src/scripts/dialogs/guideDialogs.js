@@ -40,8 +40,13 @@ import { VERSION } from '../generatedFiles/version.js';
  * It starts by showing the quick start.
  */
 export function showGuideDialog() {
+  const gettingStarted = new TextButtonControl({
+    label: i18n`BUTTON GETTING STARTED`,
+    action: () => showMarkdownDialog(AssetUrls.STARTUP_TIPS_MD),
+  });
+
   const about = new TextButtonControl({
-    label: i18n`BUTTON ABOUT`,
+    label: i18n`BUTTON ABOUT AND PRIVACY`,
     action: () => showMarkdownDialog(AssetUrls.ABOUT_MD),
   });
 
@@ -50,13 +55,8 @@ export function showGuideDialog() {
     action: () => showMarkdownDialog(AssetUrls.HELP_MD),
   });
 
-  const privacy = new TextButtonControl({
-    label: i18n`BUTTON PRIVACY`,
-    action: () => showMarkdownDialog(AssetUrls.PRIVACY_MD),
-  });
-
   return showMarkdownDialog(AssetUrls.QUICK_START_MD, {
-    actionButtons: [help, about, privacy],
+    actionButtons: [gettingStarted, help, about],
   });
 }
 
@@ -73,7 +73,7 @@ export function showMarkdownDialog(url, options = {}) {
     let html;
     let text;
     if (markdown) {
-      html = parseMarkdown(markdown);
+      html = parseMarkdownWithAssetUrls(markdown);
     } else {
       text = i18n`MESSAGE CANNOT LOAD URL ${url.toString()}`;
     }
@@ -94,4 +94,35 @@ export function showMarkdownDialog(url, options = {}) {
       okButtonLabel: options.okButtonLabel,
     });
   });
+}
+
+/**
+ * Markdown parser for markdown containing asset images..
+ * Asset images should be entered in Markdown using normal image markdown, but with the url
+ * set to http://ASSET_URL_KEY_NAME. This will be replaced by AssetUrls[KEY_NAME].
+ * Note the the standard replacement function in parseMarkdown cannot be used as urls
+ * are protected.
+ * @param {string} markdown
+ * @param {string}
+ */
+export function parseMarkdownWithAssetUrls(markdown) {
+  let html = parseMarkdown(markdown, {
+    post: [{ re: /"https?:\/\/ASSET_URL_(\w*?)"/g, rep: assetUrlReplacer }],
+  });
+  return html.replace(/"https?:\/\/ASSET_URL_(\w*?)"/g, assetUrlReplacer);
+}
+
+/**
+ * Replace asset urls. Urls should entered in Markdown with the url
+ * set to http://ASSET_URL_KEY_NAME. This will be replaced by AssetUrls[KEY_NAME].
+ * @param {string} match - the match to the regex.
+ * @param {string} captures - the capture groups.
+ */
+function assetUrlReplacer(match, ...captures) {
+  const keyName = captures[0];
+  if (keyName) {
+    return `"${AssetUrls[keyName]}"`;
+  } else {
+    return '';
+  }
 }

@@ -6,16 +6,9 @@ see how much gold you can make. The success of your exploration is judged by how
 much gold you manage to send back to the townsfolk via the gold portals located
 within the dungeon.
 
-To interact with people and objects, you must be next to them. You can only interact
-with things to your north, south, east or west &mdash; not diagonally.
+Have a look at **Getting started** for basic guidance on moving and interacting.
 
-To interact, just click on the object or monster.
-
-Tip: some objects might be hidden, but they will be highlighted if you are in a position to interact with them.
-
-Explore the dungeon, do what you need to do, find the exit, and then move on to the next floor.
+If you're having problems, check out the **Help** section.
 
 + If you click **Start&nbsp;adventure** or **Continue&nbsp;adventure**, your progress is saved when you complete a room, and if you send back more gold than previous explorers, your adventure will be recorded in the **Hall of Fame**.
 + If you click **Casual&nbsp;exploration**, nothing is saved! Your progress is lost, and there is no chance to make it into the **Hall of Fame**.
-
-A few more tips are in the **Help** guide, but the best way to learn is to get in there and start exploring.
