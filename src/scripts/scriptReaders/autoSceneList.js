@@ -38,6 +38,7 @@ import { sceneToFloor } from '../dnd/floorNumbering.js';
 
 import * as dice from '../utils/dice.js';
 import {
+  createDebugArtefactEntry,
   createDebugHero,
   createDebugEnemyEntry,
 } from '../dnd/almanacs/debugBuilder.js';
@@ -261,6 +262,10 @@ class AutoSceneList {
    * Add artefacts to scene.
    */
   #addArtefacts() {
+    const debugArtefactEntry = createDebugArtefactEntry();
+    if (debugArtefactEntry) {
+      this.#sceneDefn.artefacts.push(debugArtefactEntry);
+    }
     const pooledAlmanac = ALMANAC_LIBRARY.getPooledAlmanac(
       ['ARTEFACTS', 'MAGIC', 'MONEY', 'WEAPONS', 'TRAPS', 'PLANTS'],
       (entry) => entry.minLevel <= this.#index

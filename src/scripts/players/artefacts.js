@@ -1057,6 +1057,7 @@ export class ArtefactStoreManager {
    * @param {Object} options
    * @param {boolean} direct - if true, this can be a new object that does not
    * exist in the stash.
+   * @param {boolean} noAutoUnequip - if true, items will not be unequipped to accommodate this.
    * @returns {boolean} true on success.
    */
   equip(artefact, options = {}) {
@@ -1072,26 +1073,68 @@ export class ArtefactStoreManager {
       LOG.error("Cannot equip artefact as there isn't an equip store.");
       return false;
     }
-    const spaceRequired = artefact.storageSpace;
+    const spaceRequired = equipStore.getRequiredSpace(artefact);
     if (spaceRequired > equipStore.maxSpace) {
       LOG.error('The equip store cannot hold this item.');
       return false;
     }
 
-    const takenArtefact = stashStore?.take(artefact);
-    if (!takenArtefact && !options.direct) {
+    if (!stashStore?.has(artefact) && !options.direct) {
       LOG.error('Could not find artefact in the stash.');
       return false;
     }
 
-    while (equipStore.freeSpace < spaceRequired) {
-      const unequiped = equipStore.takeFirst();
-      stashStore?.add(unequiped);
+    if (!equipStore.canAdd(artefact) && options.noAutoUnequip) {
+      LOG.error('No space to equip and no automatic unequipping permitted.');
+      return false;
     }
-
-    const result = equipStore.add(artefact);
+    const result = this.#autoEquip(artefact, equipStore, stashStore);
     this.#notifyChange();
     return result;
+  }
+
+  /**
+   * Add artefact to the equip store, unequipping existing items if necessary.
+   * @param {Artefact} artefact
+   * @param {ArtefactStore} equipStore
+   * @param {ArtefactStore} stashStore
+   * @returns {boolean} true on success.
+   */
+  #autoEquip(artefact, equipStore, stashStore) {
+    const requiredEquipSpace = equipStore.getRequiredSpace(artefact);
+    if (requiredEquipSpace > equipStore.maxSpace) {
+      LOG.error('The equip store cannot hold this item.');
+      return false;
+    }
+
+    if (!stashStore) {
+      return equipStore.add(artefact);
+    }
+
+    let stashSpace =
+      stashStore.freeSpace + stashStore.getRequiredSpace(artefact);
+
+    const unequipedItems = [];
+    while (equipStore.freeSpace < requiredEquipSpace && stashSpace > 0) {
+      const unequipedItem = equipStore.takeFirst();
+      unequipedItems.push(unequipedItem);
+      stashSpace -= stashStore.getRequiredSpace(unequipedItem);
+    }
+
+    if (equipStore.freeSpace < requiredEquipSpace) {
+      // failed. Put back the unequiped items.
+      for (const item of unequipedItems) {
+        equipStore.add(item);
+      }
+      return false;
+    } else {
+      stashStore.take(artefact);
+      equipStore.add(artefact);
+      for (const item of unequipedItems) {
+        stashStore.add(item);
+      }
+      return true;
+    }
   }
 
   /**
@@ -1119,8 +1162,8 @@ export class ArtefactStoreManager {
       );
       return false;
     }
-    const spaceRequired = artefact.storageSpace;
-    if (spaceRequired > stashStore.freeSpace) {
+
+    if (!stashStore.canAdd(artefact)) {
       LOG.error('The stash store cannot hold this item.');
       return false;
     }

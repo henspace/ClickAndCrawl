@@ -37,6 +37,31 @@ const GANDALPH =
   '0,COMMON,HERO,wizard1 [chain_mail_armour,iron_rations, iron_rations, iron_rations, waterskin, waterskin, waterskin,copper_coins] * NAME:Gandalph,CLASS:WIZARD,HIT_DICE:1D8,EXP:0, AC:10,_SPEED:30 FEET';
 
 /**
+ * Create a findable artefact depending on what is passed in the URL.
+ *  @returns {module:dnd/almanacs~AlmanacEntry} undefined if not created.
+ */
+export function createDebugArtefactEntry() {
+  if (window.location.hostname !== 'localhost') {
+    return;
+  }
+  const searchParams = new URLSearchParams(window.location.search);
+  const artefactId = searchParams.get('ARTEFACT');
+  if (artefactId) {
+    const almanac = almanacs.ALMANAC_LIBRARY.getPooledAlmanac([
+      'ARTEFACTS',
+      'MAGIC',
+      'MONEY',
+      'WEAPONS',
+      'TRAPS',
+      'PLANTS',
+    ]);
+    return almanac?.find((entry) => entry.id === artefactId);
+  } else {
+    return;
+  }
+}
+
+/**
  * Create a hero depending on what is passed on the URL.
  * @returns {module:dnd/almanacs~AlmanacEntry}
  */

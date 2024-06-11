@@ -92,7 +92,7 @@ export const AssetUrls = {
       'TRIGGER TRAP',
       new URL('./audio/metal-blade-slice-32-195321_mono.mp3', import.meta.url),
     ],
-    ['SPELL_CHANT', new URL('./audio/spell_chant_mono.mp3', import.meta.url)],
+    ['SPELL_CHANT', new URL('./audio/spell_chant2_mono.mp3', import.meta.url)],
     [
       'DOOR_EXIT',
       new URL('./audio/door-43633_trimmed_exit_mono.mp3', import.meta.url),

@@ -582,7 +582,15 @@ const MESSAGE_MAP = new Map([
     'MESSAGE ACHIEVEMENTS',
     'You managed to reach floor ${0-floor} and sent back ${1}\u{00A0}GP to the struggling townsfolk beyond these dungeon walls.',
   ],
+  [
+    'MESSAGE CANNOT EQUIP ITEM OR STASH',
+    'This item is too large for your backpack and you are already wearing something else. Get rid of the other item first.',
+  ],
   ['MESSAGE CANNOT LOAD URL', 'Cannot load data from ${0}'],
+  [
+    'MESSAGE CANNOT PILLAGE NO SPACE',
+    "You can't pillage this as you have no space available.",
+  ],
   [
     'MESSAGE CANNOT REST SHORT NEED LONG REST',
     "You've had too many short rests. You need to take a long rest first.",
@@ -734,6 +742,10 @@ const MESSAGE_MAP = new Map([
   [
     'MESSAGE MAKE SPACE IN EQUIP',
     "This is too big to store. Sell or discard what you're wearing so you can wear this.",
+  ],
+  [
+    'MESSAGE UNEQUIP TO MAKE SPACE TO EQUIP',
+    'You need to make space in your backpack for the weapons you are already wielding. Alternatively, you may need to discard them.',
   ],
   ['MESSAGE MEMORY DELETED', 'The memory has been deleted.'],
   [

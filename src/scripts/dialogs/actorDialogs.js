@@ -1564,9 +1564,14 @@ export function showArtefactDialog(options) {
           sourceStoreManager.discard(artefact);
           break;
         case ArtefactAction.PREPARE_SPELL:
-        case ArtefactAction.EQUIP:
-          destStoreManager.equip(artefact);
+        case ArtefactAction.EQUIP: {
+          if (!destStoreManager.equip(artefact)) {
+            return UI.showOkDialog(
+              i18n`MESSAGE UNEQUIP TO MAKE SPACE TO EQUIP`
+            );
+          }
           break;
+        }
         case ArtefactAction.LEARN_SPELL:
           if (
             artefact.isMagic() &&
@@ -1584,9 +1589,13 @@ export function showArtefactDialog(options) {
           break;
         case ArtefactAction.PILLAGE:
           {
-            sourceStoreManager.discard(artefact);
             const store = destStoreManager.findSuitableStore(artefact);
-            store.add(artefact);
+            if (store) {
+              sourceStoreManager.discard(artefact);
+              store.add(artefact);
+            } else {
+              return UI.showOkDialog(i18n`MESSAGE CANNOT PILLAGE NO SPACE`);
+            }
           }
           break;
         case ArtefactAction.SELL:
@@ -1608,7 +1617,7 @@ export function showArtefactDialog(options) {
           break;
         case ArtefactAction.STASH:
           if (!destStoreManager.stash(artefact)) {
-            UI.showOkDialog(
+            return UI.showOkDialog(
               options.prospectiveOwner.isTrader()
                 ? i18n`MESSAGE TRADER CANNOT STASH`
                 : i18n`MESSAGE CANNOT STASH`
@@ -1616,12 +1625,20 @@ export function showArtefactDialog(options) {
           }
           break;
         case ArtefactAction.TAKE:
-          sourceStoreManager?.discard(artefact); // store manager could be null for programmatically created artefact.
           if (artefact.stashInWagon && !destStoreManager.hasWagon) {
-            destStoreManager.equip(artefact, { direct: true });
-          } else {
-            destStoreManager.stash(artefact, { direct: true });
+            if (
+              !destStoreManager.equip(artefact, {
+                direct: true,
+                noAutoUnequip: true,
+              })
+            ) {
+              return UI.showOkDialog(i18n`MESSAGE CANNOT EQUIP ITEM OR STASH`);
+            }
+          } else if (!destStoreManager.stash(artefact, { direct: true })) {
+            return UI.showOkDialog(i18n`MESSAGE CANNOT STASH`);
           }
+
+          sourceStoreManager?.discard(artefact); // store manager could be null for programmatically created artefact.
 
           break;
         case ArtefactAction.USE:
