@@ -34,6 +34,7 @@ import { LoopMethod } from '../utils/arrays/indexer.js';
 import { CameraTracking } from '../utils/game/camera.js';
 import { Point } from '../utils/geometry.js';
 import { showSettingsDialog } from '../dialogs/settingsDialog.js';
+import { showGuideDialog } from '../dialogs/guideDialogs.js';
 import LOG from '../utils/logging.js';
 /**
  * @type {number}
@@ -72,7 +73,13 @@ export class NavigationButtons {
   constructor(cameraDolly, gridSize, locationNav, locationFullscreen) {
     this.#cameraDolly = cameraDolly;
     this.#createButtonSet(gridSize, locationNav, false);
-    this.#createSettingsButton(gridSize, locationFullscreen);
+    const settingsButton = this.#createSettingsButton(
+      gridSize,
+      locationFullscreen
+    );
+    const helpButton = this.#createHelpButton(gridSize, locationFullscreen);
+    helpButton.position.x = settingsButton.position.x + gridSize;
+    helpButton.position.y = settingsButton.position.y;
     /* not required
     this.#createFullscreenButton(gridSize, locationFullscreen, {
       x: gridSize,
@@ -83,6 +90,9 @@ export class NavigationButtons {
 
   /**
    * Create the button to handle showing settings.
+   * @param {number} gridSize
+   * @param {NavigationLocation} location
+   * @returns {module:players/actors.Actor}
    */
   #createSettingsButton(gridSize, location) {
     const buttonImage = new AnimatedImage(
@@ -101,6 +111,31 @@ export class NavigationButtons {
     const centre = this.#getLocationPoint(gridSize, location, 1);
     settingsButton.position.x = centre.x;
     settingsButton.position.y = centre.y;
+    return settingsButton;
+  }
+
+  /**
+   * Create the button to handle showing help.
+   * @param {number} gridSize
+   * @param {NavigationLocation} location
+   * @returns {module:players/actors.Actor}
+   */
+  #createHelpButton(gridSize, location) {
+    const buttonImage = new AnimatedImage(
+      {
+        prefix: 'ui-guides',
+        startIndex: 0,
+        padding: 2,
+        suffix: '.png',
+      },
+      { framePeriodMs: 1, loopMethod: LoopMethod.STOP }
+    );
+
+    const helpButton = HUD.addButton(buttonImage, () => showGuideDialog());
+    const centre = this.#getLocationPoint(gridSize, location, 1);
+    helpButton.position.x = centre.x;
+    helpButton.position.y = centre.y;
+    return helpButton;
   }
 
   /**

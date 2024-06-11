@@ -59,8 +59,7 @@ import { showRunePuzzle } from '../dialogs/runeQuestionDialog.js';
 import { DungeonChallenge } from '../scriptReaders/autoSceneList.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import * as idLimiter from './identifyLimiter.js';
-import { Situation, TUTORIAL } from '../tutorial/tutorial.js';
-import * as presenters from '../tutorial/presenters.js';
+
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
  * if it will bother trying to reach the hero.
@@ -363,10 +362,6 @@ class WaitingToStart extends State {
     } else {
       return Promise.resolve();
     }
-  }
-
-  async onExit() {
-    TUTORIAL.setPresenter(presenters.showTutorialText);
   }
 }
 
@@ -843,62 +838,11 @@ async function prepareHeroTurn() {
     tileMap.worldPointToGrid(heroActor.sprite.position),
     heroActor.getMaxTilesPerMove()
   );
-  const routePoint = tileMap.setMovementRoutes(routes, heroActor.position);
-  const interactionPoint = tileMap.setInteractActors(
-    tileMap.getParticipants(heroActor)
-  );
-  const doorPoints = tileMap.calcReachableDoors(heroActor.position);
-  await showTutorial(
-    routePoint,
-    interactionPoint,
-    doorPoints.entry,
-    doorPoints.exit
-  );
-  return Promise.resolve(null);
-}
+  tileMap.setMovementRoutes(routes, heroActor.position);
+  tileMap.setInteractActors(tileMap.getParticipants(heroActor));
+  tileMap.calcReachableDoors(heroActor.position);
 
-/**
- * Show tutorial
- * @param {Point} routePoint
- * @param {Point} interactionPoint
- * @param {Point} entryPoint
- * @param {Point} exitPoint
- * @returns {Promise} fulfils to undefined.
- */
-async function showTutorial(
-  routePoint,
-  interactionPoint,
-  entryPoint,
-  exitPoint
-) {
-  if (entryPoint && TUTORIAL.willPresent(Situation.ENTRY)) {
-    await TUTORIAL.present(Situation.ENTRY, i18n`TUTORIAL CLICK ENTRY`, {
-      position: entryPoint,
-    });
-  } else if (interactionPoint && TUTORIAL.willPresent(Situation.INTERACTION)) {
-    await TUTORIAL.present(
-      Situation.INTERACTION,
-      i18n`TUTORIAL CLICK INTERACTION`,
-      {
-        position: interactionPoint,
-      }
-    );
-  } else if (routePoint && TUTORIAL.willPresent(Situation.MOVEMENT)) {
-    await TUTORIAL.present(Situation.MOVEMENT, i18n`TUTORIAL CLICK ROUTE`, {
-      position: routePoint,
-    });
-  } else if (TUTORIAL.willPresent(Situation.HERO)) {
-    await TUTORIAL.present(Situation.HERO, i18n`TUTORIAL CLICK HERO`, {
-      position: heroActor.position,
-    });
-  } else if (exitPoint && TUTORIAL.willPresent(Situation.EXIT)) {
-    await TUTORIAL.present(Situation.EXIT, i18n`TUTORIAL CLICK EXIT`, {
-      position: exitPoint,
-    });
-  }
-  if (TUTORIAL.isComplete()) {
-    PERSISTENT_DATA.set('HIDE_TUTORIAL', true);
-  }
+  return Promise.resolve(null);
 }
 
 /**
