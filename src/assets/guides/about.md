@@ -36,7 +36,7 @@ The following fonts are licensed under the [Open font license](https://openfontl
 
 ## Music and sounds 
 
-The following sounds are licensed under the [Pixabay license](https://pixabay.com/service/license-summary/).
+The following sounds are used under the terms of the [Pixabay license](https://pixabay.com/service/license-summary/).
 
 - Background music: trimmed version of [Do alto do Trono da Desolação](https://pixabay.com/music/mystery-do-alto-do-trono-da-desolacao-173741/) by [Composiia](https://pixabay.com/users/composiia-38203768/) via Pixabay
 - Bubbling sound: trimmed version of [Bubbling](https://pixabay.com/sound-effects/bubbling-6184/) by Pixabay via Pixabay
@@ -46,6 +46,14 @@ The following sounds are licensed under the [Pixabay license](https://pixabay.co
 - Male hurt sound: trimmed version of [Male hurt sound](https://pixabay.com/sound-effects/male-hurt-sound-95206/) Pixabay via Pixabay.
 - Sword swish: trimmed version of [Long, medium swish](https://pixabay.com/sound-effects/long-medium-swish-44324/) by Pixabay via Pixabay
 - Zombie sound: edited version of [Zombie](https://pixabay.com/sound-effects/search/zombie/) by Pixabay via Pixabay
+
+# Photos and images
+
+The following images are used under the terms of the [Unsplash license](https://unsplash.com/license).
+
+- Tunnel with light: based on original photo by [Sergei Vasilenko](https://unsplash.com/@serj_o) on [Unsplash](https://unsplash.com/photos/tunnel-with-light-turned-on-during-daytime-VoABFInlKjY)
+- Wall: based on original photo by [Markus Kröger](https://unsplash.com/@xmarkese) on [Unsplash](https://unsplash.com/photos/brown-leaves-on-the-ground-Dx92En1Slhg).
+
 
 # Privacy
 
