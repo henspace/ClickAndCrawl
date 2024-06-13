@@ -39,6 +39,7 @@ import {
   setCssBaseFontScale,
   getDefaultFontScale,
 } from '../utils/text/fonts.js';
+import { deleteAllCaches } from '../serviceWorkers/serviceWorkerRegistration.js';
 
 /** Settings */
 const SETTINGS = [
@@ -131,6 +132,7 @@ function deleteMemory() {
   ).then((choice) => {
     if (choice === 0) {
       PERSISTENT_DATA.clearAll();
+      deleteAllCaches();
       return UI.showOkDialog(i18n`MESSAGE MEMORY DELETED`);
     }
   });

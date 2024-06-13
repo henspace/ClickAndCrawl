@@ -29,6 +29,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 import { VERSION } from './generatedFiles/version.js';
+import { registerServiceWorker } from './serviceWorkers/serviceWorkerRegistration.js';
 import './utils/polyfills/string.js';
 import LOG from './utils/logging.js';
 import GAME from './gameManagement/game.js';
@@ -104,6 +105,7 @@ function logDebugInfo() {
 window.addEventListener('load', () => {
   logDebugInfo();
   FeatureSupportTest.testSupportedFeatures('p');
+  registerServiceWorker();
   const DESIGN_WIDTH = 800;
   const DESIGN_HEIGHT = 600;
 

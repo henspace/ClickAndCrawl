@@ -1,6 +1,6 @@
 {
   "name": "ClickAndCrawl",
-  "version": "1.0.8-beta",
+  "version": "1.0.10-beta",
   "description": "An old school casual dungeon crawler.",
   "source": "src/index.html",
   "browserslist": [
@@ -9,7 +9,7 @@
   "scripts": {
     "createVersion": "node ./tools/createVersion.js ./package.json ./src/scripts/generatedFiles/version.js",
     "prebuild": "npm run createVersion && node ./tools/cleanDir.js ./buildDebug && node ./tools/cleanDir.js ./buildProd",
-    "build": "parcel build --dist-dir buildDebug --public-url . && parcel build --no-source-maps --dist-dir buildProd --public-url . ",
+    "build": "parcel build --dist-dir buildDebug/clickandcrawl --public-url . && parcel build --no-source-maps --dist-dir buildProd/clickandcrawl --public-url . ",
     "serveBuildDebug": "node ./tools/server/server.js ./buildDebug 8081",
     "serveBuildProd": "node ./tools/server/server.js ./buildProd 8081",
     "start": "parcel src/index.html",
@@ -30,6 +30,7 @@
   "type": "module",
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.12.0",
+    "@parcel/service-worker": "^2.12.0",
     "@parcel/transformer-webmanifest": "^2.12.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

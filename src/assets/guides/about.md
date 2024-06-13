@@ -73,6 +73,7 @@ The following data are stored using your browser's [localStorage](https://develo
 + Settings for the application
 + Adventure progress
 + Hall of fame; this only holds your own personal adventures and is not shared anywhere or with anyone else.
++ Cache: the browser's cache storage is used to allow offline use.
 
 No cookies are used by the application.
 

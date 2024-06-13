@@ -122,10 +122,10 @@ class SoundManager {
     if (this.#music) {
       this.#music.volume = this.#musicVolume;
       if (currentVolume < 0.001 && this.#musicVolume >= 0.001) {
-        LOG.info('Restarted playing music because of volume change.');
+        LOG.debug('Restarted playing music because of volume change.');
         this.#music.play();
       } else if (this.#musicVolume < 0.001) {
-        LOG.info('Paused playing music because of low volume.');
+        LOG.debug('Paused playing music because of low volume.');
         this.#music.pause();
       }
     }
@@ -139,10 +139,10 @@ class SoundManager {
       return;
     }
     if (this.#musicVolume >= 0.001) {
-      LOG.info('Restarted playing music.');
+      LOG.debug('Restarted playing music.');
       this.#music.play();
     } else {
-      LOG.info('Volume too low to start playing music.');
+      LOG.debug('Volume too low to start playing music.');
     }
   }
 
