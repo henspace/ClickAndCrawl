@@ -1306,11 +1306,13 @@ function createArtefactButtonLabel(options) {
       label = `${label}; ${diceLabel}${dice}`;
     }
     let rangeText;
+    let direction = traits.get('DIRECTION', 'NSEW');
     const range = traits.get('RANGE', '0');
     if (maths.safeParseInt(range, 0) === 0) {
       rangeText = i18n`ACTS ON CASTER`;
     } else if (range) {
-      rangeText = i18n`Range: ${range}`;
+      rangeText = i18n`Range: ${range.toLowerCase()}`;
+      rangeText += ' ' + MESSAGES.getText(direction);
     }
 
     label = `${label}; ${rangeText}`;

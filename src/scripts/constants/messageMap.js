@@ -152,7 +152,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'DESCRIPTION CHILL_TOUCH',
-    'You create a ghostly skeletal hand on a creature you can touch and assail it with the chill of the grave.',
+    'You create a ghostly skeletal hand above a creature within your range and assail it with the chill of the grave.',
   ],
   [
     'DESCRIPTION CIRCLE_OF_DEATH',
@@ -950,6 +950,7 @@ const MESSAGE_MAP = new Map([
   ['NSEW', 'north-south-east-west'],
   ['PB', 'proficiency bonus'],
   ['Prepared spells', 'Prepared spells'],
+  ['RADIAL', 'radial'],
   ['Range:', 'Range: ${0-range}'],
   ['Ready spells', 'Ready spells'],
   ['Ring fingers', 'Ring fingers'],
