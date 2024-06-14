@@ -936,7 +936,7 @@ function startNextScene(currentState) {
     return currentState.transitionTo(new AtGameCompleted());
   }
   return SCENE_MANAGER.unloadCurrentScene()
-    .then(() => actorDialogs.showRestDialog(heroActor))
+    .then(() => actorDialogs.showRestDialog(heroActor, persistentGame))
     .then((response) => {
       if (response === 'MAIN MENU') {
         return Promise.reject('MAIN_MENU');

@@ -783,6 +783,7 @@ const MESSAGE_MAP = new Map([
     'MESSAGE NOTHING MORE TO DISCOVER',
     "There's nothing more for you to learn or discover here.",
   ],
+  ['MESSAGE PROGRESS HAS BEEN SAVED', 'Your current progress has been saved.'],
   [
     'MESSAGE REQUIRES RESTART',
     'Change will take place when the game is next reloaded.',

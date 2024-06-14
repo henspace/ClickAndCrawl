@@ -1677,12 +1677,24 @@ function identifyArtefact(options) {
 /**
  * Show the rest dialog for the hero
  * @param {module:players/actors.Actor} actor} heroActor
- * @param {boolean} allowMainMenu - add another button to go to main menu.
+ * @param {boolean} [progressSaved = false] - has progress been saved.
+ * @param {boolean} [allowMainMenu = false] - add another button to go to main menu.
  * @returns {Promise<string>} fulfils to 'MAIN MENU' if return to main menu selected;
  */
-export function showRestDialog(heroActor, allowMainMenu = false) {
+export function showRestDialog(
+  heroActor,
+  progressSaved = false,
+  allowMainMenu = false
+) {
   const messageContainer = components.createElement('div');
   const nextFloor = sceneToFloor(SCENE_MANAGER.getCurrentSceneLevel() + 1);
+  if (progressSaved) {
+    messageContainer.appendChild(
+      components.createElement('p', {
+        text: i18n`MESSAGE PROGRESS HAS BEEN SAVED`,
+      })
+    );
+  }
   messageContainer.appendChild(
     components.createElement('p', {
       text: i18n`MESSAGE REST DIALOG ${nextFloor}`,
