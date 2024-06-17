@@ -1,7 +1,7 @@
 /**
- * @file Handle registration of service worker.
+ * @file Test geometry
  *
- * @module serviceWorkers/serviceWorkerRegistration
+ * @module utils/geometry.test
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -27,31 +27,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as serviceWorker from '../../service-worker.js';
-import SERVICE_WORKER_SUPPORT from './serviceWorkerSupport.js';
+import { test, expect } from '@jest/globals';
+import * as geometry from './geometry.js';
 
-/**
- * Register the service worker.
- */
-export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register(new URL('../../service-worker.js', import.meta.url), {
-        type: 'module',
-      })
-      .then((registration) => {
-        console.info('Service worker registration successful: ', registration);
-      })
-      .catch((registrationError) => {
-        console.error(
-          'Service worker registration failed: ',
-          registrationError
-        );
-      });
-    SERVICE_WORKER_SUPPORT.setDeleteAllCachesFunction(
-      serviceWorker.deleteAllCaches
-    );
-  } else {
-    console.info('Service workers not supported by this browser.');
+test('separation', () => {
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      for (let ox = -1; ox <= 1; ox++) {
+        for (let oy = -1; oy <= 1; oy++) {
+          const point = new geometry.Point(x, y);
+          const other = new geometry.Point(ox, oy);
+          const sep = Math.sqrt((x - ox) ** 2 + (y - oy) ** 2);
+          expect(point.getSeparation(other)).toBeCloseTo(sep, 4);
+        }
+      }
+    }
   }
-}
+});

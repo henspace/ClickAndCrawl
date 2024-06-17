@@ -246,6 +246,8 @@ export class TileMap {
   #gridSize;
   #width;
   #height;
+  /** @type {boolean} */
+  highlightsOn;
   /** @type {module:utils/tileMaps/pathFinder~Routes} */
   #movementRoutes;
   /** @type {Point[]} */
@@ -358,6 +360,7 @@ export class TileMap {
     if (!this.#exitTile) {
       throw new Error('No exit tile.');
     }
+    this.highlightsOn = true;
   }
 
   /**
@@ -428,7 +431,9 @@ export class TileMap {
    * @param {number} deltaSeconds - elapsed time.
    */
   updateHighlights(deltaSeconds) {
-    this.#highlightTiles(deltaSeconds);
+    if (this.highlightsOn) {
+      this.#highlightTiles(deltaSeconds);
+    }
   }
   /**
    * Set up the ray tracer if not already set.

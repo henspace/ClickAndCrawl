@@ -1,7 +1,7 @@
 /**
- * @file Handle registration of service worker.
+ * @file Support utilities for the service worker.
  *
- * @module serviceWorkers/serviceWorkerRegistration
+ * @module serviceWorkers/serviceWorkerSupport
  */
 /**
  * license {@link https://opensource.org/license/mit/|MIT}
@@ -27,31 +27,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as serviceWorker from '../../service-worker.js';
-import SERVICE_WORKER_SUPPORT from './serviceWorkerSupport.js';
+/**
+ * Function that can be called to delete all caches in the service worker.
+ * Created in this utility to all modules that would not need to know about
+ * the service worker implementation from being directly linked to the @parcel
+ * service-worker utilities which cause issues with jest.
+ * @param {function} fn
+ */
+let deleteAllCaches;
 
 /**
- * Register the service worker.
+ * Service worker support object.
  */
-export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register(new URL('../../service-worker.js', import.meta.url), {
-        type: 'module',
-      })
-      .then((registration) => {
-        console.info('Service worker registration successful: ', registration);
-      })
-      .catch((registrationError) => {
-        console.error(
-          'Service worker registration failed: ',
-          registrationError
-        );
-      });
-    SERVICE_WORKER_SUPPORT.setDeleteAllCachesFunction(
-      serviceWorker.deleteAllCaches
-    );
-  } else {
-    console.info('Service workers not supported by this browser.');
-  }
-}
+const SERVICE_WORKER_SUPPORT = {
+  setDeleteAllCachesFunction: (fn) => (deleteAllCaches = fn),
+  deleteAllCaches: () => deleteAllCaches?.(),
+};
+
+export default SERVICE_WORKER_SUPPORT;

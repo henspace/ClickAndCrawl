@@ -1,6 +1,6 @@
 {
   "name": "ClickAndCrawl",
-  "version": "1.0.11-beta",
+  "version": "1.0.12-beta",
   "description": "An old school casual dungeon crawler.",
   "source": "src/index.html",
   "browserslist": [
@@ -13,7 +13,8 @@
     "serveBuildDebug": "node ./tools/server/server.js ./buildDebug 8081",
     "serveBuildProd": "node ./tools/server/server.js ./buildProd 8081",
     "start": "parcel src/index.html",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./src",
+    "test": "node --trace-warnings --experimental-vm-modules node_modules/jest/bin/jest.js ./src/scripts",
+    "testfile": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "doc": "jsdoc -c jsdoc.json"
   },
   "keywords": [
@@ -25,7 +26,13 @@
   "license": "MIT",
   "private": true,
   "jest": {
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testPathIgnorePatterns": [
+      "service-worker[.]js",
+      "serviceWorkerRegistration[.]js",
+      "index[.]js",
+      "src/scripts/dialogs/settingsDialog[.]js"
+    ]
   },
   "type": "module",
   "devDependencies": {

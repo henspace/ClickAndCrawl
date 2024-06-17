@@ -583,6 +583,7 @@ class HeroTurnIdle extends State {
    * @param {Object} [detail = {}] - object will depend on the eventId
    */
   async onEvent(eventId, point, detail = {}) {
+    WORLD.getTileMap().highlightsOn = false;
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
@@ -656,6 +657,7 @@ class HeroTurnInteracting extends State {
    * @param {Object} [detail = {}] - object will depend on the eventId
    */
   async onEvent(eventId, point, detail = {}) {
+    WORLD.getTileMap().highlightsOn = false;
     switch (eventId) {
       case EventId.CLICKED_FREE_GROUND:
         {
@@ -663,6 +665,7 @@ class HeroTurnInteracting extends State {
             detail.filter,
             detail.occupant
           );
+
           if (filter === ClickEventFilter.INTERACT_TILE) {
             await interact(point);
           } else if (filter === ClickEventFilter.OCCUPIED_TILE) {
@@ -841,7 +844,7 @@ async function prepareHeroTurn() {
   tileMap.setMovementRoutes(routes, heroActor.position);
   tileMap.setInteractActors(tileMap.getParticipants(heroActor));
   tileMap.calcReachableDoors(heroActor.position);
-
+  tileMap.highlightsOn = true;
   return Promise.resolve(null);
 }
 

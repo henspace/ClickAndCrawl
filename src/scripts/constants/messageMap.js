@@ -55,7 +55,7 @@ const MESSAGE_MAP = new Map([
   ['BUTTON MAIN MENU', 'Main menu'],
   ['BUTTON MOVE', 'Move'],
   ['BUTTON OK', 'OK'],
-  ['BUTTON PILLAGE', 'Stash'],
+  ['BUTTON PILLAGE', 'Pillage'],
   ['BUTTON PLAY ADVENTURE', 'Start adventure'],
   ['BUTTON PLAY CASUAL', 'Casual exploration'],
   ['BUTTON PRIVACY', 'Privacy'],
@@ -73,12 +73,12 @@ const MESSAGE_MAP = new Map([
   ['BUTTON STEAL', 'Steal'],
   ['BUTTON TRAP DISABLE', 'Try to disable'],
   ['BUTTON TRAP LEAVE', 'Leave it alone'],
-  ['BUTTON TAKE ARTEFACT', 'Stash'],
+  ['BUTTON TAKE ARTEFACT', 'Take'],
   ['BUTTON TRADE', 'Trade'],
   ['BUTTON TRAITS', 'Traits'],
   ['BUTTON TRY AGAIN', 'Try again'],
   ['BUTTON TRY TO PICK', 'Pick lock'],
-
+  ['BUTTON UNEQUIP', 'Unequip'],
   ['BUTTON USE', 'Use'],
 
   ['CONTROL DO NOT SCALE', 'Maximum scale 1:1'],

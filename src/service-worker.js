@@ -1,7 +1,7 @@
 /**
  * @file Service worker
  *
- * @module serviceWorkers/service-worker
+ * @module service-worker
  */
 /**
  * Code from example Parceljs service worker {@link https://parceljs.org/languages/javascript/#service-workers}

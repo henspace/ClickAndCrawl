@@ -123,6 +123,17 @@ export class Point {
     const dy = this.y - other.y;
     return Math.pow(dx, 2) + Math.pow(dy, 2) <= Math.pow(distance, 2);
   }
+
+  /**
+   * Get the direct separation.
+   * @param {Point} other
+   * @returns {number}
+   */
+  getSeparation(other) {
+    const sepX = this.x - other.x;
+    const sepY = this.y - other.y;
+    return Math.sqrt(sepX * sepX + sepY * sepY);
+  }
   /**
    * Get the absolute orthogonal separation between this and the other point.
    * The separation is calculated by move in the x direction followed by the

@@ -72,6 +72,7 @@ const ArtefactAction = {
   TAKE: 'take',
   SELL: 'sell',
   PILLAGE: 'pillage',
+  UNEQUIP: 'unequip', //pseudonym for stash as we don't have a separate stash
   USE: 'use',
 };
 
@@ -409,18 +410,18 @@ function showTraits(actor) {
 function showRestActionDialog(actor) {
   const store = actor.storeManager.getStore(StoreType.BACKPACK);
 
-  const meals = [];
+  const food = [];
   const drinks = [];
-  store.values().forEach((item) => {
+  for (const item of store.values()) {
     if (artefactTypesEqual(item.artefactType, ArtefactType.CONSUMABLE)) {
       const type = item.traits.get('TYPE');
-      if (type === 'MEAL') {
-        meals.push(item);
+      if (type === 'FOOD') {
+        food.push(item);
       } else if (type === 'DRINK') {
         drinks.push(item);
       }
     }
-  });
+  }
 
   const messageContainer = document.createElement('div');
   messageContainer.appendChild(createIdCard(actor));
@@ -433,7 +434,7 @@ function showRestActionDialog(actor) {
   let longIndex = -1;
 
   const restDetails = dndAction.canRest(
-    meals.length,
+    food.length,
     drinks.length,
     actor.traits
   );
@@ -475,14 +476,14 @@ function showRestActionDialog(actor) {
     choices
   ).then((choice) => {
     if (choice === shortIndex) {
-      discardItemsFromStore(store, meals, dndAction.MEALS_FOR_SHORT_REST);
+      discardItemsFromStore(store, food, dndAction.FOOD_ITEMS_FOR_SHORT_REST);
       discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_SHORT_REST);
       const result = dndAction.takeRest(actor, 'SHORT');
       return UI.showOkDialog(
         i18n`MESSAGE REST SHORT HP GAIN ${result.newHp - result.oldHp}`
       );
     } else if (choice === longIndex) {
-      discardItemsFromStore(store, meals, dndAction.MEALS_FOR_LONG_REST);
+      discardItemsFromStore(store, food, dndAction.FOOD_ITEMS_FOR_LONG_REST);
       discardItemsFromStore(store, drinks, dndAction.DRINKS_FOR_LONG_REST);
       const result = dndAction.takeRest(actor, 'LONG');
       return showPrepareSpellsDialog(actor).then(() =>
@@ -857,8 +858,8 @@ function createStandardArtefactButtons(options) {
   ) {
     buttons.push(
       new components.TextButtonControl({
-        label: i18n`BUTTON STASH`,
-        closes: ArtefactAction.STASH,
+        label: i18n`BUTTON UNEQUIP`,
+        closes: ArtefactAction.UNEQUIP,
       })
     );
   }
@@ -1617,6 +1618,7 @@ export function showArtefactDialog(options) {
             }
           }
           break;
+        case ArtefactAction.UNEQUIP:
         case ArtefactAction.STASH:
           if (!destStoreManager.stash(artefact)) {
             return UI.showOkDialog(

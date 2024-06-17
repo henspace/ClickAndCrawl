@@ -829,7 +829,7 @@ test('CharacterTraits.getNonMeleeSaveAbilityModifier', () => {
 
   expect(
     characterTraits.getNonMeleeSaveAbilityModifier(new traits.Traits('STR:10'))
-  ).toEqual(0);
+  ).toEqual(abilityToModifier(dexAbility));
 });
 
 test('CharacterTraits.getCharacterPb', () => {

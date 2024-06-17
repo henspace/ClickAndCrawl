@@ -68,6 +68,8 @@ export class AttackDetail {
   #twoWeaponFighting;
   /** @type {boolean} */
   unarmed;
+  /** @type {boolean} */
+  disadvantage;
 
   /**
    *
@@ -93,6 +95,7 @@ export class AttackDetail {
     }
     this.proficiencyBonus = options?.proficiencyBonus ?? 0;
     this.abilityModifier = options?.abilityModifier ?? 0;
+    this.disadvantage = options.disadvantage;
   }
 
   /**
@@ -128,7 +131,13 @@ export class AttackDetail {
    * @returns {{roll:number, value: number}}
    */
   rollForAttack() {
-    const roll = dice.rollDice(20);
+    let roll;
+    if (this.disadvantage) {
+      LOG.info('Disadvantage on attack roll!');
+      roll = Math.min(dice.rollDice(20), dice.rollDice(20));
+    } else {
+      roll = dice.rollDice(20);
+    }
     LOG.info(
       `Attack roll ${roll} + ability(${this.abilityModifier})+ proficiency(${this.proficiencyBonus})`
     );
@@ -167,6 +176,7 @@ export class AttackDetail {
     attackDetail.proficiencyBonus = this.proficiencyBonus;
     attackDetail.#twoWeaponFighting = this.#twoWeaponFighting;
     attackDetail.unarmed = this.unarmed;
+    attackDetail.disadvantage = this.disadvantage;
     return attackDetail;
   }
 }
@@ -861,16 +871,14 @@ export class CharacterTraits extends Traits {
   }
 
   /** Get the save ability modifier for an attack by the attacker.
-   * This is not applicable to melee attacks.
-   *
+   * This is not applicable to melee attacks. Defaults to 'DEX'
+   * @param {Traits} attackerTraits
+   * @returns {number}
    */
   getNonMeleeSaveAbilityModifier(attackerTraits) {
-    const saveAbility = attackerTraits.get('SAVE_BY');
-    if (!saveAbility) {
-      LOG.error(`Non-melee ${attackerTraits.get('NAME')} has no SAVE_BY set.`);
-      return 0;
-    }
-    const ability = this.getInt(saveAbility);
+    const saveAbility = attackerTraits.get('SAVE_BY', 'DEX');
+
+    const ability = this.getInt(saveAbility, 0);
     return characteristicToModifier(ability ?? 0);
   }
 

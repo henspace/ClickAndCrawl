@@ -156,16 +156,16 @@ Unused
 
 Consumables come in different types defined by the TYPE and SUBTYPE trait.
 
-- TYPE: set to MEAL, DRINK, MEDICINE,POISON or POTION
+- TYPE: set to FOOD, DRINK, MEDICINE,POISON or POTION
 - SUBTYPE: used for checking proficiencies. Also used for hidden artefacts. Typically set to PLANT.
 - IDENTIFY_DC: if set, the item needs identification.The normal description is created from id as usual. The description for unknown as  it's message map key suffixed with _UNKNOWN.
 
 
 Some consumables, primarily plants, may not be known to the hero.
 
-### Type MEAL or DRINK
+### Type FOOD or DRINK
 
-These can be used a part of a full meal (1 drink + 1 meal) as part of a rest.
+These can be used a part of a full meal (1 drink + 1 food) as part of a rest.
 
 ### Type POTIONS
 POTIONs have FX traits. Unlike poisons, the effects are always applied. They can

@@ -855,10 +855,14 @@ export class CastSpell extends AbstractInteraction {
       for (const occupant of descendingHp) {
         if (this.#IsValidTarget(enactor, occupant, indiscriminate)) {
           validTargets++;
+          const tileSeparation = gridPoint.getSeparation(
+            tileMap.worldPointToGrid(occupant.position)
+          );
           const damage = dndAction.getSpellDamage(
             enactor.traits,
             occupant.traits,
-            this.owner.traits
+            this.owner.traits,
+            tileSeparation
           );
           if (damage > 0) {
             totalDamage += damage;

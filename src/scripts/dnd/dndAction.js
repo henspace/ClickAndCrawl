@@ -34,10 +34,10 @@ import * as magic from './magic.js';
 import { AttackMode } from '../players/actors.js';
 
 /** @type number */
-export const MEALS_FOR_LONG_REST = 3;
+export const FOOD_ITEMS_FOR_LONG_REST = 3;
 export const DRINKS_FOR_LONG_REST = 3;
 
-export const MEALS_FOR_SHORT_REST = 1;
+export const FOOD_ITEMS_FOR_SHORT_REST = 1;
 export const DRINKS_FOR_SHORT_REST = 1;
 
 /**
@@ -136,9 +136,15 @@ export function getConsumptionBenefit(consumableTraits, consumerTraits) {
  * @param {module:dnd/traits.CharacterTraits} attackerTraits
  * @param {module:dnd/traits.CharacterTraits} targetTraits
  * @param {module:dnd/traits.MagicTraits} spellTraits
+ * @param {number} separation - distance between attacker and target in tiles.
  * @returns {number}
  */
-export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
+export function getSpellDamage(
+  attackerTraits,
+  targetTraits,
+  spellTraits,
+  separation
+) {
   if (targetTraits.get('UNDEAD') && spellTraits.get('UNDEAD_IMMUNE')) {
     LOG.info(`Spell does not work on the undead.`);
     return 0;
@@ -147,9 +153,51 @@ export function getSpellDamage(attackerTraits, targetTraits, spellTraits) {
     case 'MELEE':
     case 'VAMPIRIC MELEE':
       return getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits);
+    case 'RANGED':
+      return getSpellRangedDamage(
+        attackerTraits,
+        targetTraits,
+        spellTraits,
+        separation
+      );
     default:
       return getSpellNormalDamage(attackerTraits, targetTraits, spellTraits);
   }
+}
+
+/**
+ * Magic using ranged attack mechanics.
+ * @param {module:dnd/traits.CharacterTraits} attackerTraits
+ * @param {module:dnd/traits.CharacterTraits} targetTraits
+ * @param {module:dnd/traits.MagicTraits} spellTraits
+ * @param {number} separation - distance between attacker and target in tiles.
+ * @returns {number}
+ */
+function getSpellRangedDamage(
+  attackerTraits,
+  targetTraits,
+  spellTraits,
+  separation
+) {
+  const spellCastAbility = attackerTraits.get('SPELL_CAST', 'INT');
+  const spellCastAbilityValue = attackerTraits.getEffectiveInt(
+    spellCastAbility,
+    1
+  );
+  let damageDice;
+  if (spellTraits.getDamageDiceWhenCastBy) {
+    damageDice = spellTraits.getDamageDiceWhenCastBy(attackerTraits);
+  } else {
+    damageDice = spellTraits.get('DMG', '1D4');
+  }
+  const attack = new AttackDetail({
+    damageDice: damageDice,
+    weaponType: 'MAGIC',
+    proficiencyBonus: attackerTraits.getCharacterPb(spellTraits),
+    abilityModifier: characteristicToModifier(spellCastAbilityValue),
+    disadvantage: Math.round(separation) <= 1,
+  });
+  return getMeleeDamage(attack, targetTraits);
 }
 
 /**
@@ -173,7 +221,7 @@ function getSpellMeleeDamage(attackerTraits, targetTraits, spellTraits) {
   }
   const attack = new AttackDetail({
     damageDice: damageDice,
-    weaponType: 'UNARMED',
+    weaponType: 'MAGIC',
     proficiencyBonus: attackerTraits.getCharacterPb(spellTraits),
     abilityModifier: characteristicToModifier(spellCastAbilityValue),
   });
@@ -284,27 +332,30 @@ export function getNumberOfRemainingHitDice(traits) {
 /**
  * Test if a rest can be taken.
  * A long rest takes 8 hours and cannot occur more than once.
- * So in this game we require three meals and a drink to mimic a full day.
- * For a short rest, we require 1 meal and a drink is all the rations that are required.
+ * So in this game we require three meals (food items + drink) to mimic a full day.
+ * For a short rest, we require 1 meal (food + drink).
  * However, a short rest requires a hit dice and if these have run out, a long rest
  * is necessary.
- * @param {number} nMeals - number of meals available
+ * @param {number} nFood - number of meals available
  * @param {number} nDrinks - number of drinks available
  * @param {Traits} traits = actor's traits.
  * @returns {{shortRest: RestDetails, longRest: RestDetail}}
  */
-export function canRest(nMeals, nDrinks, traits) {
+export function canRest(nFood, nDrinks, traits) {
   const shortRest = { possible: true, failure: RestFailure.NONE };
   const longRest = { possible: true, failure: RestFailure.NONE };
   const availableDice = getNumberOfRemainingHitDice(traits);
   if (availableDice < 1) {
     shortRest.possible = false;
     shortRest.failure = RestFailure.NEED_LONG_REST;
-  } else if (nMeals < MEALS_FOR_SHORT_REST || nDrinks < DRINKS_FOR_SHORT_REST) {
+  } else if (
+    nFood < FOOD_ITEMS_FOR_SHORT_REST ||
+    nDrinks < DRINKS_FOR_SHORT_REST
+  ) {
     shortRest.possible = false;
     shortRest.failure = RestFailure.NEED_MORE_RATIONS;
   }
-  if (nMeals < MEALS_FOR_LONG_REST || nDrinks < DRINKS_FOR_LONG_REST) {
+  if (nFood < FOOD_ITEMS_FOR_LONG_REST || nDrinks < DRINKS_FOR_LONG_REST) {
     longRest.possible = false;
     longRest.failure = RestFailure.NEED_MORE_RATIONS;
   }
