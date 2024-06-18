@@ -1203,7 +1203,7 @@ export class CharacterTraits extends Traits {
    */
   /**
    * Increase experience, level and proficiency bonus
-   *  based on challenge rating.
+   *  based on challenge rating. Then update any derived values.
    * @param {Traits} defeatedTraits
    * @returns {{exp: ValueChangeInfo, level: ValueChangeInfo}}
    */
@@ -1215,7 +1215,7 @@ export class CharacterTraits extends Traits {
     LOG.info(`Experience increased from ${currentExp} to ${newExp}.`);
     this.set('EXP', newExp);
     const currentLevel = this._level;
-    this._adjustForExperience();
+    this._refreshDerivedValues();
     const newLevel = this._level;
     return {
       exp: { was: currentExp, now: newExp },

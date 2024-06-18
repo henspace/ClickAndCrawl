@@ -94,6 +94,7 @@ a:active {
 
 .runes {
   text-align: center;
+  overflow-wrap: break-word;
 }
 
 #game-canvas {
