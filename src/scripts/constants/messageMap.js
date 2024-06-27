@@ -597,11 +597,11 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'MESSAGE CANNOT REST SHORT NEED RATIONS',
-    "You don't have enough food or drink for a short rest. One meal and one drink are required to enjoy a short rest.",
+    "You don't have enough food or drink for a short rest. One meal of food and drink is required to enjoy a short rest.",
   ],
   [
     'MESSAGE CANNOT REST LONG NEED RATIONS',
-    "You don't have enough food or drink for a long rest. Three meals and three drinks are required to enjoy a long rest.",
+    "You don't have enough food or drink for a long rest. Three meals, comprising food and drink, are required to enjoy a long rest.",
   ],
   [
     'MESSAGE CANNOT STASH',
