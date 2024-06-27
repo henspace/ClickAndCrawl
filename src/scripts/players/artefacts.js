@@ -691,6 +691,14 @@ export class Artefact {
   }
 
   /**
+   * Test if this is a plant item.
+   * @returns {boolean}
+   */
+  isPlant() {
+    return this.traits.get('SUBTYPE','') === 'VEGETATION';
+  }
+
+  /**
    * Test if this is a useable item.
    * @returns {boolean}
    */

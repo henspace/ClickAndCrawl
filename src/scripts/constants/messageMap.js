@@ -701,6 +701,10 @@ const MESSAGE_MAP = new Map([
     ],
   ],
   [
+    'MESSAGE FOUND HIDDEN ARTEFACT - VEGETATION',
+    'You find something managing to grow in a small patch of vegetation.',
+  ],
+  [
     'MESSAGE FOUND ENGRAVING',
     'You find strange words engraved on the cold stone surface.',
   ],

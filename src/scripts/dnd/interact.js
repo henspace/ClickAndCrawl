@@ -610,12 +610,14 @@ export class FindArtefact extends AbstractInteraction {
   /**
    * Create a message describing the action of discovery rather
    * than the artefact itself.
-   * @param {*} foundArtefact
+   * @param {module:players/artefacts@Artefact} foundArtefact
    * @returns {string}
    */
   #createDiscoveryMessage(foundArtefact) {
     if (this.owner.type === ActorType.HIDDEN_ARTEFACT) {
-      return i18n`MESSAGE FOUND HIDDEN ARTEFACT`;
+      return foundArtefact.isPlant()
+        ? i18n`MESSAGE FOUND HIDDEN ARTEFACT - VEGETATION`
+        : i18n`MESSAGE FOUND HIDDEN ARTEFACT`;
     } else if (foundArtefact.isMagic()) {
       // must be a prop and only engraved pillars currently supported.
       return i18n`MESSAGE FOUND ENGRAVING`;
