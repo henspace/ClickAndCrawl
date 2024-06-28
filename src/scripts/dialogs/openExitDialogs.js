@@ -52,10 +52,14 @@ export function showUnpickExitDialog(actor, key) {
  * @returns {Promise<boolean>} fulfils to true if picked.
  */
 function tryToPickLock(actor, key) {
-  if (!actor.storeManager.hasArtefactWithSameId('lock_pick')) {
+  const lockPick = actor.storeManager.getArtefactWithSameId('lock_pick');
+  if (!lockPick) {
     return UI.showOkDialog(i18n`MESSAGE NEED LOCK PICK`).then(() => false);
   }
-  if (dndAction.canPickLock(actor.traits, key.traits)) {
+  if (dndAction.doesItemBreak('STANDARD METAL')) {
+    actor.storeManager.discard(lockPick);
+    return UI.showOkDialog(i18n`MESSAGE LOCK PICK BREAKS`).then(() => false);
+  } else if (dndAction.canPickLock(actor.traits, key.traits)) {
     return UI.showOkDialog(i18n`MESSAGE YOU PICK THE LOCK`).then(() => true);
   } else {
     return UI.showOkDialog(i18n`MESSAGE YOU FAIL TO PICK THE LOCK`).then(

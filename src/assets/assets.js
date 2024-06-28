@@ -105,6 +105,7 @@ export const AssetUrls = {
       'PORTAL',
       new URL('./audio/sci-fi-portal-83746-trimmed_mono.mp3', import.meta.url),
     ],
+    ['BREAK_WEAPON', new URL('./audio/weapon_break.mp3', import.meta.url)],
   ]),
   SPLASH_IMAGE: new URL('./images/click-and-crawl.png', import.meta.url),
   GUIDE_MOVE: new URL('./images/guide-move.jpg', import.meta.url),

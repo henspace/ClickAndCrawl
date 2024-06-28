@@ -695,7 +695,7 @@ export class Artefact {
    * @returns {boolean}
    */
   isPlant() {
-    return this.traits.get('SUBTYPE','') === 'VEGETATION';
+    return this.traits.get('SUBTYPE', '') === 'VEGETATION';
   }
 
   /**
@@ -903,6 +903,22 @@ export class ArtefactStoreManager {
       }
     }
     return false;
+  }
+
+  /** Get first artefact with matching Id.
+   * @param {Artefact | string} artefactOrId
+   * @returns {Artefact} undefined if not found.
+   */
+  getArtefactWithSameId(artefactOrId) {
+    const id =
+      typeof artefactOrId === 'string' ? artefactOrId : artefactOrId.id;
+    const storageDetails = this.getAllStorageDetails();
+    for (const details of storageDetails) {
+      if (details.artefact.id === id) {
+        return details.artefact;
+      }
+    }
+    return;
   }
 
   /** Test whether a specific artefact is stored.

@@ -147,3 +147,21 @@ export function displayRisingText(text, position, color = 'white') {
     acceleration: new Acceleration(0, -96, 0),
   });
 }
+
+/**
+ * Display falling text that fades.
+ * @param {string} text
+ * @param {module:utils/geometry~Position} position
+ * @param {string} [color = 'white']
+ * @returns {module:utils/geometry~Dims2D} text bounds.
+ */
+export function displayFallingText(text, position, color = 'white') {
+  return addFadingText(text, {
+    color: color,
+    delaySecs: 2,
+    lifetimeSecs: 3,
+    position: new Point(position.x, position.y),
+    velocity: new Velocity(0, 48, 0),
+    acceleration: new Acceleration(0, 0, 0),
+  });
+}

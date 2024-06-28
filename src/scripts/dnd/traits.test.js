@@ -178,6 +178,7 @@ test('AttackDetail.clone', () => {
     weaponType: 'MARTIAL',
     proficiencyBonus: 21,
     abilityModifier: 13,
+    weaponName: 'Some weapon artefact',
   });
   const clone = attack.clone();
   expect(clone).toStrictEqual(attack);
@@ -867,11 +868,12 @@ test('CharacterTraits.getAttacks pick best weapon (second). Not proficient', () 
   const chrTraits = new traits.CharacterTraits(`EXP:100000, STR:${strength}`);
   //const expectProfPb = 4; // from page 56 of 5e
   const expectAbilityMod = abilityToModifier(strength);
+  const weapons = [
+    new traits.Traits('NAME:WEAPON_1, TYPE:MARTIAL MELEE, DMG:1D6'),
+    new traits.Traits('NAME:WEAPON_2, TYPE:MARTIAL MELEE, DMG:3D6'),
+  ];
   chrTraits.utiliseAdditionalTraits({
-    weapons: [
-      new traits.Traits('TYPE:MARTIAL MELEE, DMG:1D6'),
-      new traits.Traits('TYPE:MARTIAL MELEE, DMG:3D6'),
-    ],
+    weapons: weapons,
   });
   const attacks = chrTraits.getAttacks();
   expect(attacks).toHaveLength(1);
@@ -880,6 +882,7 @@ test('CharacterTraits.getAttacks pick best weapon (second). Not proficient', () 
   expect(attacks[0].proficiencyBonus).toEqual(0);
   expect(attacks[0].abilityModifier).toEqual(expectAbilityMod);
   expect(attacks[0].canUseTwoWeapons()).toEqual(false);
+  expect(attacks[0].weaponName).toEqual('WEAPON_2');
 });
 
 test('CharacterTraits.getAttacks pick best weapon (first). Proficient', () => {
@@ -891,8 +894,8 @@ test('CharacterTraits.getAttacks pick best weapon (first). Proficient', () => {
   const expectAbilityMod = abilityToModifier(strength);
   chrTraits.utiliseAdditionalTraits({
     weapons: [
-      new traits.Traits('TYPE:MARTIAL MELEE, DMG:5D6'),
-      new traits.Traits('TYPE:MARTIAL MELEE, DMG:3D6'),
+      new traits.Traits('NAME:WEAPON_BEST, TYPE:MARTIAL MELEE, DMG:5D6'),
+      new traits.Traits('NAME: WEAPON_WORST, TYPE:MARTIAL MELEE, DMG:3D6'),
     ],
   });
   const attacks = chrTraits.getAttacks();
@@ -902,6 +905,7 @@ test('CharacterTraits.getAttacks pick best weapon (first). Proficient', () => {
   expect(attacks[0].proficiencyBonus).toEqual(expectProfBonus);
   expect(attacks[0].abilityModifier).toEqual(expectAbilityMod);
   expect(attacks[0].canUseTwoWeapons()).toEqual(false);
+  expect(attacks[0].weaponName).toEqual('WEAPON_BEST');
 });
 
 test('CharacterTraits.getAttacks Two weapon. First proficient', () => {
@@ -976,6 +980,99 @@ test('CharacterTraits.getAttacks Two weapon. Weapons with attack bonus', () => {
     );
     expect(attacks[1].canUseTwoWeapons()).toEqual(true);
   }
+});
+
+test('CharacterTraits.getAttacks versatile uses single handed damage because two weapons.', () => {
+  const strength = 14;
+  const chrTraits = new traits.CharacterTraits(`EXP:100000, STR:${strength}`);
+  //const expectProfPb = 4; // from page 56 of 5e
+  const expectAbilityMod = abilityToModifier(strength);
+  const weapons = [
+    new traits.Traits(
+      'NAME:WEAPON_1, TYPE:MARTIAL MELEE VERSATILE, DMG:2D6, DMG_VERSATILE:3D8'
+    ),
+    new traits.Traits('NAME:WEAPON_2, TYPE:MARTIAL MELEE, DMG:1D6'),
+  ];
+  chrTraits.utiliseAdditionalTraits({
+    weapons: weapons,
+  });
+  const attacks = chrTraits.getAttacks();
+  expect(attacks).toHaveLength(1);
+  expect(attacks[0].unarmed).toBe(false);
+  expect(attacks[0].damageDice).toEqual('2D6');
+  expect(attacks[0].proficiencyBonus).toEqual(0);
+  expect(attacks[0].abilityModifier).toEqual(expectAbilityMod);
+  expect(attacks[0].canUseTwoWeapons()).toEqual(false);
+  expect(attacks[0].weaponName).toEqual('WEAPON_1');
+});
+
+test('CharacterTraits.getAttacks versatile uses single handed damage because one weapons and one shield.', () => {
+  const strength = 14;
+  const chrTraits = new traits.CharacterTraits(`EXP:100000, STR:${strength}`);
+  //const expectProfPb = 4; // from page 56 of 5e
+  const expectAbilityMod = abilityToModifier(strength);
+  const weapons = [
+    new traits.Traits(
+      'NAME:WEAPON_1, TYPE:MARTIAL MELEE VERSATILE, DMG:2D6, DMG_VERSATILE:3D8'
+    ),
+  ];
+  const shields = [new traits.Traits('NAME:SHIELD_1, AC:13')];
+  chrTraits.utiliseAdditionalTraits({
+    weapons: weapons,
+    shields: shields,
+  });
+  const attacks = chrTraits.getAttacks();
+  expect(attacks).toHaveLength(1);
+  expect(attacks[0].unarmed).toBe(false);
+  expect(attacks[0].damageDice).toEqual('2D6');
+  expect(attacks[0].proficiencyBonus).toEqual(0);
+  expect(attacks[0].abilityModifier).toEqual(expectAbilityMod);
+  expect(attacks[0].canUseTwoWeapons()).toEqual(false);
+  expect(attacks[0].weaponName).toEqual('WEAPON_1');
+});
+
+test('CharacterTraits.getAttacks versatile uses two handed damage.', () => {
+  const strength = 14;
+  const chrTraits = new traits.CharacterTraits(`EXP:100000, STR:${strength}`);
+  //const expectProfPb = 4; // from page 56 of 5e
+  const expectAbilityMod = abilityToModifier(strength);
+  const weapons = [
+    new traits.Traits(
+      'NAME:WEAPON_1, TYPE:MARTIAL MELEE VERSATILE, DMG:2D6, DMG_VERSATILE:3D8'
+    ),
+  ];
+  chrTraits.utiliseAdditionalTraits({
+    weapons: weapons,
+  });
+  const attacks = chrTraits.getAttacks();
+  expect(attacks).toHaveLength(1);
+  expect(attacks[0].unarmed).toBe(false);
+  expect(attacks[0].damageDice).toEqual('3D8');
+  expect(attacks[0].proficiencyBonus).toEqual(0);
+  expect(attacks[0].abilityModifier).toEqual(expectAbilityMod);
+  expect(attacks[0].canUseTwoWeapons()).toEqual(false);
+  expect(attacks[0].weaponName).toEqual('WEAPON_1');
+});
+
+test('CharacterTraits.getAttacks versatile falls back to standard damage.', () => {
+  const strength = 14;
+  const chrTraits = new traits.CharacterTraits(`EXP:100000, STR:${strength}`);
+  //const expectProfPb = 4; // from page 56 of 5e
+  const expectAbilityMod = abilityToModifier(strength);
+  const weapons = [
+    new traits.Traits('NAME:WEAPON_1, TYPE:MARTIAL MELEE VERSATILE, DMG:2D6'),
+  ];
+  chrTraits.utiliseAdditionalTraits({
+    weapons: weapons,
+  });
+  const attacks = chrTraits.getAttacks();
+  expect(attacks).toHaveLength(1);
+  expect(attacks[0].unarmed).toBe(false);
+  expect(attacks[0].damageDice).toEqual('2D6');
+  expect(attacks[0].proficiencyBonus).toEqual(0);
+  expect(attacks[0].abilityModifier).toEqual(expectAbilityMod);
+  expect(attacks[0].canUseTwoWeapons()).toEqual(false);
+  expect(attacks[0].weaponName).toEqual('WEAPON_1');
 });
 
 test('CharacterTraits: Rogue gets double proficiency bonus in attacks', () => {

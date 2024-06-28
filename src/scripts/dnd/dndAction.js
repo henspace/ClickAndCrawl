@@ -504,3 +504,20 @@ export function canPerformTask(pickerTraits, task) {
   const pickRoll = dice.rollDice(20) + modifier + profBonus;
   return pickRoll >= task.difficulty;
 }
+
+/**
+ * Roll dice to see if item breaks. Normally used for weapons but can be used
+ * for lock picks. Enchanted weapons are more resilient.
+ * @param {string} weaponType
+ * @returns {boolean}
+ */
+export function doesItemBreak(weaponType) {
+  if (!weaponType) {
+    return false;
+  }
+  if (weaponType.includes('ENCHANTED')) {
+    return dice.rollDice('3D6') === 3;
+  } else {
+    return dice.rollDice('3D4') === 3;
+  }
+}

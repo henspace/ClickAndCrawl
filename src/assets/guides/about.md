@@ -39,6 +39,7 @@ The following fonts are licensed under the [Open font license](https://openfontl
 The following sounds are used under the terms of the [Pixabay license](https://pixabay.com/service/license-summary/).
 
 - Background music: trimmed version of [Do alto do Trono da Desolação](https://pixabay.com/music/mystery-do-alto-do-trono-da-desolacao-173741/) by [Composiia](https://pixabay.com/users/composiia-38203768/) via Pixabay
+- Breaking weapon: trimmed version of [Breaking glass](https://pixabay.com/sound-effects/breaking-glass-83809/) by Pixabay via Pixabay
 - Bubbling sound: trimmed version of [Bubbling](https://pixabay.com/sound-effects/bubbling-6184/) by Pixabay via Pixabay
 - Door sounds: trimmed versions of [Door](https://pixabay.com/sound-effects/door-43633/) by Pixabay via Pixabay
 - Portal sound: trimmed version of [Sci Fi portal](https://pixabay.com/sound-effects/sci-fi-portal-83746/) by Pixabay via Pixabay

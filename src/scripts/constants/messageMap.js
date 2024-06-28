@@ -740,6 +740,10 @@ const MESSAGE_MAP = new Map([
     'You use the key you found earlier to unlock the door.',
   ],
   [
+    'MESSAGE LOCK PICK BREAKS',
+    'The iron here is poor and damaged by iron blight. Your lock pick breaks.',
+  ],
+  [
     'MESSAGE MAKE SPACE IN BACKPACK',
     'You need to make space in your backpack by discarding or using something.',
   ],
@@ -965,6 +969,7 @@ const MESSAGE_MAP = new Map([
   ['Unknown', 'Unknown'],
   ['Wagon', 'Wagon'],
   ['Waist', 'Waist'],
+  ['WEAPON BROKE!', 'WEAPON BROKE!'],
   ['WIS', 'wisdom'],
   ['YOU DIED!', 'YOU DIED!'],
   ['zero', 'zero'],

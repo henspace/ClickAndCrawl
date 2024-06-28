@@ -1325,3 +1325,32 @@ test('canPerformTask: proficient', () => {
     expect(failures).toBeGreaterThan(0);
   }
 });
+
+test('doesItemBreak - Enchanted - no break', () => {
+  mockDice.rollDice.mockReturnValueOnce(4);
+  expect(dndAction.doesItemBreak('MARTIAL ENCHANTED')).toBe(false);
+  expect(mockDice.rollDice.mock.calls[1][0]).toEqual('3D6');
+});
+
+test('doesItemBreak - Enchanted - break', () => {
+  mockDice.rollDice.mockReturnValueOnce(3);
+  expect(dndAction.doesItemBreak('MARTIAL ENCHANTED')).toBe(true);
+  expect(mockDice.rollDice.mock.calls[1][0]).toEqual('3D6');
+});
+
+test('doesItemBreak - not enchanted - no break', () => {
+  mockDice.rollDice.mockReturnValueOnce(4);
+  expect(dndAction.doesItemBreak('MARTIAL')).toBe(false);
+  expect(mockDice.rollDice.mock.calls[1][0]).toEqual('3D4');
+});
+
+test('doesItemBreak - not enchanted - break', () => {
+  mockDice.rollDice.mockReturnValueOnce(3);
+  expect(dndAction.doesItemBreak('MARTIAL')).toBe(true);
+  expect(mockDice.rollDice.mock.calls[1][0]).toEqual('3D4');
+});
+test('doesItemBreak - no weapon type', () => {
+  expect(dndAction.doesItemBreak('')).toBe(false);
+  expect(dndAction.doesItemBreak(null)).toBe(false);
+  expect(dndAction.doesItemBreak()).toBe(false);
+});

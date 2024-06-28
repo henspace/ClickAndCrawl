@@ -32,6 +32,7 @@ import {
   addFadingAnimatedImage,
   addFadingImage,
   displayRisingText,
+  displayFallingText,
 } from '../utils/effects/transient.js';
 import { Velocity } from '../utils/geometry.js';
 import IMAGE_MANAGER from '../utils/sprites/imageManager.js';
@@ -359,6 +360,7 @@ export class Fight extends AbstractInteraction {
       if (damage > 0) {
         successfulAttacks++;
         totalDamage += damage;
+        this.#handleWeaponBreakage(attacker, attack);
       }
     });
     return new Promise((resolve) => {
@@ -389,6 +391,41 @@ export class Fight extends AbstractInteraction {
     });
   }
 
+  /**
+   * Handle weapon breakage.
+   * @param {module:players/actors.Actor} attacker
+   * @param {module:dnd/traits.Attack} attack
+   */
+  #handleWeaponBreakage(attacker, attack) {
+    if (!attacker.isHero?.()) {
+      return;
+    }
+    const storeManager = attacker.storeManager;
+    if (storeManager && dndAction.doesItemBreak(attack.weaponType)) {
+      LOG.info(`Weapon ${attack.weaponName} breaks.`);
+      // need to unequip it.
+      const equippedItems = attacker.storeManager.getAllEquippedArtefacts();
+      for (const artefact of equippedItems) {
+        const name = artefact.traits.get('NAME');
+        const weaponType = artefact.traits.get('TYPE');
+        if (name === attack.weaponName && weaponType === attack.weaponType) {
+          storeManager.discard(artefact);
+          SOUND_MANAGER.playEffect('BREAK_WEAPON');
+          addFadingImage(IMAGE_MANAGER.getSpriteBitmap('break-weapon.png'), {
+            delaySecs: 0,
+            lifetimeSecs: 6,
+            position: attacker.position,
+            velocity: new Velocity(0, 0, 0),
+          });
+          displayFallingText(
+            i18n`WEAPON BREAKS!`,
+            attacker.position,
+            Colours.HP_TRANSIENT_TEXT_HERO
+          );
+        }
+      }
+    }
+  }
   /**
    * Resolve a fight.
    * @param {module:players/actors.Actor} attacker

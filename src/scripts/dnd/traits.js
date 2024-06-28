@@ -44,7 +44,9 @@ import LOG from '../utils/logging.js';
 /**  Main character stats. Note that armour class is included. */
 const CHAR_STATS_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA', 'AC'];
 
+/** @type{number} */
 const FEET_PER_TILE = 7.5;
+
 /**
  * Convert a value to a modifier.
  * @param {number} value
@@ -70,6 +72,10 @@ export class AttackDetail {
   unarmed;
   /** @type {boolean} */
   disadvantage;
+  /** @type {module:players/artefacts.Artefact} */
+  weaponName;
+  /** @type {string} */
+  weaponType;
 
   /**
    *
@@ -79,14 +85,18 @@ export class AttackDetail {
    * @param {string} options.weaponType - UNARMED makes this an unarmed strike.
    * @param {number} options.proficiencyBonus
    * @param {number} options.abilityModifier
+   * @param {module:players/artefacts.Artefact} weaponName - just used for breakages.
    */
   constructor(options) {
     this.damageDice = options.damageDice ?? '1D1';
-    const subType = options.weaponType ?? '';
-    if (subType === 'UNARMED') {
+    this.weaponType = options.weaponType ?? '';
+    if (this.weaponType === 'UNARMED') {
       this.unarmed = true;
       this.#twoWeaponFighting = false;
-    } else if (subType.includes('SIMPLE') && subType.includes('LIGHT')) {
+    } else if (
+      this.weaponType.includes('SIMPLE') &&
+      this.weaponType.includes('LIGHT')
+    ) {
       this.unarmed = false;
       this.#twoWeaponFighting = true;
     } else {
@@ -96,6 +106,7 @@ export class AttackDetail {
     this.proficiencyBonus = options?.proficiencyBonus ?? 0;
     this.abilityModifier = options?.abilityModifier ?? 0;
     this.disadvantage = options.disadvantage;
+    this.weaponName = options.weaponName;
   }
 
   /**
@@ -177,6 +188,8 @@ export class AttackDetail {
     attackDetail.#twoWeaponFighting = this.#twoWeaponFighting;
     attackDetail.unarmed = this.unarmed;
     attackDetail.disadvantage = this.disadvantage;
+    attackDetail.weaponName = this.weaponName;
+    attackDetail.weaponType = this.weaponType;
     return attackDetail;
   }
 }
@@ -387,6 +400,8 @@ export class Traits {
       case '_DMG_MELEE':
       case 'DMG_POISON':
       case '_DMG_POISON':
+      case 'DMG_VERSATILE':
+      case '_DMG_VERSATILE':
       case 'HP_GAIN':
       case '_HP_GAIN':
         return this.#setIntOrDiceValueFromString(key, value);
@@ -1070,6 +1085,8 @@ export class CharacterTraits extends Traits {
   _utiliseWeaponsTraits() {
     this._attacks = [];
     const weaponsTraits = this?._availableArtefactTraits?.weapons ?? [];
+    const shieldTraits = this?._availableArtefactTraits?.shields ?? [];
+    const freeHands = 2 - weaponsTraits.length - shieldTraits.length;
 
     const strength = this.getEffectiveInt('STR', 1);
     const abilityModifier = characteristicToModifier(strength);
@@ -1085,16 +1102,26 @@ export class CharacterTraits extends Traits {
     let damageDice;
     let proficient;
     let attackBonus;
+    let weaponName;
     if (weaponsTraits.length === 0) {
       damageDice = '';
       weaponType = 'UNARMED';
       proficient = true;
       attackBonus = 0;
     } else {
-      damageDice = weaponsTraits[0].get('DMG', '1D1') ?? '1D1';
+      if (
+        freeHands > 0 &&
+        weaponsTraits[0].get('TYPE').indexOf('VERSATILE') >= 0
+      ) {
+        damageDice = weaponsTraits[0].get('DMG_VERSATILE');
+      }
+      if (!damageDice) {
+        damageDice = weaponsTraits[0].get('DMG', '1D1') ?? '1D1';
+      }
       weaponType = weaponsTraits[0].get('TYPE') ?? '';
       proficient = this.isProficient(weaponsTraits[0]);
       attackBonus = weaponsTraits[0].getInt('ATTACK_BONUS', 0);
+      weaponName = weaponsTraits[0].get('NAME');
     }
 
     firstAttack = new AttackDetail({
@@ -1102,6 +1129,7 @@ export class CharacterTraits extends Traits {
       weaponType: weaponType,
       proficiencyBonus: proficient ? effectivePb : 0,
       abilityModifier: abilityModifier + attackBonus,
+      weaponName: weaponName,
     });
 
     let secondAttack;
@@ -1112,6 +1140,7 @@ export class CharacterTraits extends Traits {
         weaponType: weaponsTraits[1].get('TYPE') ?? '',
         proficiencyBonus: this.isProficient(weaponsTraits[1]) ? effectivePb : 0,
         abilityModifier: abilityModifier + attackBonus,
+        weaponName: weaponsTraits[1].get('NAME'),
       });
     }
     if (secondAttack?.canUseTwoWeapons() && firstAttack.canUseTwoWeapons()) {
