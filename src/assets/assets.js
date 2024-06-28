@@ -115,6 +115,10 @@ export const AssetUrls = {
   GUIDE_PORTAL: new URL('./images/guide-portal.jpg', import.meta.url),
   GUIDE_DOOR: new URL('./images/guide-door.jpg', import.meta.url),
   GUIDE_TARGET: new URL('./images/guide-target.png', import.meta.url),
+  GUIDE_WEAPON_BREAK: new URL(
+    './images/guide-weapon-break.jpg',
+    import.meta.url
+  ),
 };
 
 /**

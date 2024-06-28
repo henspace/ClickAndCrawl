@@ -184,6 +184,7 @@
             <key type="filename">tiles/black_flask.png</key>
             <key type="filename">tiles/blank.png</key>
             <key type="filename">tiles/block.png</key>
+            <key type="filename">tiles/break-weapon.png</key>
             <key type="filename">tiles/bugbear-dead00.png</key>
             <key type="filename">tiles/bugbear-idle00.png</key>
             <key type="filename">tiles/bugbear-idle01.png</key>
