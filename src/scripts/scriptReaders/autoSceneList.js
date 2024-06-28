@@ -28,7 +28,10 @@
  */
 
 import { ALMANAC_LIBRARY } from '../dnd/almanacs/almanacs.js';
-import { SceneDefinition } from '../gameManagement/sceneManager.js';
+import {
+  SceneDefinition,
+  default as SCENE_MANAGER,
+} from '../gameManagement/sceneManager.js';
 import * as maths from '../utils/maths.js';
 import LOG from '../utils/logging.js';
 import { RoomCreator } from '../utils/tileMaps/roomGenerator.js';
@@ -72,6 +75,18 @@ export const DungeonChallenge = {
  */
 function getMaxEnemyCr(challenge) {
   const level = heroActor?.traits.getCharacterLevel() ?? 1;
+  return challenge * level + 0.001; // prevent float issues.
+}
+
+/**
+ * Get additional challenge based on dungeon depth rather than character level.
+ * This works out as though the character is expected to have advanced 1 character
+ * level every 15 dungeon levels.
+ * @param {DungeonChallengeValue} challenge
+ * @returns {number}
+ */
+function getSceneProgressionCr(challenge) {
+  const level = SCENE_MANAGER.getCurrentSceneLevel() / 15;
   return challenge * level + 0.001; // prevent float issues.
 }
 /**
@@ -211,17 +226,18 @@ class AutoSceneList {
       return;
     }
     const maxEnemyCr = getMaxEnemyCr(challenge);
+    const sceneProgressionCr = getSceneProgressionCr(challenge);
     let maxEnemies;
     let maxTotalChallenge;
     switch (challenge) {
       case DungeonChallenge.EASY:
         maxEnemies = 6;
-        maxTotalChallenge = maxEnemyCr;
+        maxTotalChallenge = maxEnemyCr + sceneProgressionCr;
         break;
       case DungeonChallenge.MEDIUM:
       default:
         maxEnemies = 8;
-        maxTotalChallenge = maxEnemyCr * 1.25;
+        maxTotalChallenge = (maxEnemyCr + sceneProgressionCr) * 1.25;
         break;
     }
 
