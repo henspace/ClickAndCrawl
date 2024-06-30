@@ -1,9 +1,11 @@
 # ClickAndCrawl
 
-A simple dungeon crawler designed for casual dungeon crawling.
+A simple dungeon crawler designed for casual dungeon crawling. If you'd like to 
+play it, you can find the end result at https://henspace.itch.io/click-and-crawl
 
 First a heads-up. The dungeon crawler took a massive detour from the direction it was
-originally expected to take.
+originally expected to take. It was originally expected to be a very rapid hacky piece
+of code.
 
 Originally, the code was structured to avoid the use of classes and private members, 
 but then part way through I flipped the approach on its head. The result, a monster
