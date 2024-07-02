@@ -1354,3 +1354,89 @@ test('doesItemBreak - no weapon type', () => {
   expect(dndAction.doesItemBreak(null)).toBe(false);
   expect(dndAction.doesItemBreak()).toBe(false);
 });
+
+test('sneaksPast: proficient and creeping', () => {
+  const difficulty = Difficulty.VERY_EASY;
+  const ability = 'DEX';
+  let successes = 0;
+  let failures = 0;
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP:15000,${ability}:${abilityValue},PROF:STEALTH`
+    );
+    const pb = actorTraits.getCharacterPb('STEALTH');
+    expect(pb).toBeGreaterThan(0);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier + pb >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.sneaksPast(actorTraits, 4)).toBe(expectedResult);
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});
+
+test('sneaksPast: proficient but just one tile', () => {
+  const difficulty = Difficulty.VERY_EASY;
+  const ability = 'DEX';
+  let successesIfCreeping = 0;
+  let failuresIfCreeping = 0;
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP:15000,${ability}:${abilityValue},PROF:STEALTH`
+    );
+    const pb = actorTraits.getCharacterPb('STEALTH');
+    expect(pb).toBeGreaterThan(0);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      if (diceRoll + modifier + pb >= difficulty) {
+        successesIfCreeping++;
+      } else {
+        failuresIfCreeping++;
+      }
+
+      expect(dndAction.sneaksPast(actorTraits, 1)).toBe(true);
+      mockDice.rollDice(6); // because dice won't have actually been rolled.
+    }
+    expect(successesIfCreeping).toBeGreaterThan(0);
+    expect(failuresIfCreeping).toBeGreaterThan(0);
+  }
+});
+
+test('sneaksPast: not proficient and creeping', () => {
+  const difficulty = Difficulty.VERY_EASY;
+  const ability = 'DEX';
+  let successes = 0;
+  let failures = 0;
+  for (let abilityValue = 1; abilityValue <= 20; abilityValue++) {
+    const modifier = characteristicToModifier(abilityValue);
+    const actorTraits = new CharacterTraits(
+      `EXP:15000,${ability}:${abilityValue},PROF:NOTHING`
+    );
+    const pb = actorTraits.getCharacterPb('STEALTH');
+    expect(pb).toBe(0);
+    for (let diceRoll = 1; diceRoll <= 20; diceRoll++) {
+      mockDice.rollDice.mockReturnValueOnce(diceRoll);
+      let expectedResult;
+      if (diceRoll + modifier + pb >= difficulty) {
+        expectedResult = true;
+        successes++;
+      } else {
+        expectedResult = false;
+        failures++;
+      }
+      expect(dndAction.sneaksPast(actorTraits, 4)).toBe(expectedResult);
+    }
+    expect(successes).toBeGreaterThan(0);
+    expect(failures).toBeGreaterThan(0);
+  }
+});

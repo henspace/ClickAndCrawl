@@ -46,6 +46,14 @@ import { AnimatedImage } from '../utils/sprites/animation.js';
  * @type {AnimationDefinitions}
  */
 const PeripateticAnimationDefns = {
+  SLEEP: {
+    keyName: 'SLEEP',
+    suffix: 'sleep',
+    options: {
+      framePeriodMs: 300,
+      loopMethod: LoopMethod.REVERSE,
+    },
+  },
   DEAD: {
     keyName: 'DEAD',
     suffix: 'dead',

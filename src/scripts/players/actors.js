@@ -120,6 +120,8 @@ export class Actor extends UiClickHandler {
   toxify;
   /** @type {boolean} */
   alive;
+  /** @type {boolean} */
+  sleeping;
   /** Flag used for actors that have a hidden artefact to be discovered. @type {boolean} */
   discovered;
   /** True if actor is disengaging from a fight. @type {boolean} */
@@ -147,6 +149,7 @@ export class Actor extends UiClickHandler {
     this.sprite.obstacle = true;
     this.#frozen = false;
     this.alive = true;
+    this.sleeping = false;
     this.discovered = false;
     this.disengaging = false;
     this.type = type;
@@ -455,6 +458,7 @@ export class Actor extends UiClickHandler {
       data: {
         adventureStartTime: this.adventureStartTime,
         alive: this.alive,
+        sleeping: this.sleeping,
         discovered: this.discovered,
         almanacEntry: this.almanacEntry,
         traits: this.traits,
@@ -475,6 +479,7 @@ export class Actor extends UiClickHandler {
     const actor = builder(data.almanacEntry, data.traits);
     actor.adventureStartTime = data.adventureStartTime;
     actor.alive = data.alive;
+    actor.sleeping = data.sleeping;
     actor.discovered = data.discovered;
     actor.toxify = new Toxify(data.toxin);
     for (const item of data.inventory) {

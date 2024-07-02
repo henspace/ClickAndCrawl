@@ -42,9 +42,9 @@ The following sounds are used under the terms of the [Pixabay license](https://p
 - Breaking weapon: trimmed version of [Breaking glass](https://pixabay.com/sound-effects/breaking-glass-83809/) by Pixabay via Pixabay
 - Bubbling sound: trimmed version of [Bubbling](https://pixabay.com/sound-effects/bubbling-6184/) by Pixabay via Pixabay
 - Door sounds: trimmed versions of [Door](https://pixabay.com/sound-effects/door-43633/) by Pixabay via Pixabay
+- Male hurt sound: trimmed version of [Male hurt sound](https://pixabay.com/sound-effects/male-hurt-sound-95206/) by Pixabay via Pixabay.
 - Portal sound: trimmed version of [Sci Fi portal](https://pixabay.com/sound-effects/sci-fi-portal-83746/) by Pixabay via Pixabay
 - Punch sounds: trimmed version of [Punch](https://pixabay.com/sound-effects/punch-41105/) by Pixabay via Pixabay
-- Male hurt sound: trimmed version of [Male hurt sound](https://pixabay.com/sound-effects/male-hurt-sound-95206/) by Pixabay via Pixabay.
 - Sword swish: trimmed version of [Long, medium swish](https://pixabay.com/sound-effects/long-medium-swish-44324/) by Pixabay via Pixabay
 - Zombie sound: edited version of [Zombie](https://pixabay.com/sound-effects/search/zombie/) by Pixabay via Pixabay
 

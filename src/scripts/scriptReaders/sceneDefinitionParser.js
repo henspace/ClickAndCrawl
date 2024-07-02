@@ -86,6 +86,13 @@ function createEnemies(sceneDefn) {
   const enemies = [];
   sceneDefn.enemies.forEach((almanacEntry) => {
     const actor = buildActor(almanacEntry);
+    const likelihoodSleeping = Math.random();
+    if (
+      !actor.traits.get('UNDEAD', false) &&
+      actor.traits.get('MOVE', '') !== 'ORGANIC'
+    ) {
+      actor.sleeping = Math.random() <= likelihoodSleeping;
+    }
     enemies.push(actor);
   });
   return enemies;

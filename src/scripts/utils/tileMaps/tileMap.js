@@ -541,6 +541,15 @@ export class TileMap {
   }
 
   /**
+   * Convert a world distance to a tile distance
+   * @param {number} worldDistance
+   * @returns {number}
+   */
+  worldDistanceToTiles(worldDistance) {
+    return Math.floor(worldDistance / this.#gridSize);
+  }
+
+  /**
    * Get a world point aligned to the centre of a tile
    * @param {Point} point
    */

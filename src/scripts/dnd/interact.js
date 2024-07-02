@@ -903,6 +903,8 @@ export class CastSpell extends AbstractInteraction {
             this.owner.traits,
             tileSeparation
           );
+          occupant.sleeping = false;
+          dndAction.wakeUpSurrounding(occupant.position, 1);
           if (damage > 0) {
             totalDamage += damage;
             this.#displaySpell(tile.worldPoint);

@@ -22,7 +22,7 @@ dungeons. The dungeons are over two centuries old, and are built within
 the even older dwarven mines of the Black Dragon Mountains. These vast mines
 were dug deep beneath the mountains and were once the source of much of the
 town's wealth. Legends say that throughout the dungeons are scattered a number
-of enchanted gold portals, originally used by the dwarves to the transport their
+of enchanted gold portals, originally used by the dwarves to transport their
 minings up to surface.
 
 You have agreed to enter the dungeon and send back, via these portals, as much

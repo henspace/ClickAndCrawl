@@ -213,7 +213,7 @@ const MESSAGE_MAP = new Map([
   ],
   [
     'DESCRIPTION ENCHANTED_SHORTSWORD',
-    'A light and highly versatile sword. This magical weapon increases the likelihood and severity of damage.',
+    'A short enchanted sword. This magical weapon increases the likelihood and severity of damage.',
   ],
   [
     'DESCRIPTION ENGRAVED_PILLAR',
@@ -472,7 +472,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION SHOCKING_GRASP',
     'You create lightning which springs from your hands, delivering a massive shock to a creature within touching distance.',
   ],
-  ['DESCRIPTION SHORTSWORD', 'A light and highly versatile sword.'],
+  ['DESCRIPTION SHORTSWORD', 'A light and well-crafted sword.'],
   [
     'DESCRIPTION SILVER_COINS',
     'Silver coins, worn and tarnished but still of value.',
@@ -917,6 +917,7 @@ const MESSAGE_MAP = new Map([
 
   ['AC', 'Armour class'],
   ['DMG', 'Damage'],
+  ['DMG_VERSATILE', 'Damage versatile'],
   ['DMG_PER_TURN', 'Damage per turn'],
   ['DC', 'Difficulty'],
   ['HP', 'Hit points'],

@@ -32,6 +32,7 @@ import LOG from '../utils/logging.js';
 import { characteristicToModifier, AttackDetail } from './traits.js';
 import * as magic from './magic.js';
 import { AttackMode } from '../players/actors.js';
+import WORLD from '../utils/game/world.js';
 
 /** @type number */
 export const FOOD_ITEMS_FOR_LONG_REST = 3;
@@ -502,6 +503,9 @@ export function canPerformTask(pickerTraits, task) {
     ? pickerTraits.getCharacterPb(task.proficiency)
     : 0;
   const pickRoll = dice.rollDice(20) + modifier + profBonus;
+  LOG.info(
+    `Try ${task.proficiency}:D20 + ability(${modifier}) + proficiency(${profBonus}): ${pickRoll} vs ${task.difficulty}`
+  );
   return pickRoll >= task.difficulty;
 }
 
@@ -519,5 +523,46 @@ export function doesItemBreak(weaponType) {
     return dice.rollDice('3D6') === 3;
   } else {
     return dice.rollDice('3D4') === 3;
+  }
+}
+
+/**
+ *
+ * @param {module:dnd/traits.Traits} actorTraits
+ * @param {*} tilesMoved
+ */
+export function sneaksPast(actorTraits, tilesMoved) {
+  if (tilesMoved <= 1) {
+    return true;
+  }
+  const result = canPerformTask(actorTraits, {
+    ability: 'DEX',
+    proficiency: 'STEALTH',
+    difficulty: Difficulty.VERY_EASY,
+  });
+  if (result) {
+    LOG.info('Crept past successfully without disturbing monsters.');
+  } else {
+    LOG.info('Creeping but unsuccessfully. Monsters could be disturbed.');
+  }
+  return result;
+}
+
+/**
+ * Wake up actors around point.
+ * @param {Point} point - position in world
+ * @param {number} [distanceInTiles = 1]
+ */
+export function wakeUpSurrounding(point, distanceInTiles = 1) {
+  const tileMap = WORLD.getTileMap();
+  const surrounds = tileMap.getRadiating(
+    tileMap.worldPointToGrid(point),
+    distanceInTiles
+  );
+  for (const tile of surrounds) {
+    const targets = tile.getOccupants();
+    for (const target of targets.values()) {
+      target.sleeping = false;
+    }
   }
 }

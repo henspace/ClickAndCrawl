@@ -188,6 +188,7 @@
             <key type="filename">tiles/bugbear-dead00.png</key>
             <key type="filename">tiles/bugbear-idle00.png</key>
             <key type="filename">tiles/bugbear-idle01.png</key>
+            <key type="filename">tiles/bugbear-sleep00.png</key>
             <key type="filename">tiles/bull00.png</key>
             <key type="filename">tiles/cantrip.png</key>
             <key type="filename">tiles/chain_mail_armour.png</key>
@@ -199,6 +200,7 @@
             <key type="filename">tiles/copper_dragon_wyrmling-dead00.png</key>
             <key type="filename">tiles/copper_dragon_wyrmling-idle00.png</key>
             <key type="filename">tiles/copper_dragon_wyrmling-idle01.png</key>
+            <key type="filename">tiles/copper_dragon_wyrmling-sleep00.png</key>
             <key type="filename">tiles/dagger.png</key>
             <key type="filename">tiles/diamond.png</key>
             <key type="filename">tiles/door-B.png</key>
@@ -210,6 +212,7 @@
             <key type="filename">tiles/dretch-dead00.png</key>
             <key type="filename">tiles/dretch-idle00.png</key>
             <key type="filename">tiles/dretch-idle01.png</key>
+            <key type="filename">tiles/dretch-sleep00.png</key>
             <key type="filename">tiles/enchanted_handaxe.png</key>
             <key type="filename">tiles/engraved_pillar-idle00.png</key>
             <key type="filename">tiles/fetid_water-idle00.png</key>
@@ -236,6 +239,7 @@
             <key type="filename">tiles/fire_beetle_pv-dead00.png</key>
             <key type="filename">tiles/fire_beetle_pv-idle00.png</key>
             <key type="filename">tiles/fire_beetle_pv-idle01.png</key>
+            <key type="filename">tiles/fire_beetle_pv-sleep00.png</key>
             <key type="filename">tiles/floor-SBE.png</key>
             <key type="filename">tiles/floor-SBW.png</key>
             <key type="filename">tiles/floor.png</key>
@@ -248,6 +252,7 @@
             <key type="filename">tiles/gargoyle-dead00.png</key>
             <key type="filename">tiles/gargoyle-idle00.png</key>
             <key type="filename">tiles/gargoyle-idle01.png</key>
+            <key type="filename">tiles/gargoyle-sleep00.png</key>
             <key type="filename">tiles/gas00.png</key>
             <key type="filename">tiles/ghoul-dead00.png</key>
             <key type="filename">tiles/ghoul-idle00.png</key>
@@ -255,9 +260,11 @@
             <key type="filename">tiles/giant_wasp_pv-dead00.png</key>
             <key type="filename">tiles/giant_wasp_pv-idle00.png</key>
             <key type="filename">tiles/giant_wasp_pv-idle01.png</key>
+            <key type="filename">tiles/giant_wasp_pv-sleep00.png</key>
             <key type="filename">tiles/goblin-dead00.png</key>
             <key type="filename">tiles/goblin-idle00.png</key>
             <key type="filename">tiles/goblin-idle01.png</key>
+            <key type="filename">tiles/goblin-sleep00.png</key>
             <key type="filename">tiles/gold_coins.png</key>
             <key type="filename">tiles/gold_portal-dead00.png</key>
             <key type="filename">tiles/gold_portal-idle00.png</key>
@@ -285,12 +292,14 @@
             <key type="filename">tiles/kobold-dead00.png</key>
             <key type="filename">tiles/kobold-idle00.png</key>
             <key type="filename">tiles/kobold-idle01.png</key>
+            <key type="filename">tiles/kobold-sleep00.png</key>
             <key type="filename">tiles/leather_armour.png</key>
             <key type="filename">tiles/lichen.png</key>
             <key type="filename">tiles/lightning00.png</key>
             <key type="filename">tiles/lizard_pv-dead00.png</key>
             <key type="filename">tiles/lizard_pv-idle00.png</key>
             <key type="filename">tiles/lizard_pv-idle01.png</key>
+            <key type="filename">tiles/lizard_pv-sleep00.png</key>
             <key type="filename">tiles/lock_pick.png</key>
             <key type="filename">tiles/lute.png</key>
             <key type="filename">tiles/magic00.png</key>
@@ -301,9 +310,11 @@
             <key type="filename">tiles/ogre-dead00.png</key>
             <key type="filename">tiles/ogre-idle00.png</key>
             <key type="filename">tiles/ogre-idle01.png</key>
+            <key type="filename">tiles/ogre-sleep00.png</key>
             <key type="filename">tiles/orc-dead00.png</key>
             <key type="filename">tiles/orc-idle00.png</key>
             <key type="filename">tiles/orc-idle01.png</key>
+            <key type="filename">tiles/orc-sleep00.png</key>
             <key type="filename">tiles/orc-walk-w00.png</key>
             <key type="filename">tiles/orc_skull.png</key>
             <key type="filename">tiles/padded_armour.png</key>
@@ -342,6 +353,7 @@
             <key type="filename">tiles/rat_pv-dead00.png</key>
             <key type="filename">tiles/rat_pv-idle00.png</key>
             <key type="filename">tiles/rat_pv-idle01.png</key>
+            <key type="filename">tiles/rat_pv-sleep00.png</key>
             <key type="filename">tiles/restorative_ointment.png</key>
             <key type="filename">tiles/ring_mail_armour.png</key>
             <key type="filename">tiles/ring_of_charisma.png</key>
@@ -386,9 +398,11 @@
             <key type="filename">tiles/spider_pv-dead00.png</key>
             <key type="filename">tiles/spider_pv-idle00.png</key>
             <key type="filename">tiles/spider_pv-idle01.png</key>
+            <key type="filename">tiles/spider_pv-sleep00.png</key>
             <key type="filename">tiles/stirge-dead00.png</key>
             <key type="filename">tiles/stirge-idle00.png</key>
             <key type="filename">tiles/stirge-idle01.png</key>
+            <key type="filename">tiles/stirge-sleep00.png</key>
             <key type="filename">tiles/studded_leather_armour.png</key>
             <key type="filename">tiles/tiger_eye.png</key>
             <key type="filename">tiles/trapdoor-dead00.png</key>

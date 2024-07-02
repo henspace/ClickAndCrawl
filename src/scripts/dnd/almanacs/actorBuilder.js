@@ -99,6 +99,9 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   /** @type{boolean}*/
   #aliveStatus;
 
+  /** @type{boolean}*/
+  #sleepStatus;
+
   /** @type {animation.AnimatedImage} */
   #fallbackImage;
 
@@ -124,6 +127,7 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   setActor(actor) {
     this.#actor = actor;
     this.#aliveStatus = this.#actor.alive;
+    this.#sleepStatus = this.#actor.sleeping;
   }
 
   /**
@@ -140,9 +144,14 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   /** override */
   getCurrentFrame() {
     const dir = this.#getCurrentDirection();
-    if (dir !== this.#compassDir || this.#aliveStatus != this.#actor?.alive) {
+    if (
+      dir !== this.#compassDir ||
+      this.#aliveStatus != this.#actor?.alive ||
+      this.#sleepStatus != this.#actor?.sleeping
+    ) {
       this.#compassDir = dir;
       this.#aliveStatus = this.#actor?.alive;
+      this.#sleepStatus = this.#actor?.sleeping;
       this.#setAnimationForState();
     }
     const frame = super.getCurrentFrame() ??
@@ -165,12 +174,14 @@ class ActorStateAnimator extends animation.KeyedAnimatedImages {
   }
 
   /**
-   * Set the appropriate animation based on the the current compass direction.
-   * Only four points supported.
+   * Set the appropriate animation based on the current state and compass direction.
+   * Only four points supported for the compass direction.
    */
   #setAnimationForState() {
     if (!this.#actor.alive) {
       return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('DEAD'));
+    } else if (this.#actor.sleeping) {
+      return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('SLEEP'));
     } else if (this.#compassDir === maths.CompassEightPoint.NONE) {
       return this.setCurrentKey(StdAnimations.peripatetic.getKeyName('IDLE'));
     }

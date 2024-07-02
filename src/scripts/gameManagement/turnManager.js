@@ -59,6 +59,7 @@ import { showRunePuzzle } from '../dialogs/runeQuestionDialog.js';
 import { DungeonChallenge } from '../scriptReaders/autoSceneList.js';
 import SOUND_MANAGER from '../utils/soundManager.js';
 import * as idLimiter from './identifyLimiter.js';
+import * as dndAction from '../dnd/dndAction.js';
 
 /**
  * Factor that is multiplied by the maxMovesPerTurn property of an actor to determine
@@ -69,6 +70,10 @@ const TOO_MANY_TURNS_TO_REACH = 1.5;
  * Max number of tiles that the hero can move for it to be allowed as disengagement.
  */
 const MAX_TILES_FOR_DISENGAGEMENT = 2;
+
+/** Wake up distance when interacting */
+const TILES_WOKEN_UP = 2;
+
 /**
  * Enumeration of supported events
  * @enum {number}
@@ -760,7 +765,7 @@ class ComputerTurnIdle extends State {
       heroActor.disengaging
     );
     for (const actor of WORLD.getActors().values()) {
-      if (actor !== heroActor && actor.alive) {
+      if (actor !== heroActor && actor.alive && !actor.sleeping) {
         if (!actor.isWandering() || dice.rollDice(6) > 3) {
           replayer.addAndMoveActor(actor);
         }
@@ -802,7 +807,12 @@ class ComputerTurnInteracting extends State {
     );
     const participants = tileMap.getParticipants(heroActor);
     for (const actor of WORLD.getActors().values()) {
-      if (actor !== heroActor && actor.alive && actor.interaction) {
+      if (
+        actor !== heroActor &&
+        actor.alive &&
+        actor.interaction &&
+        !actor.sleeping
+      ) {
         if (participants.includes(actor) && actor.willInteract()) {
           await actor.interaction.enact(heroActor);
         } else {
@@ -878,6 +888,7 @@ function moveHeroToPoint(point, options = { usePathFinder: true }) {
   tileMap.setMovementRoutes(null);
   tileMap.setInteractActors(null);
   if (waypoints) {
+    wakeUpAlongWaypoints(waypoints);
     const modifier = new PathFollower(
       { path: waypoints, speed: 100 },
       heroActor.sprite.modifier
@@ -906,6 +917,31 @@ function applyOrganicToActors() {
 
   return Promise.all(promises);
 }
+
+/**
+ * Wake up actors along path.
+ * @param {Point[]} waypoints
+ */
+function wakeUpAlongWaypoints(waypoints) {
+  if (waypoints.length === 0) {
+    return;
+  }
+  const orthoMovement = heroActor.position.getOrthoSeparation(
+    waypoints[waypoints.length - 1]
+  );
+  if (
+    dndAction.sneaksPast(
+      heroActor.traits,
+      WORLD.getTileMap().worldDistanceToTiles(orthoMovement)
+    )
+  ) {
+    return;
+  }
+  for (const point of waypoints) {
+    dndAction.wakeUpSurrounding(point, 1);
+  }
+}
+
 /**
  * Interact with point
  * @param {Point} point - position in world.
@@ -919,8 +955,14 @@ function interact(point) {
   const promises = [];
   for (const target of targets.values()) {
     if (target.interaction) {
+      target.sleeping = false;
       promises.push(target.interaction.react(heroActor));
     }
+  }
+  if (promises.length > 0) {
+    // it would be more logical to use the interaction point, but using the
+    // hero's position gives the player more control.
+    dndAction.wakeUpSurrounding(heroActor.position, TILES_WOKEN_UP);
   }
   return Promise.all(promises);
 }
