@@ -967,6 +967,7 @@ const MESSAGE_MAP = new Map([
   ['CHARACTER LEVEL:', 'level: ${0-level} ${1-class}'],
   ['CHA', 'charisma'],
   ['CON', 'constitution'],
+  ['CR', 'Challenge rating'],
   ['DC', 'difficulty challenge'],
   ['(DEAD)', '(DEAD!)'],
   ['DEX', 'dexterity'],

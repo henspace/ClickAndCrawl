@@ -15,13 +15,13 @@
 7,VERY_RARE,CONSUMABLE,potion_of_healing+very_rare * VALUE:245GP, TYPE: MEDICINE, HP:10D4+20
 
 # items with level of 999 are only for pillaging use.
-999,VERY_RARE,GENERIC,lizard_skin * VALUE:1SP
+999,VERY_RARE,GENERIC,lizard_skin * VALUE:2GP
 999,VERY_RARE,GENERIC,rat_tail * VALUE:5CP
-999,VERY_RARE,GENERIC,spider_venom * VALUE:1GP
+999,VERY_RARE,GENERIC,spider_venom * VALUE:4GP
 999,VERY_RARE,GENERIC,fire_beetle_carapace * VALUE:5SP
 999,VERY_RARE,GENERIC,stirge_head * VALUE:5SP
-999,VERY_RARE,GENERIC,wasp_stinger * VALUE:2GP
-999,VERY_RARE,GENERIC,gargoyle_wings * VALUE:4GP
+999,VERY_RARE,GENERIC,wasp_stinger * VALUE:6GP
+999,VERY_RARE,GENERIC,gargoyle_wings * VALUE:10GP
 
 1,COMMON,GENERIC,orc_skull * VALUE:1SP
 2,COMMON,GENERIC,hunting_trap * VALUE:5GP
@@ -41,18 +41,18 @@
 8,VERY_RARE,GENERIC,diamond * VALUE: 5000GP
 
 
-7,RARE,RING,ring_of_strength * VALUE:1000GP,FX_STR:2
-7,RARE,RING,ring_of_dexterity * VALUE:1000GP,FX_DEX:2
-7,RARE,RING,ring_of_constitution * VALUE:1000CP,FX_CON:2
-7,RARE,RING,ring_of_intelligence * VALUE:1000GP,FX_INT:2
-7,RARE,RING,ring_of_wisdom * VALUE:1000GP,FX_WIS:2
-7,RARE,RING,ring_of_charisma * VALUE:1000GP,FX_CHA:2
-7,RARE,BELT,belt_of_strength * VALUE:5000GP, FX_STR:6
-7,VERY_RARE,BELT,belt_of_strength+rare * VALUE:8000GP, FX_STR:8
+10,RARE,RING,ring_of_strength * VALUE:1000GP,FX_STR:2
+10,RARE,RING,ring_of_dexterity * VALUE:1000GP,FX_DEX:2
+10,RARE,RING,ring_of_constitution * VALUE:1000GP,FX_CON:2
+10,RARE,RING,ring_of_intelligence * VALUE:1000GP,FX_INT:2
+10,RARE,RING,ring_of_wisdom * VALUE:1000GP,FX_WIS:2
+10,RARE,RING,ring_of_charisma * VALUE:1000GP,FX_CHA:2
+10,RARE,BELT,belt_of_strength * VALUE:5000GP, FX_STR:6
+10,VERY_RARE,BELT,belt_of_strength+rare * VALUE:8000GP, FX_STR:8
 
-9,VERY_RARE,RING,ring_of_strength+rare * VALUE:5000GP,FX_STR:4
-9,VERY_RARE,RING,ring_of_dexterity+rare * VALUE:5000GP,FX_DEX:4
-9,VERY_RARE,RING,ring_of_constitution+rare * VALUE:5000GP,FX_CON:4
-9,VERY_RARE,RING,ring_of_intelligence+rare * VALUE:5000GP,FX_INT:4
-9,VERY_RARE,RING,ring_of_wisdom+rare * VALUE:5000GP,FX_WIS:4
-9,VERY_RARE,RING,ring_of_charisma+rare * VALUE:5000GP,FX_CHA:4
+15,VERY_RARE,RING,ring_of_strength+rare * VALUE:5000GP,FX_STR:4
+15,VERY_RARE,RING,ring_of_dexterity+rare * VALUE:5000GP,FX_DEX:4
+15,VERY_RARE,RING,ring_of_constitution+rare * VALUE:5000GP,FX_CON:4
+15,VERY_RARE,RING,ring_of_intelligence+rare * VALUE:5000GP,FX_INT:4
+15,VERY_RARE,RING,ring_of_wisdom+rare * VALUE:5000GP,FX_WIS:4
+15,VERY_RARE,RING,ring_of_charisma+rare * VALUE:5000GP,FX_CHA:4

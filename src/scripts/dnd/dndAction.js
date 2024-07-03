@@ -565,7 +565,7 @@ export function wakeUpSurrounding(point, distanceInTiles = 1) {
     for (const target of targets.values()) {
       const wasSleeping = target.sleeping;
       target.sleeping = false;
-      if (wasSleeping) {
+      if (wasSleeping && target.alive) {
         wakeUpSurrounding(target.position, 1); // waking up wakes others.
       }
     }
