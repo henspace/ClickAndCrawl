@@ -305,13 +305,18 @@ class InventoryContainerElement {
       className: 'store',
     });
 
-    container.appendChild(
-      components.createElement('span', {
-        className: 'store-label',
-        text: label,
-      })
-    );
-
+    // Don' label store for pillaging target
+    if (
+      this.#options.currentOwner.isHero?.() ||
+      this.#options.actionType !== ArtefactActionType.PILLAGE
+    ) {
+      container.appendChild(
+        components.createElement('span', {
+          className: 'store-label',
+          text: label,
+        })
+      );
+    }
     const contentsElement = components.createElement('div', {
       className: 'store-contents',
     });
@@ -1322,9 +1327,11 @@ function createArtefactButtonLabel(options) {
     options.showPrice ||
     artefactTypesEqual(options.artefact.artefactType, ArtefactType.COINS)
   ) {
-    const price = options.currentOwner.isTrader()
-      ? options.artefact.costInGp
-      : options.artefact.sellBackPriceInGp;
+    const price =
+      options.currentOwner.isTrader() ||
+      options.actionType === ArtefactActionType.PILLAGE
+        ? options.artefact.costInGp
+        : options.artefact.sellBackPriceInGp;
     label = `${label} ${price.toFixed(2)} GP`;
   }
   return label;

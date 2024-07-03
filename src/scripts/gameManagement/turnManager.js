@@ -955,7 +955,6 @@ function interact(point) {
   const promises = [];
   for (const target of targets.values()) {
     if (target.interaction) {
-      target.sleeping = false;
       promises.push(target.interaction.react(heroActor));
     }
   }

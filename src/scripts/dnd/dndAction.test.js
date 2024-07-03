@@ -1356,7 +1356,7 @@ test('doesItemBreak - no weapon type', () => {
 });
 
 test('sneaksPast: proficient and creeping', () => {
-  const difficulty = Difficulty.VERY_EASY;
+  const difficulty = Difficulty.EASY;
   const ability = 'DEX';
   let successes = 0;
   let failures = 0;
@@ -1385,7 +1385,7 @@ test('sneaksPast: proficient and creeping', () => {
 });
 
 test('sneaksPast: proficient but just one tile', () => {
-  const difficulty = Difficulty.VERY_EASY;
+  const difficulty = Difficulty.EASY;
   const ability = 'DEX';
   let successesIfCreeping = 0;
   let failuresIfCreeping = 0;
@@ -1413,7 +1413,7 @@ test('sneaksPast: proficient but just one tile', () => {
 });
 
 test('sneaksPast: not proficient and creeping', () => {
-  const difficulty = Difficulty.VERY_EASY;
+  const difficulty = Difficulty.EASY;
   const ability = 'DEX';
   let successes = 0;
   let failures = 0;

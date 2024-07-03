@@ -240,6 +240,10 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION FIRE_BEETLE_PV',
     'A giant fire beetle. Glowing gland radiate a fiery light across the dungeon.',
   ],
+  [
+    'DESCRIPTION FIRE_BEETLE_CARAPACE',
+    'Lustrous carapace of the fire beetle, much used in simple jewelry.',
+  ],
   ['DESCRIPTION FIRE_BOLT', 'You hurl fire at a creature.'],
   ['DESCRIPTION FIRE_STORM', 'You create sheets of roaring flames.'],
   ['DESCRIPTION FLAIL', 'A fear inducing bludgeoning weapon.'],
@@ -262,6 +266,10 @@ const MESSAGE_MAP = new Map([
   ],
   ['DESCRIPTION GARGOYLE', 'A chaotic evil gargoyle.'],
   [
+    'DESCRIPTION GARGOYLE_WINGS',
+    'Gargoyle wings that are used for the manufacture of an incredibly tough and resilient type of leather armour.',
+  ],
+  [
     'DESCRIPTION GIANT_WASP_PV',
     'A gigantic wasp making a deafening buzzing sound that echoes round the dungeon.',
   ],
@@ -274,6 +282,7 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION GOLD_COINS',
     'Gold coins stamped with the image of latter day kings and queens.',
   ],
+  ['DESCRIPTION GOLD_RING', 'A simple gold ring.'],
   [
     'DESCRIPTION GHOUL',
     'An undead creature, living amongst the dead and dying.',
@@ -349,6 +358,10 @@ const MESSAGE_MAP = new Map([
     'DESCRIPTION LIZARD_PV',
     'A red and blue lizard, more dangerous than it looks.',
   ],
+  [
+    'DESCRIPTION LIZARD_SKIN',
+    'Lizard skin; sought after for high-society shoes and belts.',
+  ],
   ['DESCRIPTION LOCK_PICK', 'Set of lock picks.'],
   ['DESCRIPTION LUTE', 'A beautiful lute in remarkable condition.'],
   [
@@ -410,6 +423,10 @@ const MESSAGE_MAP = new Map([
   ],
   ['DESCRIPTION QUARTZ', 'A precious crystal.'],
   ['DESCRIPTION RAT_PV', 'A giant rat, diseased and vicious.'],
+  [
+    'DESCRIPTION RAT_TAIL',
+    "A giant rat's tail used as an ingredient in a number of arcane remedies.",
+  ],
   [
     'DESCRIPTION RANGER1',
     'You are a ranger who is more at one with the forest. The dungeon is not your natural realm, but you are ready to take it on.',
@@ -488,12 +505,20 @@ const MESSAGE_MAP = new Map([
   ],
   ['DESCRIPTION SPIDER_PV', 'A giant spider with fangs dripping green venom.'],
   [
+    'DESCRIPTION SPIDER_VENOM',
+    "Spider venom that is commonly used as a base ingredient in assassin's poisons.",
+  ],
+  [
     'DESCRIPTION SPIKES',
     "It's a trap. Sharp iron spikes shoot up from the ground.",
   ],
   [
     'DESCRIPTION STIRGE',
     'A blood-sucking cross between a giant mosquito and a blood curdling bat.',
+  ],
+  [
+    'DESCRIPTION STIRGE_HEAD',
+    "A stirge's head. The proboscis is often used as a ready made needle for delivering poisons and medicines.",
   ],
   [
     'DESCRIPTION ENHANCE_ABILITY_AS_BULL',
@@ -540,6 +565,10 @@ const MESSAGE_MAP = new Map([
   [
     'DESCRIPTION WARLOCK1',
     'You are a warlock, known for you great knowledge of the supernatural forces that drive the multiverse.',
+  ],
+  [
+    'DESCRIPTION WASP_STINGER',
+    "A giant wasp's stinger that is used as a poisoned weapon by some mercenaries.",
   ],
   [
     'DESCRIPTION WATER_WALK',
@@ -942,6 +971,7 @@ const MESSAGE_MAP = new Map([
   ['(DEAD)', '(DEAD!)'],
   ['DEX', 'dexterity'],
   ['Dungeon floor:', 'Dungeon floor: ${0}'],
+  ['EXP', 'Experience'],
   ['Experience:', 'Experience: ${0}'],
   ['Feet', 'Feet'],
   ['Score:', 'Score: ${0}'],
@@ -950,6 +980,7 @@ const MESSAGE_MAP = new Map([
   ['Hands', 'Hands'],
   ['Head', 'Head'],
   ['hover', 'hover'],
+  ['HP_MAX', 'Hit points maximum'],
   ['(HP OUT OF VALUE)', '(HP:\u{00A0}${0}/${1})'],
   ['(HP VALUE)', '(HP:\u{00A0}${0})'],
   ['INT', 'intelligence'],

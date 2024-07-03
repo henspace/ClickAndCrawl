@@ -47,7 +47,7 @@ waking them. If you move more than one tile in a turn, there is a chance you mig
 wake them. The likelihood of your hero creeping past without waking them, depends
 on your dexterity and whether or not your hero is proficient at stealth.
 
-Monsters in the near vicinity of your hero, will also wake up if your hero fights, searches or interacts
+Monsters close to your hero will also wake up if your hero fights, searches or interacts
 in any way.
 
 ### Disengaging
@@ -64,7 +64,7 @@ Monsters will not walk over items such as manhole covers or disturbed ground, fo
 
 Organic adversaries grow across the dungeon floor. They only affect you if you linger in them, so you're safe while moving but in trouble if you end your turn in them. Sometimes you'll have no choice.
 
-These adversaries can cause immediate damage, but also may inflict poison damage that continues to be applied each turn. Unless you have specific potion, the only way to cure yourself is to take a long or short rest.
+These adversaries can cause immediate damage, but also may inflict poison damage that continues to be applied each turn. Unless you have a specific potion, the only way to cure yourself is to take a long or short rest.
 
 ## Resting
 
@@ -74,11 +74,28 @@ In addition, both short and long rests will cure you of any poisons that may hav
 
 Resting takes place in the relative safety of the stairs between floors.
 
+## Traits ##
+
+If you click on the hero, you can examine your character's **traits**. These are characteristics that
+typically define your hero's abilities. Most will be familiar to dungeon and dragons players, but if you
+are new to this genre, a few are explained below.
+
+- Armour class: this defines how difficult it is for monsters to strike you when they attack. You typically increase this by your choice of armour.
+- Casting power: with the exception of cantrips, spells use up some of your casting power. Higher level spells use more power. If your casting power is too low, it can only be restored by taking a long rest.
+- Experience: you gain experience by defeating monsters. When you reach certain thresholds, your level increases. Higher level heroes have increased abilities.
+- Hit dice: this determine the maximum number of hit points you can have; see __Hit points__ below. As your level increases, so does your number of hit dice, and the tougher you become.
+- Hit points: these represent a combination of your physical and mental durability, the will to live, and luck. When they reach zero, you die.
+- Short rests remaining: depending on your level, you can only have a limited number of short rests. Once this value reaches zero, you will need to take a long rest before you can take any more short ones.
+
 ## Weapons
+
+The amount of damage inflicted by a weapon is defined by its **Damage** trait. This is normally
+expressed as a dice roll; e.g. __1D8__. If you are unfamiliar with this terminology, __1D8__ means the value is determined from the roll of one eight-sided die. Similarly, __2D6__ means the damage is determined by rolling two six-sided dice.
+
 ### Versatile weapons
 
-These weapons can be used in one hand or two. If your other hand is holding something, the damage applied will be calculated as a single-handed attack using the standard **Damage** property. If you have one hand free, it will be assumed you will make a two-handed attack, and the damage will be calculated from the higher **Damage versatile** property.
+These weapons can be used with one or two hands. If your other hand is holding something, the damage applied will be calculated as a single-handed attack using the standard **Damage** property. If you have one hand free, it will be assumed you will use the free hand to make a two-handed attack, and the damage will be calculated from the higher **Damage versatile** property.
 
 ### Simple light weapons ### 
 
-These weapons allow you to fight with two weapons at once. If both of the weapons you are holding in your hands are **simple and light**, you will automatically get two attacks.
+These weapons allow you to fight with two weapons at once. If you are holding two weapons and both are **simple and light**, you will automatically get two attacks. Two simple weapons can be better than some more powerful ones.

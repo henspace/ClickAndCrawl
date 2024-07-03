@@ -538,7 +538,7 @@ export function sneaksPast(actorTraits, tilesMoved) {
   const result = canPerformTask(actorTraits, {
     ability: 'DEX',
     proficiency: 'STEALTH',
-    difficulty: Difficulty.VERY_EASY,
+    difficulty: Difficulty.EASY,
   });
   if (result) {
     LOG.info('Crept past successfully without disturbing monsters.');
@@ -562,7 +562,11 @@ export function wakeUpSurrounding(point, distanceInTiles = 1) {
   for (const tile of surrounds) {
     const targets = tile.getOccupants();
     for (const target of targets.values()) {
+      const wasSleeping = target.sleeping;
       target.sleeping = false;
+      if (wasSleeping) {
+        wakeUpSurrounding(target.position, 1); // waking up wakes others.
+      }
     }
   }
 }
