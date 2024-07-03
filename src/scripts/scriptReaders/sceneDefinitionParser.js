@@ -46,6 +46,7 @@ import { rollDice } from '../utils/dice.js';
 import { ArtefactType, artefactTypesEqual } from '../players/artefacts.js';
 import * as almanacUtils from '../dnd/almanacs/almanacUtils.js';
 import LOG from '../utils/logging.js';
+import * as maths from '../utils/maths.js';
 
 const GRID_SIZE = GameConstants.TILE_SIZE;
 
@@ -86,7 +87,9 @@ function createEnemies(sceneDefn) {
   const enemies = [];
   sceneDefn.enemies.forEach((almanacEntry) => {
     const actor = buildActor(almanacEntry);
-    const likelihoodSleeping = Math.random();
+    const possibleLikelihoods = [0, 0.5, 1];
+    const likelihoodSleeping =
+      possibleLikelihoods[maths.getRandomInt(0, possibleLikelihoods.length)];
     if (
       !actor.traits.get('UNDEAD', false) &&
       actor.traits.get('MOVE', '') !== 'ORGANIC'

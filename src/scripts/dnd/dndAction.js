@@ -535,10 +535,11 @@ export function sneaksPast(actorTraits, tilesMoved) {
   if (tilesMoved <= 1) {
     return true;
   }
+  const difficulty = tilesMoved <= 2 ? Difficulty.EASY : Difficulty.MEDIUM;
   const result = canPerformTask(actorTraits, {
     ability: 'DEX',
     proficiency: 'STEALTH',
-    difficulty: Difficulty.EASY,
+    difficulty: difficulty,
   });
   if (result) {
     LOG.info('Crept past successfully without disturbing monsters.');

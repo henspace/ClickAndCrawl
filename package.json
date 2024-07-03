@@ -1,6 +1,6 @@
 {
   "name": "ClickAndCrawl",
-  "version": "1.0.17-beta",
+  "version": "1.0.18-beta",
   "description": "An old school casual dungeon crawler.",
   "source": "src/index.html",
   "browserslist": [
