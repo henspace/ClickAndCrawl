@@ -913,6 +913,10 @@ const MESSAGE_MAP = new Map([
     'Taking great care you manage to disable the trap.',
   ],
   [
+    'MESSAGE UNSELLABLE ITEM',
+    "The trader does not want to buy this item. You'd need a specialist trader and they don't roam the dungeons. Traders here might sell similar items to you if they've been lucky enough to find them on their travels.",
+  ],
+  [
     'MESSAGE USE PORTAL OR MOVE',
     'You have a choice. Do you want to use this portal or move onto it?',
   ],

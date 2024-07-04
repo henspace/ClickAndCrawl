@@ -922,6 +922,15 @@ function createSellArtefactDialogButtons(container, options) {
     return;
   }
 
+  if (
+    options.prospectiveOwner.isTrader() &&
+    options.artefact.traits.get('UNSELLABLE', false)
+  ) {
+    container.appendChild(createUnsellableGuidance());
+    createSelfActionArtefactDialogButtons(container, options);
+    return;
+  }
+
   // button labels shows action relative to the hero.
   // i.e. although the action may be the trader selling
   // an item, to the player this is viewed as buying.
@@ -1017,6 +1026,15 @@ function createFailedStorageGuidance(options) {
   } else {
     text = i18n`MESSAGE MAKE SPACE IN BACKPACK`;
   }
+  return components.createElement('p', { className: 'guidance', text: text });
+}
+
+/**
+ * Create an element advising that an item is unsellable.
+ * @returns {Element}
+ */
+function createUnsellableGuidance() {
+  let text = i18n`MESSAGE UNSELLABLE ITEM`;
   return components.createElement('p', { className: 'guidance', text: text });
 }
 
